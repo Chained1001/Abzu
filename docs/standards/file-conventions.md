@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> **版本**：v0.1（2026-09-04 立法）
+> **版本**：v0.2（2026-09-05 修订：§三 引用规则按资产域分区 + §一 补根目录文件行）｜v0.1（2026-09-04 立法）
 > **定位**：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > **与术语表分工**：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -20,6 +20,8 @@
 | 规格 | `YYYY-MM-DD-{主题}.md` | `2026-09-04-phase0-infra.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
 | 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
+| 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
+| 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
 
 ## 二、双语命名纪律
 
@@ -32,11 +34,12 @@
 | 场景 | 格式 | 示例 |
 | --- | --- | --- |
 | 同目录文件 | Markdown 链接 | `[stage-drafting.md](stage-drafting.md)` |
-| 跨目录文件 | 路径说明文字 | `docs/standards/ 文件规范` |
+| 跨目录文件（仓库治理文档） | Markdown 链接（含相对路径） | `[file-conventions.md](docs/standards/file-conventions.md)` |
+| 跨目录文件（skill 运行时资产） | 禁链接，用路径说明文字 | `moshu 侧 references/guide.md` |
 | 文件名提及（无需跳转） | 行内代码 | `` `SKILL.md` `` |
 | 指定小节 | 文件名 + 「节名」 | `AGENTS.md`「红线」节 |
 
-规则：只对**同目录**文件用 Markdown 链接；references 之间不互相链接（一层深纪律，见宪法 §7）。
+规则（按资产域分区）：**skill 运行时资产**（`references/`、`scripts/`）禁跨目录链接——部署副本会断链，必须自包含（此规则出身 mo-shu，仅适用于运行时资产）；**仓库治理文档**（根目录、`docs/`）允许跨目录 Markdown 链接——它们在编辑器与 GitHub 中阅读，链接是可用性加分。references 之间不互相链接（一层深纪律，见宪法 §7）。
 
 ## 四、SKILL.md frontmatter 格式
 

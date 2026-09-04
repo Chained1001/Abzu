@@ -1,7 +1,7 @@
 # Abzu 项目宪法（AGENTS.md）
 
 > **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill（名为 `abzu`），目标宿主 Claude Code（唯一）。skill 本体在 `.claude/skills/abzu/`。
-> **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/术语表](docs/glossary.md) 为权威。
+> **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件命名规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/术语表](docs/glossary.md) 为权威。
 > **沿革纪律**：治理变更的来龙去脉记在 CHANGELOG 与 git 历史，本文件只保留当前有效状态，不写沿革史。
 
 ---
@@ -54,7 +54,7 @@
 1. **非平凡改动**（新增文件、跨文件改动、架构性变更）：先探索现状 → 写轻量规格存 `docs/specs/YYYY-MM-DD-<主题>.md`（三要素：现状事实、文件级改动清单、验收标准）→ 用户确认 → 实施 → 验收 → 请求提交。
 2. **平凡改动**：直接做，commit 消息写清动机。
 3. **小步提交**，Conventional Commits 格式：`feat(skill): ...` / `fix(skill): ...` / `docs: ...` / `chore: ...` / `test: ...`。
-4. **提交前自检**：改动是否越出规格范围；验收标准是否全绿；术语是否与术语表一致；新增文件是否符合[文件规范](docs/standards/file-conventions.md)。
+4. **提交前自检**：改动是否越出规格范围；验收标准是否全绿；术语是否与术语表一致；新增文件是否符合[文件命名规范](docs/standards/file-conventions.md)。
 5. **main 单分支**：批次为原子单元直推 main；AI 会话不得自建分支（用户明确要求除外）。
 
 ## 4. 新增能力决策树
