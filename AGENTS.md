@@ -6,7 +6,7 @@
 
 ---
 
-## 0. 会话起步：验证命令与必读文档
+## 0. 会话起步与环境约定
 
 **验证与常用命令**：
 
@@ -25,6 +25,14 @@
 | [docs/glossary.md](docs/glossary.md) | 术语叫法 | 写 skill 正文 / 产品文案前 |
 | [docs/test-prompts.md](docs/test-prompts.md) | 行为验收基准 | 修改 skill 后 |
 | `docs/specs/` | 轻量规格与历史样例 | 非平凡改动开工前 |
+
+**Windows 环境约定（Git Bash）**：
+
+- 一切命令按 Git Bash 语义执行；路径用正斜杠，禁把反斜杠绝对路径喂给 sed/grep 等文本工具（用 `cd` + 相对路径）。
+- Python 命令走探测链 `python3 → python → py`；输出含中文前先 `export PYTHONIOENCODING=utf-8`（中文 Windows 默认 GBK 控制台）。
+- pip 安装的 CLI 可能不在 PATH（入口在 `Python*/Scripts/` 下，如 `agentskills.exe`），找不到时先查该目录。
+- 文本操作与 git mv 前确认目标目录存在（`mkdir -p` 先行，Windows 不自动创建）。
+- npx 工具显式传 glob（如 `npx markdownlint-cli2 "**/*.md"`）；退出码不经管道取（§5 反模式 #6）。
 
 ## 1. 红线（违反即停）
 

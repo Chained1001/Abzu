@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 宪法 §0 增 Windows 环境约定（Git Bash 语义与路径、Python 探测链与 GBK 编码、pip CLI 入口、目录先行、npx glob 与退出码纪律——源自本会话四起实操事故与 mo-shu 教训）。
 - 宪法增补：§1 增密钥红线、§3 增 main 单分支模型、§0 增 lint 体检命令与两行必读文档；CHANGELOG 移除"[0.1.0] - 未发布"空段（Keep a Changelog：发布时才建版本段）。
 - 宪法增补：新增"会话起步"节（验证命令与必读文档导读）、§1.4 占位期基线豁免、§6 不做清单新增"多人协作治理件"条目（单人开发裁定固化）；README Roadmap 增发布前置（演示示例 + 可选最小 CI）。
 - 目标宿主收敛为 Claude Code 唯一（原双宿主 ZCode + Claude Code）；skill 目录自 `.agents/skills/abzu/` 迁移至 `.claude/skills/abzu/`。
