@@ -6,21 +6,15 @@
 
 ## 安装
 
-skill 位于 `.agents/skills/abzu/`，两种安装方式：
+skill 位于 `.claude/skills/abzu/`（[Claude Code 项目级路径](https://code.claude.com/docs/en/skills)）。
 
-**ZCode**（用户级，所有项目可用）：
-
-```bash
-cp -r .agents/skills/abzu ~/.agents/skills/abzu
-```
-
-**Claude Code**（用户级）：
+**日常写作（用户级，所有项目可用）**：
 
 ```bash
-cp -r .agents/skills/abzu ~/.claude/skills/abzu
+cp -r .claude/skills/abzu ~/.claude/skills/abzu
 ```
 
-本仓库内开发时无需安装：ZCode 会自动从 `.agents/skills/` 发现。
+**本仓库内开发/测试**：用 Claude Code 打开本仓库即可自动发现（项目级 `.claude/skills/`）。
 
 ## 快速上手
 
@@ -37,7 +31,7 @@ Abzu/
 │   ├── standards/               # 工程规范
 │   │   └── file-conventions.md  # 文件命名与格式总表
 │   └── specs/                   # 轻量规格（完成即归档）
-└── .agents/skills/abzu/         # skill 本体
+└── .claude/skills/abzu/         # skill 本体（Claude Code 项目级路径）
 ```
 
 ## 开发
@@ -50,6 +44,8 @@ Abzu/
 - [ ] 阶段 1：skill 本体（SKILL.md + 各阶段 references）
 - [ ] 阶段 2：评估迭代（跑通 5 个场景并修订）
 - [ ] v1.x：写作项目内 AGENTS.md 生成、scripts/ 辅助脚本、示例项目
+
+发布前置（开源发布时执行，现不建）：README 补"一句话 → 触发 → 产出"演示示例；可选最小 CI（只跑 `agentskills validate`）。
 
 ## License
 

@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 宪法增补：新增"会话起步"节（验证命令与必读文档导读）、§1.4 占位期基线豁免、§6 不做清单新增"多人协作治理件"条目（单人开发裁定固化）；README Roadmap 增发布前置（演示示例 + 可选最小 CI）。
+- 目标宿主收敛为 Claude Code 唯一（原双宿主 ZCode + Claude Code）；skill 目录自 `.agents/skills/abzu/` 迁移至 `.claude/skills/abzu/`。
+
 ### Added
 
 - 阶段 0 基础设施：项目宪法（AGENTS.md）、文件规范、术语表、评估场景、README/LICENSE/CHANGELOG、abzu skill 占位骨架。

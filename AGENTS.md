@@ -1,17 +1,33 @@
 # Abzu 项目宪法（AGENTS.md）
 
-> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill（名为 `abzu`），双宿主运行（ZCode + Claude Code）。skill 本体在 `.agents/skills/abzu/`。
+> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill（名为 `abzu`），目标宿主 Claude Code（唯一）。skill 本体在 `.claude/skills/abzu/`。
 > **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/术语表](docs/glossary.md) 为权威。
 > **沿革纪律**：治理变更的来龙去脉记在 CHANGELOG 与 git 历史，本文件只保留当前有效状态，不写沿革史。
 
 ---
+
+## 0. 会话起步：验证命令与必读文档
+
+**验证与常用命令**：
+
+- skill 格式校验：`agentskills validate .claude/skills/abzu`（pip 包 `skills-ref`，命令行入口为 `agentskills`）
+- 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
+
+**必读文档**：
+
+| 文档 | 管什么 | 何时必读 |
+|---|---|---|
+| [docs/standards/file-conventions.md](docs/standards/file-conventions.md) | 文件命名与格式 | 新增任何文件前 |
+| [docs/glossary.md](docs/glossary.md) | 术语叫法 | 写 skill 正文 / 产品文案前 |
+| [docs/test-prompts.md](docs/test-prompts.md) | 行为验收基准 | 修改 skill 后 |
+| `docs/specs/` | 轻量规格与历史样例 | 非平凡改动开工前 |
 
 ## 1. 红线（违反即停）
 
 1. **git 默认只读**：commit / push / reset / stash 等一切 git 写操作，每次单独取得用户明确确认；用户对其他操作（删文件、写文件等）的授权**不外延**到 git 提交推送。
 2. **临时产物不入库**：临时验证脚本与输出一律放 `.tmp/<任务>/`，用完即删；不以 `test_*` 前缀伪装正式测试。
 3. **外部参考只读**：引用的外部项目与参考目录绝对只读，不在其中安装依赖、跑构建、跑联网命令。
-4. **禁带病开工**：动工前先确认评估场景（[docs/test-prompts.md](docs/test-prompts.md)）当前无已知失败；有红先呈报裁决，不在红基线上叠改动。
+4. **禁带病开工**：动工前先确认评估场景（[docs/test-prompts.md](docs/test-prompts.md)）当前无已知失败；有红先呈报裁决，不在红基线上叠改动。**基线定义**：skill 建设期，因能力尚未建设而失败的场景不计入红基线；已建设能力出现的回归才算红。
 5. **失败先判因**：任何测试/校验失败，先定位原因再改；**禁止改断言、改数字、删检查来变绿**。
 
 ## 2. 三条分工原则
@@ -55,7 +71,7 @@
 - RAG / 向量检索 —— 复杂度与收益不成比例
 - 数据库后端（任何形式）—— 文件即真相已够用
 - 常驻服务 / Dashboard 产品化 —— 无真实需求
-- 第三宿主通用化 —— 双宿主（ZCode + Claude Code）是上限；宿主差异收敛于安装说明
+- 多宿主适配 —— 唯一宿主 Claude Code；不做第二宿主通用化，宿主相关内容只出现在 README 安装说明
 - CI 里跑 LLM 或联网 —— 守卫零外部依赖
 - 拦截式 hook —— hook 只提醒，不拦截
 
@@ -66,6 +82,7 @@
 - shared-assets 多副本同步 —— 用单一真源 + 引用从根源避免副本
 - CI workflow —— 单人阶段，本地校验脚本够用
 - doc-budget 脚本 —— 先用 §7 体积条款约束
+- 多人协作治理件（CONTRIBUTING / CODE_OF_CONDUCT / OWNERS）—— 单人开发，作者裁定；意外收到外部 PR 时再评估
 
 ## 7. 体积纪律
 
