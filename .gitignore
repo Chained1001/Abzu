@@ -1,0 +1,19 @@
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editors
+*.swp
+.vscode/
+.idea/
+
+# Temp（宪法红线：临时产物只进这里，用完即删）
+*.tmp
+.tmp/
+
+# ZCode 本地工作区配置（含本地会话状态，不入库；跨工具共享的 skill 放 .agents/）
+.zcode/
+
+# Node（未来工具链用）
+node_modules/
