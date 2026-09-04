@@ -11,6 +11,7 @@
 **验证与常用命令**：
 
 - skill 格式校验：`agentskills validate .claude/skills/abzu`（pip 包 `skills-ref`，命令行入口为 `agentskills`）
+- Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
 - 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
 
 **必读文档**：
@@ -19,6 +20,8 @@
 | --- | --- | --- |
 | [docs/standards/file-conventions.md](docs/standards/file-conventions.md) | 文件命名与格式 | 新增任何文件前 |
 | [docs/standards/markdown-style.md](docs/standards/markdown-style.md) | Markdown 正文写法 | 写/改任何 .md 前 |
+| [docs/standards/skill-writing.md](docs/standards/skill-writing.md) | skill 内容设计 | 写/改 SKILL.md 与 references 前 |
+| [docs/standards/release-and-versioning.md](docs/standards/release-and-versioning.md) | 版本与发布 | bump 版本、发布、改写作项目结构前 |
 | [docs/glossary.md](docs/glossary.md) | 术语叫法 | 写 skill 正文 / 产品文案前 |
 | [docs/test-prompts.md](docs/test-prompts.md) | 行为验收基准 | 修改 skill 后 |
 | `docs/specs/` | 轻量规格与历史样例 | 非平凡改动开工前 |
@@ -30,6 +33,7 @@
 3. **外部参考只读**：引用的外部项目与参考目录绝对只读，不在其中安装依赖、跑构建、跑联网命令。
 4. **禁带病开工**：动工前先确认评估场景（[docs/test-prompts.md](docs/test-prompts.md)）当前无已知失败；有红先呈报裁决，不在红基线上叠改动。**基线定义**：skill 建设期，因能力尚未建设而失败的场景不计入红基线；已建设能力出现的回归才算红。
 5. **失败先判因**：任何测试/校验失败，先定位原因再改；**禁止改断言、改数字、删检查来变绿**。
+6. **密钥与凭据不入库**：token、key、密码、`.env` 类文件不进 git；凭据一律用环境变量；已提交的凭据视同泄露，立即轮换。
 
 ## 2. 三条分工原则
 
@@ -43,6 +47,7 @@
 2. **平凡改动**：直接做，commit 消息写清动机。
 3. **小步提交**，Conventional Commits 格式：`feat(skill): ...` / `fix(skill): ...` / `docs: ...` / `chore: ...` / `test: ...`。
 4. **提交前自检**：改动是否越出规格范围；验收标准是否全绿；术语是否与术语表一致；新增文件是否符合[文件规范](docs/standards/file-conventions.md)。
+5. **main 单分支**：批次为原子单元直推 main；AI 会话不得自建分支（用户明确要求除外）。
 
 ## 4. 新增能力决策树
 
