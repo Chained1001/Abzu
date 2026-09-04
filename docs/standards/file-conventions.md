@@ -9,7 +9,7 @@
 ## 一、命名总表
 
 | 文件类型 | 命名规则 | 示例 | 位置 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | skill 壳 | `SKILL.md`（固定名） | — | `.claude/skills/abzu/` |
 | 阶段方法论 | `stage-{阶段名}.md` | `stage-drafting.md` | `.claude/skills/abzu/references/` |
 | 结构/规范类参考 | 描述性英文名 | `project-structure.md` | `.claude/skills/abzu/references/` |
@@ -18,8 +18,8 @@
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
 | 规格 | `YYYY-MM-DD-{主题}.md` | `2026-09-04-phase0-infra.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
-| 工程规范 | 中文名 | `文件规范.md` | `docs/standards/` |
-| 项目参照 | 中文名 | `术语表.md`、`评估场景.md` | `docs/` |
+| 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
+| 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 
 ## 二、双语命名纪律
 
@@ -30,7 +30,7 @@
 ## 三、跨文件引用格式
 
 | 场景 | 格式 | 示例 |
-|---|---|---|
+| --- | --- | --- |
 | 同目录文件 | Markdown 链接 | `[stage-drafting.md](stage-drafting.md)` |
 | 跨目录文件 | 路径说明文字 | `docs/standards/ 文件规范` |
 | 文件名提及（无需跳转） | 行内代码 | `` `SKILL.md` `` |

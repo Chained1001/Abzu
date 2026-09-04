@@ -1,0 +1,14 @@
+{
+  // Abzu markdownlint 配置——采用/不采用规则的权威见 docs/standards/markdown-style.md「不采用的规则」节
+  "globs": [
+    "**/*.md",
+    "!node_modules",
+    "!.zcode/**"
+  ],
+  "config": {
+    // MD013 行长度上限：中文与代码混排不适配 80 列
+    "MD013": false,
+    // MD040 代码块语言：目录树/中文话术/模板围栏无语言可标，硬标 text 无渲染收益；真代码语言标注由规范条文约束
+    "MD040": false
+  }
+}

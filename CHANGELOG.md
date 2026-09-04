@@ -11,6 +11,7 @@
 
 ### Added
 
+- Markdown 写作规范（docs/standards/markdown-style.md）：结构、中文排版、AI 友好、符号编码安全四域立法；`.gitattributes` 行尾统一 LF；`.markdownlint-cli2.jsonc` 体检配置与全仓基线清零；修正 file-conventions 命名总表两处示例与实际文件名不符。
 - 阶段 0 基础设施：项目宪法（AGENTS.md）、文件规范、术语表、评估场景、README/LICENSE/CHANGELOG、abzu skill 占位骨架。
 
 ## [0.1.0] - 未发布
