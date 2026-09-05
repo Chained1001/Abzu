@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 合规修缮：workflow-scan 加粗密度达标；7 份移植方法论补「消费点/边界」头注（对齐 skill-writing 五.2）；glossary 登记"扫榜报告"；markdown-style 增移植文件排版豁免条款。
 - 扫榜域移植（批次 B）：自 mo-shu v2.6.1 移植 moshu-scan 与 moshu-cdp 全部资产——7 份 references（references/scan/）与 7 个运行时脚本（scripts/，含 4 平台抓取器、scan-analyze 确定性提取、CDP 启动器，脚本保留原名保依赖）；新写 workflow-scan.md 域工作流与 cdp-base.md 底座文档（杀 Chrome 同意流程原文保留）；SKILL.md 正文首版（会话恢复协议 + 域路由表，version 0.2.0，description 补扫榜触发词）。
 - 架构落盘（批次 A）：architecture.md v1.0（单 skill 六域裁定 + 理由 + mo-shu 实测数据 + 部署实测循环 + setup 触发条件）；file-conventions v0.3（域子目录/命令薄壳/架构文档行）；AGENTS.md 必读表加架构行；glossary 补扫榜调研术语节；test-prompts 补场景 6（扫榜）；新增首个命令薄壳 `.claude/commands/abzu-scan.md`。
 - 文件规范 v0.2 自审计修正：§三 引用规则按资产域分区（skill 运行时资产禁跨目录链接保部署自包含；治理文档放开链接）、§一 补根目录治理文件与工程配置两行、清理两处"文件规范"旧中文名残留（file-conventions §三 示例、AGENTS.md 头部链接文字）。
