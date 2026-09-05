@@ -15,7 +15,7 @@
 | 域工作流 | `{域}-workflow.md` | `scan-workflow.md` | `references/{域}/` |
 | 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `references/{域}/` |
 | 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `references/{域}/` |
-| 模板 | `{产物名}-template.md` | `character-card-template.md` | `references/`（小型模板可直接内嵌） |
+| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板）；正文须含字段定义表/默认值/填写示例 | `scan-topic-decision-template.md` | `references/{域}/` |
 | 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `skills/abzu/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
