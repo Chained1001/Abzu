@@ -19,7 +19,7 @@
 | 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `skills/abzu/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
-| 规格 | `{序号NNN}-{YYYY-MM-DD}-{主题}.md`，序号按立项顺序三位递增、永不复用 | `012-2026-09-06-scraper-hardening.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
+| 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
 | 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
@@ -32,7 +32,7 @@
 
 ## 二、双语命名纪律
 
-- **英文 kebab-case**：skill 目录、references、脚本、规格、守卫——开发者可见的一切。
+- **英文 kebab-case**：skill 目录、references、脚本、守卫——开发者可见的一切；规格主题部分用中文（作者阅读的治理记录，惯例同 mo-shu）。
 - **中文名**：写作项目（用户的书目录）内的产物文件，如 `卷纲_第1卷.md`、`人物卡_林晚.md`——由 skill 运行时创建，**不进本仓库**；命名细则由 skill 的 project-structure 参考文件定义。
 - 路径分隔符一律正斜杠（跨平台；反斜杠在 Unix 上失效）。
 
