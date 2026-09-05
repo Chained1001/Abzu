@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 选题决策.md 模板 v2（作者征引外部反馈 + 裁定）：新增读者代偿心理/开篇钩子公式/长期追读动力/内容风险点四字段；失败风险拆为技术难点+市场风险；验证动作绑定平台指标；数据来源改四选枚举。拒绝仿写优先级独立段（与可行性排序重复）与模板内平台框架提示（已有速查表与维度表覆盖）。version 0.2.0→0.3.0（产物结构变更=minor）。
 - 权威规范对齐调研落盘（作者要求：外部权威为准，mo-shu 仅为同域参考）：architecture.md 新增 §七 权威对齐节（T0 官方/T1 实物标杆/T2 目录三级清单 + 设计决策对照）；description 补边界声明（官方 strong description 三要素）；test-prompts 补场景 7 域外休眠（官方测试矩阵）；挂账粒度五次法则/季度评审/reflect 机制/精读 document-skills 范本。
 - 检查体系升档（L1 纪律→L2+L3，作者裁定 A 方案）：新增 scripts/check.sh 一键检查（validate+lint）与 git pre-commit 提交门禁（拦截式，本地）；§0 验证命令更新；§6 拦截式 hook 条目细化——宿主 PreToolUse 拦 AI 操作只提醒（负向流程守卫例外），git 提交门禁不在此列。研读 mo-shu 宿主 hook 体系（SessionStart 上下文注入/PreToolUse 流程守卫/PostToolUse 机检/Pre-PostCompact 压缩续存）——运行时 hook 留待物化触发条件。
 - 体积纪律强化（研读 mo-shu doc-budget 机制后裁定）：§7 增超限处理序（压缩→下沉→最后调上限）；§6 doc-budget 条目改有条件缓建并写明解冻触发条件（热路径连续两批触限或单文件字符 >2 万，届时以字符实测立法）。
