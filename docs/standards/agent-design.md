@@ -3,6 +3,7 @@
 > 版本：v0.1（2026-09-06 骨架立法）
 > 定位：Abzu 子代理（subagent）的命名、设计判据、结构模板与协作协议的单点权威——**占位蓝图版**：骨架与判据现已生效（约束设计与文档），实体 agent 的创建待 T1 触发（正文/审查域成熟）。
 > 依据：Claude Code 官方 sub-agents 文档、Anthropic Building Effective Agents（编排/评审模式）、mo-shu 同域参考实现（8 agent 实战经验）。
+> **术语边界**：本规范的「agent」特指 **Claude Code 子代理（AI 分身，独立上下文窗口）**。外部 CLI 工具（如 agent-browser——浏览器自动化依赖）不是 agent，属环境依赖，归 references/scan/scan-cdp-base.md「前置条件」与 README 安装前置管辖。
 
 ## 一、命名与文件
 

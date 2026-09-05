@@ -58,6 +58,8 @@
 | 选题决策 | 把扫榜结果转化为可执行选题建议的产物文件，后续立项的输入 | topic decision |
 | 样本校验 | 判断榜单样本是否足以支撑结论的规则（样本量阈值与降级纪律） | sample validation |
 | 数据质量三行 | 采集文件头部必须含的三行：数据质量、有效条目、问题摘要 | data quality header |
+| agent-browser | CDP 采集依赖的浏览器自动化 CLI 工具（全局 npm 安装）——是工具不是 AI 分身 | agent-browser |
+| 子代理 | Claude Code 中由主会话派生的 AI 分身（独立上下文），T1 触发后启用；区别于 agent-browser 这类工具 | subagent |
 
 ---
 
