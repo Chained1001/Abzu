@@ -11,7 +11,7 @@
 
 榜单清单与 URL 见 references/scan/scan-collection-guide.md「起点采集目标」节。
 
-优先使用 `scripts/qidian-rank-scraper.js` 的默认 `--mode auto`。脚本先读取 `https://m.qidian.com` 移动端 SSR pageContext JSON，规避 PC 站风控页；移动端不可用时才回退到 CDP/PC 页面。输出头部会标注 `抓取方式：mobile-ssr` 或 `cdp-pc`。
+优先使用 `{SKILL_DIR}/scripts/qidian-rank-scraper.js` 的默认 `--mode auto`。脚本先读取 `https://m.qidian.com` 移动端 SSR pageContext JSON，规避 PC 站风控页；移动端不可用时才回退到 CDP/PC 页面。输出头部会标注 `抓取方式：mobile-ssr` 或 `cdp-pc`。
 
 ### 字段
 
