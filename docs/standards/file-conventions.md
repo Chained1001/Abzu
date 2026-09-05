@@ -15,19 +15,19 @@
 | 域工作流 | `{域}-workflow.md` | `scan-workflow.md` | `references/{域}/` |
 | 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `references/{域}/` |
 | 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `references/{域}/` |
-| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板）；正文须含字段定义表/默认值/填写示例 | `scan-topic-decision-template.md` | `references/{域}/` |
+| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md` | `references/{域}/` |
 | 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `skills/abzu/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
-| 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
+| 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本） |
 | 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
 | 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
-| 命令薄壳（预留） | `abzu-{路由键}.md`，单行内容 `abzu skill {路由键}`；多域上线、分发方案裁定后启用 | — | `.claude/commands/`（现无实例） |
+| 命令薄壳（预留） | `abzu-{路由键}.md`，单行内容 `abzu skill {路由键}`；多域上线、分发方案裁定后启用——**启用前不得新增实例** | — | `.claude/commands/`（现无实例） |
 | 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
 | agent 设计规范 | `agent-design.md`（固定名，长期文档） | — | `docs/standards/` |
-| agent 文件（预留） | `abzu-{角色名}.md`，YAML frontmatter（name/description/tools/model）；T1 触发后启用 | — | `.claude/agents/`（物化目标，仓库内源码位待 T1 定） |
+| agent 文件（预留） | `abzu-{角色名}.md`，YAML frontmatter（name/description/tools/model）；T1 触发后启用——**启用前不得新增实例** | — | `.claude/agents/`（物化目标，仓库内源码位待 T1 定） |
 | 协作日志 | `collab-log.md`（固定名，逐次登记规格施工记录与模板四件套） | — | `docs/specs/` |
 
 > **域前缀适用判据**：`{域}-` 前缀适用于**主题名域相对、需消歧**的文件（skill 资产——装入用户机器、被路由键检索，如 `scan-genre-trends.md`）；名字已全局自描述的治理文档（`docs/` 下全部文件，如 `markdown-style.md`）不加前缀——位置由文件夹表达，名字表达内容。未来 `common/` 公共层文件命名同用此判据。
@@ -35,7 +35,7 @@
 ## 二、双语命名纪律
 
 - **英文 kebab-case**：skill 目录、references、脚本、守卫——开发者可见的一切；规格主题部分用中文（作者阅读的治理记录，惯例同 mo-shu）。
-- **中文名**：写作项目（用户的书目录）内的产物文件，如 `卷纲_第1卷.md`、`人物卡_林晚.md`——由 skill 运行时创建，**不进本仓库**；命名细则由 skill 的 project-structure 参考文件定义。
+- **中文名**：写作项目（用户的书目录）内的产物文件，如 `卷纲_第1卷.md`、`人物卡_林晚.md`——由 skill 运行时创建，**不进本仓库**；命名细则将由立项域（outline）的 project-structure 规范定义（未建，安放方案见 architecture.md §三）。
 - 路径分隔符一律正斜杠（跨平台；反斜杠在 Unix 上失效）。
 
 ## 三、跨文件引用格式
@@ -48,7 +48,7 @@
 | 文件名提及（无需跳转） | 行内代码 | `` `SKILL.md` `` |
 | 指定小节（治理文档） | 文件名 + 「节名」 | `AGENTS.md`「红线」节 |
 
-规则（按资产域分区）：**skill 运行时资产**（`references/`、`scripts/`）禁跨目录链接——部署副本会断链，必须自包含（此规则出身 mo-shu，仅适用于运行时资产）；**仓库治理文档**（根目录、`docs/`）允许跨目录 Markdown 链接——它们在编辑器与 GitHub 中阅读，链接是可用性加分。references 之间不互相链接（一层深纪律，见宪法 §7）。
+规则（按资产域分区）：**skill 运行时资产**（`references/`、`scripts/`）禁跨目录链接——部署副本会断链，必须自包含（此规则出身 mo-shu，仅适用于运行时资产）；**仓库治理文档**（根目录、`docs/`）允许跨目录 Markdown 链接——它们在编辑器与 GitHub 中阅读，链接是可用性加分。references 之间不互相链接（一层深纪律，见宪法 §7）。未来守卫待办：check.sh 可增「扫描 references 内相对 .md 链接」检查项。
 
 ## 四、SKILL.md frontmatter 格式
 

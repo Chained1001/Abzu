@@ -60,6 +60,8 @@
 | 数据质量三行 | 采集文件头部必须含的三行：数据质量、有效条目、问题摘要 | data quality header |
 | agent-browser | CDP 采集依赖的浏览器自动化 CLI 工具（全局 npm 安装）——是工具不是 AI 分身 | agent-browser |
 | 子代理 | Claude Code 中由主会话派生的 AI 分身（独立上下文），T1 触发后启用；区别于 agent-browser 这类工具 | subagent |
+| skill 资产 | 随安装分发到用户机器的 skill 运行时文件（references/scripts），引用规则受部署自包含约束 | skill asset |
+| 仓库治理文档 | 仓库根目录与 docs/ 下的规范、记录类文件——不随 skill 安装分发，引用可用 Markdown 链接 | governance doc |
 
 ---
 
