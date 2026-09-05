@@ -18,7 +18,7 @@ npx skills add Chained1001/Abzu -y
 cp -r skills/abzu ~/.claude/skills/abzu
 ```
 
-安装后新开会话即可使用：敲 `/abzu` 或直接说"扫一下起点榜"。
+安装后新开会话即可使用：敲 `/abzu` 或直接说"扫一下起点榜"。终端 Claude Code 与 VSCode 的 Claude Code 插件共用 `~/.claude/` 配置，本安装对两者同时生效；作者日常使用环境为 VSCode 插件（新对话即新会话）。
 
 **本仓库内开发**：skill 在根目录 `skills/abzu/`（产品源码位，Claude Code 打开本仓库不自动加载）；实测走上面的安装流程到独立文件夹进行。域级命令薄壳（如 `/abzu-scan`）为多域上线后的待裁项，样式见 Roadmap 挂账。
 

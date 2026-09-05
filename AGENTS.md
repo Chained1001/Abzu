@@ -1,6 +1,7 @@
 # Abzu 项目宪法（AGENTS.md）
 
 > **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill（名为 `abzu`），目标宿主 Claude Code（唯一）。skill 本体在 `skills/abzu/`。
+> **存在理由**（作者 2026-09-05 口述落盘）：本项目是 mo-shu 的重制——旧项目因初期规范与架构先天不足，后期代码问题堆积，"大幅修改不如重头开始"，故推倒重开。目标是规范干净、持续可维护的开源写作 skill；作者日常在 VSCode 的 Claude Code 插件中使用。
 > **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件命名规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/术语表](docs/glossary.md) 为权威。
 > **沿革纪律**：治理变更的来龙去脉记在 CHANGELOG 与 git 历史，本文件只保留当前有效状态，不写沿革史。
 
