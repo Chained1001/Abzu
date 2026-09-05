@@ -40,10 +40,11 @@ Abzu/
 
 ## Roadmap
 
-- [x] 阶段 0：基础设施（宪法/规范/术语表/评估场景）
-- [ ] 阶段 1：skill 本体（SKILL.md + 各阶段 references）
-- [ ] 阶段 2：评估迭代（跑通 5 个场景并修订）
-- [ ] v1.x：写作项目内 AGENTS.md 生成、scripts/ 辅助脚本、示例项目
+- [x] 阶段 0：基础设施（宪法/规范/术语表/评估场景/架构落盘）
+- [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜 ✅ ｜ 拆书 ｜ 大纲 ｜ 卷纲 ｜ 正文 ｜ 文风
+- [ ] 评估：[test-prompts](docs/test-prompts.md) 六场景全绿
+- [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
+- [ ] 基建挂账：GitHub 私有仓远程备份；junction 链接免手动部署
 
 发布前置（开源发布时执行，现不建）：README 补"一句话 → 触发 → 产出"演示示例；可选最小 CI（只跑 `agentskills validate`）；可选 Claude 插件市场打包（`.claude-plugin/marketplace.json`）；域内同类项目（oh-story-claudecode 等）对比报告。
 
