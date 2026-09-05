@@ -19,7 +19,7 @@
 | 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `skills/abzu/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
-| 规格 | `YYYY-MM-DD-{主题}.md` | `2026-09-04-phase0-infra.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
+| 规格 | `{序号NNN}-{YYYY-MM-DD}-{主题}.md`，序号按立项顺序三位递增、永不复用 | `012-2026-09-06-scraper-hardening.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
 | 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |

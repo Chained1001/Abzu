@@ -109,7 +109,7 @@
 
 字体反爬：列表页 innerText 被自定义字体混淆，`scripts/fanqie-rank-scraper.js` 改从详情页 HTML（内嵌 JSON `bookName`/`author`/`abstract`/`categoryV2` + `<title>` + og:meta）多策略解码明文，规避字体反爬。流程：访问品类页 → 提取品类链接 → 逐品类取 `__INITIAL_STATE__` 列表 → 分批（每 5 本）请求详情页解码。单页上限约 20 本需滚动加载；`--top N` 可调每题材上限。
 
-**故障排查（书名全是 `bookId:xxx` / `（标题待解析）`）**：
+### 故障排查（书名全是 `bookId:xxx` / `（标题待解析）`）
 
 - 看文件头 `数据质量`：标 `[存在问题]` 且 `问题摘要` 含 `[标题解析异常]` 说明详情页解码失败率高。
 - 多为详情页结构变动或被登录/验证页拦截。在已登录的 Chrome 里手动打开任一 `https://fanqienovel.com/page/{bookId}` 确认页面正常、非验证页。
