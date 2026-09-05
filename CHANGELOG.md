@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 依赖与门禁审计三补：①口径修正——abzu-scan 并非零依赖，番茄/七猫/晋江 CDP 采集依赖全局 agent-browser（README 安装节补前置：Node 20+/Chrome/agent-browser，起点榜仅需 Node）；②check.sh 边界加固（LOCALAPPDATA 未设时的 set -u 崩溃风险）；③architecture T1 触发器补 ECC 参考锚（全家桶插件模式参考实现）。
 - 脚本契约审计（文档↔代码参数一致性，③ 契约层首次执行）：工作流承诺参数全部实存 ✓；反向补录 3 个未文档化参数（qidian --detail / --port ×4 / scan-analyze --dist）入采集指南。
 - 规格命名规则修订（作者要求）：主题部分英文改中文（作者面向的治理记录），全部 13 份规格更名（001 宪法会话起步增补 …… 013 多技能骨架切换）；collab-log 引用同步；双语纪律相应修订。
 - architecture §五 补行业安装原型对照（三原型：零初始化/首用即初始化/独立 setup——调研 awesome-novel-agent、webnovel-writer、oh-story、ECC 等实证）；确认 Abzu 当前为原型①标准形态，T1 触发时按原型③立法 /abzu-setup；安装预检挂账。

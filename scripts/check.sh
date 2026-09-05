@@ -8,7 +8,7 @@ fail=0
 AS=""
 command -v agentskills >/dev/null 2>&1 && AS=agentskills
 if [ -z "$AS" ]; then
-  AS=$(ls "$LOCALAPPDATA/Programs/Python/"*/Scripts/agentskills.exe 2>/dev/null | head -1)
+  AS=$(ls "${LOCALAPPDATA:-}/Programs/Python/"*/Scripts/agentskills.exe 2>/dev/null | head -1)
 fi
 if [ -z "$AS" ]; then
   echo "x agentskills 未找到（pip install skills-ref）"
