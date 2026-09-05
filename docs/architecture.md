@@ -6,7 +6,7 @@
 
 ## 一、裁定记录
 
-- **承载架构**：单 skill（`abzu`）六域——scan / analyze / outline / volume / write / style。
+- **承载架构**（2026-09-06 修订）：**多技能骨架**——六域各一 skill（abzu-scan / abzu-analyze / abzu-outline / abzu-volume / abzu-write / abzu-style）+ 未来 abzu-setup（T1 触发）。当前仅 abzu-scan 建有内容，其余五壳占位。
 - 首建域：扫榜调研（scan），完成后真实实测，再开下一域。
 - v1 范围：仅六域；导入 / 独立审查 / 抓取底座独立化均不做（抓取底座作为扫榜调研域内置脚本随行）。
 
@@ -38,29 +38,24 @@
 ## 三、落定结构
 
 ```
-skills/abzu/
-├── SKILL.md                  # 薄总控（<300 行）：会话恢复协议 + 域路由表 + 门控原则
-├── references/
-│   ├── common/               # 公共层：project-structure / tracking-spec / 跨域方法论
-│   ├── scan/                 # ① 扫榜调研（含 scan-cdp-base.md 底座文档）
-│   ├── analyze/              # ② 拆书分析
-│   ├── outline/              # ③ 大纲
-│   ├── volume/               # ④ 卷纲
-│   ├── write/                # ⑤ 正文（章纲 + 撰写）
-│   └── style/                # ⑥ 文风
-└── scripts/                  # 运行时脚本一份，全域共用
+skills/
+├── abzu-scan/                # ① 扫榜调研（已建设）
+│   ├── SKILL.md              # 域壳：入口判定（进度自查）+ 指向域工作流
+│   ├── references/scan/      # workflow + 采集/分析/选题/读者/题材/运营/格式 + cdp-base
+│   └── scripts/              # 四平台抓取器 + scan-analyze + CDP 启动器
+├── abzu-analyze/             # ② 拆书分析（占位壳）
+├── abzu-outline/             # ③ 大纲（占位壳）
+├── abzu-volume/              # ④ 卷纲（占位壳）
+├── abzu-write/               # ⑤ 正文（占位壳）
+├── abzu-style/               # ⑥ 文风（占位壳）
+└── （abzu-setup 于 T1 触发时诞生：物化 hooks/子代理/共享知识库进书项目）
 ```
+
+共享知识库（题材卡等跨域方法论）安放方案：由 setup 物化进书项目（agent-references 模式）；书目录规范由立项域物化。
 
 ## 四、精准入口机制
 
-用户只使用精准斜杠命令，不用模糊自然语言。命令薄壳放 `.claude/commands/`，内容用标识符风格，与 SKILL.md 路由键一字不差：
-
-```markdown
-<!-- .claude/commands/abzu-scan.md -->
-abzu skill scan
-```
-
-命令名（`/abzu-scan`）= 路由键（`scan`）= 域目录名，三者对齐。命令随域开发逐个补充。
+多技能骨架下 **skill 本名即精准命令**：`/abzu-scan`、`/abzu-outline` 等由 Claude Code 斜杠菜单原生补全，无需命令薄壳（单技能时期的方案，随骨架切换退役）。域内细分操作按各域工作流的交互模态执行。
 
 ## 五、部署与实测循环
 

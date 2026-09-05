@@ -37,7 +37,7 @@
 4. 按规范格式写入 Markdown 文件（字段定义与模板见 references/scan/scan-output-format.md）
 5. 多榜单/多题材时，逐组采集并保存
 
-`{SKILL_DIR}` 指当前加载的 abzu skill 根目录。
+`{SKILL_DIR}` 指当前加载的 abzu-scan skill 根目录。
 
 ### 起点采集目标
 
