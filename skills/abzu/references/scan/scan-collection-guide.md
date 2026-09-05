@@ -91,7 +91,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --top 15 --detail-limit
 node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only                 # 只采列表（快，无核心指标）
 ```
 
-> **晋江硬性要求**：必须有详情页核心指标（收藏数/营养液/积分/字数），脚本默认已补采；采集要点见 references/scan/scan-output-format.md。
+> **晋江必须项**：必须有详情页核心指标（收藏数/营养液/积分/字数），脚本默认已补采；采集要点见 references/scan/scan-output-format.md。
 
 ### 文件命名与输出目录
 
