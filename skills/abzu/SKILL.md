@@ -23,7 +23,7 @@ metadata:
 | 路由键 | 意图关键词 | 工作流 | 状态 |
 | --- | --- | --- | --- |
 | `scan` | 扫榜调研、扫榜、榜单、市场题材、调研、选题 | [references/scan/scan-workflow.md](references/scan/scan-workflow.md) | ✅ 已建设 |
-| `analyze` | 拆书、拆解、分析对标书 | — | 🚧 未建设 |
+| `analyze` | 拆书、拆解、分析参考书 | — | 🚧 未建设 |
 | `outline` | 开新书、立项、大纲、总纲 | — | 🚧 未建设 |
 | `volume` | 卷纲、本卷规划、收卷 | — | 🚧 未建设 |
 | `write` | 章纲、下一章、正文、续写 | — | 🚧 未建设 |
