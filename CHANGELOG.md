@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 安装方式升级：主推 `npx skills add Chained1001/Abzu -y`（skills.sh 安装器，实测对同结构仓库识别良好），cp 降为离线备选；README/architecture §五 同步。GitHub 远程（Chained1001/Abzu 公开仓）建立并推送，远程备份挂账销账。
 - 架构修订：skill 目录自 `.claude/skills/abzu/` 迁至根目录 `skills/abzu/`——本仓库定位为 skill 生产仓库（产品源码位），与 anthropics/skills、mo-shu 结构对齐；`.claude/` 仅保留 commands 薄壳（宿主集成位）；安装命令改为 `cp -r skills/abzu ~/.claude/skills/abzu`。
 - 合规修缮：workflow-scan 加粗密度达标；7 份移植方法论补「消费点/边界」头注（对齐 skill-writing 五.2）；glossary 登记"扫榜报告"；markdown-style 增移植文件排版豁免条款。
 - 扫榜域移植（批次 B）：自 mo-shu v2.6.1 移植 moshu-scan 与 moshu-cdp 全部资产——7 份 references（references/scan/）与 7 个运行时脚本（scripts/，含 4 平台抓取器、scan-analyze 确定性提取、CDP 启动器，脚本保留原名保依赖）；新写 workflow-scan.md 域工作流与 cdp-base.md 底座文档（杀 Chrome 同意流程原文保留）；SKILL.md 正文首版（会话恢复协议 + 域路由表，version 0.2.0，description 补扫榜触发词）。

@@ -57,12 +57,12 @@ abzu skill scan
 ## 五、部署与实测循环
 
 ```
-改 skill → agentskills validate → npx markdownlint-cli2
-        → cp -r skills/abzu ~/.claude/skills/abzu（+ commands）
-        → 新会话（新文件夹）敲 /abzu-<域> 真测
+改 skill → agentskills validate skills/abzu → npx markdownlint-cli2
+        → npx skills add Chained1001/Abzu -y（skills.sh 安装器，自动装入用户级；离线备选 cp -r skills/abzu ~/.claude/skills/abzu）
+        → 新会话（新文件夹）敲 /abzu 真测
 ```
 
-v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，cp 即全部部署；书项目脚手架由立项流程自建；升级检测走 `project.md` 的 `schema` 字段（release-and-versioning §四）。
+v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安装即全部部署；书项目脚手架由立项流程自建；升级检测走 `project.md` 的 `schema` 字段（release-and-versioning §四）。skills.sh 安装只携带 skill 文件夹（不含 `.claude/commands/` 薄壳）——v1 唯一功能为扫榜，`/abzu` 入口直达；域级命令分发方案留待多域上线时裁定（Roadmap 挂账）。
 
 **setup 等价物的触发条件**：将来引入需要物化进书项目的组件（hooks / 子代理 / 项目级模板）之日，才引入 `/abzu-setup`——此前不做（防未来会话重复纠结）。
 

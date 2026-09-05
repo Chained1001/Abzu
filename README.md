@@ -6,15 +6,21 @@
 
 ## 安装
 
-skill 位于仓库根目录 `skills/abzu/`——skill 生产仓库的标准产品位（同 anthropics/skills、mo-shu 结构）。
+**推荐（[skills.sh](https://www.skills.sh/docs/cli) 包管理器，自动探测 Claude Code 并装入用户级）**：
 
-**日常写作（用户级，所有项目可用）**：
+```bash
+npx skills add Chained1001/Abzu -y
+```
+
+**离线备选（手动复制）**：
 
 ```bash
 cp -r skills/abzu ~/.claude/skills/abzu
 ```
 
-**本仓库内开发**：skill 在根目录 `skills/abzu/`，Claude Code 打开本仓库不会自动加载（产品源码位非配置位）；实测一律走上面的用户级安装流程。
+安装后新开会话即可使用：敲 `/abzu` 或直接说"扫一下起点榜"。
+
+**本仓库内开发**：skill 在根目录 `skills/abzu/`（产品源码位，Claude Code 打开本仓库不自动加载）；实测走上面的安装流程到独立文件夹进行。斜杠命令薄壳在 `.claude/commands/`（开发期用，skills.sh 安装不携带，域级命令分发方案见 Roadmap）。
 
 ## 快速上手
 
@@ -44,7 +50,7 @@ Abzu/
 - [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜 ✅ ｜ 拆书 ｜ 大纲 ｜ 卷纲 ｜ 正文 ｜ 文风
 - [ ] 评估：[test-prompts](docs/test-prompts.md) 六场景全绿
 - [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
-- [ ] 基建挂账：GitHub 私有仓远程备份；junction 链接免手动部署
+- [ ] 基建挂账：junction 链接免手动部署；多域上线后裁定域级命令分发方案（skills.sh 不携带 commands 薄壳）
 
 发布前置（开源发布时执行，现不建）：README 补"一句话 → 触发 → 产出"演示示例；可选最小 CI（只跑 `agentskills validate`）；可选 Claude 插件市场打包（`.claude-plugin/marketplace.json`）；域内同类项目（oh-story-claudecode 等）对比报告。
 
