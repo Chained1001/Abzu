@@ -48,7 +48,7 @@
 
 ### Stage 4：输出扫榜报告
 
-报告模板见 references/scan/scan-analysis-guide.md「扫榜报告模板」节，写入 `{扫榜目录}/扫榜报告_{平台}{方向}_{YYYYMMDD}.md`。
+报告模板见 references/scan/scan-analysis-guide.md「扫榜报告模板」节，写入 `{扫榜目录}/扫榜报告_{平台}{方向}_{YYYYMMDD}.md`。**停靠点**：报告落盘后经作者过目确认，才进入 Stage 5。
 
 ### Stage 5：选题决策
 
@@ -85,7 +85,8 @@
 | references/scan/scan-output-format.md | 数据格式法典：采集字段定义、输出模板、清洗规则 | Stage 2 采集与质检时按需 |
 | references/scan/scan-cdp-base.md | CDP 底座说明书：Chrome 调试启动、浏览器操作、清理 | 番茄/七猫/晋江需浏览器态时按需 |
 | references/scan/scan-analysis-guide.md | 分析方法论：各平台分析维度、通用维度、扫榜报告模板 | Stage 3/4 全量 |
-| references/scan/scan-topic-decision.md | 交付物定义：选题四步、可行性纪律、选题决策.md 模板 | Stage 5 全量 |
+| references/scan/scan-topic-decision.md | 交付物定义：选题四步、可行性纪律、字段生产路由 | Stage 5 全量 |
+| references/scan/scan-topic-decision-template.md | 选题决策.md 落盘模板：字段定义表、模板正文、填写示例 | Stage 5 全量 |
 | references/scan/scan-reader-profiling.md | 读者知识库：九维画像、70/20/10 配比、平台读者速查 | 分析涉及目标读者画像时按需 |
 | references/scan/scan-genre-trends.md | 题材知识库：趋势候选、流派要点、切入约束、样本校验 | 分析题材格局时按需 |
 | references/scan/scan-publishing-guide.md | 运营知识库：平台适配、推荐机制、数据指标、简介设计 | 涉及平台适配与简介设计时按需 |

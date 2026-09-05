@@ -130,7 +130,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only            
 
 ## 采集质量检查（每完成一个榜单立即执行）
 
-发现问题当场修复，不留给后续分析。详细规则见 references/scan/scan-output-format.md「数据清洗与字段约束」。
+发现问题当场修复，不留给后续分析。详细规则见 references/scan/scan-output-format.md「数据清洗」。
 
 ### 数据完整性
 
@@ -168,7 +168,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only            
 
 **用户提供操作指引：**
 
-- 用户提供已有的扫描结果文件路径 → 直接加载进入「数据分析」
+- 用户提供已有的扫榜结果文件路径 → 直接加载进入「数据分析」
 - 用户提供链接 → 用 WebFetch 抓取
 - 用户粘贴/截图 → 手动解析进入分析
 
