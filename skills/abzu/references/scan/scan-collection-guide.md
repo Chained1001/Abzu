@@ -3,6 +3,13 @@
 > **消费点**：扫榜调研域 Stage 2（数据采集）全量加载
 > **边界**：管平台采集目标与命令示例；字段定义归 references/scan/scan-output-format.md，CDP 环境归 references/scan/scan-cdp-base.md
 
+## 目录
+
+- 核心哲学
+- 脚本采集流程
+- 采集质量检查
+- 其他数据来源
+
 ## 核心哲学
 
 ### 原则 1：扫榜看模式，别只看排名
