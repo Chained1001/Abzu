@@ -11,6 +11,7 @@
 
 **验证与常用命令**：
 
+- 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`
 - skill 格式校验：`agentskills validate skills/abzu`（pip 包 `skills-ref`，命令行入口为 `agentskills`）
 - Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
 - 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
@@ -93,7 +94,7 @@
 - 常驻服务 / Dashboard 产品化 —— 无真实需求
 - 多宿主适配 —— 唯一宿主 Claude Code；不做第二宿主通用化，宿主相关内容只出现在 README 安装说明
 - CI 里跑 LLM 或联网 —— 守卫零外部依赖
-- 拦截式 hook —— hook 只提醒，不拦截
+- 拦截式宿主 hook —— Claude Code PreToolUse 拦 AI 操作只提醒不拦截（写作流程不能被 hook 卡死；负向流程守卫例外，须"宁可漏拦不可误伤"）；**git 本地提交门禁不在此列**（pre-commit 拦截已获作者裁定启用，2026-09-06）
 
 **Abzu v0 追加（事故驱动再评估）**：
 

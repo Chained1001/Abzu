@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# git 提交门禁（L3）：提交前自动跑一键检查，红了即拦截
+# 安装：cp scripts/hooks/pre-commit .git/hooks/pre-commit（新开发机执行一次）
+exec bash "$(git rev-parse --show-toplevel)/scripts/check.sh"
