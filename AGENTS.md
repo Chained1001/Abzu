@@ -18,6 +18,7 @@
 
 | 文档 | 管什么 | 何时必读 |
 | --- | --- | --- |
+| [docs/architecture.md](docs/architecture.md) | 架构选型与理由 | 架构相关改动 / 新域准入前 |
 | [docs/standards/file-conventions.md](docs/standards/file-conventions.md) | 文件命名与格式 | 新增任何文件前 |
 | [docs/standards/markdown-style.md](docs/standards/markdown-style.md) | Markdown 正文写法 | 写/改任何 .md 前 |
 | [docs/standards/skill-writing.md](docs/standards/skill-writing.md) | skill 内容设计 | 写/改 SKILL.md 与 references 前 |

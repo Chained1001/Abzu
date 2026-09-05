@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> **版本**：v0.2（2026-09-05 修订：§三 引用规则按资产域分区 + §一 补根目录文件行）｜v0.1（2026-09-04 立法）
+> **版本**：v0.3（2026-09-05 增补：域子目录/命令薄壳/架构文档行）｜v0.2（2026-09-05 修订：§三 引用规则按资产域分区 + §一 补根目录文件行）｜v0.1（2026-09-04 立法）
 > **定位**：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > **与术语表分工**：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -11,6 +11,8 @@
 | 文件类型 | 命名规则 | 示例 | 位置 |
 | --- | --- | --- | --- |
 | skill 壳 | `SKILL.md`（固定名） | — | `.claude/skills/abzu/` |
+| references 域子目录 | 六域 kebab-case + `common/`（公共层正本） | `references/write/`、`references/common/` | `references/` |
+| 域工作流 | `workflow-{域}.md` | `workflow-scan.md` | `references/{域}/` |
 | 阶段方法论 | `stage-{阶段名}.md` | `stage-drafting.md` | `.claude/skills/abzu/references/` |
 | 结构/规范类参考 | 描述性英文名 | `project-structure.md` | `.claude/skills/abzu/references/` |
 | 模板 | `{产物名}-template.md` | `character-card-template.md` | `references/`（小型模板可直接内嵌） |
@@ -22,6 +24,8 @@
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
 | 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
+| 命令薄壳 | `abzu-{路由键}.md`，正文一行标识符指令 | `abzu-scan.md`（内容 `abzu skill scan`） | `.claude/commands/` |
+| 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
 
 ## 二、双语命名纪律
 

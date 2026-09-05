@@ -3,7 +3,8 @@
   "globs": [
     "**/*.md",
     "!node_modules",
-    "!.zcode/**"
+    "!.zcode/**",
+    "!.claude/commands/**"
   ],
   "config": {
     // MD013 行长度上限：中文与代码混排不适配 80 列
