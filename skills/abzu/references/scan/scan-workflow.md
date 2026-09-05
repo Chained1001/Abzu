@@ -67,22 +67,29 @@
 
 ## 参考资料
 
-按需加载以下文件：
+按需加载。先看「作用」判断是否与本问相关，再看「加载时机」确定全量或按需：
 
-| 文件 | 何时加载 |
-| --- | --- |
-| references/scan/scan-collection-guide.md | Stage 2 采集：平台榜单表/命令示例/输出目录约定/质量检查四步/核心哲学三原则 |
-| references/scan/scan-analysis-guide.md | Stage 3/4：各平台分析维度 + 通用维度 + 扫榜报告模板 |
-| references/scan/scan-topic-decision.md | 「选题决策」：选题四步 + 可行性判断 + 选题决策.md 模板 |
-| references/scan/scan-reader-profiling.md | 需要分析目标读者画像时 |
-| references/scan/scan-genre-trends.md | 查看题材趋势候选、切入约束和样本校验规则时 |
-| references/scan/scan-publishing-guide.md | 平台适配+推荐机制校验+数据指标+简介设计 |
-| references/scan/scan-output-format.md | 脚本/CDP 采集字段定义+输出模板 |
-| references/scan/scan-cdp-base.md | CDP 环境启动与浏览器操作（番茄/七猫/晋江需要时） |
-| `{SKILL_DIR}/scripts/scan-analyze.js` | 4 平台通用提取，Stage 3 分析入口 |
-| `{SKILL_DIR}/scripts/cdp-utils.js` | CDP 公共工具函数（ab/openWithRetry/evalJSON(Base64)/scrollLoad/getArg/runCli 等） |
-| `{SKILL_DIR}/scripts/qidian-rank-scraper.js` | 起点榜单采集（默认移动端 SSR，PC/CDP 回退） |
-| `{SKILL_DIR}/scripts/fanqie-rank-scraper.js` | 番茄榜单采集（字体反爬解码 + 连通性自检 + 标题解析率标注） |
-| `{SKILL_DIR}/scripts/qimao-rank-scraper.js` | 七猫榜单采集（大热/新书/完结，链接/热度命中率标注） |
-| `{SKILL_DIR}/scripts/jjwxc-rank-scraper.js` | 晋江榜单采集（列表+详情两步，按频道分组） |
-| `{SKILL_DIR}/scripts/setup-cdp-chrome.js` | CDP Chrome 启动器（用法见 references/scan/scan-cdp-base.md） |
+### references 文件
+
+| 文件 | 作用 | 加载时机 |
+| --- | --- | --- |
+| references/scan/scan-collection-guide.md | 采集操作手册：平台榜单表、命令示例、输出目录约定、质量检查 | Stage 2 全量 |
+| references/scan/scan-output-format.md | 数据格式法典：采集字段定义、输出模板、清洗规则 | Stage 2 采集与质检时按需 |
+| references/scan/scan-cdp-base.md | CDP 底座说明书：Chrome 调试启动、浏览器操作、清理 | 番茄/七猫/晋江需浏览器态时按需 |
+| references/scan/scan-analysis-guide.md | 分析方法论：各平台分析维度、通用维度、扫榜报告模板 | Stage 3/4 全量 |
+| references/scan/scan-topic-decision.md | 交付物定义：选题四步、可行性纪律、选题决策.md 模板 | Stage 5 全量 |
+| references/scan/scan-reader-profiling.md | 读者知识库：九维画像、70/20/10 配比、平台读者速查 | 分析涉及目标读者画像时按需 |
+| references/scan/scan-genre-trends.md | 题材知识库：趋势候选、流派要点、切入约束、样本校验 | 分析题材格局时按需 |
+| references/scan/scan-publishing-guide.md | 运营知识库：平台适配、推荐机制、数据指标、简介设计 | 涉及平台适配与简介设计时按需 |
+
+### scripts 脚本
+
+| 脚本 | 作用 | 使用时机 |
+| --- | --- | --- |
+| `{SKILL_DIR}/scripts/scan-analyze.js` | 4 平台通用确定性提取（防手搓解析重复计数） | Stage 3 分析入口，必须优先运行 |
+| `{SKILL_DIR}/scripts/qidian-rank-scraper.js` | 起点榜单采集（默认移动端 SSR，PC/CDP 回退） | Stage 2 起点数据 |
+| `{SKILL_DIR}/scripts/fanqie-rank-scraper.js` | 番茄榜单采集（字体反爬解码 + 标题解析率标注） | Stage 2 番茄数据 |
+| `{SKILL_DIR}/scripts/qimao-rank-scraper.js` | 七猫榜单采集（大热/新书/完结，命中率标注） | Stage 2 七猫数据 |
+| `{SKILL_DIR}/scripts/jjwxc-rank-scraper.js` | 晋江榜单采集（列表+详情两步，按频道分组） | Stage 2 晋江数据 |
+| `{SKILL_DIR}/scripts/setup-cdp-chrome.js` | CDP Chrome 启动器（用法见 references/scan/scan-cdp-base.md） | 番茄/七猫/晋江采集前按需 |
+| `{SKILL_DIR}/scripts/cdp-utils.js` | CDP 公共工具函数库（被各抓取脚本内部引用） | 无需手动调用 |
