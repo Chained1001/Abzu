@@ -26,6 +26,7 @@
 | 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
 | 命令薄壳（预留） | `abzu-{路由键}.md`，单行内容 `abzu skill {路由键}`；多域上线、分发方案裁定后启用 | — | `.claude/commands/`（现无实例） |
 | 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
+| 协作日志 | `collab-log.md`（固定名，逐次登记规格施工记录与模板四件套） | — | `docs/specs/` |
 
 > **域前缀适用判据**：`{域}-` 前缀适用于**主题名域相对、需消歧**的文件（skill 资产——装入用户机器、被路由键检索，如 `scan-genre-trends.md`）；名字已全局自描述的治理文档（`docs/` 下全部文件，如 `markdown-style.md`）不加前缀——位置由文件夹表达，名字表达内容。未来 `common/` 公共层文件命名同用此判据。
 
