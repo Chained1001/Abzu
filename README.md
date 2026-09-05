@@ -6,15 +6,15 @@
 
 ## 安装
 
-skill 位于 `.claude/skills/abzu/`（[Claude Code 项目级路径](https://code.claude.com/docs/en/skills)）。
+skill 位于仓库根目录 `skills/abzu/`——skill 生产仓库的标准产品位（同 anthropics/skills、mo-shu 结构）。
 
 **日常写作（用户级，所有项目可用）**：
 
 ```bash
-cp -r .claude/skills/abzu ~/.claude/skills/abzu
+cp -r skills/abzu ~/.claude/skills/abzu
 ```
 
-**本仓库内开发/测试**：用 Claude Code 打开本仓库即可自动发现（项目级 `.claude/skills/`）。
+**本仓库内开发**：skill 在根目录 `skills/abzu/`，Claude Code 打开本仓库不会自动加载（产品源码位非配置位）；实测一律走上面的用户级安装流程。
 
 ## 快速上手
 
@@ -24,14 +24,14 @@ cp -r .claude/skills/abzu ~/.claude/skills/abzu
 
 ```
 Abzu/
+├── skills/abzu/                 # skill 本体（产品源码位）
+│   ├── SKILL.md                 # 总控：会话恢复 + 域路由表
+│   ├── references/              # 六域方法论（scan/ analyze/ outline/ volume/ write/ style/ + common/）
+│   └── scripts/                 # 运行时脚本
+├── .claude/commands/            # 斜杠命令薄壳（宿主集成位）
+├── docs/                        # 架构/规范/术语/评估/规格档案
 ├── AGENTS.md                    # 项目宪法（红线/原则/流程/不做清单）
-├── docs/
-│   ├── glossary.md              # 术语表（产品语言权威）
-│   ├── test-prompts.md          # 评估场景（skill 行为验收）
-│   ├── standards/               # 工程规范
-│   │   └── file-conventions.md  # 文件命名与格式总表
-│   └── specs/                   # 轻量规格（完成即归档）
-└── .claude/skills/abzu/         # skill 本体（Claude Code 项目级路径）
+└── README.md / CHANGELOG.md / LICENSE
 ```
 
 ## 开发

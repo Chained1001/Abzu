@@ -10,13 +10,13 @@
 
 | 文件类型 | 命名规则 | 示例 | 位置 |
 | --- | --- | --- | --- |
-| skill 壳 | `SKILL.md`（固定名） | — | `.claude/skills/abzu/` |
+| skill 壳 | `SKILL.md`（固定名） | — | `skills/abzu/` |
 | references 域子目录 | 六域 kebab-case + `common/`（公共层正本） | `references/write/`、`references/common/` | `references/` |
 | 域工作流 | `workflow-{域}.md` | `workflow-scan.md` | `references/{域}/` |
-| 阶段方法论 | `stage-{阶段名}.md` | `stage-drafting.md` | `.claude/skills/abzu/references/` |
-| 结构/规范类参考 | 描述性英文名 | `project-structure.md` | `.claude/skills/abzu/references/` |
+| 阶段方法论 | `stage-{阶段名}.md` | `stage-drafting.md` | `skills/abzu/references/` |
+| 结构/规范类参考 | 描述性英文名 | `project-structure.md` | `skills/abzu/references/` |
 | 模板 | `{产物名}-template.md` | `character-card-template.md` | `references/`（小型模板可直接内嵌） |
-| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `.claude/skills/abzu/scripts/` |
+| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `skills/abzu/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
 | 规格 | `YYYY-MM-DD-{主题}.md` | `2026-09-04-phase0-infra.md` | `docs/specs/`（完成即归档 `docs/specs/archive/`） |
@@ -57,7 +57,7 @@ metadata:
 ---
 ```
 
-约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：`agentskills validate .claude/skills/abzu`。
+约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：`agentskills validate skills/abzu`。
 
 ## 五、本规范的维护
 

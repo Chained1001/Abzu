@@ -30,7 +30,7 @@
 ## 三、落定结构
 
 ```
-.claude/skills/abzu/
+skills/abzu/
 ├── SKILL.md                  # 薄总控（<300 行）：会话恢复协议 + 域路由表 + 门控原则
 ├── references/
 │   ├── common/               # 公共层：project-structure / tracking-spec / 跨域方法论
@@ -58,7 +58,7 @@ abzu skill scan
 
 ```
 改 skill → agentskills validate → npx markdownlint-cli2
-        → cp -r .claude/skills/abzu ~/.claude/skills/abzu（+ commands）
+        → cp -r skills/abzu ~/.claude/skills/abzu（+ commands）
         → 新会话（新文件夹）敲 /abzu-<域> 真测
 ```
 

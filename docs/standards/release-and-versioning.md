@@ -19,7 +19,7 @@
 
 版本号出现在且仅出现在三处，禁止散落第四处：
 
-1. `.claude/skills/abzu/SKILL.md` 的 `metadata.version`
+1. `skills/abzu/SKILL.md` 的 `metadata.version`
 2. git tag `vX.Y.Z`（打在发布提交上）
 3. `CHANGELOG.md` 版本段标题
 

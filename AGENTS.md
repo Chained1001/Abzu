@@ -1,6 +1,6 @@
 # Abzu 项目宪法（AGENTS.md）
 
-> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill（名为 `abzu`），目标宿主 Claude Code（唯一）。skill 本体在 `.claude/skills/abzu/`。
+> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill（名为 `abzu`），目标宿主 Claude Code（唯一）。skill 本体在 `skills/abzu/`。
 > **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件命名规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/术语表](docs/glossary.md) 为权威。
 > **沿革纪律**：治理变更的来龙去脉记在 CHANGELOG 与 git 历史，本文件只保留当前有效状态，不写沿革史。
 
@@ -10,7 +10,7 @@
 
 **验证与常用命令**：
 
-- skill 格式校验：`agentskills validate .claude/skills/abzu`（pip 包 `skills-ref`，命令行入口为 `agentskills`）
+- skill 格式校验：`agentskills validate skills/abzu`（pip 包 `skills-ref`，命令行入口为 `agentskills`）
 - Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
 - 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
 
