@@ -1,6 +1,6 @@
 # collection-guide.md：扫榜采集指南（Stage 2 细节）
 
-> **消费点**：扫榜域 Stage 2（数据采集）全量加载
+> **消费点**：扫榜调研域 Stage 2（数据采集）全量加载
 > **边界**：管平台采集目标与命令示例；字段定义归 references/scan/scan-output-format.md，CDP 环境归 references/scan/cdp-base.md
 
 ## 核心哲学

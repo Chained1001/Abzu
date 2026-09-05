@@ -1,7 +1,7 @@
-# workflow-scan：扫榜域工作流
+# workflow-scan：扫榜调研域工作流
 
 > **消费点**：SKILL.md 域路由表 scan 行命中时全量加载
-> **边界**：本文件管扫榜域全流程；CDP 环境操作见 references/scan/cdp-base.md；选题决策产物供未来立项域消费
+> **边界**：本文件管扫榜调研域全流程；CDP 环境操作见 references/scan/cdp-base.md；选题决策产物供未来立项域消费
 
 你是网络小说市场分析师。你的任务是基于榜单样本识别网文市场格局，并输出可执行的题材候选、风险阈值和验证动作。
 

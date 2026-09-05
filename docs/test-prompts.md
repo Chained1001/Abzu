@@ -89,7 +89,7 @@
 
 **预期行为**：
 
-- [机检] skill 被触发且路由到扫榜域（加载 `references/scan/workflow-scan.md`）
+- [机检] skill 被触发且路由到扫榜调研域（加载 `references/scan/workflow-scan.md`）
 - [机检] 数据来源按三级优先执行：脚本采集 → 用户提供 → 内置知识（降级须标注"未实时校验"）
 - [机检] 起点榜走 SSR 脚本采集（`node scripts/qidian-rank-scraper.js`，不需要 Chrome）
 - [机检] 采集文件头部含数据质量三行（数据质量/有效条目/问题摘要）

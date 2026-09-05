@@ -47,7 +47,7 @@ Abzu/
 ## Roadmap
 
 - [x] 阶段 0：基础设施（宪法/规范/术语表/评估场景/架构落盘）
-- [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜 ✅ ｜ 拆书 ｜ 大纲 ｜ 卷纲 ｜ 正文 ｜ 文风
+- [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜调研 ✅ ｜ 拆书 ｜ 大纲 ｜ 卷纲 ｜ 正文 ｜ 文风
 - [ ] 评估：[test-prompts](docs/test-prompts.md) 六场景全绿
 - [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
 - [ ] 基建挂账：junction 链接免手动部署；多域上线后裁定域级命令分发方案（skills.sh 不携带 commands）——薄壳样式：`.claude/commands/abzu-{域}.md`，单行 `abzu skill {域}`

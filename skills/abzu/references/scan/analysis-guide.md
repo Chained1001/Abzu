@@ -1,6 +1,6 @@
 # analysis-guide.md：扫榜分析指南（Stage 3/4 细节）
 
-> **消费点**：扫榜域 Stage 3/4（数据分析与报告）全量加载
+> **消费点**：扫榜调研域 Stage 3/4（数据分析与报告）全量加载
 > **边界**：管分析维度与扫榜报告模板；采集归 references/scan/collection-guide.md，选题归 references/scan/topic-decision.md
 
 ## 各平台分析维度
