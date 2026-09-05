@@ -1,5 +1,3 @@
-- 域名裁定：scan 域定名「扫榜调研」（作者 2026-09-05）；全仓 14 处同步（references 头注/H1、architecture、test-prompts、README、路由关键词、术语表登记域名术语）。
-
 # Changelog
 
 本文件记录 Abzu 的显著变更。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循 [SemVer](https://semver.org/lang/zh-CN/)。
@@ -8,6 +6,7 @@
 
 ### Changed
 
+- 域名裁定：scan 域定名「扫榜调研」（作者 2026-09-05）；全仓 14 处同步（references 头注/H1、architecture、test-prompts、README、路由关键词、术语表登记域名术语）。
 - 删除 `.claude/commands/abzu-scan.md` 薄壳：三重失效（skills.sh 不携带 / 仓库内 skill 不加载 / 唯一域期 /abzu 直达）；模式样式记入 Roadmap 挂账，命名总表改"预留"。`.claude/` 目录随之移除。
 - 引用纪律立法（skill-writing §六 / file-conventions §三）：skill 资产内引用一律用 skill 根相对路径 +「节名」（运行时按 SKILL_DIR 零推断），禁裸文件名与深层互链；scan 域 30 处引用全量路径化。
 - skill-writing v0.2：新增 §三文件结构模板（SKILL/workflow/方法论/模板四类节序）与 §五.3 交互标注纪律（问句必标模态、混合问题拆两问）；来源声明改两行；workflow-scan Stage 1/5 按新规标注（弹窗/对话式）。

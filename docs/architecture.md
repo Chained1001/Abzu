@@ -34,7 +34,7 @@ skills/abzu/
 ├── SKILL.md                  # 薄总控（<300 行）：会话恢复协议 + 域路由表 + 门控原则
 ├── references/
 │   ├── common/               # 公共层：project-structure / tracking-spec / 跨域方法论
-│   ├── scan/                 # ① 扫榜调研（含 cdp-base.md 底座文档）
+│   ├── scan/                 # ① 扫榜调研（含 scan-cdp-base.md 底座文档）
 │   ├── analyze/              # ② 拆书分析
 │   ├── outline/              # ③ 大纲
 │   ├── volume/               # ④ 卷纲

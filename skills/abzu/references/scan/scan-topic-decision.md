@@ -1,7 +1,7 @@
 # 选题决策：从扫榜数据到"写什么能爆"
 
 > **消费点**：扫榜调研域 Stage 5（选题决策）全量加载
-> **边界**：管选题方法与选题决策.md 模板；读者画像归 references/scan/reader-profiling.md，报告模板归 references/scan/analysis-guide.md
+> **边界**：管选题方法与选题决策.md 模板；读者画像归 references/scan/scan-reader-profiling.md，报告模板归 references/scan/scan-analysis-guide.md
 
 把扫榜结果变成能直接用的选题建议：**推荐写什么、为什么能爆、行不行、怎么验证**。
 Stage 5 用本文方法产出 `选题决策.md`——市场角度的选题初稿："能爆的原因"先当假设，拆文（analyze 域）后回填验证，开书构建（outline 域）时直接用。

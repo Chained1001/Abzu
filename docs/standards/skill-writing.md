@@ -47,7 +47,7 @@
 
 ## 六、引用纪律
 
-1. skill 资产内引用一律写 **skill 根相对路径 +「节名」**（如 `references/scan/analysis-guide.md`「扫榜报告模板」节、`scripts/scan-analyze.js`）——运行时模型按 SKILL_DIR 直接拼出完整路径，零推断；禁裸文件名。
+1. skill 资产内引用一律写 **skill 根相对路径 +「节名」**（如 `references/scan/scan-analysis-guide.md`「扫榜报告模板」节、`scripts/scan-analyze.js`）——运行时模型按 SKILL_DIR 直接拼出完整路径，零推断；禁裸文件名。
 2. 深层资产互引不用 markdown 链接：链接目标按所在文件位置解析，与运行时按 SKILL_DIR 解析是两套语义，混用必有一方错；SKILL.md 位于根，两种语义一致，可用链接。文件内目录用锚点链接（`#节名`）不受此限。
 3. 阶段文件头部两行声明：消费点（哪个 Stage 读、必读还是按需）/ 边界（与相邻文件的分工）。
 4. 禁互引式引用（"格式同上"，同 markdown-style §三.5）；不用 `@` 形式链接（强制加载目标文件，烧上下文）。

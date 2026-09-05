@@ -12,9 +12,9 @@
 | --- | --- | --- | --- |
 | skill 壳 | `SKILL.md`（固定名） | — | `skills/abzu/` |
 | references 域子目录 | 六域 kebab-case + `common/`（公共层正本） | `references/write/`、`references/common/` | `references/` |
-| 域工作流 | `workflow-{域}.md` | `workflow-scan.md` | `references/{域}/` |
-| 阶段方法论 | `stage-{阶段名}.md` | `stage-drafting.md` | `skills/abzu/references/` |
-| 结构/规范类参考 | 描述性英文名 | `project-structure.md` | `skills/abzu/references/` |
+| 域工作流 | `{域}-workflow.md` | `scan-workflow.md` | `references/{域}/` |
+| 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `references/{域}/` |
+| 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `references/{域}/` |
 | 模板 | `{产物名}-template.md` | `character-card-template.md` | `references/`（小型模板可直接内嵌） |
 | 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `skills/abzu/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |

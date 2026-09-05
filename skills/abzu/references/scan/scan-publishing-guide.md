@@ -1,7 +1,7 @@
 # 网文平台运营与书名简介指南
 
 > **消费点**：扫榜调研域按需加载——涉及平台适配、推荐机制与书名简介设计时
-> **边界**：管投稿运营与简介设计；榜单采集与字段归 references/scan/collection-guide.md / references/scan/scan-output-format.md
+> **边界**：管投稿运营与简介设计；榜单采集与字段归 references/scan/scan-collection-guide.md / references/scan/scan-output-format.md
 
 ## 目录
 

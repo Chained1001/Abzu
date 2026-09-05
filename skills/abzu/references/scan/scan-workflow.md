@@ -1,7 +1,7 @@
-# workflow-scan：扫榜调研域工作流
+# scan-workflow：扫榜调研域工作流
 
 > **消费点**：SKILL.md 域路由表 scan 行命中时全量加载
-> **边界**：本文件管扫榜调研域全流程；CDP 环境操作见 references/scan/cdp-base.md；选题决策产物供未来立项域消费
+> **边界**：本文件管扫榜调研域全流程；CDP 环境操作见 references/scan/scan-cdp-base.md；选题决策产物供未来立项域消费
 
 你是网络小说市场分析师。你的任务是基于榜单样本识别网文市场格局，并输出可执行的题材候选、风险阈值和验证动作。
 
@@ -28,7 +28,7 @@
 | 2 | **用户提供** | 用户粘贴榜单截图/文字/链接 | 用户已有数据时 |
 | 3 | **内置知识** | 基于知识库趋势数据做分析（须标注"未实时校验"） | 无法联网、用户无数据时 |
 
-**脚本采集模式**（各平台榜单表、命令示例、输出目录约定、采集质量检查四步）见 references/scan/collection-guide.md。要点：起点默认移动端 SSR 不需 Chrome；番茄/七猫/晋江按需启动 CDP 底座（references/scan/cdp-base.md）；输出规范与字段定义见 references/scan/scan-output-format.md。
+**脚本采集模式**（各平台榜单表、命令示例、输出目录约定、采集质量检查四步）见 references/scan/scan-collection-guide.md。要点：起点默认移动端 SSR 不需 Chrome；番茄/七猫/晋江按需启动 CDP 底座（references/scan/scan-cdp-base.md）；输出规范与字段定义见 references/scan/scan-output-format.md。
 
 **采集硬性要求**：晋江必须有详情页核心指标（收藏/营养液/积分/字数）；每个采集文件头部必须含 `数据质量：[OK/存在问题]`、`有效条目`、`问题摘要` 三行。
 
@@ -36,15 +36,15 @@
 
 **优先运行** `node {SKILL_DIR}/scripts/scan-analyze.js --dir {扫榜目录} [--genre {题材}] [--dup] [--full]` 做确定性提取，**禁止临时写内联解析脚本**（AI 手写 grep 会把「玄幻·东方玄幻」重复计数；脚本按条目计数）。4 平台通用提取（按文件头自动识别）：全平台可提取排名/书名/作者；起点字段最全；番茄提取字数/在读/题材/标签；晋江提取收藏/字数（题材固有缺失标 `[待补]`）；七猫提取热度/字数/题材。`--dup` 跨平台聚合（同一本书多平台上榜 = 交叉验证信号）。刺猬猫不在支持范围。
 
-各平台分析维度与通用维度清单见 references/scan/analysis-guide.md。晋江数据若标 `[仅列表-无核心指标]` 视为不合格，不足以支撑分析。
+各平台分析维度与通用维度清单见 references/scan/scan-analysis-guide.md。晋江数据若标 `[仅列表-无核心指标]` 视为不合格，不足以支撑分析。
 
 ### Stage 4：输出扫榜报告
 
-报告模板见 references/scan/analysis-guide.md「扫榜报告模板」节，写入 `{扫榜目录}/扫榜报告_{平台}{方向}_{YYYYMMDD}.md`。
+报告模板见 references/scan/scan-analysis-guide.md「扫榜报告模板」节，写入 `{扫榜目录}/扫榜报告_{平台}{方向}_{YYYYMMDD}.md`。
 
 ### Stage 5：选题决策
 
-把扫榜结果变成能直接用的选题建议，产出**本次扫榜输出目录** `{outdir}/选题决策.md`。完整方法（选题四步 + 可行性判断 + 输出模板）见 references/scan/topic-decision.md。收尾只问一个决策（弹窗：候选选题 + 「都不满意」）：「你倾向哪个选题？」选定后针对该题问素材匹配（对话式）；**不问计划字数**（平台+方向已定则篇幅由市场定义）；拆文验证保持用户独立决定，不自动衔接。
+把扫榜结果变成能直接用的选题建议，产出**本次扫榜输出目录** `{outdir}/选题决策.md`。完整方法（选题四步 + 可行性判断 + 输出模板）见 references/scan/scan-topic-decision.md。收尾只问一个决策（弹窗：候选选题 + 「都不满意」）：「你倾向哪个选题？」选定后针对该题问素材匹配（对话式）；**不问计划字数**（平台+方向已定则篇幅由市场定义）；拆文验证保持用户独立决定，不自动衔接。
 
 **硬规则：**
 
@@ -80,18 +80,18 @@
 
 | 文件 | 何时加载 |
 | --- | --- |
-| references/scan/collection-guide.md | Stage 2 采集：平台榜单表/命令示例/输出目录约定/质量检查四步/核心哲学三原则 |
-| references/scan/analysis-guide.md | Stage 3/4：各平台分析维度 + 通用维度 + 扫榜报告模板 |
-| references/scan/topic-decision.md | 「选题决策」：选题四步 + 可行性判断 + 选题决策.md 模板 |
-| references/scan/reader-profiling.md | 需要分析目标读者画像时 |
-| references/scan/genre-trends.md | 查看题材趋势候选、切入约束和样本校验规则时 |
-| references/scan/publishing-guide.md | 平台适配+推荐机制校验+数据指标+简介设计 |
+| references/scan/scan-collection-guide.md | Stage 2 采集：平台榜单表/命令示例/输出目录约定/质量检查四步/核心哲学三原则 |
+| references/scan/scan-analysis-guide.md | Stage 3/4：各平台分析维度 + 通用维度 + 扫榜报告模板 |
+| references/scan/scan-topic-decision.md | 「选题决策」：选题四步 + 可行性判断 + 选题决策.md 模板 |
+| references/scan/scan-reader-profiling.md | 需要分析目标读者画像时 |
+| references/scan/scan-genre-trends.md | 查看题材趋势候选、切入约束和样本校验规则时 |
+| references/scan/scan-publishing-guide.md | 平台适配+推荐机制校验+数据指标+简介设计 |
 | references/scan/scan-output-format.md | 脚本/CDP 采集字段定义+输出模板 |
-| references/scan/cdp-base.md | CDP 环境启动与浏览器操作（番茄/七猫/晋江需要时） |
+| references/scan/scan-cdp-base.md | CDP 环境启动与浏览器操作（番茄/七猫/晋江需要时） |
 | `{SKILL_DIR}/scripts/scan-analyze.js` | 4 平台通用提取，Stage 3 分析入口 |
 | `{SKILL_DIR}/scripts/cdp-utils.js` | CDP 公共工具函数（ab/openWithRetry/evalJSON(Base64)/scrollLoad/getArg/runCli 等） |
 | `{SKILL_DIR}/scripts/qidian-rank-scraper.js` | 起点榜单采集（默认移动端 SSR，PC/CDP 回退） |
 | `{SKILL_DIR}/scripts/fanqie-rank-scraper.js` | 番茄榜单采集（字体反爬解码 + 连通性自检 + 标题解析率标注） |
 | `{SKILL_DIR}/scripts/qimao-rank-scraper.js` | 七猫榜单采集（大热/新书/完结，链接/热度命中率标注） |
 | `{SKILL_DIR}/scripts/jjwxc-rank-scraper.js` | 晋江榜单采集（列表+详情两步，按频道分组） |
-| `{SKILL_DIR}/scripts/setup-cdp-chrome.js` | CDP Chrome 启动器（用法见 references/scan/cdp-base.md） |
+| `{SKILL_DIR}/scripts/setup-cdp-chrome.js` | CDP Chrome 启动器（用法见 references/scan/scan-cdp-base.md） |

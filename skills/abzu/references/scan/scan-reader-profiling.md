@@ -1,7 +1,7 @@
 # 读者画像系统
 
 > **消费点**：扫榜调研域按需加载——需要分析目标读者画像时
-> **边界**：管读者 9 维画像；题材趋势归 references/scan/genre-trends.md
+> **边界**：管读者 9 维画像；题材趋势归 references/scan/scan-genre-trends.md
 
 ## 9 维画像
 

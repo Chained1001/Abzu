@@ -1,7 +1,7 @@
 # 扫榜数据采集格式规范
 
 > **消费点**：扫榜调研域 Stage 2 采集与质检时按需加载
-> **边界**：管采集字段、输出模板与清洗规则；平台命令入口归 references/scan/collection-guide.md
+> **边界**：管采集字段、输出模板与清洗规则；平台命令入口归 references/scan/scan-collection-guide.md
 
 ---
 
@@ -9,7 +9,7 @@
 
 ### 起点采集说明
 
-榜单清单与 URL 见 references/scan/collection-guide.md「起点采集目标」节。
+榜单清单与 URL 见 references/scan/scan-collection-guide.md「起点采集目标」节。
 
 优先使用 `scripts/qidian-rank-scraper.js` 的默认 `--mode auto`。脚本先读取 `https://m.qidian.com` 移动端 SSR pageContext JSON，规避 PC 站风控页；移动端不可用时才回退到 CDP/PC 页面。输出头部会标注 `抓取方式：mobile-ssr` 或 `cdp-pc`。
 
@@ -51,7 +51,7 @@
 
 ## 番茄小说
 
-榜单 URL 格式与参数说明见 references/scan/collection-guide.md「番茄采集目标」节。
+榜单 URL 格式与参数说明见 references/scan/scan-collection-guide.md「番茄采集目标」节。
 
 ### 题材cat_id
 
@@ -104,7 +104,7 @@
 
 - 看文件头 `数据质量`：标 `[存在问题]` 且 `问题摘要` 含 `[标题解析异常]` 说明详情页解码失败率高。
 - 多为详情页结构变动或被登录/验证页拦截。在已登录的 Chrome 里手动打开任一 `https://fanqienovel.com/page/{bookId}` 确认页面正常、非验证页。
-- 控制台若报 `CDP 无响应`，说明 Chrome/CDP 没起来或端口不对，按 references/scan/cdp-base.md 重新启动。确认正常后重采。
+- 控制台若报 `CDP 无响应`，说明 Chrome/CDP 没起来或端口不对，按 references/scan/scan-cdp-base.md 重新启动。确认正常后重采。
 
 ---
 
