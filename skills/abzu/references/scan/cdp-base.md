@@ -1,7 +1,6 @@
 # cdp-base：Chrome CDP 底座
 
 > **消费点**：扫榜域 Stage 2 需要浏览器态平台（番茄/七猫/晋江）时按需加载
-> **来源**：移植自 mo-shu v2.6.1（moshu-cdp/SKILL.md v1.1.1）
 > **边界**：只管 CDP 环境启动与浏览器操作；平台榜单抓取逻辑见 collection-guide.md 与各抓取脚本
 
 通过 CDP 协议（Chrome DevTools Protocol）控制 Chrome，复用已有登录态，执行浏览器自动化操作。

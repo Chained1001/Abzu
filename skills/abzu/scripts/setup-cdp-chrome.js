@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// 来源：移植自 mo-shu v2.6.1
 // setup-cdp-chrome.js
 // 准备带有 CDP（Chrome DevTools Protocol）调试功能的 Chrome 环境（跨平台）。
 // 通过此脚本，agent-browser 可以复用用户的 Chrome 登录态。

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// 来源：移植自 mo-shu v2.6.1
 /**
  * scan-analyze.js — 扫榜数据分析器（替代 AI 每次临时写内联脚本）
  *
@@ -213,7 +212,7 @@ function main() {
 // --- 题材分布 ---
   if (DIST) {
     console.log("## 题材分布");
-    // 15 类粗分类（mo-shu 自定口径），未列题材归「其他」——展示辅助非契约（C2 口径注记）
+    // 15 类粗分类（abzu 自定口径），未列题材归「其他」——展示辅助非契约（C2 口径注记）
     const genres = ["玄幻", "仙侠", "武侠", "都市", "科幻", "游戏", "历史", "奇幻", "悬疑", "诸天", "体育", "现实", "军事", "二次元", "其他"];
     for (const [f, { platform, items }] of Object.entries(data)) {
       const counts = {};
