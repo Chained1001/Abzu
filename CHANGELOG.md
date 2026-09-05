@@ -6,6 +6,7 @@
 
 ### Changed
 
+- release-and-versioning v0.2（外审七处全采纳）：§一 边界示例（阈值变更=minor与载体无关）；§三 步骤1自包含化+schema条目[schema]前缀；§四 迁移执行边界立法（默认只输出说明，自动改写用户书稿须单独立项）；§五 预发布版本规则；§六 回滚预案（不删tag/YANKED/用户侧回滚）。
 - file-conventions 外审七处修订（全部采纳）：spec 归档细化（验收通过后移动不留副本）/预留类型启用前禁令/模板行数按源码计/脚本头部样板要求/引用守卫未来待办/工程结构类术语入 glossary/悬空指向落位（立项域 project-structure 规范）。
 - Agent 设计规范骨架立法（作者质询"agent 设计无规范"触发）：docs/standards/agent-design.md v0.1 占位蓝图——命名/启用四判据/结构模板/协作协议（上下文隔离/文件回传/失败语义/权限最小化）/T1 填充清单；T1 触发前禁止创建实体 agent；file-conventions 回写 agent 规范行与 agent 文件预留行。
 - 依赖与门禁审计三补：①口径修正——abzu-scan 并非零依赖，番茄/七猫/晋江 CDP 采集依赖全局 agent-browser（README 安装节补前置：Node 20+/Chrome/agent-browser，起点榜仅需 Node）；②check.sh 边界加固（LOCALAPPDATA 未设时的 set -u 崩溃风险）；③architecture T1 触发器补 ECC 参考锚（全家桶插件模式参考实现）。
