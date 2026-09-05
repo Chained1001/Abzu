@@ -73,7 +73,19 @@ v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安
 - **阶段门控只管域内工序**（如单章：章纲确认后才写正文），跨域顺序由作者决定。
 - **会话恢复**：SKILL.md 入口按文件证据（tracking 文件存在性与产物状态）定位续跑点，不凭对话记忆。
 
-## 七、维护
+## 七、权威规范对齐（2026-09-06 调研落盘）
+
+> 分级：T0 官方规范与文档 ｜ T1 官方实物与社区标杆 ｜ T2 目录评测。**mo-shu 仅为同域参考实现，不入权威层**——其经验须经本节权威源校验后方可吸收。
+
+- **T0 官方**：Agent Skills 开放规范（agentskills.io）｜Skill authoring best practices（platform.claude.com）｜Claude Code skills 文档与 hooks 文档（code.claude.com，hooks=确定性执法依据）｜Anthropic 官方创建指南（claude.com/blog）
+- **T1 官方实物与社区标杆**：anthropics/skills（157K+；document-skills 为生产级 SKILL 写作范本、skill-creator）｜obra/superpowers（243K；TDD 元规范与 RED-GREEN-REFACTOR）｜gstack（118K，Think→Build→Ship→Reflect 环）｜GSD（64K，每任务新鲜子代理）｜AWS Agent Toolkit（企业同格式）
+- **T2 目录评测**：travisvn/awesome-claude-skills（14K）｜skills.sh 生态｜taskade/firecrawl 评测
+
+**设计决策对照**：单 skill + menu approach（官方 docx 同款）｜域间文件通信（Pipes and Filters + 数据耦合）｜阶段门控（BEA workflow + 12FA checkpoints）｜eval-first（superpowers TDD）｜宪法（AGENTS.md 标准 + spec-kit Constitution）｜术语表（DDD Ubiquitous Language）｜约束阶梯 L1-L4（Claude Code hooks 确定性控制 + OpenAI 护栏外部化）｜逐域建设（last responsible moment）
+
+**2026-09-06 调研采纳**：description 补边界声明（官方 strong description 三要素）；test-prompts 补场景 7 域外休眠（官方测试矩阵 out-of-scope）。**挂账**：粒度五次法则（做过 5 次、将做 10 次才立能力）；季度评审节律；reflect 机制（扫描会话纠正自动提议 SKILL 更新）；精读 anthropics document-skills 作为未来域写作范本。
+
+## 八、维护
 
 - 架构变更：修订本文件 + CHANGELOG + 受影响规范同批同步。
 - 新域准入：过宪法 §4 决策树 + 本文件 §二判据（是否与现有域共享书目录状态）。

@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 权威规范对齐调研落盘（作者要求：外部权威为准，mo-shu 仅为同域参考）：architecture.md 新增 §七 权威对齐节（T0 官方/T1 实物标杆/T2 目录三级清单 + 设计决策对照）；description 补边界声明（官方 strong description 三要素）；test-prompts 补场景 7 域外休眠（官方测试矩阵）；挂账粒度五次法则/季度评审/reflect 机制/精读 document-skills 范本。
 - 检查体系升档（L1 纪律→L2+L3，作者裁定 A 方案）：新增 scripts/check.sh 一键检查（validate+lint）与 git pre-commit 提交门禁（拦截式，本地）；§0 验证命令更新；§6 拦截式 hook 条目细化——宿主 PreToolUse 拦 AI 操作只提醒（负向流程守卫例外），git 提交门禁不在此列。研读 mo-shu 宿主 hook 体系（SessionStart 上下文注入/PreToolUse 流程守卫/PostToolUse 机检/Pre-PostCompact 压缩续存）——运行时 hook 留待物化触发条件。
 - 体积纪律强化（研读 mo-shu doc-budget 机制后裁定）：§7 增超限处理序（压缩→下沉→最后调上限）；§6 doc-budget 条目改有条件缓建并写明解冻触发条件（热路径连续两批触限或单文件字符 >2 万，届时以字符实测立法）。
 - 目录补齐（作者质询 scan-analysis-guide 触发）：5 份超 100 行的 references 文件补节目录（§一.4 系统性漏网——此前结构审计未查目录存在性）；markdown-style §三.10 增趋势枚举 ↑/→/↓ 例外（→ 表示持平非流程箭头）。
