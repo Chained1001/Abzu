@@ -39,6 +39,8 @@
 
 `{SKILL_DIR}` 指当前加载的 abzu-scan skill 根目录。
 
+进阶参数（文档与代码契约，2026-09-06 契约审计补录）：qidian `--detail yes` 强制详情补采（默认 no）、`--mode mobile|cdp` 覆盖 auto 自动选择；CDP 系脚本 `--port {端口号}` 覆盖默认 9222；scan-analyze `--dist` 强制输出题材分布（无 --genre/--dup 时默认已开启）。
+
 ### 起点采集目标
 
 优先运行 `node {SKILL_DIR}/scripts/qidian-rank-scraper.js --type {榜单} --outdir {输出目录}`；**多榜单用逗号分隔一次采集**，如 `--type hotsales,yuepiao,signnewbook`，避免逐榜多次调用；默认 `--mode auto` 会先用 `https://m.qidian.com` 移动端 SSR，PC/CDP 只作回退。
