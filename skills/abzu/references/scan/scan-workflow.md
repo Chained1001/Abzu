@@ -1,4 +1,4 @@
-# scan-workflow：扫榜调研域工作流
+# 扫榜调研域工作流
 
 > **消费点**：SKILL.md 域路由表 scan 行命中时全量加载
 > **边界**：本文件管扫榜调研域全流程；CDP 环境操作见 references/scan/scan-cdp-base.md；选题决策产物供未来立项域消费

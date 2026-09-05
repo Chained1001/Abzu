@@ -1,4 +1,4 @@
-# scan-collection-guide.md：扫榜采集指南（Stage 2 细节）
+# 扫榜采集指南（Stage 2 细节）
 
 > **消费点**：扫榜调研域 Stage 2（数据采集）全量加载
 > **边界**：管平台采集目标与命令示例；字段定义归 references/scan/scan-output-format.md，CDP 环境归 references/scan/scan-cdp-base.md
@@ -112,7 +112,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only            
 
 发现问题当场修复，不留给后续分析。详细规则见 references/scan/scan-output-format.md「数据清洗与字段约束」。
 
-### 1. 数据完整性
+### 数据完整性
 
 | 检查项 | 标准 | 处理 |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only            
 | 必填字段 | 排名、书名、作者（缺任一项视为无效） | 无效条目移除，条目数重新计算 |
 | 字段一致性 | 同一榜单内所有条目字段集必须一致 | 不一致条目标记 `[字段缺失: {字段名}]` |
 
-### 2. 数据清洗
+### 数据清洗
 
 | 污染类型 | 处理 |
 | --- | --- |
