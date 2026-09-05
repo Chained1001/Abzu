@@ -20,8 +20,10 @@
 
 ## 验收标准
 
-- [ ] references/scan/ 下 9 文件全部 scan- 开头
-- [ ] 全仓无旧文件名残留引用（归档规格豁免）
-- [ ] file-conventions 三行规则为域前缀版
-- [ ] markdown-style 含序号体系/引号分工/行内定义/箭头/状态符号条款
-- [ ] `agentskills validate` 通过；`npx markdownlint-cli2` 0 违例
+- [x] references/scan/ 下 9 文件全部 scan- 开头
+- [x] 全仓无旧文件名残留引用（归档规格豁免）
+- [x] file-conventions 三行规则为域前缀版
+- [x] markdown-style 含序号体系/引号分工/行内定义/箭头/状态符号条款
+- [x] `agentskills validate` 通过；`npx markdownlint-cli2` 0 违例
+
+> 验收完成：2026-09-05，全部通过（含两处收尾修复：scan-workflow H1、CHANGELOG 游离首行）。

@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 命名规范：域前缀适用判据成文（主题名域相对需消歧→加前缀；名字已全局自描述→不加，docs/ 治理文档维持现名）。
 - 域名裁定：scan 域定名「扫榜调研」（作者 2026-09-05）；全仓 14 处同步（references 头注/H1、architecture、test-prompts、README、路由关键词、术语表登记域名术语）。
 - 删除 `.claude/commands/abzu-scan.md` 薄壳：三重失效（skills.sh 不携带 / 仓库内 skill 不加载 / 唯一域期 /abzu 直达）；模式样式记入 Roadmap 挂账，命名总表改"预留"。`.claude/` 目录随之移除。
 - 引用纪律立法（skill-writing §六 / file-conventions §三）：skill 资产内引用一律用 skill 根相对路径 +「节名」（运行时按 SKILL_DIR 零推断），禁裸文件名与深层互链；scan 域 30 处引用全量路径化。
