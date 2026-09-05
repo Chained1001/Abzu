@@ -20,7 +20,7 @@ cp -r skills/abzu ~/.claude/skills/abzu
 
 安装后新开会话即可使用：敲 `/abzu` 或直接说"扫一下起点榜"。
 
-**本仓库内开发**：skill 在根目录 `skills/abzu/`（产品源码位，Claude Code 打开本仓库不自动加载）；实测走上面的安装流程到独立文件夹进行。斜杠命令薄壳在 `.claude/commands/`（开发期用，skills.sh 安装不携带，域级命令分发方案见 Roadmap）。
+**本仓库内开发**：skill 在根目录 `skills/abzu/`（产品源码位，Claude Code 打开本仓库不自动加载）；实测走上面的安装流程到独立文件夹进行。域级命令薄壳（如 `/abzu-scan`）为多域上线后的待裁项，样式见 Roadmap 挂账。
 
 ## 快速上手
 
@@ -50,7 +50,7 @@ Abzu/
 - [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜 ✅ ｜ 拆书 ｜ 大纲 ｜ 卷纲 ｜ 正文 ｜ 文风
 - [ ] 评估：[test-prompts](docs/test-prompts.md) 六场景全绿
 - [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
-- [ ] 基建挂账：junction 链接免手动部署；多域上线后裁定域级命令分发方案（skills.sh 不携带 commands 薄壳）
+- [ ] 基建挂账：junction 链接免手动部署；多域上线后裁定域级命令分发方案（skills.sh 不携带 commands）——薄壳样式：`.claude/commands/abzu-{域}.md`，单行 `abzu skill {域}`
 
 发布前置（开源发布时执行，现不建）：README 补"一句话 → 触发 → 产出"演示示例；可选最小 CI（只跑 `agentskills validate`）；可选 Claude 插件市场打包（`.claude-plugin/marketplace.json`）；域内同类项目（oh-story-claudecode 等）对比报告。
 

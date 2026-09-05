@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 删除 `.claude/commands/abzu-scan.md` 薄壳：三重失效（skills.sh 不携带 / 仓库内 skill 不加载 / 唯一域期 /abzu 直达）；模式样式记入 Roadmap 挂账，命名总表改"预留"。`.claude/` 目录随之移除。
 - 安装方式升级：主推 `npx skills add Chained1001/Abzu -y`（skills.sh 安装器，实测对同结构仓库识别良好），cp 降为离线备选；README/architecture §五 同步。GitHub 远程（Chained1001/Abzu 公开仓）建立并推送，远程备份挂账销账。
 - 架构修订：skill 目录自 `.claude/skills/abzu/` 迁至根目录 `skills/abzu/`——本仓库定位为 skill 生产仓库（产品源码位），与 anthropics/skills、mo-shu 结构对齐；`.claude/` 仅保留 commands 薄壳（宿主集成位）；安装命令改为 `cp -r skills/abzu ~/.claude/skills/abzu`。
 - 合规修缮：workflow-scan 加粗密度达标；7 份移植方法论补「消费点/边界」头注（对齐 skill-writing 五.2）；glossary 登记"扫榜报告"；markdown-style 增移植文件排版豁免条款。

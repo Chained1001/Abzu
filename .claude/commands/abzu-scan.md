@@ -1,1 +1,0 @@
-abzu skill scan
