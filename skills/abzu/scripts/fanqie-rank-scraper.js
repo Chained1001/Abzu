@@ -201,7 +201,7 @@ function fmtStatus(s) {
   return s ? String(s) : "未知";
 }
 
-/** 渲染路径质量提示（B37 提取：原 ratio 作用域 bug——scrapeChannel 引用了 computeQualityProblems 的局部变量导致 ReferenceError 数据丢失；提取为纯函数供测试）。返回提示内容或 null */
+/** 渲染路径质量提示（提取为纯函数以便测试）。返回提示内容或 null */
 function qualityRatioNote(totalBooks, resolvedTitles) {
   const ratio = totalBooks ? resolvedTitles / totalBooks : 0;
   if (totalBooks > 0 && resolvedTitles === 0) {
