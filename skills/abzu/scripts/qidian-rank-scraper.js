@@ -26,6 +26,14 @@
  *   cdp 模式需要：node <skill 目录>/scripts/setup-cdp-chrome.js 9222
  */
 
+/* ═══ 平台改版维护入口 ═══
+ * 全部页面选择器/数据源（改版只改这里）：
+ * - 首选数据源：m.qidian.com 移动端 SSR pageContext JSON
+ * - PC 回退选择器：'.book-img-text ul li' / 'h2 a[href*="/book/"]' / 'p.author a.name' / 'p.author a' / 'p.author span'
+ * 失效症状：SSR JSON 缺 pageContext，或 PC 页选择器返回 0 条
+ * 排查：references/scan/scan-cdp-base.md 与 references/scan/scan-collection-guide.md
+ */
+
 const fs = require("fs");
 const https = require("https");
 const path = require("path");
@@ -435,7 +443,7 @@ async function scrapeRankMobile(rankTypeId) {
   const books = records.map(normalizeMobileBook).filter((b) => b.title);
 
   if (!books.length) {
-    console.log("  ⚠ 移动端 SSR 未提取到书籍");
+    console.error("[qidian] 选择器失效：页面结构可能已变，条目数为 0，请核对 URL 与选择器");
     return null;
   }
 
@@ -485,7 +493,7 @@ function scrapeRankCDP(port, rankTypeId) {
 
   const books = extractBookList(port);
   if (!books.length) {
-    console.log("  ⚠ 未提取到书籍");
+    console.error("[qidian] 选择器失效：页面结构可能已变，条目数为 0，请核对 URL 与选择器");
     return null;
   }
   console.log(`  ✓ 提取 ${books.length} 本`);

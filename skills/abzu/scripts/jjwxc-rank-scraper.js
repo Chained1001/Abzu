@@ -22,6 +22,14 @@
  *   node <skill 目录>/scripts/setup-cdp-chrome.js 9222
  */
 
+/* ═══ 平台改版维护入口 ═══
+ * 全部页面选择器/数据源（改版只改这里）：
+ * - 列表页：jjwxc.net/topten.php?orderstr={榜单ID}（anchor 取 novelid）
+ * - 详情页：onebook.php?novelid= 的 itemprop 微数据 collectedCount/nutritionCount/scoreCount/wordCount/updataStatus
+ * 失效症状：频道分组为空或收藏数/营养液缺失
+ * 排查：references/scan/scan-output-format.md 晋江节与 references/scan/scan-cdp-base.md
+ */
+
 const fs = require("fs");
 const path = require("path");
 const { ab, sleep, openWithRetry, evalJSONBase64, getArg, requireIntArg, localDateStamp, localTimestamp, runCli } = require("./cdp-utils");
@@ -215,7 +223,7 @@ function scrapeRank(port, rankTypeId, channelId) {
 
     data = extractRankData(port);
     if (!data?.channels?.length) {
-      console.error(`[jjwxc] 采集失败：未解析到榜单（页面结构可能变动或未加载）。请人工打开 ${url} 确认。`);
+      console.error(`[jjwxc] 选择器失效：页面结构可能已变，条目数为 0，请核对 URL 与选择器（或人工打开 ${url} 确认）。`);
       return null;
     }
   } catch (err) {

@@ -17,6 +17,14 @@
  *   node <skill 目录>/scripts/setup-cdp-chrome.js 9222
  */
 
+/* ═══ 平台改版维护入口 ═══
+ * 全部页面选择器/数据源（改版只改这里）：
+ * - tab 选择器：'.qm-switch-tab .item.active' / '.child-tabs-item.menu-tab.active' / '.date-type-tabs .tab.active'
+ * - 榜单列表：qimao.com/paihang 各榜单链接与列表项选择器
+ * 失效症状：列表为空或热度字段缺失
+ * 排查：references/scan/scan-output-format.md 与 references/scan/scan-cdp-base.md
+ */
+
 const fs = require("fs");
 const path = require("path");
 const { ab, sleep, openWithRetry, evalJSONBase64, scrollLoad, getArg, requireIntArg, localDateStamp, localTimestamp, runCli } = require("./cdp-utils");
@@ -336,7 +344,7 @@ function scrapeRank(port, channelId, rankTypeId, periodId) {
   }
 
   if (!books.length) {
-    console.error(`[qimao] 采集失败：页面结构可能已变（选择器没匹配到数据），请检查榜单URL或更新选择器 (${RANK_URL} ${ch.label}${rt.label}${periodLabel})`);
+    console.error(`[qimao] 选择器失效：页面结构可能已变（选择器没匹配到数据），请检查榜单URL或更新选择器 (${RANK_URL} ${ch.label}${rt.label}${periodLabel})`);
     return null;
   }
 

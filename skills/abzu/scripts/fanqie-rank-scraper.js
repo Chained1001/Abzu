@@ -18,6 +18,15 @@
  *   node <skill 目录>/scripts/setup-cdp-chrome.js 9222
  */
 
+/* ═══ 平台改版维护入口 ═══
+ * 全部页面选择器/数据源（改版只改这里）：
+ * - 榜单页：window.__INITIAL_STATE__ 结构化列表
+ * - 详情页：内嵌 JSON bookName/author/abstract/categoryV2 与 og:meta（字体反爬解码）
+ * - 标签：简介开头【tag+tag】格式
+ * 失效症状：书名大量显示 bookId:xxx 或（标题待解析）
+ * 排查：references/scan/scan-output-format.md「故障排查」与 references/scan/scan-cdp-base.md
+ */
+
 const fs = require("fs");
 const path = require("path");
 const { ab, sleep, openWithRetry, evalJSONBase64, scrollLoad, getArg, requireIntArg, localDateStamp, localTimestamp, runCli } = require("./cdp-utils");
@@ -339,6 +348,7 @@ function scrapeChannel(ch, type) {
 
       let books = extractBookList(PORT);
       if (!Array.isArray(books) || !books.length) {
+        console.error("[fanqie] 选择器失效：页面结构可能已变，条目数为 0，请核对 URL 与选择器");
         bodyLines.push(`## ${cat.name} — 0 本`, "", "---", "");
         continue;
       }
