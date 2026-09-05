@@ -7,6 +7,7 @@
 ### Changed
 
 - 删除 `.claude/commands/abzu-scan.md` 薄壳：三重失效（skills.sh 不携带 / 仓库内 skill 不加载 / 唯一域期 /abzu 直达）；模式样式记入 Roadmap 挂账，命名总表改"预留"。`.claude/` 目录随之移除。
+- 引用纪律立法（skill-writing §六 / file-conventions §三）：skill 资产内引用一律用 skill 根相对路径 +「节名」（运行时按 SKILL_DIR 零推断），禁裸文件名与深层互链；scan 域 30 处引用全量路径化。
 - skill-writing v0.2：新增 §三文件结构模板（SKILL/workflow/方法论/模板四类节序）与 §五.3 交互标注纪律（问句必标模态、混合问题拆两问）；来源声明改两行；workflow-scan Stage 1/5 按新规标注（弹窗/对话式）。
 - description 补触发方式（/abzu 与自然语言）；skill 运行时文件 moshu 出处清零（移植出处保留在仓库 CHANGELOG/归档规格，不随安装分发）。
 - 安装方式升级：主推 `npx skills add Chained1001/Abzu -y`（skills.sh 安装器，实测对同结构仓库识别良好），cp 降为离线备选；README/architecture §五 同步。GitHub 远程（Chained1001/Abzu 公开仓）建立并推送，远程备份挂账销账。

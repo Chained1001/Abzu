@@ -1,7 +1,7 @@
 # 网文题材趋势与流派参考
 
 > **消费点**：扫榜域按需加载——查题材趋势候选、切入约束与样本校验规则时
-> **边界**：管题材趋势与流派要点；读者画像归 reader-profiling，平台调性见 workflow-scan 速查表
+> **边界**：管题材趋势与流派要点；读者画像归 references/scan/reader-profiling.md，平台调性见 references/scan/workflow-scan.md 速查表
 
 ---
 

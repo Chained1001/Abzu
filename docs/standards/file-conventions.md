@@ -37,11 +37,11 @@
 
 | 场景 | 格式 | 示例 |
 | --- | --- | --- |
-| 同目录文件 | Markdown 链接 | `[stage-drafting.md](stage-drafting.md)` |
+| 同目录文件（仓库治理文档） | Markdown 链接 | `[file-conventions.md](file-conventions.md)` |
 | 跨目录文件（仓库治理文档） | Markdown 链接（含相对路径） | `[file-conventions.md](docs/standards/file-conventions.md)` |
-| 跨目录文件（skill 运行时资产） | 禁链接，用路径说明文字 | `moshu 侧 references/guide.md` |
+| skill 资产内引用（无论同目录跨目录） | 禁链接与裸文件名，用 skill 根相对路径文字 +「节名」 | `references/scan/analysis-guide.md`「扫榜报告模板」节 |
 | 文件名提及（无需跳转） | 行内代码 | `` `SKILL.md` `` |
-| 指定小节 | 文件名 + 「节名」 | `AGENTS.md`「红线」节 |
+| 指定小节（治理文档） | 文件名 + 「节名」 | `AGENTS.md`「红线」节 |
 
 规则（按资产域分区）：**skill 运行时资产**（`references/`、`scripts/`）禁跨目录链接——部署副本会断链，必须自包含（此规则出身 mo-shu，仅适用于运行时资产）；**仓库治理文档**（根目录、`docs/`）允许跨目录 Markdown 链接——它们在编辑器与 GitHub 中阅读，链接是可用性加分。references 之间不互相链接（一层深纪律，见宪法 §7）。
 

@@ -1,7 +1,7 @@
 # collection-guide.md：扫榜采集指南（Stage 2 细节）
 
 > **消费点**：扫榜域 Stage 2（数据采集）全量加载
-> **边界**：管平台采集目标与命令示例；字段定义归 scan-output-format，CDP 环境归 cdp-base
+> **边界**：管平台采集目标与命令示例；字段定义归 references/scan/scan-output-format.md，CDP 环境归 references/scan/cdp-base.md
 
 ## 核心哲学
 
@@ -21,12 +21,12 @@
 
 ## 脚本采集流程
 
-优先运行对应平台脚本直接采集结构化数据。起点使用移动端 SSR pageContext，默认不需要 Chrome/CDP；番茄等需要浏览器态的平台再按 `cdp-base.md` 启动 Chrome。
+优先运行对应平台脚本直接采集结构化数据。起点使用移动端 SSR pageContext，默认不需要 Chrome/CDP；番茄等需要浏览器态的平台再按 `references/scan/cdp-base.md` 启动 Chrome。
 
-1. 选择平台脚本；起点直接运行 `{SKILL_DIR}/scripts/qidian-rank-scraper.js`，番茄/七猫/晋江等按需启动 CDP 底座（cdp-base.md）
+1. 选择平台脚本；起点直接运行 `{SKILL_DIR}/scripts/qidian-rank-scraper.js`，番茄/七猫/晋江等按需启动 CDP 底座（references/scan/cdp-base.md）
 2. 等待列表元素或 SSR 数据加载，逐条提取字段（排名、书名、作者、题材、字数、推荐/在读数等），判断翻页（起点通常单页50-100条，番茄按题材逐页cap≈20）
 3. 需要补充数据时（标签、简介、最新更新），进入详情页提取
-4. 按规范格式写入 Markdown 文件（字段定义与模板见 [scan-output-format.md](scan-output-format.md)）
+4. 按规范格式写入 Markdown 文件（字段定义与模板见 references/scan/scan-output-format.md）
 5. 多榜单/多题材时，逐组采集并保存
 
 `{SKILL_DIR}` 指当前加载的 abzu skill 根目录。
@@ -64,7 +64,7 @@ node {SKILL_DIR}/scripts/fanqie-rank-scraper.js --channel 1 --type 2 --outdir {�
 node {SKILL_DIR}/scripts/fanqie-rank-scraper.js --channel all --top 15 --outdir {输出目录}   # 男女频，每题材前 15 本
 ```
 
-> **番茄采集后必查文件头 `数据质量`**，异常排查步骤见 [scan-output-format.md](scan-output-format.md)。
+> **番茄采集后必查文件头 `数据质量`**，异常排查步骤见 references/scan/scan-output-format.md。
 
 ### 七猫采集目标
 
@@ -76,7 +76,7 @@ node {SKILL_DIR}/scripts/fanqie-rank-scraper.js --channel all --top 15 --outdir 
 
 ### 晋江采集目标
 
-`{SKILL_DIR}/scripts/jjwxc-rank-scraper.js`，默认列表 + 详情两步走；其余榜单类型见 [scan-output-format.md](scan-output-format.md) 榜单表。
+`{SKILL_DIR}/scripts/jjwxc-rank-scraper.js`，默认列表 + 详情两步走；其余榜单类型见 references/scan/scan-output-format.md 榜单表。
 
 | 榜单 | URL | 核心字段 |
 | --- | --- | --- |
@@ -91,7 +91,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --top 15 --detail-limit
 node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only                 # 只采列表（快，无核心指标）
 ```
 
-> **晋江硬性要求**：必须有详情页核心指标（收藏数/营养液/积分/字数），脚本默认已补采；采集要点见 [scan-output-format.md](scan-output-format.md)。
+> **晋江硬性要求**：必须有详情页核心指标（收藏数/营养液/积分/字数），脚本默认已补采；采集要点见 references/scan/scan-output-format.md。
 
 ### 文件命名与输出目录
 
@@ -110,7 +110,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only            
 
 ## 采集质量检查（每完成一个榜单立即执行）
 
-发现问题当场修复，不留给后续分析。详细规则见 [scan-output-format.md](scan-output-format.md)「数据清洗与字段约束」。
+发现问题当场修复，不留给后续分析。详细规则见 references/scan/scan-output-format.md「数据清洗与字段约束」。
 
 ### 1. 数据完整性
 
