@@ -57,7 +57,7 @@
 | 男频新书榜 | fanqienovel.com/rank/1_1_{cat_id} | 新风向信号 |
 | 女频新书榜 | fanqienovel.com/rank/0_1_{cat_id} | 新风向信号 |
 
-URL 参数：`/rank/{channel}_{type}_{cat_id}`，channel 0=女频/1=男频，type 1=新书榜/2=阅读榜。番茄列表页有字体反爬，须用 `{SKILL_DIR}/scripts/fanqie-rank-scraper.js` 从详情页多策略解码书名/作者/题材/标签/简介，配合 CDP 底座 使用：
+URL 参数：`/rank/{channel}_{type}_{cat_id}`，channel 0=女频/1=男频，type 1=新书榜/2=阅读榜。番茄列表页有字体反爬，须用 `{SKILL_DIR}/scripts/fanqie-rank-scraper.js` 从详情页多策略解码书名/作者/题材/标签/简介，配合 CDP 底座使用：
 
 ```bash
 node {SKILL_DIR}/scripts/fanqie-rank-scraper.js --channel 1 --type 2 --outdir {输出目录}   # 男频阅读榜
@@ -104,7 +104,7 @@ node {SKILL_DIR}/scripts/jjwxc-rank-scraper.js --type 12 --list-only            
 - 选题决策：该目录下 `选题决策.md`（开书流程会从项目根及其上一级目录起、向下最多 3 层自动查找——**选题决策必须保持在这个可达范围内**；小说项目建得比 3 层更深时，开书前把 `选题决策.md` 复制到项目根）
 - 同平台同方向多次扫榜用日期区分目录，不覆盖历史数据
 
-**扫榜不依赖拆文库**：拆文库是 analyze 域 的产物（拆解对标书用），开书对标时才消费。扫榜阶段无需检查、等待或创建拆文库；项目没有拆文库不影响扫榜，直接继续。
+**扫榜不依赖拆文库**：拆文库是 analyze 域的产物（拆解对标书用），开书对标时才消费。扫榜阶段无需检查、等待或创建拆文库；项目没有拆文库不影响扫榜，直接继续。
 
 ---
 

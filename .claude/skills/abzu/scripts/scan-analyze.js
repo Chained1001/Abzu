@@ -1,5 +1,5 @@
-// 来源：移植自 mo-shu v2.6.1
 #!/usr/bin/env node
+// 来源：移植自 mo-shu v2.6.1
 /**
  * scan-analyze.js — 扫榜数据分析器（替代 AI 每次临时写内联脚本）
  *
