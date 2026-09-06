@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # 一键检查（宪法 §0）：六壳 skill 格式校验 + Markdown 体检 + 引用闭合 + 加粗密度 + TOC
-# 用法：bash scripts/check.sh
+# 用法：bash scripts/check.sh [--staged]
+#   --staged  仅检查 git 暂存区涉及的 .md 文件（增量模式，日常快速反馈）
+#   默认全量（六壳 validate + 全仓 markdownlint + 引用闭合 + 加粗密度 + TOC）
 set -u
 cd "$(dirname "$0")/.." || exit 1
 fail=0
+STAGED=false
+[[ "${1:-}" == "--staged" ]] && STAGED=true
 
 echo "[1] agentskills 六壳 validate..."
 AS=""
@@ -25,7 +29,16 @@ for d in skills/abzu-*/; do
 done
 
 echo "[2] markdownlint..."
-npx -y markdownlint-cli2 || fail=1
+if $STAGED; then
+  STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM -- '*.md' 2>/dev/null)
+  if [ -n "$STAGED_FILES" ]; then
+    npx -y markdownlint-cli2 $STAGED_FILES || fail=1
+  else
+    echo "  无暂存 .md，跳过"
+  fi
+else
+  npx -y markdownlint-cli2 || fail=1
+fi
 
 echo "[3] 引用闭合 + 加粗密度 + TOC..."
 python scripts/check_content.py || fail=1
