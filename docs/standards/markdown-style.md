@@ -2,7 +2,7 @@
 
 > 版本：v0.3（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有 .md 文件正文写法的单点权威——结构、中文排版、AI 友好写作、符号与编码安全。文件命名归 [file-conventions.md](file-conventions.md)；术语叫法归 [../glossary.md](../glossary.md)。
-> 依据：markdownlint 规则集（条文先行，工具配置见 `.markdownlint-cli2.jsonc`）、中文文案排版指北、Anthropic skill 写作实践、mo-shu 工艺教训。
+> 依据：markdownlint 规则集（条文先行，工具配置见 `.markdownlint-cli2.jsonc`）、中文文案排版指北、Anthropic skill 写作实践。
 
 ## 一、结构规则
 

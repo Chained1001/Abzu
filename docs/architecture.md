@@ -71,7 +71,7 @@ v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安
 
 **setup 等价物的触发条件**：将来引入需要物化进书项目的组件（hooks / 子代理 / 项目级模板）之日，才引入 `/abzu-setup`——此前不做（防未来会话重复纠结）。职责边界（2026-09-07 参考 mattpocock/skills ADR-0001）：setup 只处理**硬依赖**——物化组件落盘与依赖预检；题材偏好、平台选择等**软配置不进 setup**，由各域工作流首用交互自行采集。
 
-**行业安装原型对照**（2026-09-06 调研：awesome-novel-agent / webnovel-writer / oh-story / mo-shu / ECC / anthropics 官方）：
+**行业安装原型对照**（2026-09-06 调研：awesome-novel-agent / webnovel-writer / oh-story / ECC / anthropics 官方）：
 
 | 原型 | 安装 | 初始化 | 适用 |
 | --- | --- | --- | --- |
@@ -79,7 +79,7 @@ v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安
 | ② 首用即初始化 | 同上 | 域技能首步工作流自动 init（新目录检测→建骨架） | 产物需落进书项目（网文技能类最主流） |
 | ③ 独立 setup 技能 | 插件市场 + setup | 独立部署技能物化 hooks/agents/知识库 + 版本哨兵 | 常驻确定性组件（hooks/agents）出现时——**T1 之后的 Abzu 形态** |
 
-Abzu 现状为原型①（标准、零摩擦）；「立项引导与扫榜目录首用创建」已实现原型②的 init-on-first-use；T1 触发时按原型③立法 `/abzu-setup`（mo-shu deploy.py 的幂等重跑/哨兵判定/合并不覆盖为现成设计参考）。安装预检（依赖版本前置报错）随脚本依赖复杂化挂账。
+Abzu 现状为原型①（标准、零摩擦）；「立项引导与扫榜目录首用创建」已实现原型②的 init-on-first-use；T1 触发时按原型③立法 `/abzu-setup`（设计参考以 §七 T1 标杆为准）。安装预检（依赖版本前置报错）随脚本依赖复杂化挂账。
 
 ## 六、流程哲学
 
@@ -90,7 +90,7 @@ Abzu 现状为原型①（标准、零摩擦）；「立项引导与扫榜目录
 
 ## 七、权威规范对齐（2026-09-06 调研落盘）
 
-> 分级：T0 官方规范与文档 ｜ T1 官方实物与社区标杆 ｜ T2 目录评测。**mo-shu 仅为同域参考实现，不入权威层**——其经验须经本节权威源校验后方可吸收。
+> 分级：T0 官方规范与文档 ｜ T1 官方实物与社区标杆 ｜ T2 目录评测。**外部参考纪律**：设计与规范条文只可引用本节 T0/T1/T2 权威源；前作 mo-shu 不作设计依据与参考——仅限沿革记录与教训出处（失败数据/事故），不得以「mo-shu 这么做」为任何设计立据。（2026-09-07 作者裁定立例。）
 
 - T0 官方：Agent Skills 开放规范（agentskills.io）｜Skill authoring best practices（platform.claude.com）｜Claude Code skills 文档与 hooks 文档（code.claude.com，hooks=确定性执法依据）｜Anthropic 官方创建指南（claude.com/blog）
 - T1 官方实物与社区标杆：anthropics/skills（157K+；document-skills 为生产级 SKILL 写作范本、skill-creator）｜obra/superpowers（243K；TDD 元规范与 RED-GREEN-REFACTOR）｜gstack（118K，Think→Build→Ship→Reflect 环）｜GSD（64K，每任务新鲜子代理）｜AWS Agent Toolkit（企业同格式）｜mattpocock/skills（调用双层模型、失效模式导览 README、setup 硬依赖指针、CONTEXT.md 共享语言——2026-09-07 专项研究，规格 015）

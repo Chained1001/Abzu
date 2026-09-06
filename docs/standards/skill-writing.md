@@ -2,7 +2,7 @@
 
 > 版本：v0.3（沿革见 CHANGELOG 与 git 历史）
 > 定位：skill 内容（SKILL.md 正文、references 方法论、对用户话术）的写作与设计规范。正文格式归 [markdown-style.md](markdown-style.md)；文件命名归 [file-conventions.md](file-conventions.md)；行为验收归 [../test-prompts.md](../test-prompts.md)；版本归 [release-and-versioning.md](release-and-versioning.md)。
-> 依据：obra/superpowers writing-skills 元规范（社区实战验证）、Anthropic skill 官方指南、mo-shu 工艺教训。
+> 依据：obra/superpowers writing-skills 元规范（社区实战验证）、Anthropic skill 官方指南。
 
 ## 一、description（触发器，官方上限 1024 字符）
 
