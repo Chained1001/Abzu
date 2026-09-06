@@ -55,7 +55,7 @@
 | 场景 | 格式 | 示例 |
 | --- | --- | --- |
 | 同目录文件（仓库治理文档） | Markdown 链接 | `[file-conventions.md](file-conventions.md)` |
-| 跨目录文件（仓库治理文档） | Markdown 链接（含相对路径） | `[架构对齐](007-2026-09-05-架构对齐.md)` |
+| 跨目录文件（仓库治理文档） | Markdown 链接（含相对路径） | `[架构对齐](../specs/archive/007-2026-09-05-架构对齐.md)` |
 | skill 资产内引用（无论同目录跨目录） | 禁链接与裸文件名，用 skill 根相对路径文字 +「节名」 | `references/scan/scan-analysis-guide.md`「扫榜报告模板」节 |
 | 文件名提及（无需跳转） | 行内代码 | `` `SKILL.md` `` |
 | 指定小节（治理文档） | 文件名 + 「节名」 | `AGENTS.md`「红线」节 |
@@ -74,7 +74,7 @@ metadata:
 ---
 ```
 
-约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：`agentskills validate skills/abzu-scan`。
+约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨）；单壳直调 `agentskills validate skills/abzu-{域}`。
 
 ## 五、本规范的维护
 

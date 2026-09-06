@@ -18,6 +18,26 @@ for f in sorted(glob.glob('skills/abzu-*/**/*.md', recursive=True)):
         if not os.path.isfile(full):
             issues.append(f'断链: {f} → {ref}')
 
+# 治理文档相对链接须解析存在（016 扩围）；skill 根相对路径引用（references|scripts 前缀，
+# 运行时按 SKILL_DIR 解析的另一种语义）按现有规则跳过
+gov_files = ['AGENTS.md', 'README.md'] + glob.glob('docs/**/*.md', recursive=True)
+for f in sorted(gov_files):
+    s = open(f, encoding='utf-8').read()
+    base = os.path.dirname(f)
+    # 行内代码（`...`）内的链接形文本是示例/提及（对照 file-conventions §三），非真链接，不参与解析
+    s = re.sub(r'`[^`]*`', '', s)
+    for m in re.finditer(r'\[[^\]]*\]\(([^)\s]+)\)', s):
+        target = m.group(1)
+        if target.startswith(('http://', 'https://', '#')):
+            continue
+        if re.match(r'(?:references|scripts)/', target):
+            continue
+        path = target.split('#', 1)[0]
+        if not path:
+            continue
+        if not os.path.isfile(os.path.join(base, path)):
+            issues.append(f'断链: {f} → {target}')
+
 # ═══ 加粗密度 ═══
 for f in sorted(glob.glob('skills/abzu-*/**/*.md', recursive=True)):
     s = open(f, encoding='utf-8').read()
