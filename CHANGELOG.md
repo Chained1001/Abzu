@@ -6,6 +6,7 @@
 
 ### Changed
 
+- check.sh 升级：引用闭合/加粗密度/TOC 检查从对话中的临时脚本固化为 scripts/check_content.py（独立可复用），check.sh 调用之；修复路径错误（skills/ → scripts/）；修复 TOC 检查变量遮蔽 bug（content 列表被二次 split）。
 - §3.8 增补施工分身模式（作者提议）：规划方可 spawn 施工分身替代外部窗口施工——作者从"中转"升级为"纯裁决"；collab-log 新增施工分身提示词模板（第六件套→协作模板六项），宪法引用同步。
 - 治理文档全面同步（013 骨架切换遗留清理）：architecture §二 选型表标注已被多技能裁定取代/§六 中央路由句改为各壳入口自查/§五 安装命令更新/§七 对照表改多技能口径；file-conventions 六处位置列更新为多技能路径 + 命令薄壳标注退役 + 断链示例与旧文件名修正 + 校验命令更新；release-and-versioning 版本三处一致重立法为六壳各自 version 同批 bump + 安装路径更新；skill-writing workflow 命名对齐 {域}-workflow；README 安装命令/结构树/开发节全面更新。
 - agent-design v0.2（外审骨架可补四条全采纳）：§二 补反模式清单（严禁 spawn 场景：简单文本/短阅读/简单判断/单命令解读→主线程直接做）；§四 补嵌套禁令（agent 内禁止再 spawn，调试难度指数上升）与调用方责任（前置校验+spawn 溯源）；§三 补纪律段填写伪示例；§一 tools 白名单补禁继承主会话全量工具集；头部加骨架立法注释；T1 待办统一 [T1-TODO] 标记。
