@@ -25,7 +25,7 @@
 
 版本号出现在且仅出现在三处，禁止散落第四处：
 
-1. `skills/abzu/SKILL.md` 的 `metadata.version`
+1. 六壳（`skills/abzu-{域}/SKILL.md`）各自 `metadata.version`，套件统一节奏同批 bump
 2. git tag `vX.Y.Z`（打在发布提交上）
 3. `CHANGELOG.md` 版本段标题
 
@@ -37,7 +37,7 @@
 2. CHANGELOG 定稿：`Unreleased` 段移为 `[X.Y.Z] - YYYY-MM-DD` 版本段（ISO 日期），新开空 `Unreleased`；**涉及写作项目 schema 兼容的条目加 `[schema]` 前缀**，用户升级第一时间可见兼容影响
 3. bump `SKILL.md` 的 `metadata.version` 并与 CHANGELOG 对齐
 4. `git tag vX.Y.Z`（建立远程后：推送并确认）
-5. 安装实测：复制到 `~/.claude/skills/abzu` 实测 + 跑冒烟场景（场景 1）
+5. 安装实测：`npx skills add Chained1001/Abzu -y` 后在独立文件夹跑冒烟场景（场景 6）
 
 ## 四、写作项目 schema 兼容（核心：skill 的"数据库"在用户书目录里）
 
@@ -61,7 +61,7 @@
 
 ## 七、发布渠道分层
 
-- 当前：README 复制安装（用户级 `~/.claude/skills/` / 项目级 `.claude/skills/`）。
+- 当前：`npx skills add` 或手动复制到用户级 `~/.claude/skills/`。
 - 发布前置（届时再建）：可选 Claude 插件市场打包（`.claude-plugin/marketplace.json`，对照官方文档实施）；`THIRD_PARTY_NOTICES.md`（引入第三方内容时）。
 
 ## 八、维护

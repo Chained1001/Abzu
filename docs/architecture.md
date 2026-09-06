@@ -14,7 +14,7 @@
 
 **决定性判据：六域共享同一份可变状态（写作项目的 project.md / tracking / 手稿）**——共享资产的归属方式是两方案的分水岭。
 
-| 维度 | 单 skill 六域（选定） | 多 skill 分立 |
+| 维度 | ~~单 skill 六域~~（已由多技能骨架裁定取代，见 §一） | 多 skill 分立 |
 | --- | --- | --- |
 | 共享资产 | `references/common/` 一份正本，零机制 | 需同步机制（mo-shu 为此养 64 组字节对账 + 守卫）或内嵌副本（漂移风险） |
 | 精准入口 | 6 个一行命令薄壳（一次性十分钟） | skill 本名即命令，免费 |
@@ -62,10 +62,10 @@ skills/
 ```
 改 skill → agentskills validate skills/abzu → npx markdownlint-cli2
         → npx skills add Chained1001/Abzu -y（skills.sh 安装器，自动装入用户级；离线备选 cp -r skills/abzu ~/.claude/skills/abzu）
-        → 新会话（新文件夹）敲 /abzu 真测
+        → 新会话（新文件夹）敲 /abzu-scan 真测
 ```
 
-v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安装即全部部署；书项目脚手架由立项流程自建；升级检测走 `project.md` 的 `schema` 字段（release-and-versioning §四）。skills.sh 安装只携带 skill 文件夹（不含 `.claude/commands/` 薄壳）——v1 唯一功能为扫榜，`/abzu` 入口直达；域级命令分发方案留待多域上线时裁定（Roadmap 挂账）。
+v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安装即全部部署；书项目脚手架由立项流程自建；升级检测走 `project.md` 的 `schema` 字段（release-and-versioning §四）。skills.sh 安装只携带 skill 文件夹（不含 `.claude/commands/` 薄壳）——六域 skill 本名即命令，多域已就位（五占位 + 一实建）；域级命令分发方案已裁定为 skill 本名（见 §四）。
 
 **setup 等价物的触发条件**：将来引入需要物化进书项目的组件（hooks / 子代理 / 项目级模板）之日，才引入 `/abzu-setup`——此前不做（防未来会话重复纠结）。
 
@@ -82,7 +82,7 @@ Abzu 现状为原型①（标准、零摩擦）；「立项引导与扫榜目录
 ## 六、流程哲学
 
 - **域是平行的门，不是管道**：跨域无顺序锁，大纲可反复打磨、随时回改；唯一依赖是文件账本律的产物检查（缺产物=提示，非门禁）。
-- **生产者只落盘，消费者定义读取**（对应 Pipes and Filters 架构模式与数据耦合：每个 filter 只知输入输出，不知管道中其他 filter；域间只通过落盘文件通信，零调用、零预定义消费行为）：生产者的全部义务是把产物按共享约定落盘（文件名与落点归 common 层）；如何查找、读取与使用，由消费方在自己域内定义并自行告知用户。跨域导航归 SKILL.md 中央路由表，域工作流不含流程衔接内容。
+- **生产者只落盘，消费者定义读取**（对应 Pipes and Filters 架构模式与数据耦合：每个 filter 只知输入输出，不知管道中其他 filter；域间只通过落盘文件通信，零调用、零预定义消费行为）：生产者的全部义务是把产物按共享约定落盘（文件名与落点归 common 层）；如何查找、读取与使用，由消费方在自己域内定义并自行告知用户。跨域导航由各域入口自查 + skill 本名命令承担，域工作流不含流程衔接内容。
 - **阶段门控只管域内工序**（如单章：章纲确认后才写正文），跨域顺序由作者决定。
 - **会话恢复**：SKILL.md 入口按文件证据（tracking 文件存在性与产物状态）定位续跑点，不凭对话记忆。
 
@@ -94,7 +94,7 @@ Abzu 现状为原型①（标准、零摩擦）；「立项引导与扫榜目录
 - T1 官方实物与社区标杆：anthropics/skills（157K+；document-skills 为生产级 SKILL 写作范本、skill-creator）｜obra/superpowers（243K；TDD 元规范与 RED-GREEN-REFACTOR）｜gstack（118K，Think→Build→Ship→Reflect 环）｜GSD（64K，每任务新鲜子代理）｜AWS Agent Toolkit（企业同格式）
 - T2 目录评测：travisvn/awesome-claude-skills（14K）｜skills.sh 生态｜taskade/firecrawl 评测
 
-设计决策对照：单 skill + menu approach（官方 docx 同款）｜域间文件通信（Pipes and Filters + 数据耦合）｜阶段门控（BEA workflow + 12FA checkpoints）｜eval-first（superpowers TDD）｜宪法（AGENTS.md 标准 + spec-kit Constitution）｜术语表（DDD Ubiquitous Language）｜约束阶梯 L1-L4（Claude Code hooks 确定性控制 + OpenAI 护栏外部化）｜逐域建设（last responsible moment）
+设计决策对照：多技能骨架 + menu approach（各域 workflow 独立文件按需加载）（官方 docx 同款）｜域间文件通信（Pipes and Filters + 数据耦合）｜阶段门控（BEA workflow + 12FA checkpoints）｜eval-first（superpowers TDD）｜宪法（AGENTS.md 标准 + spec-kit Constitution）｜术语表（DDD Ubiquitous Language）｜约束阶梯 L1-L4（Claude Code hooks 确定性控制 + OpenAI 护栏外部化）｜逐域建设（last responsible moment）
 
 2026-09-06 调研采纳：description 补边界声明（官方 strong description 三要素）；test-prompts 补场景 7 域外休眠（官方测试矩阵 out-of-scope）。挂账：粒度五次法则（做过 5 次、将做 10 次才立能力）；季度评审节律；reflect 机制（扫描会话纠正自动提议 SKILL 更新）；精读 anthropics document-skills 作为未来域写作范本。
 

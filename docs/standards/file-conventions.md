@@ -10,13 +10,13 @@
 
 | 文件类型 | 命名规则 | 示例 | 位置 |
 | --- | --- | --- | --- |
-| skill 壳 | `SKILL.md`（固定名） | — | `skills/abzu/` |
-| references 域子目录 | 六域 kebab-case + `common/`（公共层正本） | `references/write/`、`references/common/` | `references/` |
-| 域工作流 | `{域}-workflow.md` | `scan-workflow.md` | `references/{域}/` |
-| 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `references/{域}/` |
-| 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `references/{域}/` |
-| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md` | `references/{域}/` |
-| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `count-words.sh` | `skills/abzu/scripts/` |
+| skill 壳 | `SKILL.md`（固定名，每域一壳） | — | `skills/abzu-{域}/` |
+| references 域子目录 | 六域 kebab-case + `common/`（公共层正本） | `skills/abzu-scan/references/scan/` | `skills/abzu-{域}/references/` |
+| 域工作流 | `{域}-workflow.md` | `scan-workflow.md` | `skills/abzu-{域}/references/{域}/` |
+| 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `skills/abzu-{域}/references/{域}/` |
+| 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `skills/abzu-{域}/references/{域}/` |
+| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md` | `skills/abzu-{域}/references/{域}/` |
+| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js` | `skills/abzu-{域}/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
 | 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本） |
@@ -43,8 +43,8 @@
 | 场景 | 格式 | 示例 |
 | --- | --- | --- |
 | 同目录文件（仓库治理文档） | Markdown 链接 | `[file-conventions.md](file-conventions.md)` |
-| 跨目录文件（仓库治理文档） | Markdown 链接（含相对路径） | `[file-conventions.md](docs/standards/file-conventions.md)` |
-| skill 资产内引用（无论同目录跨目录） | 禁链接与裸文件名，用 skill 根相对路径文字 +「节名」 | `references/scan/analysis-guide.md`「扫榜报告模板」节 |
+| 跨目录文件（仓库治理文档） | Markdown 链接（含相对路径） | `[架构对齐](007-2026-09-05-架构对齐.md)` |
+| skill 资产内引用（无论同目录跨目录） | 禁链接与裸文件名，用 skill 根相对路径文字 +「节名」 | `references/scan/scan-analysis-guide.md`「扫榜报告模板」节 |
 | 文件名提及（无需跳转） | 行内代码 | `` `SKILL.md` `` |
 | 指定小节（治理文档） | 文件名 + 「节名」 | `AGENTS.md`「红线」节 |
 
@@ -62,7 +62,7 @@ metadata:
 ---
 ```
 
-约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：`agentskills validate skills/abzu`。
+约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：`agentskills validate skills/abzu-scan`。
 
 ## 五、本规范的维护
 
