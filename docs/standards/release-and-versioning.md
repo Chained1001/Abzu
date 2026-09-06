@@ -3,7 +3,7 @@
 > 版本：v0.2（沿革见 CHANGELOG 与 git 历史）
 > 定位：版本号语义与流转、发布流程、写作项目（用户的书目录）schema 兼容规则的单点权威。
 > 依据：SemVer 2.0.0、Keep a Changelog 1.1.0、mo-shu 四轨版本对齐教训（收窄为单轨）。
-> 背景约束：Abzu 用户手工复制安装（无包管理器），升级感知完全依赖版本号与 CHANGELOG——版本纪律比 marketplace 分发的项目更关键。
+> 背景约束：Abzu 通过 skills.sh 或手动复制安装（无项目级物化），升级感知依赖版本号与 CHANGELOG。
 
 ## 一、版本语义（SemVer + skill 定制）
 

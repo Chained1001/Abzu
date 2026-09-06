@@ -12,7 +12,7 @@
 **验证与常用命令**：
 
 - 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`
-- skill 格式校验：`agentskills validate skills/abzu`（pip 包 `skills-ref`，命令行入口为 `agentskills`）
+- skill 格式校验：`bash scripts/check.sh`（含六壳 validate + markdownlint，agentskills 探测链见下）
 - Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
 - 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
 
@@ -25,6 +25,7 @@
 | [docs/standards/markdown-style.md](docs/standards/markdown-style.md) | Markdown 正文写法 | 写/改任何 .md 前 |
 | [docs/standards/skill-writing.md](docs/standards/skill-writing.md) | skill 内容设计 | 写/改 SKILL.md 与 references 前 |
 | [docs/standards/release-and-versioning.md](docs/standards/release-and-versioning.md) | 版本与发布 | bump 版本、发布、改写作项目结构前 |
+| [docs/standards/agent-design.md](docs/standards/agent-design.md) | Agent 设计规范 | T1 触发后设计 agent 前 |
 | [docs/glossary.md](docs/glossary.md) | 术语叫法 | 写 skill 正文 / 产品文案前 |
 | [docs/test-prompts.md](docs/test-prompts.md) | 行为验收基准 | 修改 skill 后 |
 | `docs/specs/` | 轻量规格与历史样例 | 非平凡改动开工前 |

@@ -1,0 +1,21 @@
+{
+  "name": "abzu",
+  "owner": {
+    "name": "Chained1001"
+  },
+  "metadata": {
+    "description": "长篇网文 AI 辅助写作工作流 skill——从扫榜调研到逐章起草与修订，阶段门控式人机协同。"
+  },
+  "plugins": [
+    {
+      "name": "abzu",
+      "description": "扫榜调研——网文市场题材调研与选题决策（六域套件首域，其余随建设发布）",
+      "source": "./",
+      "strict": false,
+      "version": "0.3.0",
+      "category": "novel-writing",
+      "keywords": ["扫榜", "网文", "题材调研", "选题", "novel", "writing"],
+      "skills": ["./skills/abzu-scan"]
+    }
+  ]
+}

@@ -85,7 +85,7 @@ function buildAgentBrowserInvocation(port, args, platform = process.platform) {
  * 注意：open 命令不可用——agent-browser 的 open 等待页面"稳定"（load + 无持续活动），
  * 番茄等页面有轮询/埋点/字体加载永不满足会挂起并阻塞 daemon；导航必须走
  * openWithRetry（eval 导航，立即返回，页面异步加载由调用方 sleep+probePage 兜底）。
- * 本函数不再保留 open 分支（C3 死代码清理）。
+ * 本函数不再保留 open 分支（死代码清理）。
  */
 function ab(port, ...args) {
   const invocation = buildAgentBrowserInvocation(port, args);

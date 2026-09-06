@@ -60,7 +60,7 @@ skills/
 ## 五、部署与实测循环
 
 ```
-改 skill → agentskills validate skills/abzu → npx markdownlint-cli2
+改 skill → bash scripts/check.sh → npx markdownlint-cli2
         → npx skills add Chained1001/Abzu -y（skills.sh 安装器，自动装入用户级；离线备选 cp -r skills/abzu ~/.claude/skills/abzu）
         → 新会话（新文件夹）敲 /abzu-scan 真测
 ```

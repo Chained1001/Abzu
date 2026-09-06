@@ -2,7 +2,7 @@
 
 > 长篇网文 AI 辅助写作工作流 skill——从立项、世界观、分层大纲到逐章起草与修订，阶段门控式人机协同，文件化写作项目支持跨会话续写。
 
-**状态**：v0.1 筹备期——基础设施已就位，skill 本体建设中。
+**状态**：v0.3.0——扫榜调研域已可用（多技能骨架，其余五域占位待建）。
 
 ## 安装
 
@@ -20,7 +20,7 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 
 前置：Node.js 20+（扫起点榜仅需此一项）；番茄/七猫/晋江走 CDP 采集另需 Chrome 与 `npm install -g agent-browser`（一次性）。
 
-安装后新开会话即可使用：敲 `/abzu` 或直接说"扫一下起点榜"。终端 Claude Code 与 VSCode 的 Claude Code 插件共用 `~/.claude/` 配置，本安装对两者同时生效；作者日常使用环境为 VSCode 插件（新对话即新会话）。
+安装后新开会话即可使用：敲 `/abzu-scan` 或直接说"扫一下起点榜"。终端 Claude Code 与 VSCode 的 Claude Code 插件共用 `~/.claude/` 配置，本安装对两者同时生效；作者日常使用环境为 VSCode 插件（新对话即新会话）。
 
 **本仓库内开发**：skill 在根目录 `skills/` 下（产品源码位，Claude Code 打开本仓库不自动加载）；实测走上面的安装流程到独立文件夹进行。
 
@@ -32,13 +32,18 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 
 ```
 Abzu/
-├── skills/abzu/                 # skill 本体（产品源码位）
-│   ├── SKILL.md                 # 总控：会话恢复 + 域路由表
-│   ├── references/              # 六域方法论（scan/ analyze/ outline/ volume/ write/ style/ + common/）
-│   └── scripts/                 # 运行时脚本
-├── .claude/commands/            # 斜杠命令薄壳（宿主集成位）
+├── skills/
+│   ├── abzu-scan/               # 扫榜调研（已可用）
+│   │   ├── SKILL.md             # 域壳：入口判定 + 门控
+│   │   ├── references/scan/     # 10 份方法论与模板
+│   │   └── scripts/             # 7 个脚本（抓取+提取+CDP）
+│   ├── abzu-analyze/            # 拆书分析（占位壳）
+│   ├── abzu-outline/            # 大纲（占位壳）
+│   ├── abzu-volume/             # 卷纲（占位壳）
+│   ├── abzu-write/              # 正文（占位壳）
+│   └── abzu-style/              # 文风（占位壳）
 ├── docs/                        # 架构/规范/术语/评估/规格档案
-├── AGENTS.md                    # 项目宪法（红线/原则/流程/不做清单）
+├── AGENTS.md                    # 项目宪法
 └── README.md / CHANGELOG.md / LICENSE
 ```
 

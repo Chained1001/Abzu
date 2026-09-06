@@ -1,6 +1,6 @@
 ---
 name: abzu-analyze
-description: 拆书分析——对标书拆解、套路结构分析、参考候选验证。**当前未建设**：触发后仅告知规划状态，不产出任何内容、不模拟、不用其他域顶替。触发方式：/abzu-analyze。
+description: 拆书分析——参考书拆解、套路结构分析、参考候选验证。**当前未建设**：触发后仅告知规划状态，不产出任何内容、不模拟、不用其他域顶替。触发方式：/abzu-analyze。
 license: MIT
 metadata:
   version: "0.1.0"
