@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 014 分身首跑复盘三纪律入宪法 §3.8：①规格现状锚点必须现场 grep/read 确认，禁沿用对话记忆（014 号 3 处锚点过时立例）②施工提示词一律从 collab-log 模板派生，核验请求须单代码块包裹 ③规格确认后规划方主动 spawn 施工分身，不退回作者粘贴中转；collab-log 补 014 施工记录行（补记 ec17cce 提交信息声称但漏记的入库项，反模式 #8 又一实例）；014 号规格核验通过归档（同 012/013 例）。
 - 014 号检查管线优化施工完成（首次施工分身闭环）：check.sh 支持 --staged 增量模式；core.hooksPath = scripts/hooks（免手动安装 hook，入库即生效）；.claude-plugin/marketplace.json 确认合规；清理旧手动安装 hook 副本。核验三步全绿（独立分身首跑闭环：spawn 施工→返回核验请求→规划方核验通过）。
 - check.sh 升级：引用闭合/加粗密度/TOC 检查从对话中的临时脚本固化为 scripts/check_content.py（独立可复用），check.sh 调用之；修复路径错误（skills/ → scripts/）；修复 TOC 检查变量遮蔽 bug（content 列表被二次 split）。
 - §3.8 增补施工分身模式（作者提议）：规划方可 spawn 施工分身替代外部窗口施工——作者从"中转"升级为"纯裁决"；collab-log 新增施工分身提示词模板（第六件套→协作模板六项），宪法引用同步。
