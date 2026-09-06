@@ -57,6 +57,8 @@ skills/
 
 多技能骨架下 **skill 本名即精准命令**：`/abzu-scan`、`/abzu-outline` 等由 Claude Code 斜杠菜单原生补全，无需命令薄壳（单技能时期的方案，随骨架切换退役）。域内细分操作按各域工作流的交互模态执行。
 
+**调用双层**（2026-09-07 参考 mattpocock/skills invocation 单轴模型立法）：六域 skill 一律 **model-invoked**（description 触发；斜杠直呼与本名命令同源）；skill 之间**禁止互相调用**——跨域只经落盘文件衔接（§六「域是平行的门」）。未来预留的命令薄壳（file-conventions 预留行）若启用，属 **user-invoked 编排层**：只可调用域 skill，域 skill 永不反向调用薄壳或其他域 skill。
+
 ## 五、部署与实测循环
 
 ```
@@ -67,7 +69,7 @@ skills/
 
 v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安装即全部部署；书项目脚手架由立项流程自建；升级检测走 `project.md` 的 `schema` 字段（release-and-versioning §四）。skills.sh 安装只携带 skill 文件夹（不含 `.claude/commands/` 薄壳）——六域 skill 本名即命令，多域已就位（五占位 + 一实建）；域级命令分发方案已裁定为 skill 本名（见 §四）。
 
-**setup 等价物的触发条件**：将来引入需要物化进书项目的组件（hooks / 子代理 / 项目级模板）之日，才引入 `/abzu-setup`——此前不做（防未来会话重复纠结）。
+**setup 等价物的触发条件**：将来引入需要物化进书项目的组件（hooks / 子代理 / 项目级模板）之日，才引入 `/abzu-setup`——此前不做（防未来会话重复纠结）。职责边界（2026-09-07 参考 mattpocock/skills ADR-0001）：setup 只处理**硬依赖**——物化组件落盘与依赖预检；题材偏好、平台选择等**软配置不进 setup**，由各域工作流首用交互自行采集。
 
 **行业安装原型对照**（2026-09-06 调研：awesome-novel-agent / webnovel-writer / oh-story / mo-shu / ECC / anthropics 官方）：
 
@@ -91,12 +93,14 @@ Abzu 现状为原型①（标准、零摩擦）；「立项引导与扫榜目录
 > 分级：T0 官方规范与文档 ｜ T1 官方实物与社区标杆 ｜ T2 目录评测。**mo-shu 仅为同域参考实现，不入权威层**——其经验须经本节权威源校验后方可吸收。
 
 - T0 官方：Agent Skills 开放规范（agentskills.io）｜Skill authoring best practices（platform.claude.com）｜Claude Code skills 文档与 hooks 文档（code.claude.com，hooks=确定性执法依据）｜Anthropic 官方创建指南（claude.com/blog）
-- T1 官方实物与社区标杆：anthropics/skills（157K+；document-skills 为生产级 SKILL 写作范本、skill-creator）｜obra/superpowers（243K；TDD 元规范与 RED-GREEN-REFACTOR）｜gstack（118K，Think→Build→Ship→Reflect 环）｜GSD（64K，每任务新鲜子代理）｜AWS Agent Toolkit（企业同格式）
+- T1 官方实物与社区标杆：anthropics/skills（157K+；document-skills 为生产级 SKILL 写作范本、skill-creator）｜obra/superpowers（243K；TDD 元规范与 RED-GREEN-REFACTOR）｜gstack（118K，Think→Build→Ship→Reflect 环）｜GSD（64K，每任务新鲜子代理）｜AWS Agent Toolkit（企业同格式）｜mattpocock/skills（调用双层模型、失效模式导览 README、setup 硬依赖指针、CONTEXT.md 共享语言——2026-09-07 专项研究，规格 015）
 - T2 目录评测：travisvn/awesome-claude-skills（14K）｜skills.sh 生态｜taskade/firecrawl 评测
 
 设计决策对照：多技能骨架 + menu approach（各域 workflow 独立文件按需加载）（官方 docx 同款）｜域间文件通信（Pipes and Filters + 数据耦合）｜阶段门控（BEA workflow + 12FA checkpoints）｜eval-first（superpowers TDD）｜宪法（AGENTS.md 标准 + spec-kit Constitution）｜术语表（DDD Ubiquitous Language）｜约束阶梯 L1-L4（Claude Code hooks 确定性控制 + OpenAI 护栏外部化）｜逐域建设（last responsible moment）
 
 2026-09-06 调研采纳：description 补边界声明（官方 strong description 三要素）；test-prompts 补场景 7 域外休眠（官方测试矩阵 out-of-scope）。挂账：粒度五次法则（做过 5 次、将做 10 次才立能力）；季度评审节律；reflect 机制（扫描会话纠正自动提议 SKILL 更新）；精读 anthropics document-skills 作为未来域写作范本。
+
+2026-09-07 调研采纳（mattpocock/skills 专项，规格 015）：调用双层原则入 §四；setup 硬依赖边界入 §五；插件清单预检入 release-and-versioning §三。已覆盖印证：skill 间 prose 引用＝引用一层深；code-review 双轴分身＝核验协议双轨＋独立审查分身；CONTEXT.md＝术语表同机制；其仓库无 tests/evals＝我方 test-prompts 评估闭环领先。拒绝项（跨宿主 openai.yaml/changesets 自动化/docs 镜像/ADR 目录/wizard 向导/工单流水线）留痕规格 015。
 
 ## 八、维护
 

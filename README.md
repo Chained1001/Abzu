@@ -24,6 +24,18 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 
 **本仓库内开发**：skill 在根目录 `skills/` 下（产品源码位，Claude Code 打开本仓库不自动加载）；实测走上面的安装流程到独立文件夹进行。
 
+## 解决什么问题
+
+| 写作失效模式 | 对应域 |
+| --- | --- |
+| 选题踩雷：跟风过热题材、写前对市场心中无数 | abzu-scan（已可用） |
+| 拆书不得法：说不清好书为什么好，吸收不成方法 | abzu-analyze |
+| 结构崩塌：大纲失控、卷线断裂、伏笔失管 | abzu-outline / abzu-volume |
+| 断更卡文：进度失控、前后矛盾、续写断片 | abzu-write |
+| 文风漂移：越写越不像自己、口径不一 | abzu-style |
+
+其余五域占位待建（状态见下方仓库结构与 Roadmap）。
+
 ## 快速上手
 
 （占位：待 skill 本体完成后补全——"我想开一本新书" / "继续写下一章" 示例）
@@ -63,8 +75,10 @@ Abzu/
 - [ ] scan 首次真测后：立法每域最低测试要求（几个场景/什么断言/怎么算通过）
 - [ ] 内容挂账：产物模板三要素规范（字段定义/示例行/约束）——等首个原生模板（立项域 project.md）出现时立法。
 - [ ] 基建挂账：junction 链接免手动部署；多域上线后裁定域级命令分发方案（skills.sh 不携带 commands）——薄壳样式：`.claude/commands/abzu-{域}.md`，单行 `abzu skill {域}`
+- [ ] 大纲域建设时：书目录共享语言文件立法（术语/设定/不变量三段式；立项生成、写作回写——参考 mattpocock/skills CONTEXT-FORMAT）
+- [ ] 正文域建设时：会话交接契约立法——当前进度/未决点/下一步/上下文指针落盘成交接文档，支撑跨会话续写（参考 mattpocock/skills handoff 模式）
 
-发布前置（开源发布时执行，现不建）：README 补"一句话 → 触发 → 产出"演示示例；可选最小 CI（只跑 `agentskills validate`）；可选 Claude 插件市场打包（`.claude-plugin/marketplace.json`）；域内同类项目（oh-story-claudecode 等）对比报告。
+发布前置（开源发布时执行，现不执行）：README 补"一句话 → 触发 → 产出"演示示例；可选最小 CI（只跑 `agentskills validate`）；Claude 插件市场提交（清单 `.claude-plugin/marketplace.json` 已入库，预检见 release-and-versioning §三）；域内同类项目（oh-story-claudecode 等）对比报告。
 
 ## License
 

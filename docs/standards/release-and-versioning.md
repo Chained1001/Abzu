@@ -1,6 +1,6 @@
 # 版本与发布规范（含写作项目兼容）
 
-> 版本：v0.2（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.3（沿革见 CHANGELOG 与 git 历史）
 > 定位：版本号语义与流转、发布流程、写作项目（用户的书目录）schema 兼容规则的单点权威。
 > 依据：SemVer 2.0.0、Keep a Changelog 1.1.0、mo-shu 四轨版本对齐教训（收窄为单轨）。
 > 背景约束：Abzu 通过 skills.sh 或手动复制安装（无项目级物化），升级感知依赖版本号与 CHANGELOG。
@@ -31,13 +31,14 @@
 
 **真源与时机**：发布时以"CHANGELOG 定稿"动作同步另两处（先定稿 CHANGELOG 版本段，再改 frontmatter，再打 tag）。发现第四处版本号 = 收口（宪法反模式 #4）。
 
-## 三、发布流程（五步）
+## 三、发布流程（六步）
 
 1. 评估场景全绿——自包含口径：lint 0 违例 + 各壳 validate 通过 + 评估场景无「已建设能力」的回归失败（建设期未建设能力的失败不计红，详见宪法 §1.4）
 2. CHANGELOG 定稿：`Unreleased` 段移为 `[X.Y.Z] - YYYY-MM-DD` 版本段（ISO 日期），新开空 `Unreleased`；**涉及写作项目 schema 兼容的条目加 `[schema]` 前缀**，用户升级第一时间可见兼容影响
 3. bump `SKILL.md` 的 `metadata.version` 并与 CHANGELOG 对齐
 4. `git tag vX.Y.Z`（建立远程后：推送并确认）
-5. 安装实测：`npx skills add Chained1001/Abzu -y` 后在独立文件夹跑冒烟场景（场景 6）
+5. 插件清单预检（可选）：本机装有 claude CLI 时执行 `claude plugin validate . --strict`（校验 `.claude-plugin/` 清单）；CLI 缺失则记录跳过，不阻塞发布
+6. 安装实测：`npx skills add Chained1001/Abzu -y` 后在独立文件夹跑冒烟场景（场景 6）
 
 ## 四、写作项目 schema 兼容（核心：skill 的"数据库"在用户书目录里）
 
@@ -62,7 +63,7 @@
 ## 七、发布渠道分层
 
 - 当前：`npx skills add` 或手动复制到用户级 `~/.claude/skills/`。
-- 发布前置（届时再建）：可选 Claude 插件市场打包（`.claude-plugin/marketplace.json`，对照官方文档实施）；`THIRD_PARTY_NOTICES.md`（引入第三方内容时）。
+- 发布前置（届时执行）：Claude 插件市场提交（`.claude-plugin/marketplace.json` 已于 2026-09-06 入库；提交动作届时执行，预检命令见 §三第 5 步）；`THIRD_PARTY_NOTICES.md`（引入第三方内容时）。
 
 ## 八、维护
 

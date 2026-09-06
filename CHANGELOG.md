@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 015 号参考研究施工（mattpocock/skills 专项，20 项发现全裁定，首次模板派生 spawn 分身闭环）：architecture 增调用双层原则（六域 skill 一律 model-invoked、skill 间禁互调、预留薄壳若启用即 user-invoked 编排层）+ setup 硬依赖/软配置职责边界 + §七 T1 收录与调研采纳行；README 增「解决什么问题」失效模式导览（5 类写作失效→六域映射，仅 scan 标可用）+ Roadmap 2 挂账（大纲域书目录共享语言/正文域会话交接契约）；release-and-versioning 发布五步改六步（增插件清单预检可选步 claude plugin validate）+ §七 marketplace.json 表述对齐实况（已入库待提交）+ 版本 v0.3。已覆盖 7 项（双轴分身/术语表/引用一层深等）与拒绝 8 项（跨宿主 openai.yaml/changesets/docs 镜像/ADR 目录/wizard/工单流水线等）留痕规格 015。
 - 014 分身首跑复盘三纪律入宪法 §3.8：①规格现状锚点必须现场 grep/read 确认，禁沿用对话记忆（014 号 3 处锚点过时立例）②施工提示词一律从 collab-log 模板派生，核验请求须单代码块包裹 ③规格确认后规划方主动 spawn 施工分身，不退回作者粘贴中转；collab-log 补 014 施工记录行（补记 ec17cce 提交信息声称但漏记的入库项，反模式 #8 又一实例）；014 号规格核验通过归档（同 012/013 例）。
 - 014 号检查管线优化施工完成（首次施工分身闭环）：check.sh 支持 --staged 增量模式；core.hooksPath = scripts/hooks（免手动安装 hook，入库即生效）；.claude-plugin/marketplace.json 确认合规；清理旧手动安装 hook 副本。核验三步全绿（独立分身首跑闭环：spawn 施工→返回核验请求→规划方核验通过）。
 - check.sh 升级：引用闭合/加粗密度/TOC 检查从对话中的临时脚本固化为 scripts/check_content.py（独立可复用），check.sh 调用之；修复路径错误（skills/ → scripts/）；修复 TOC 检查变量遮蔽 bug（content 列表被二次 split）。
