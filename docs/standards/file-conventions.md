@@ -11,7 +11,7 @@
 | 文件类型 | 命名规则 | 示例 | 位置 |
 | --- | --- | --- | --- |
 | skill 壳 | `SKILL.md`（固定名，每域一壳） | — | `skills/abzu-{域}/` |
-| references 域子目录 | 六域 kebab-case + `common/`（公共层正本） | `skills/abzu-scan/references/scan/` | `skills/abzu-{域}/references/` |
+| references 域子目录 | 六域 kebab-case（共享知识库由 setup 物化进书项目，不放仓库 references/） | `skills/abzu-scan/references/scan/` | `skills/abzu-{域}/references/` |
 | 域工作流 | `{域}-workflow.md` | `scan-workflow.md` | `skills/abzu-{域}/references/{域}/` |
 | 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `skills/abzu-{域}/references/{域}/` |
 | 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `skills/abzu-{域}/references/{域}/` |
@@ -28,7 +28,19 @@
 | 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
 | agent 设计规范 | `agent-design.md`（固定名，长期文档） | — | `docs/standards/` |
 | agent 文件（预留） | `abzu-{角色名}.md`，YAML frontmatter（name/description/tools/model）；T1 触发后启用——**启用前不得新增实例** | — | `.claude/agents/`（物化目标，仓库内源码位待 T1 定） |
-| 协作日志 | `collab-log.md`（固定名，逐次登记规格施工记录与模板四件套） | — | `docs/specs/` |
+| 协作日志 | `collab-log.md`（固定名，逐次登记规格施工记录与协作模板） | — | `docs/specs/` |
+
+### 脚本编写规范（运行时脚本必守）
+
+| 规则 | 内容 |
+| --- | --- |
+| 退出码 | `0` 成功 / `1` 违规 / `2` 参数或环境错误（三分类，缺/空/坏各明示） |
+| 错误输出 | 错误写 `stderr`（`console.error`），数据写 `stdout`（`console.log`），不混流 |
+| 输入校验 | 命令行参数缺失或非法时输出用法说明并退出 2，不静默使用默认值 |
+| 输出格式 | 结构化数据用 Markdown（对照 scan-output-format），日志用纯文本，禁 JSON 散落 stdout |
+| 降级声明 | 脚本头部或域文档声明依赖缺失时的降级行为（如 CDP 不可用→降级 SSR） |
+| 编码 | 读写文件显式指定 encoding（如 `gb18030` / `utf-8`），不依赖系统默认 |
+| 限速 | 对外部网站的请求间隔 ≥ 2 秒，失败退避重试 ≤ 3 次（2s/4s/8s） |
 
 > **域前缀适用判据**：`{域}-` 前缀适用于**主题名域相对、需消歧**的文件（skill 资产——装入用户机器、被路由键检索，如 `scan-genre-trends.md`）；名字已全局自描述的治理文档（`docs/` 下全部文件，如 `markdown-style.md`）不加前缀——位置由文件夹表达，名字表达内容。未来 `common/` 公共层文件命名同用此判据。
 
