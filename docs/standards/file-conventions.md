@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.6（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.7（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -17,6 +17,7 @@
 | 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `skills/abzu-{域}/references/{域}/` |
 | 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md` | `skills/abzu-{域}/references/{域}/` |
 | 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js` | `skills/abzu-{域}/scripts/` |
+| 共享库 | `{名词}-utils`（扩展名随表注口径：js/sh 连字符、py 下划线），被同域脚本 require，不直接执行 | `cdp-utils.js` | `skills/abzu-{域}/scripts/` |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
 | 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本） |
@@ -80,19 +81,20 @@ metadata:
 
 ## 五、内容规范矩阵（按文件类别——同类文件同类内容）
 
-> 定位：矩阵是路由层——每类文件的完整模板与细则在「结构真源」列所指处，本表管分类全覆盖与速查；新增文件类别时回写本表（§六维护条款同辖）。风格依据如实分三类标注：architecture §七 权威层（T0/T1/T2）、语言业界权威（PEP、Google Shell Style Guide——语言生态官方/通行规范）、仓库内部规范（markdown-style 等）——不虚标分级。
+> 定位：矩阵是路由层——每类文件的完整模板与细则在「结构真源」列所指处，本表管分类全覆盖与速查；**具体行优先于泛类行**（如 collab-log 归台账类行，不从治理文档行）——新增文件类别时回写本表（§六维护条款同辖）。风格依据如实分三类标注：architecture §七 权威层（T0/T1/T2）、语言业界权威（PEP、Google Shell Style Guide——语言生态官方/通行规范）、仓库内部规范（markdown-style 等）——不虚标分级。
 
 | 文件类别 | 结构/内容真源 | 头部规范 | 风格依据 | 机检 |
 | --- | --- | --- | --- | --- |
 | SKILL.md 域壳（已建域） | skill-writing.md §三「域壳模板」 | frontmatter 四键（name/description/license/metadata.version） | T0 Agent Skills 开放规范；skill-writing §一 | agentskills validate（check.sh [1]） |
 | SKILL.md 域壳（占位域） | skill-writing.md §三「占位壳模板」 | 同上（version 起始 0.1.0；description 含未建设四要素） | 同上 | 同上 |
 | 域工作流 {域}-workflow.md | skill-writing §三 workflow 模板 | 头部两行声明（消费点/边界，skill-writing §六.3） | T1 superpowers 元规范；skill-writing §五 | check_content.py（TOC/加粗/引用闭合） |
-| 方法论 {域}-{主题}.md | skill-writing §三 方法论模板 | 同上 | 同上 | 同上 |
+| 方法论 {域}-{主题}.md | skill-writing §三 方法论底线与子类 | 同上 | 同上 | 同上 |
 | 产物模板 {域}-{产物名}-template.md | skill-writing §三 模板四段式 | 同上 | 同上 | 同上 |
-| 运行时脚本（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | node --check + 契约对照（审查轨） |
+| 运行时脚本与共享库（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1；共享库的「用法」段为导出函数清单） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | node --check + 契约对照（审查轨） |
 | 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
 | 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
 | 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 成稿审查工序（collab-log） |
+| 台账类（docs/specs/collab-log.md） | collab-log 自身节序（协作模板 + 核验协议 + 施工记录） | 头注两行式（定位/纪律，裸键）——豁免版本行与依据行（活账本逐次追加，版本无意义） | 宪法 §3.8 协作协议 | 追加登记时规划方自核 |
 | 工程配置（.jsonc/.gitignore/.gitattributes/.json） | 工具官方 schema | 顶部一行用途注释（纯 `.json` 语法无注释位，豁免——用途由字段自明） | 工具官方文档（T0 per tool） | — |
 
 ### §五.1 脚本文档头四要素（sh＝# 块 / py＝docstring / js＝JSDoc——要素相同，形态随语言）
@@ -102,9 +104,9 @@ metadata:
 3. **依赖与前置**：外部依赖、环境要求、降级路径（对齐 §一「降级声明」行）。
 4. **维护入口**：平台改版/字段变更时改哪里（选择器位置、解析函数名）——012 号「平台改版维护入口」注释块的成文化。
 
-（现状实证：七脚本均有文档头但节结构各自为政——025 对齐批按四要素统一。）
-
 四要素为目标清单，**顺序不强制**（既有头部结构按补缺处理，不重排）。
+
+≤10 行的微型守卫（如 `hooks/pre-commit`）四要素可合并为两行：用途一句 + 维护指向一句。
 
 ### §五.2 治理文档头注三行式（默认形态）
 
@@ -113,6 +115,8 @@ metadata:
 > 依据：……（architecture §七 权威层 / 语言业界权威 / 仓库规范，如实标注）
 
 （键名不加粗——在役治理文档统一裸键，归档件豁免；个别文档可加分工/配套类附加行（如本文件与术语表分工、architecture 配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch。）
+
+版本制分工：治理文档用两段 vX.Y（本节 bump 语义管辖）；skill 套件发布用三段 X.Y.Z（release-and-versioning §二「四处一致」辖套件发布版本，不含治理文档头注 vX.Y）——两制各管其域，互不换算。
 
 ## 六、本规范的维护
 
