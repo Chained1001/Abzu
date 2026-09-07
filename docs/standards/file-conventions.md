@@ -91,7 +91,7 @@ metadata:
 | 产物模板 {域}-{产物名}-template.md | skill-writing §三 模板四段式 | 同上 | 同上 | 同上 |
 | 运行时脚本（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | node --check + 契约对照（审查轨） |
 | 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
-| 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免，2026-09-07 裁定） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
+| 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
 | 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 成稿审查工序（collab-log） |
 | 工程配置（.jsonc/.gitignore/.gitattributes） | 工具官方 schema | 顶部一行用途注释 | 工具官方文档（T0 per tool） | — |
 
@@ -112,7 +112,7 @@ metadata:
 > 定位：……（角色一句话，含单点权威声明如适用）
 > 依据：……（architecture §七 权威层 / 语言业界权威 / 仓库规范，如实标注）
 
-（键名不加粗——2026-09-07 实测存量 5/8 为裸键，024 立法时审查误报为加粗，025 更正并在役文档统一裸键（归档件豁免）；个别文档可加分工/配套类附加行（如本文件与术语表分工、architecture 配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch。）
+（键名不加粗——在役治理文档统一裸键，归档件豁免；个别文档可加分工/配套类附加行（如本文件与术语表分工、architecture 配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch。）
 
 ## 六、本规范的维护
 

@@ -6,6 +6,8 @@
 
 ### Changed
 
+- 沿革纪律立法 + AGENTS 清理（复盘豁免批 B）：宪法 §3.9 增「治理文档条文不写批次叙事与裁定标记——立例与例外授权依据除外，沿革记 CHANGELOG」（附 024/025 立例）；AGENTS §3.8 尾注清理——删「（2026-09-06 作者审定；…016/019 两轮外审推动。）」沿革戳，下沉理由改写为无批次号形态（「细则下沉系反模式 #4 去重」）。判别标准一句话：立例与例外授权是条文组成部分（保留），「谁在何时裁定/哪个批次改的」是沿革（归 CHANGELOG）。
+- 沿革残留清理（复盘豁免批 A，作者质询「025 作者裁定之类的残留」触发）：standards 条文四处批次叙事/裁定标记清除——file-conventions §五.2 括注删「024 误报/025 更正」批次叙事与 5/8 实测数字（规则保留）、矩阵治理行删「2026-09-07 裁定」、skill-writing §三 删「（2026-09-07 025 裁定）」、architecture §七 删「（作者裁定立例）」空戳；立例（§六 对齐批原则等）与例外授权依据（AGENTS §6 hook 条）按规保留。
 - 断言预验器立项（复盘豁免批，作者 2026-09-07 裁定）：scripts/check_spec_assertions.py——提取规格「验收标准」节命令断言（行内反引号与围栏整行两形态），白名单只读执行、输出退出码与输出摘要呈报基线；candidate 永不拦截（退出码恒 0）；020-025 六发断言自噬事故的守卫化（铁律④「断言写前实跑」机械化）。dogfood 于 025 归档件：9 条提取/8 执行/1 跳过（py_compile 副产物防护生效）；首跑 SECTION 误匹配改动项小节标题的 bug 现修（收紧为 H2 且含「验收标准」）。
 
 - 025 号矩阵对齐批（存量文件对照内容规范矩阵审计与 retrofit，注释/头注级、行为零变化）：审计四类结论落档——六壳 SKILL.md PASS 零改动、references 抽查 PASS（方法论存量豁免落 skill-writing §三）、5 脚本文档头补缺（setup-cdp-chrome/scan-analyze/cdp-utils/check.sh/check_content——补缺不重排）、治理头注统一；头注键形态实测更正（5/8 裸键，024 立法审查误报善后）与在役文档统一裸键（glossary/test-prompts/file-conventions 头注块去粗；归档件豁免）；file-conventions 矩阵 §五.2 更正三则并补两款（参照型第三行变体行、bump 语义）+ §五.1 补顺序不强制句 + §六 补对齐批原则条（先审标准后审文件）；版本 bump 5 处（3 追溯〔glossary v0.2 / test-prompts v0.2 / architecture v1.1〕+ 2 当批〔file-conventions v0.4 / skill-writing v0.4〕——治理文档 bump 语义首批实例：实质内容修订 minor、纯措辞 patch）；AGENTS 内容型头部与 README 门面文档豁免三行式（矩阵同步）；README 挂账勾销。
