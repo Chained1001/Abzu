@@ -25,6 +25,7 @@
  * 维护入口（榜单 md 格式变更时改哪里）：
  *   - 平台识别口径（文件头 # 标题）→ detectPlatform() 与 PLATFORMS
  *   - 条目/块结构（`## #N 书名`、品类块头）→ ITEM_RE / BLOCK_RE / parseBlocks()
+ *   - 文件头数据质量过滤（[存在问题] 跳过）→ parseDir() 跳过分支与 main() 顶部清单
  *   - 平台字段适配（meta 行解析规则）→ adapt() 各平台分支及 metaOf / fieldOf / segsOf
  *     等取值函数
  *   - 跨榜重复聚合口径 → findDuplicates()
@@ -165,6 +166,12 @@ function parseDir(dir) {
   const data = {}; // file -> {platform, items}
   for (const f of files) {
     const text = fs.readFileSync(path.join(dir, f), "utf-8");
+    // 文件头「- 数据质量：[存在问题]」的文件不进条目统计（028 F-C：0/180 失败文件残行曾把分布污染成「其他 180」）
+    if (/^- 数据质量：\[存在问题\]/m.test(text)) {
+      const prob = text.match(/^- 问题摘要：\s*(.+)$/m);
+      data[f] = { platform: detectPlatform(text), items: [], skipped: true, skipReason: prob ? prob[1].trim() : "存在问题" };
+      continue;
+    }
     const platform = detectPlatform(text);
     data[f] = { platform, items: parseBlocks(text).map((b) => adapt(platform, b)) };
   }
@@ -196,8 +203,14 @@ function main() {
     process.exit(2);
   }
 
+  // ---- 顶部跳过清单：文件头标 [存在问题] 的文件不进任何条目统计（028 F-C） ----
+  for (const [f, v] of Object.entries(data)) {
+    if (v.skipped) console.log(`⚠ 跳过质量不合格文件：${f}（${v.skipReason}）——不计入分布与跨榜聚合`);
+  }
+
   // ---- 逐文件字段缺失警告（替代原"疑似非起点"一刀切） ----
-  for (const [f, { platform, items }] of Object.entries(data)) {
+  for (const [f, { platform, items, skipped }] of Object.entries(data)) {
+    if (skipped) continue; // 已列入顶部跳过清单，不再触发字段缺失警告
     if (items.length === 0) {
       console.error(`[警告] ${f}: 未解析到任何条目（条目行需形如 ## #1 书名）`);
       continue;
@@ -224,7 +237,8 @@ function main() {
     console.log("## 题材分布");
     // 15 类粗分类（abzu 自定口径），未列题材归「其他」——展示辅助非契约（C2 口径注记）
     const genres = ["玄幻", "仙侠", "武侠", "都市", "科幻", "游戏", "历史", "奇幻", "悬疑", "诸天", "体育", "现实", "军事", "二次元", "其他"];
-    for (const [f, { platform, items }] of Object.entries(data)) {
+    for (const [f, { platform, items, skipped }] of Object.entries(data)) {
+      if (skipped) continue; // 质量不合格文件不占分布行
       const counts = {};
       for (const it of items) {
         let hit = "其他";
