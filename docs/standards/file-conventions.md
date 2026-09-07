@@ -78,7 +78,41 @@ metadata:
 
 约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨）；单壳直调 `agentskills validate skills/abzu-{域}`。
 
-## 五、本规范的维护
+## 五、内容规范矩阵（按文件类别——同类文件同类内容）
+
+> 定位：矩阵是路由层——每类文件的完整模板与细则在「结构真源」列所指处，本表管分类全覆盖与速查；新增文件类别时回写本表（§六维护条款同辖）。风格依据如实分三类标注：architecture §七 权威层（T0/T1/T2）、语言业界权威（PEP、Google Shell Style Guide——语言生态官方/通行规范）、仓库内部规范（markdown-style 等）——不虚标分级。
+
+| 文件类别 | 结构/内容真源 | 头部规范 | 风格依据 | 机检 |
+| --- | --- | --- | --- | --- |
+| SKILL.md 域壳（已建域） | skill-writing.md §三「域壳模板」 | frontmatter 四键（name/description/license/metadata.version） | T0 Agent Skills 开放规范；skill-writing §一 | agentskills validate（check.sh [1]） |
+| SKILL.md 域壳（占位域） | skill-writing.md §三「占位壳模板」 | 同上（version 起始 0.1.0；description 含未建设四要素） | 同上 | 同上 |
+| 域工作流 {域}-workflow.md | skill-writing §三 workflow 模板 | 头部两行声明（消费点/边界，skill-writing §六.3） | T1 superpowers 元规范；skill-writing §五 | check_content.py（TOC/加粗/引用闭合） |
+| 方法论 {域}-{主题}.md | skill-writing §三 方法论模板 | 同上 | 同上 | 同上 |
+| 产物模板 {域}-{产物名}-template.md | skill-writing §三 模板四段式 | 同上 | 同上 | 同上 |
+| 运行时脚本（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | node --check + 契约对照（审查轨） |
+| 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
+| 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS/README 现头注为内容型多段，是否纳入对齐由 025 立项时裁定） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
+| 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 成稿审查工序（collab-log） |
+| 工程配置（.jsonc/.gitignore/.gitattributes） | 工具官方 schema | 顶部一行用途注释 | 工具官方文档（T0 per tool） | — |
+
+### §五.1 脚本文档头四要素（sh＝# 块 / py＝docstring / js＝JSDoc——要素相同，形态随语言）
+
+1. **用途**：一行——做什么、给谁用（消费方）。
+2. **用法与参数**：调用命令示例 + 参数表（含默认值）；与 §一「输入校验」行（缺参→用法说明+退出 2）呼应。
+3. **依赖与前置**：外部依赖、环境要求、降级路径（对齐 §一「降级声明」行）。
+4. **维护入口**：平台改版/字段变更时改哪里（选择器位置、解析函数名）——012 号「平台改版维护入口」注释块的成文化。
+
+（现状实证：七脚本均有文档头但节结构各自为政——025 对齐批按四要素统一。）
+
+### §五.2 治理文档头注三行式（默认形态）
+
+> **版本**：vX.Y（沿革见 CHANGELOG 与 git 历史）
+> **定位**：……（角色一句话，含单点权威声明如适用）
+> **依据**：……（architecture §七 权威层 / 语言业界权威 / 仓库规范，如实标注）
+
+（键名加粗对齐存量标杆（file-conventions/markdown-style 等现行形态）；个别文档可加第四行分工声明（如本文件与术语表分工）；glossary 等既有偏离由 025 对齐批处理，本批只立默认形态。）
+
+## 六、本规范的维护
 
 - **新增文件类型**：决策树裁定 → 回写本表（命名规则 + 示例 + 位置）。
 - **修改命名规则**：先全仓 grep 涟漪面（改名/移动文件须同步更新全部引用）。
