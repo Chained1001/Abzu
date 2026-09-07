@@ -1,12 +1,12 @@
 # 架构决策记录（Abzu）
 
-> 版本：v1.1（沿革见 CHANGELOG 与 git 历史）
+> 版本：v1.2（沿革见 CHANGELOG 与 git 历史）
 > 定位：架构选型与理由的**唯一权威**——后续所有施工批以本文件为架构依据；变更须修订本文件并记录理由。
 > 配套：工程规范见 `docs/standards/`；术语见 [glossary.md](glossary.md)；验收见 [test-prompts.md](test-prompts.md)。
 
 ## 一、裁定记录
 
-- **承载架构**（2026-09-06 修订）：**多技能骨架**——六域各一 skill（abzu-scan / abzu-analyze / abzu-outline / abzu-volume / abzu-write / abzu-style）+ 未来 abzu-setup（T1 触发）。当前仅 abzu-scan 建有内容，其余五壳占位。
+- **承载架构**（2026-09-06 修订）：**多技能骨架**——六域各一 skill（abzu-scan / abzu-analyze / abzu-outline / abzu-volume / abzu-write / abzu-style）+ 未来 abzu-setup（T1 触发）。当前 abzu-scan 与 abzu-analyze 建有内容，其余四壳占位。
 - 首建域：扫榜调研（scan），完成后真实实测，再开下一域。
 - v1 范围：仅六域；导入 / 独立审查 / 抓取底座独立化均不做（抓取底座作为扫榜调研域内置脚本随行）。
 
@@ -43,7 +43,10 @@ skills/
 │   ├── SKILL.md              # 域壳：入口判定（进度自查）+ 指向域工作流
 │   ├── references/scan/      # workflow + 采集/分析/选题/读者/题材/运营/格式 + cdp-base
 │   └── scripts/              # 四平台抓取器 + scan-analyze + CDP 启动器
-├── abzu-analyze/             # ② 拆书分析（占位壳）
+├── abzu-analyze/             # ② 拆书分析（已建设）
+│   ├── SKILL.md              # 域壳：入口判定（拆书目录自查）+ 指向域工作流
+│   ├── references/analyze/   # workflow + 方法真源 + 六维/爆款/证据边界/黄金三章模板 + 结构块 CSV spec
+│   └── scripts/              # build-chapter-index（机械章节索引）
 ├── abzu-outline/             # ③ 大纲（占位壳）
 ├── abzu-volume/              # ④ 卷纲（占位壳）
 ├── abzu-write/               # ⑤ 正文（占位壳）
@@ -67,7 +70,7 @@ skills/
         → 新会话（新文件夹）敲 /abzu-scan 真测
 ```
 
-v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安装即全部部署；书项目脚手架由立项流程自建；升级检测走 `project.md` 的 `schema` 字段（release-and-versioning §四）。skills.sh 安装只携带 skill 文件夹（不含 `.claude/commands/` 薄壳）——六域 skill 本名即命令，多域已就位（五占位 + 一实建）；域级命令分发方案已裁定为 skill 本名（见 §四）。
+v1 无部署器：没有 hooks / agents / 项目级 CLAUDE.md 需要物化，安装即全部部署；书项目脚手架由立项流程自建；升级检测走 `project.md` 的 `schema` 字段（release-and-versioning §四）。skills.sh 安装只携带 skill 文件夹（不含 `.claude/commands/` 薄壳）——六域 skill 本名即命令，多域已就位（四占位 + 两实建）；域级命令分发方案已裁定为 skill 本名（见 §四）。
 
 **setup 等价物的触发条件**：将来引入需要物化进书项目的组件（hooks / 子代理 / 项目级模板）之日，才引入 `/abzu-setup`——此前不做（防未来会话重复纠结）。职责边界（2026-09-07 参考 mattpocock/skills ADR-0001）：setup 只处理**硬依赖**——物化组件落盘与依赖预检；题材偏好、平台选择等**软配置不进 setup**，由各域工作流首用交互自行采集。
 

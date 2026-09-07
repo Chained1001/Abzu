@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.7（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.8（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -11,13 +11,16 @@
 | 文件类型 | 命名规则 | 示例 | 位置 |
 | --- | --- | --- | --- |
 | skill 壳 | `SKILL.md`（固定名，每域一壳） | — | `skills/abzu-{域}/` |
-| references 域子目录 | 六域 kebab-case（共享知识库由 setup 物化进书项目，不放仓库 references/） | `skills/abzu-scan/references/scan/` | `skills/abzu-{域}/references/` |
-| 域工作流 | `{域}-workflow.md` | `scan-workflow.md` | `skills/abzu-{域}/references/{域}/` |
+| references 域子目录 | 六域 kebab-case（共享知识库由 setup 物化进书项目，不放仓库 references/） | `skills/abzu-scan/references/scan/`、`skills/abzu-analyze/references/analyze/` | `skills/abzu-{域}/references/` |
+| 域工作流 | `{域}-workflow.md` | `scan-workflow.md`、`analyze-workflow.md` | `skills/abzu-{域}/references/{域}/` |
 | 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `skills/abzu-{域}/references/{域}/` |
-| 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`scan-genre-trends.md` | `skills/abzu-{域}/references/{域}/` |
-| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md` | `skills/abzu-{域}/references/{域}/` |
-| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js` | `skills/abzu-{域}/scripts/` |
+| 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`analyze-method.md`、`analyze-structure-blocks-spec.md` | `skills/abzu-{域}/references/{域}/` |
+| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md`、`analyze-six-dimensions-template.md` | `skills/abzu-{域}/references/{域}/` |
+| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js`、`build-chapter-index.js` | `skills/abzu-{域}/scripts/` |
 | 共享库 | `{名词}-utils`（扩展名随表注口径：js/sh 连字符、py 下划线），被同域脚本 require，不直接执行 | `cdp-utils.js` | `skills/abzu-{域}/scripts/` |
+| 用户产物（拆书） | `拆书/{书名}/` 目录，产物中文命名（双语纪律 §二） | `拆书/{书名}/六维拆书_{书名}.md` | 用户工作目录（不进仓库） |
+| 拆书 CSV | 固定中文名 | `章节索引.csv`（五列，脚本产物）、`结构块.csv` | `拆书/{书名}/` |
+| 用户产物（扫榜） | `扫榜/{平台}{方向}_{YYYYMMDD}/` 目录，产物中文命名（双语纪律 §二） | `扫榜/起点都市高武_20260901/选题决策.md` | 用户工作目录（不进仓库） |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
 | 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本） |
