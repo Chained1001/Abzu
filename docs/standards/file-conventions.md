@@ -30,6 +30,8 @@
 | agent 文件（预留） | `abzu-{角色名}.md`，YAML frontmatter（name/description/tools/model）；T1 触发后启用——**启用前不得新增实例** | — | `.claude/agents/`（物化目标，仓库内源码位待 T1 定） |
 | 协作日志 | `collab-log.md`（固定名，逐次登记规格施工记录与协作模板） | — | `docs/specs/` |
 
+> 表注（扩展名口径）：`.py` 文件用 snake_case（下划线，Python 惯例），`.sh` / `.js` 用 kebab-case（连字符）——上表运行时脚本/开发守卫/开发测试三行规则列之 `.py` 后缀以本表注为准（`{动词}-{对象}` 连字符式仅适用于 sh/js；立法时虚拟示例 `check-frontmatter.py` 未与实件对齐，实件对照为 `check_content.py`）。
+
 ### 脚本编写规范（运行时脚本必守）
 
 | 规则 | 内容 |
