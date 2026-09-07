@@ -6,6 +6,8 @@
 
 ### Changed
 
+- 断言预验器立项（复盘豁免批，作者 2026-09-07 裁定）：scripts/check_spec_assertions.py——提取规格「验收标准」节命令断言（行内反引号与围栏整行两形态），白名单只读执行、输出退出码与输出摘要呈报基线；candidate 永不拦截（退出码恒 0）；020-025 六发断言自噬事故的守卫化（铁律④「断言写前实跑」机械化）。dogfood 于 025 归档件：9 条提取/8 执行/1 跳过（py_compile 副产物防护生效）；首跑 SECTION 误匹配改动项小节标题的 bug 现修（收紧为 H2 且含「验收标准」）。
+
 - 025 号矩阵对齐批（存量文件对照内容规范矩阵审计与 retrofit，注释/头注级、行为零变化）：审计四类结论落档——六壳 SKILL.md PASS 零改动、references 抽查 PASS（方法论存量豁免落 skill-writing §三）、5 脚本文档头补缺（setup-cdp-chrome/scan-analyze/cdp-utils/check.sh/check_content——补缺不重排）、治理头注统一；头注键形态实测更正（5/8 裸键，024 立法审查误报善后）与在役文档统一裸键（glossary/test-prompts/file-conventions 头注块去粗；归档件豁免）；file-conventions 矩阵 §五.2 更正三则并补两款（参照型第三行变体行、bump 语义）+ §五.1 补顺序不强制句 + §六 补对齐批原则条（先审标准后审文件）；版本 bump 5 处（3 追溯〔glossary v0.2 / test-prompts v0.2 / architecture v1.1〕+ 2 当批〔file-conventions v0.4 / skill-writing v0.4〕——治理文档 bump 语义首批实例：实质内容修订 minor、纯措辞 patch）；AGENTS 内容型头部与 README 门面文档豁免三行式（矩阵同步）；README 挂账勾销。
 - 024 号内容规范矩阵立法（作者裁定「按文件类别统一内容规范」）——file-conventions 新增 §五十类矩阵（结构真源/头部规范/风格依据限权威层/机检四列路由层设计）+ 脚本文档头四要素（012 维护入口成文化）+ 治理头注三行式默认；skill-writing §三 补占位壳模板（五壳实件提炼）；README 挂账 025 对齐批（六壳核验/脚本头统一/治理头注对齐/references 抽查）；现状勘察实证（references 头注已统一为标杆、脚本头节结构各自为政）。
 - 023 号文件规范外部对照修正（外部 AI 问答材料 17 项裁定：1 采纳/11 已覆盖含变体/3 有意分歧留痕/2 拒绝）——命名总表补扩展名口径表注（py snake_case，实件 check_content.py 对齐，表内虚拟示例失真自认，表注显式覆盖三行 py 后缀）；有意分歧三项固化留痕（MD040 选择性标注/MD013 行宽/资产禁链接）；拒绝 --help 与 --dry-run（无实例驱动）。
