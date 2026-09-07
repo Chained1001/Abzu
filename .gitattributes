@@ -1,1 +1,2 @@
+# 行尾策略：全仓文本文件统一 LF（markdown-style「符号与编码安全」节的执行载体）
 * text=auto eol=lf

@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.5（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.6（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -93,7 +93,7 @@ metadata:
 | 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
 | 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
 | 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 成稿审查工序（collab-log） |
-| 工程配置（.jsonc/.gitignore/.gitattributes） | 工具官方 schema | 顶部一行用途注释 | 工具官方文档（T0 per tool） | — |
+| 工程配置（.jsonc/.gitignore/.gitattributes/.json） | 工具官方 schema | 顶部一行用途注释（纯 `.json` 语法无注释位，豁免——用途由字段自明） | 工具官方文档（T0 per tool） | — |
 
 ### §五.1 脚本文档头四要素（sh＝# 块 / py＝docstring / js＝JSDoc——要素相同，形态随语言）
 
