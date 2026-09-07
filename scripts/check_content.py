@@ -14,7 +14,8 @@ for f in sorted(glob.glob('skills/abzu-*/**/*.md', recursive=True)):
     for m in re.finditer(r'(?:references|scripts)/[\w/-]+\.\w{2,4}', s):
         ref = m.group(0)
         # 从 skill 根解析实际文件路径
-        full = os.path.join('skills', 'abzu-scan', ref) if not ref.startswith('skills/') else ref
+        skill_root = '/'.join(f.replace(os.sep, '/').split('/')[:2])
+        full = os.path.join(skill_root, ref) if not ref.startswith('skills/') else ref
         if not os.path.isfile(full):
             issues.append(f'断链: {f} → {ref}')
 
@@ -41,7 +42,10 @@ for f in sorted(gov_files):
 # ═══ 加粗密度 ═══
 for f in sorted(glob.glob('skills/abzu-*/**/*.md', recursive=True)):
     s = open(f, encoding='utf-8').read()
-    b = len(re.findall(r'\*\*', s))
+    # 清洗代码区后统计：fenced 代码块与行内代码中的 ** 非加粗语义，不计（021）
+    s2 = re.sub(r'```.*?```', '', s, flags=re.S)
+    s2 = re.sub(r'`[^`]*`', '', s2)
+    b = len(re.findall(r'\*\*', s2))
     l = s.count('\n') + 1
     if b > l // 3:
         issues.append(f'加粗超限: {f} ({b} > {l//3})')
@@ -50,7 +54,9 @@ for f in sorted(glob.glob('skills/abzu-*/**/*.md', recursive=True)):
 for f in sorted(glob.glob('skills/abzu-*/references/**/*.md', recursive=True)):
     s = open(f, encoding='utf-8').read()
     lc = s.count('\n') + 1
-    if lc > 100 and '## 目录' not in s:
+    # 目录判定排除代码块内字样（021）
+    sc = re.sub(r'```.*?```', '', s, flags=re.S)
+    if lc > 100 and '## 目录' not in sc:
         issues.append(f'缺目录: {f} ({lc} 行)')
 
 if issues:
