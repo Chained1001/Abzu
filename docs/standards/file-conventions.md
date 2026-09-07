@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.4（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.5（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -68,7 +68,7 @@
 
 ```yaml
 ---
-name: abzu
+name: abzu-scan
 description: <第三人称；写清做什么 + 何时用 + 触发关键词；不超过 1024 字符>
 license: MIT
 metadata:
@@ -76,7 +76,7 @@ metadata:
 ---
 ```
 
-约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，须与目录同名；`description` 非空 ≤1024 字符。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨）；单壳直调 `agentskills validate skills/abzu-{域}`。
+约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，不以连字符开头或结尾，须与目录同名；`description` 非空 ≤1024 字符（须含做什么与何时使用）。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨）；单壳直调 `agentskills validate skills/abzu-{域}`。
 
 ## 五、内容规范矩阵（按文件类别——同类文件同类内容）
 

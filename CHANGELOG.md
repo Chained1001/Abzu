@@ -6,6 +6,7 @@
 
 ### Changed
 
+- 五规范自审计修正（作者指令「评价并审核，拿不准的联网核对」——外部权威三组核实全绿：Agent Skills 规范 name 64/description 1024、官方 best practices <500 行与渐进披露三层、Claude Code sub-agents 字段集，详见会话报告；五处内部发现全修）：release §二 三处一致改**四处一致**（marketplace.json 插件 version 纳入，＝套件发布版本随第 3 步同批 bump）+ 占位壳豁免统一节奏（保持 0.1.0，上线以套件当前版本起步）——作者裁定口径；file-conventions §四 示例 name: abzu 改 abzu-scan（单技能残留）+ name 约束补「不以连字符开头或结尾」（对齐规范原文）+ description 补「须含做什么与何时使用」（对齐官方 what+when）；markdown-style §三.2 自引 §三.11 失指改实指、§一.5 缩进规则改「以 markdownlint 实判为准」消除与实践的矛盾（判定表 3 空格/宪法 4 空格曾处「违规」态半年）；agent-design §五 T1 清单补官方文档 refresh 条。版本 bump：file-conventions v0.5 / markdown-style v0.4 / release-and-versioning v0.4 / agent-design v0.3。复盘豁免批两个（≤3 文件口径分批、单次提交）。
 - 沿革纪律立法 + AGENTS 清理（复盘豁免批 B）：宪法 §3.9 增「治理文档条文不写批次叙事与裁定标记——立例与例外授权依据除外，沿革记 CHANGELOG」（附 024/025 立例）；AGENTS §3.8 尾注清理——删「（2026-09-06 作者审定；…016/019 两轮外审推动。）」沿革戳，下沉理由改写为无批次号形态（「细则下沉系反模式 #4 去重」）。判别标准一句话：立例与例外授权是条文组成部分（保留），「谁在何时裁定/哪个批次改的」是沿革（归 CHANGELOG）。
 - 沿革残留清理（复盘豁免批 A，作者质询「025 作者裁定之类的残留」触发）：standards 条文四处批次叙事/裁定标记清除——file-conventions §五.2 括注删「024 误报/025 更正」批次叙事与 5/8 实测数字（规则保留）、矩阵治理行删「2026-09-07 裁定」、skill-writing §三 删「（2026-09-07 025 裁定）」、architecture §七 删「（作者裁定立例）」空戳；立例（§六 对齐批原则等）与例外授权依据（AGENTS §6 hook 条）按规保留。
 - 断言预验器立项（复盘豁免批，作者 2026-09-07 裁定）：scripts/check_spec_assertions.py——提取规格「验收标准」节命令断言（行内反引号与围栏整行两形态），白名单只读执行、输出退出码与输出摘要呈报基线；candidate 永不拦截（退出码恒 0）；020-025 六发断言自噬事故的守卫化（铁律④「断言写前实跑」机械化）。dogfood 于 025 归档件：9 条提取/8 执行/1 跳过（py_compile 副产物防护生效）；首跑 SECTION 误匹配改动项小节标题的 bug 现修（收紧为 H2 且含「验收标准」）。

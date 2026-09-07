@@ -1,6 +1,6 @@
 # 版本与发布规范（含写作项目兼容）
 
-> 版本：v0.3（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.4（沿革见 CHANGELOG 与 git 历史）
 > 定位：版本号语义与流转、发布流程、写作项目（用户的书目录）schema 兼容规则的单点权威。
 > 依据：SemVer 2.0.0、Keep a Changelog 1.1.0。
 > 背景约束：Abzu 通过 skills.sh 或手动复制安装（无项目级物化），升级感知依赖版本号与 CHANGELOG。
@@ -21,21 +21,22 @@
 - 纯错别字、排版、失效链接修复＝patch
 - 新增可选产物字段＝minor；删除/改名既有产物字段＝major 候选（视兼容性）
 
-## 二、版本三处一致（单一真源）
+## 二、版本四处一致（单一真源）
 
-版本号出现在且仅出现在三处，禁止散落第四处：
+版本号出现在且仅出现在四处，禁止散落第五处：
 
-1. 六壳（`skills/abzu-{域}/SKILL.md`）各自 `metadata.version`，套件统一节奏同批 bump
-2. git tag `vX.Y.Z`（打在发布提交上）
-3. `CHANGELOG.md` 版本段标题
+1. 已建壳（`skills/abzu-{域}/SKILL.md`）`metadata.version`，套件统一节奏同批 bump——**占位壳豁免**（保持 0.1.0；域上线时以套件当前版本起步）
+2. `.claude-plugin/marketplace.json` 插件 `version`（＝套件发布版本，随发布流程第 3 步同批 bump）
+3. git tag `vX.Y.Z`（打在发布提交上）
+4. `CHANGELOG.md` 版本段标题
 
-**真源与时机**：发布时以"CHANGELOG 定稿"动作同步另两处（先定稿 CHANGELOG 版本段，再改 frontmatter，再打 tag）。发现第四处版本号 = 收口（宪法反模式 #4）。
+**真源与时机**：发布时以"CHANGELOG 定稿"动作同步另三处（先定稿 CHANGELOG 版本段，再改 frontmatter 与插件清单，再打 tag）。发现第五处版本号 = 收口（宪法反模式 #4）。
 
 ## 三、发布流程（六步）
 
 1. 评估场景全绿——自包含口径：lint 0 违例 + 各壳 validate 通过 + 评估场景无「已建设能力」的回归失败（建设期未建设能力的失败不计红，详见宪法 §1.4）
 2. CHANGELOG 定稿：`Unreleased` 段移为 `[X.Y.Z] - YYYY-MM-DD` 版本段（ISO 日期），新开空 `Unreleased`；**涉及写作项目 schema 兼容的条目加 `[schema]` 前缀**，用户升级第一时间可见兼容影响
-3. bump `SKILL.md` 的 `metadata.version` 并与 CHANGELOG 对齐
+3. bump 已建壳 `SKILL.md` 的 `metadata.version` 与 `.claude-plugin/marketplace.json` 的 `version`，并与 CHANGELOG 对齐（占位壳不动）
 4. `git tag vX.Y.Z`（建立远程后：推送并确认）
 5. 插件清单预检（可选）：本机装有 claude CLI 时执行 `claude plugin validate . --strict`（校验 `.claude-plugin/` 清单）；CLI 缺失则记录跳过，不阻塞发布
 6. 安装实测：`npx skills add Chained1001/Abzu -y` 后在独立文件夹跑冒烟场景（场景 6）

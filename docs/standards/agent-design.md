@@ -1,6 +1,6 @@
 # Agent 设计规范（骨架蓝图版）
 
-> 版本：v0.2（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.3（沿革见 CHANGELOG 与 git 历史）
 > 定位：Abzu 子代理（subagent）的命名、设计判据、结构模板与协作协议的单点权威——**骨架立法**（指约束规则已生效，但无运行时实体实现）：骨架与判据现已生效（约束设计与文档），实体 agent 的创建待 T1 触发。
 > 依据：Claude Code 官方 sub-agents 文档、Anthropic Building Effective Agents（编排/评审模式）。
 > **术语边界**：本规范的「agent」特指 **Claude Code 子代理（AI 分身，独立上下文窗口）**。外部 CLI 工具（如 agent-browser——浏览器自动化依赖）不是 agent，属环境依赖，归 references/scan/scan-cdp-base.md「前置条件」与 README 安装前置管辖。
@@ -55,6 +55,7 @@
 ## 五、T1 触发时的填充清单 `[T1-TODO]`（占位 → 正式的差额）
 
 - 实体 agent 清单与角色定稿（依正文/审查域需求，如 evaluator 三评委/研究采风分身）
+- 官方文档 refresh：以 code.claude.com 现行 sub-agents 文档核对 frontmatter 字段集与目录约定（骨架立法时的字段集核至立法日，T1 时须复核——2026-09-07 审计补）
 - 物化部署方案（abzu-setup 的 agent 模板 → 书项目 `.claude/agents/`，含版本哨兵）
 - agent 间通信格式细则（结构化回传 schema/order 文件模式）
 - agent 产出评估基线（验收场景与质量判据）
