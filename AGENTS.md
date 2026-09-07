@@ -12,7 +12,7 @@
 **验证与常用命令**：
 
 - 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`
-- skill 格式校验：`bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨；agentskills 探测链固化于该脚本）
+- skill 格式校验：`bash scripts/check.sh`（真目录守卫 + 六壳 validate + markdownlint + 内容轨；agentskills 探测链固化于该脚本）
 - Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
 - 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
 
@@ -110,6 +110,7 @@
 | 7 | 给带 shebang 的脚本插入头部注释（把 `#!` 挤离首行） | 注释插在 shebang **之后**；脚本改动后必跑语法检查（`node --check`） | 2026-09-05 扫榜移植审计发现 6 脚本语法全坏 |
 | 8 | `git add -A` 后直接提交，不核对暂存内容——提交标签与实际内容不符 | 提交前必看 `git status`/`git diff --stat` 对照预期改动清单 | 2026-09-06 核验协议提交扫入施工方未验收改动 |
 | 9 | 纪律靠自觉不靠机制——写完纪律条文就以为会自动执行 | 可机械化的纪律必须固化为工具（check.sh/hook/脚本），不可机械化的须写明触发条件 | 2026-09-06 全天多次"该查没查/该走规格没走"（shebang/治理同步/外审未转规格） |
+| 10 | 在源仓库内运行分发/安装类工具（安装器把 tracked `skills/` 目录符号链接化，清理 vendor 目录后全量悬空） | 分发工具只在目标项目目录运行；仓库加真目录守卫（check.sh [0]）拦截 | 2026-09-07 首次真机安装实测（规格 027） |
 
 ## 6. 明确不做（每条带理由；勿静默引入）
 

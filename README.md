@@ -6,23 +6,27 @@
 
 ## 安装
 
-**推荐（[skills.sh](https://www.skills.sh/docs/cli) 包管理器，自动探测 Claude Code 并装入用户级）**：
+**前置**：Node.js 20+；宿主会话须具备命令执行（Bash）工具——扫榜域全依赖脚本执行，无命令执行能力的会话不可用。番茄/七猫/晋江走 CDP 采集另需 Chrome 与 `npm install -g agent-browser`（一次性）。
+
+**推荐（[skills.sh](https://www.skills.sh/docs/cli) 包管理器）**——项目级安装：在**要使用的目标项目目录**里运行（安装器将技能 vendor 到该目录 `.agents/skills/` 并建 `.claude/skills/` 软链，生成 `skills-lock.json`）：
 
 ```bash
 npx skills add Chained1001/Abzu -y
 ```
 
-**离线备选（手动复制）**：
+> ⚠️ **勿在本仓库内运行**——安装器会把本仓库 `skills/` 下的目录替换为符号链接（tracked 内容悬空，check.sh [0] 会拦截）。若已发生：删除 `skills/abzu-*` 链接条目后 `git restore skills/`。
+
+**离线备选（手动复制到宿主用户级目录——宿主机制，随宿主版本可能变化）**：
 
 ```bash
 cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 ```
 
-前置：Node.js 20+（扫起点榜仅需此一项）；番茄/七猫/晋江走 CDP 采集另需 Chrome 与 `npm install -g agent-browser`（一次性）。
+**卸载**：删除目标项目内的 `.agents/`、`.claude/skills/`、`skills-lock.json`。
 
-安装后新开会话即可使用：敲 `/abzu-scan` 或直接说"扫一下起点榜"。终端 Claude Code 与 VSCode 的 Claude Code 插件共用 `~/.claude/` 配置，本安装对两者同时生效；作者日常使用环境为 VSCode 插件（新对话即新会话）。
+安装后新开会话即可使用：敲 `/abzu-scan` 或直接说"扫一下起点榜"。
 
-**本仓库内开发**：skill 在根目录 `skills/` 下（产品源码位，Claude Code 打开本仓库不自动加载）；实测走上面的安装流程到独立文件夹进行。
+**本仓库内开发**：skill 在根目录 `skills/` 下（产品源码位，Claude Code 打开本仓库不自动加载）；实测一律在独立的目标项目目录走上面的安装流程，**禁止在本仓库内运行安装器**（见上方警告）。
 
 ## 解决什么问题
 

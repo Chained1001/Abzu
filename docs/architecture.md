@@ -63,7 +63,7 @@ skills/
 
 ```
 改 skill → bash scripts/check.sh → npx markdownlint-cli2
-        → npx skills add Chained1001/Abzu -y（skills.sh 安装器，自动装入用户级；离线备选 cp -r skills/abzu ~/.claude/skills/abzu）
+        → 在目标项目目录 npx skills add Chained1001/Abzu -y（项目级 vendor + 软链——仓库内禁跑，check.sh [0] 守卫；离线备选 cp -r skills/abzu-scan ~/.claude/skills/abzu-scan）
         → 新会话（新文件夹）敲 /abzu-scan 真测
 ```
 

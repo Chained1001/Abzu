@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 一键检查（宪法 §0）：六壳 skill 格式校验 + Markdown 体检 + 引用闭合 + 加粗密度 + TOC
+# 一键检查（宪法 §0）：skills 目录完整性（符号链接化检测）+ 六壳 skill 格式校验 + Markdown 体检 + 引用闭合 + 加粗密度 + TOC
 # 用法：bash scripts/check.sh [--staged]
 #   --staged  仅检查 git 暂存区涉及的 .md 文件（增量模式，日常快速反馈）
 #   默认全量（六壳 validate + 全仓 markdownlint + 引用闭合 + 加粗密度 + TOC）
@@ -22,6 +22,18 @@ cd "$(dirname "$0")/.." || exit 1
 fail=0
 STAGED=false
 [[ "${1:-}" == "--staged" ]] && STAGED=true
+
+echo "[0] skills 目录完整性（安装器 symlink 化检测）..."
+for d in skills/abzu-*; do
+  if [ -L "$d" ]; then
+    echo "x $d 是符号链接——skills 目录被安装器 symlink 化（本仓库内运行了 npx skills add；恢复：删链接条目后 git restore skills/；参见 README 安装节警告与宪法反模式 #10）"
+    fail=1
+  fi
+done
+if [ -e .agents/skills ] || [ -f skills-lock.json ]; then
+  echo "x 检测到 .agents/skills 或 skills-lock.json——安装器曾在本仓库内运行（vendor 副产品）；清理后重查"
+  fail=1
+fi
 
 echo "[1] agentskills 六壳 validate..."
 AS=""
