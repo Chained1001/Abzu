@@ -6,6 +6,16 @@
  *
  * 前置：
  *   node <skill 目录>/scripts/setup-cdp-chrome.js 9222
+ *
+ * 维护入口（CDP / agent-browser 变更时改哪些函数）：
+ *   - agent-browser CLI 参数口径（--cdp 传参方式等）变更 → buildAgentBrowserInvocation()
+ *   - Windows npm shim 解析（agent-browser 安装形态 / 转发方式变更）→
+ *     resolveWindowsAgentBrowser()
+ *   - CLI 调用、超时与错误语义（含 ENOENT 修复提示文案）→ ab()
+ *   - 页面交互原语（页面内求值 / 滚动加载 / 导航重试）→ evalJSON() / evalJSONBase64() /
+ *     scrollLoad() / openWithRetry()
+ *   - CDP 端口号约定（默认 9222）变更 → 各采集脚本传参处与 setup-cdp-chrome.js 启动
+ *     参数（本文件函数不硬编码端口，端口均为入参）
  */
 
 const { execFileSync } = require("child_process");

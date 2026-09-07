@@ -1,6 +1,12 @@
 """内容轨检查（宪法 §3.6 内容轨）：引用闭合 + 加粗密度 + TOC 存在性。
 由 scripts/check.sh 调用，也可独立运行：python scripts/check_content.py
+参数：无命令行参数，全量扫描（skill 资产 skills/abzu-*/ 全部 .md；治理文件 AGENTS.md、
+README.md、docs/**/*.md）。
+依赖：Python 3 标准库（re/glob/os/sys），零外部依赖。
 退出码：0 = 全绿 / 1 = 有问题
+维护入口（新增检查维度接入位置）：新增一段「扫描循环 + issues.append(...)」，与现有
+引用闭合 / 加粗密度 / TOC 三段并列；扫描文件集合入口有二——skill 资产 glob
+'skills/abzu-*/**/*.md' 与治理文件 gov_files 列表，扩范围时改这两处。
 """
 import re, glob, os, sys
 

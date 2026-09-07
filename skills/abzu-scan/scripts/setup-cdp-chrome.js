@@ -22,6 +22,19 @@
 //       持有者全在这棵进程树里、且树里确有一个持有者带着本次的 --remote-debugging-port。
 //       任何一条证不出来（含查不到）都拒绝报成功，避免把别人的会话当新浏览器交出去。
 //
+// 前置:
+//   - Node.js 运行时（仅用标准库，零外部依赖）
+//   - 本机已安装 Google Chrome，可执行文件落在 PLATFORM_CONFIG 各平台候选路径：
+//       Windows  <PROGRAMFILES(X86)> / <PROGRAMFILES> / <LOCALAPPDATA> 下
+//               Google\Chrome\Application\chrome.exe
+//       macOS    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+//       Linux    /usr/bin/google-chrome-stable、/usr/bin/google-chrome、
+//               /opt/google/chrome/google-chrome
+//     候选路径均不存在时 detect-only 报 needs-setup（不崩溃）
+//   - 复用登录态的前提：本机 Chrome 的默认 profile（各平台 profileDir）里有登录态；
+//     未登录过任何网站的 profile 没有态可复用（使用前提，非本脚本能补）
+//   - 非 TTY 环境重建 debug profile 必须传 --yes（否则 exit 3 报 NEEDS_CONSENT）
+//
 // 退出码:
 //   0  成功 / detect-only 完成
 //   1  通用错误（环境缺失、超时等）
@@ -34,6 +47,14 @@
 //   BROWSER=...                    (仅当 ready)
 //   CHROME_RUNNING=yes|no
 //   CHROME_PID_COUNT=N             (仅当 CHROME_RUNNING=yes)
+//
+// 维护入口（平台/环境变更时改哪里）:
+//   - Chrome 安装路径变更 / 新增平台适配 → PLATFORM_CONFIG（各平台 chromePaths /
+//     profileDir / findChrome / listChromePids / killChrome）
+//   - CDP 端口探测与身份验证（复用判定、重建的两道硬闸门）→ probeTcp() /
+//     cdpIdentity() / describePortHolder() / listPortListenerPids() /
+//     processCommandLine() / isInProcessTree()
+//   - detect-only 输出字段增减 → 本头部「detect-only 结构化输出」清单与产出处同步改
 
 "use strict";
 

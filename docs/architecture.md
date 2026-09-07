@@ -1,6 +1,6 @@
 # 架构决策记录（Abzu）
 
-> 版本：v1.0（2026-09-05 作者拍板）
+> 版本：v1.1（沿革见 CHANGELOG 与 git 历史）
 > 定位：架构选型与理由的**唯一权威**——后续所有施工批以本文件为架构依据；变更须修订本文件并记录理由。
 > 配套：工程规范见 `docs/standards/`；术语见 [glossary.md](glossary.md)；验收见 [test-prompts.md](test-prompts.md)。
 

@@ -10,6 +10,9 @@
  *   --dist                     题材分布统计（默认输出）
  * 输出 markdown，AI 直接消费。
  *
+ * 依赖与前置：Node.js 20+，零外部依赖（仅 fs/path 标准库）；输入为四抓取器已产出的
+ *   榜单 md 文件，无需 Chrome / CDP / agent-browser。
+ *
  * 适用范围：起点/番茄/晋江/七猫 4 平台通用提取（平台按文件头自动识别）。
  *   - 全平台可提取：排名 / 书名 / 作者（meta 行首段）
  *   - 起点字段最全：字数 / 总推荐 / 签约 / 收费模式 / 标签 / 简介
@@ -18,6 +21,13 @@
  *   - 七猫：热度 / 字数（meta 内嵌）/ 题材（meta 第 2 段）
  * 各平台缺失字段统一标 [待补] 并逐文件警告；--dup 跨平台聚合。
  * 刺猬猫/飞卢不在支持范围。
+ *
+ * 维护入口（榜单 md 格式变更时改哪里）：
+ *   - 平台识别口径（文件头 # 标题）→ detectPlatform() 与 PLATFORMS
+ *   - 条目/块结构（`## #N 书名`、品类块头）→ ITEM_RE / BLOCK_RE / parseBlocks()
+ *   - 平台字段适配（meta 行解析规则）→ adapt() 各平台分支及 metaOf / fieldOf / segsOf
+ *     等取值函数
+ *   - 跨榜重复聚合口径 → findDuplicates()
  */
 const fs = require("fs");
 const path = require("path");
