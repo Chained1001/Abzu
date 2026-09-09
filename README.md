@@ -2,7 +2,7 @@
 
 > 长篇网文 AI 辅助写作工作流 skill——从立项、世界观、分层大纲到逐章起草与修订，阶段门控式人机协同，文件化写作项目支持跨会话续写。
 
-**状态**：v0.4.0——扫榜调研与拆书分析两域可用（多技能骨架，其余四域占位待建）。
+**状态**：v0.4.0——扫榜调研、拆书分析与大纲三域可用（多技能骨架，其余三域占位待建）。
 
 ## 安装
 
@@ -34,11 +34,11 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 | --- | --- |
 | 选题踩雷：跟风过热题材、写前对市场心中无数 | abzu-scan（已可用） |
 | 拆书不得法：说不清好书为什么好，吸收不成方法 | abzu-analyze（已可用） |
-| 结构崩塌：大纲失控、卷线断裂、伏笔失管 | abzu-outline / abzu-volume |
+| 结构崩塌：大纲失控、卷线断裂、伏笔失管 | abzu-outline（已可用）/ abzu-volume |
 | 断更卡文：进度失控、前后矛盾、续写断片 | abzu-write |
 | 文风漂移：越写越不像自己、口径不一 | abzu-style |
 
-其余四域占位待建（状态见下方仓库结构与 Roadmap）。
+其余三域占位待建（状态见下方仓库结构与 Roadmap）。
 
 ## 快速上手
 
@@ -54,7 +54,10 @@ Abzu/
 │   │   ├── references/scan/     # 10 份方法论与模板
 │   │   └── scripts/             # 7 个脚本（抓取+提取+CDP）
 │   ├── abzu-analyze/            # 拆书分析（已建设）
-│   ├── abzu-outline/            # 大纲（占位壳）
+│   ├── abzu-outline/            # 大纲（已建设）
+│   │   ├── SKILL.md             # 域壳：入口判定 + 门控
+│   │   ├── references/outline/  # workflow + method + schemas + 6 份产物模板
+│   │   └── scripts/             # init-book（书项目脚手架）
 │   ├── abzu-volume/             # 卷纲（占位壳）
 │   ├── abzu-write/              # 正文（占位壳）
 │   └── abzu-style/              # 文风（占位壳）
@@ -70,20 +73,19 @@ Abzu/
 ## Roadmap
 
 - [x] 阶段 0：基础设施（宪法/规范/术语表/评估场景/架构落盘）
-- [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜调研 ✅ ｜ 拆书 ✅ ｜ 大纲 ｜ 卷纲 ｜ 正文 ｜ 文风
+- [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜调研 ✅ ｜ 拆书 ✅ ｜ 大纲 ✅ ｜ 卷纲 ｜ 正文 ｜ 文风
 - [ ] 评估：[test-prompts](docs/test-prompts.md) 六场景全绿
 - [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
-- [ ] 大纲域建设时：移植 mo-shu 题材卡库（genre-prose-cards 约 19 卡 + genre-catalog 别名索引）入 references/common/——共性知识缓存 + 别名路由（采风前置查库收窄检索）；届时恢复扫榜选题决策的题材库覆盖字段
 - [ ] 拆书域开工时：立法 skill 调用契约（输入校验/输出格式/失败返回三要素模板）
 - [ ] 任一域引入外部依赖时：立法系统性依赖声明清单（Node 版本/pip 包/全局 CLI 逐项登记）
 - [ ] scan 首次真测后：立法每域最低测试要求（几个场景/什么断言/怎么算通过）
 - [x] 025 对齐批：存量文件对照 file-conventions.md §五 内容规范矩阵审计与 retrofit——六壳符合度核验（scan 壳 vs 域壳模板逐条；AGENTS/README 头注是否纳入三行式由立项时裁定）、七脚本文档头按 §五.1 四要素统一、治理文档头注按 §五.2 三行式对齐（glossary 版本行等偏离）、references 节序抽查
 - [ ] 发布前置：marketplace.json 元数据（category/keywords/metadata.description）内容标准立法
 - [ ] release-and-versioning §二「四处一致」补「辖套件发布版本」限定词（消解与治理文档头注 vX.Y 的字面张力——类目学批 R6 善后）
-- [ ] 内容挂账：产物模板三要素规范（字段定义/示例行/约束）——等首个原生模板（立项域 project.md）出现时立法。
+- [x] 内容挂账：产物模板三要素规范（字段定义/示例行/约束）——031 批随 outline 六模板立法（skill-writing §三 模板文件条）。
 - [ ] 基建挂账：junction 链接免手动部署；多域上线后裁定域级命令分发方案（skills.sh 不携带 commands）——薄壳样式：`.claude/commands/abzu-{域}.md`，单行 `abzu skill {域}`
 - [ ] 基建挂账：内容轨加粗密度检查扩展至治理文档——阈值须另行立法（治理文档闸门式加粗 ≠ skill 产物口径，016 外审立例：AGENTS.md 115 处）
-- [ ] 大纲域建设时：书目录共享语言文件立法（术语/设定/不变量三段式；立项生成、写作回写——参考 mattpocock/skills CONTEXT-FORMAT）
+- [ ] 书目录共享语言文件立法（术语/设定/不变量三段式；立项生成、写作回写——参考 mattpocock/skills CONTEXT-FORMAT；继续挂账，待 write 域真消费方检验）
 - [ ] 正文域建设时：会话交接契约立法——当前进度/未决点/下一步/上下文指针落盘成交接文档，支撑跨会话续写（参考 mattpocock/skills handoff 模式）
 
 发布前置（开源发布时执行，现不执行）：README 补"一句话 → 触发 → 产出"演示示例；可选最小 CI（只跑 `agentskills validate`）；Claude 插件市场提交（清单 `.claude-plugin/marketplace.json` 已入库，预检见 release-and-versioning §三）；域内同类项目（oh-story-claudecode 等）对比报告。

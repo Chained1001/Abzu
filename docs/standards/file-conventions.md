@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.9（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.10（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -12,11 +12,11 @@
 | --- | --- | --- | --- |
 | skill 壳 | `SKILL.md`（固定名，每域一壳） | — | `skills/abzu-{域}/` |
 | references 域子目录 | 六域 kebab-case（共享知识库由 setup 物化进书项目，不放仓库 references/） | `skills/abzu-scan/references/scan/`、`skills/abzu-analyze/references/analyze/` | `skills/abzu-{域}/references/` |
-| 域工作流 | `{域}-workflow.md` | `scan-workflow.md`、`analyze-workflow.md` | `skills/abzu-{域}/references/{域}/` |
+| 域工作流 | `{域}-workflow.md` | `scan-workflow.md`、`analyze-workflow.md`、`outline-workflow.md` | `skills/abzu-{域}/references/{域}/` |
 | 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `skills/abzu-{域}/references/{域}/` |
 | 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`analyze-method.md`、`analyze-structure-blocks-spec.md` | `skills/abzu-{域}/references/{域}/` |
-| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md`、`analyze-six-dimensions-template.md` | `skills/abzu-{域}/references/{域}/` |
-| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js`、`build-chapter-index.js` | `skills/abzu-{域}/scripts/` |
+| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md`、`analyze-six-dimensions-template.md`、`outline-project-template.md` | `skills/abzu-{域}/references/{域}/` |
+| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js`、`build-chapter-index.js`、`init-book.js` | `skills/abzu-{域}/scripts/` |
 | 共享库 | `{名词}-utils`（扩展名随表注口径：js/sh 连字符、py 下划线），被同域脚本 require，不直接执行 | `cdp-utils.js` | `skills/abzu-{域}/scripts/` |
 | 用户产物（拆书） | `拆书/{书名}/` 目录，产物中文命名（双语纪律 §二） | `拆书/{书名}/六维拆书_{书名}.md` | 用户工作目录（不进仓库） |
 | 拆书 CSV | 固定中文名 | `章节索引.csv`（五列，脚本产物）、`结构块.csv` | `拆书/{书名}/` |
@@ -118,7 +118,7 @@ metadata:
 > 定位：……（角色一句话，含单点权威声明如适用）
 > 依据：……（architecture §七 权威层 / 语言业界权威 / 仓库规范，如实标注）
 
-（键名不加粗——在役治理文档统一裸键，归档件豁免；个别文档可加分工/配套类附加行（如本文件与术语表分工、architecture 配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch。）
+（键名不加粗——在役治理文档统一裸键，归档件豁免；个别文档可加分工/配套类附加行（如本文件与术语表分工、architecture 配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch；两段制 minor 按数值递增（v0.9 → v0.10），不按字符串序比较。）
 
 版本制分工：治理文档用两段 vX.Y（本节 bump 语义管辖）；skill 套件发布用三段 X.Y.Z（release-and-versioning §二「四处一致」辖套件发布版本，不含治理文档头注 vX.Y）——两制各管其域，互不换算。
 
