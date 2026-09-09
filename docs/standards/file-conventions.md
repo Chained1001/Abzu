@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.8（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.9（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -28,6 +28,7 @@
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
 | 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
+| 设计文档 | 中文命名，按产品线单文件（全仓同类一份——未来侦察链设计文档另立一份） | `写作链设计文档.md` | `docs/product/` |
 | 命令薄壳（预留） | `abzu-{路由键}.md`，单行内容 `abzu skill {路由键}`；多域上线、分发方案裁定后启用——**启用前不得新增实例** | — | `.claude/commands/`（现无实例） |
 | 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
 | agent 设计规范 | `agent-design.md`（固定名，长期文档） | — | `docs/standards/` |
@@ -53,7 +54,7 @@
 ## 二、双语命名纪律
 
 - **英文 kebab-case**：skill 目录、references、脚本、守卫——开发者可见的一切；规格主题部分用中文（作者阅读的治理记录）。
-- **中文名**：写作项目（用户的书目录）内的产物文件，如 `卷纲_第1卷.md`、`人物卡_林晚.md`——由 skill 运行时创建，**不进本仓库**；命名细则将由立项域（outline）的 project-structure 规范定义（未建，安放方案见 architecture.md §三）。
+- **中文名**：写作项目（用户的书目录）内的产物文件，如 `卷纲_第1卷.md`、`人物卡_林晚.md`——由 skill 运行时创建，**不进本仓库**；命名细则将由立项域（outline）的 project-structure 规范定义（未建，安放方案见 architecture.md §三）；例外：`docs/product/` 设计文档中文命名（作者面向的产品文档类目）。
 - 路径分隔符一律正斜杠（跨平台；反斜杠在 Unix 上失效）。
 
 ## 三、跨文件引用格式

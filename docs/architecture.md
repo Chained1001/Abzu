@@ -1,6 +1,6 @@
 # 架构决策记录（Abzu）
 
-> 版本：v1.2（沿革见 CHANGELOG 与 git 历史）
+> 版本：v1.3（沿革见 CHANGELOG 与 git 历史）
 > 定位：架构选型与理由的**唯一权威**——后续所有施工批以本文件为架构依据；变更须修订本文件并记录理由。
 > 配套：工程规范见 `docs/standards/`；术语见 [glossary.md](glossary.md)；验收见 [test-prompts.md](test-prompts.md)。
 
@@ -93,7 +93,7 @@ Abzu 现状为原型①（标准、零摩擦）；「立项引导与扫榜目录
 
 ## 七、权威规范对齐（2026-09-06 调研落盘）
 
-> 分级：T0 官方规范与文档 ｜ T1 官方实物与社区标杆 ｜ T2 目录评测。**外部参考纪律**：设计与规范条文只可引用本节 T0/T1/T2 权威源；前作 mo-shu 不作设计依据与参考——仅限沿革记录与教训出处（失败数据/事故），不得以「mo-shu 这么做」为任何设计立据。
+> 分级：T0 官方规范与文档 ｜ T1 官方实物与社区标杆 ｜ T2 目录评测。**外部参考纪律**：设计与规范条文只可引用本节 T0/T1/T2 权威源；前作 mo-shu 不作设计依据与参考——仅限沿革记录与教训出处（失败数据/事故），不得以「mo-shu 这么做」为任何设计立据。例外：**架构参照研读**——mo-shu 可作为架构优缺点、踩坑记录与好机制（一致性保障、步骤契约、文件字典、打磨循环等）的参照系研读；设计主体按本仓已商定理念独立推进，研读所获须标注来源，学了不照搬，不复制实现。
 
 - T0 官方：Agent Skills 开放规范（agentskills.io）｜Skill authoring best practices（platform.claude.com）｜Claude Code skills 文档与 hooks 文档（code.claude.com，hooks=确定性执法依据）｜Anthropic 官方创建指南（claude.com/blog）
 - T1 官方实物与社区标杆：anthropics/skills（157K+；document-skills 为生产级 SKILL 写作范本、skill-creator）｜obra/superpowers（243K；TDD 元规范与 RED-GREEN-REFACTOR）｜gstack（118K，Think→Build→Ship→Reflect 环）｜GSD（64K，每任务新鲜子代理）｜AWS Agent Toolkit（企业同格式）｜mattpocock/skills（调用双层模型、失效模式导览 README、setup 硬依赖指针、CONTEXT.md 共享语言——2026-09-07 专项研究，规格 015）
