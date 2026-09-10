@@ -72,7 +72,7 @@
 | 子代理 | Claude Code 中由主会话派生的 AI 分身（独立上下文），T1 触发后启用；区别于 agent-browser 这类工具 | subagent |
 | skill 资产 | 随安装分发到用户机器的 skill 运行时文件（references/scripts），引用规则受部署自包含约束 | skill asset |
 | 仓库治理文档 | 仓库根目录与 docs/ 下的规范、记录类文件——不随 skill 安装分发，引用可用 Markdown 链接 | governance doc |
-| 调用双层 | skill 触发方式的分层裁定：六域 skill 入口唯一：/abzu-{域} 显式调用（自然语言不触发）；skill 间禁互调（跨域只经文件衔接）；预留命令薄壳属 user-invoked 编排层——与直呼同属用户显式发起，双层指『直呼域 skill / 薄壳编排』两级入口；详见 architecture §四 | model-invoked / user-invoked |
+| 调用双层 | skill 触发方式的分层裁定：六域 skill 入口唯一：/abzu-{域} 显式调用（自然语言不触发）；skill 间禁互调（跨域只经文件衔接）；预留命令薄壳属 user-invoked 编排层——与直呼同属用户显式发起，双层指「直呼域 skill / 薄壳编排」两级入口；详见 architecture §四 | model-invoked / user-invoked |
 
 ## 五、拆书分析类
 

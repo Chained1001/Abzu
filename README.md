@@ -80,7 +80,7 @@ Abzu/
 - [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
 - [ ] 拆书域开工时：立法 skill 调用契约（输入校验/输出格式/失败返回三要素模板）
 - [ ] 任一域引入外部依赖时：立法系统性依赖声明清单（Node 版本/pip 包/全局 CLI 逐项登记）
-- [ ] scan 首次真测后：立法每域最低测试要求（几个场景/什么断言/怎么算通过）
+- [x] scan 首次真测后：立法每域最低测试要求（几个场景/什么断言/怎么算通过）——034 批立法（每域最低测试要求四条见 docs/test-prompts.md 头注）
 - [x] 025 对齐批：存量文件对照 file-conventions.md §五 内容规范矩阵审计与 retrofit——六壳符合度核验（scan 壳 vs 域壳模板逐条；AGENTS/README 头注是否纳入三行式由立项时裁定）、七脚本文档头按 §五.1 四要素统一、治理文档头注按 §五.2 三行式对齐（glossary 版本行等偏离）、references 节序抽查
 - [ ] 发布前置：marketplace.json 元数据（category/keywords/metadata.description）内容标准立法
 - [ ] release-and-versioning §二「四处一致」补「辖套件发布版本」限定词（消解与治理文档头注 vX.Y 的字面张力——类目学批 R6 善后）

@@ -5,7 +5,7 @@ README.md、docs/**/*.md）。
 依赖：Python 3 标准库（re/glob/os/sys），零外部依赖。
 退出码：0 = 全绿 / 1 = 有问题
 维护入口（新增检查维度接入位置）：新增一段「扫描循环 + issues.append(...)」，与现有
-引用闭合 / 加粗密度 / TOC 三段并列；扫描文件集合入口有二——skill 资产 glob
+引用闭合 / 加粗密度 / TOC / SKILL.md 行数 四段并列；扫描文件集合入口有二——skill 资产 glob
 'skills/abzu-*/**/*.md' 与治理文件 gov_files 列表，扩范围时改这两处。
 """
 import re, glob, os, sys
@@ -64,6 +64,14 @@ for f in sorted(glob.glob('skills/abzu-*/references/**/*.md', recursive=True)):
     sc = re.sub(r'```.*?```', '', s, flags=re.S)
     if lc > 100 and '## 目录' not in sc:
         issues.append(f'缺目录: {f} ({lc} 行)')
+
+# ═══ SKILL.md 行数 ═══
+# 六壳 SKILL.md < 500 行（Agent Skills 开放规范硬约束，宪法 §7）——官方硬约束用阻断口径
+# （exit 1），不套 candidate 呈报语义（宪法 §2：candidate 辖不确定价值的候选发现）
+for f in sorted(glob.glob('skills/abzu-*/SKILL.md')):
+    lc = len(open(f, encoding='utf-8').read().splitlines())  # 边界精确（官方硬约束闸，不沿用 +1 惯例）
+    if lc >= 500:
+        issues.append(f'SKILL.md 超限: {f} ({lc} 行 ≥ 500)')
 
 if issues:
     for i in issues:

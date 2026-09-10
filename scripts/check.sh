@@ -10,7 +10,7 @@
 #       「x agentskills 未找到（pip install skills-ref）」并置 fail=1
 #   [2] markdownlint-cli2 —— npx --no-install 本地调用；未安装时该段输出提示，先执行一次
 #       npx -y markdownlint-cli2 --version 拉取（提示去向：段内 echo）
-#   [3] Python 3 —— 调用 python 命令跑 scripts/check_content.py（探测链约定见 AGENTS.md §0）
+#   [3] Python 3 —— 按 §0 探测链定位（python3 → python → py）跑 scripts/check_content.py
 #   任一依赖缺失不静默跳过：对应段输出 x 提示并置 fail=1，末尾统一「检查未全绿，禁止提交」exit 1
 #
 # 维护入口（新增检查项接入位置）：
@@ -18,6 +18,10 @@
 #   增量口径自行决定是否参考 [2] 的 $STAGED 分支；内容类新维度先进
 #   scripts/check_content.py 再由 [3] 段带入（避免本文件膨胀）
 set -u -o pipefail
+export PYTHONIOENCODING=utf-8
+PY=python3
+command -v "$PY" >/dev/null 2>&1 || PY=python
+command -v "$PY" >/dev/null 2>&1 || PY=py
 cd "$(dirname "$0")/.." || exit 1
 fail=0
 STAGED=false
@@ -70,7 +74,7 @@ else
 fi
 
 echo "[3] 引用闭合 + 加粗密度 + TOC..."
-python scripts/check_content.py || fail=1
+"$PY" scripts/check_content.py || fail=1
 
 if [ "$fail" -ne 0 ]; then
   echo "== 检查未全绿，禁止提交 =="
