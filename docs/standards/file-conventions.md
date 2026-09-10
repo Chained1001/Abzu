@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.11（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.12（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -12,11 +12,11 @@
 | --- | --- | --- | --- |
 | skill 壳 | `SKILL.md`（固定名，每域一壳） | — | `skills/abzu-{域}/` |
 | references 域子目录 | 六域 kebab-case（共享知识库由 setup 物化进书项目，不放仓库 references/） | `skills/abzu-scan/references/scan/`、`skills/abzu-analyze/references/analyze/` | `skills/abzu-{域}/references/` |
-| 域工作流 | `{域}-workflow.md` | `scan-workflow.md`、`analyze-workflow.md`、`outline-workflow.md` | `skills/abzu-{域}/references/{域}/` |
+| 域工作流 | `{域}-workflow.md` | `scan-workflow.md`、`analyze-workflow.md` | `skills/abzu-{域}/references/{域}/` |
 | 阶段方法论 | `{域}-stage-{阶段名}.md` | `write-stage-drafting.md` | `skills/abzu-{域}/references/{域}/` |
 | 域内参考文件 | `{域}-{主题}.md`，主题描述性命名 | `scan-cdp-base.md`、`analyze-method.md`、`analyze-structure-blocks-spec.md` | `skills/abzu-{域}/references/{域}/` |
-| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md`、`analyze-six-dimensions-template.md`、`outline-project-template.md` | `skills/abzu-{域}/references/{域}/` |
-| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js`、`build-chapter-index.js`、`init-book.js` | `skills/abzu-{域}/scripts/` |
+| 模板 | `{域}-{产物名}-template.md`，默认独立成文件（内嵌仅限 ≤10 行微型模板，**按 markdown 源码行数计**） | `scan-topic-decision-template.md`、`analyze-six-dimensions-template.md` | `skills/abzu-{域}/references/{域}/` |
+| 运行时脚本 | `{动词}-{对象}.{sh,py,js}` | `qidian-rank-scraper.js`、`build-chapter-index.js` | `skills/abzu-{域}/scripts/` |
 | 共享库 | `{名词}-utils`（扩展名随表注口径：js/sh 连字符、py 下划线），被同域脚本 require，不直接执行 | `cdp-utils.js` | `skills/abzu-{域}/scripts/` |
 | 用户产物（拆书） | `拆书/{书名}/` 目录，产物中文命名（双语纪律 §二） | `拆书/{书名}/六维拆书_{书名}.md` | 用户工作目录（不进仓库） |
 | 拆书 CSV | 固定中文名 | `章节索引.csv`（五列，脚本产物）、`结构块.csv` | `拆书/{书名}/` |
@@ -28,7 +28,7 @@
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
 | 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
-| 设计文档 | 中文命名，按产品线单文件（全仓同类一份——未来侦察链设计文档另立一份） | `写作链设计文档.md` | `docs/product/` |
+| 设计文档 | 中文命名，按产品线/阶段立件 | —（docs/product/ 现空，大纲阶段设计文档重设中——036 批） | `docs/product/` |
 | 命令薄壳（预留） | `abzu-{路由键}.md`，单行内容 `abzu skill {路由键}`；多域上线、分发方案裁定后启用——**启用前不得新增实例** | — | `.claude/commands/`（现无实例） |
 | 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
 | agent 设计规范 | `agent-design.md`（固定名，长期文档） | — | `docs/standards/` |

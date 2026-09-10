@@ -2,7 +2,7 @@
 
 > 长篇网文 AI 辅助写作工作流 skill——从立项、世界观、分层大纲到逐章起草与修订，阶段门控式人机协同，文件化写作项目支持跨会话续写。
 
-**状态**：v0.4.0——扫榜调研、拆书分析与大纲三域可用（多技能骨架，其余三域占位待建）。
+**状态**：v0.4.0——扫榜调研与拆书分析两域可用（多技能骨架，其余四域占位待建——大纲推倒重设中）。
 
 ## 安装
 
@@ -26,7 +26,7 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 
 安装后新开会话即可使用：敲六域命令进入对应工作流（见下方命令清单）。
 
-**六域命令**：`/abzu-scan`、`/abzu-analyze`、`/abzu-outline`（已建设可用）；`/abzu-volume`、`/abzu-write`、`/abzu-style`（待建，敲入即告知建设状态）。
+**六域命令**：`/abzu-scan`、`/abzu-analyze`（已建设可用）；`/abzu-outline`、`/abzu-volume`、`/abzu-write`、`/abzu-style`（待建，敲入即告知建设状态）。
 
 **本仓库内开发**：skill 在根目录 `skills/` 下（产品源码位，Claude Code 打开本仓库不自动加载）；实测一律在独立的目标项目目录走上面的安装流程，**禁止在本仓库内运行安装器**（见上方警告）。
 
@@ -36,11 +36,11 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 | --- | --- |
 | 选题踩雷：跟风过热题材、写前对市场心中无数 | abzu-scan（已可用） |
 | 拆书不得法：说不清好书为什么好，吸收不成方法 | abzu-analyze（已可用） |
-| 结构崩塌：大纲失控、卷线断裂、伏笔失管 | abzu-outline（已可用）/ abzu-volume |
+| 结构崩塌：大纲失控、卷线断裂、伏笔失管 | abzu-outline（推倒重设中）/ abzu-volume |
 | 断更卡文：进度失控、前后矛盾、续写断片 | abzu-write |
 | 文风漂移：越写越不像自己、口径不一 | abzu-style |
 
-其余三域占位待建（状态见下方仓库结构与 Roadmap）。
+其余四域占位待建（状态见下方仓库结构与 Roadmap）。
 
 ## 快速上手
 
@@ -56,10 +56,7 @@ Abzu/
 │   │   ├── references/scan/     # 10 份方法论与模板
 │   │   └── scripts/             # 7 个脚本（抓取+提取+CDP）
 │   ├── abzu-analyze/            # 拆书分析（已建设）
-│   ├── abzu-outline/            # 大纲（已建设）
-│   │   ├── SKILL.md             # 域壳：入口判定 + 门控
-│   │   ├── references/outline/  # workflow + method + schemas + 6 份产物模板
-│   │   └── scripts/             # init-book（书项目脚手架）
+│   ├── abzu-outline/            # 大纲（占位壳——推倒重设中）
 │   ├── abzu-volume/             # 卷纲（占位壳）
 │   ├── abzu-write/              # 正文（占位壳）
 │   └── abzu-style/              # 文风（占位壳）
@@ -75,9 +72,10 @@ Abzu/
 ## Roadmap
 
 - [x] 阶段 0：基础设施（宪法/规范/术语表/评估场景/架构落盘）
-- [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜调研 ✅ ｜ 拆书 ✅ ｜ 大纲 ✅ ｜ 卷纲 ｜ 正文 ｜ 文风
+- [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜调研 ✅ ｜ 拆书 ✅ ｜ 大纲（2026-09-10 推倒重设中——036 批） ｜ 卷纲 ｜ 正文 ｜ 文风
 - [ ] 评估：[test-prompts](docs/test-prompts.md) 六场景全绿
 - [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
+- [ ] AGENTS.md 头部六域状态句修正（scan 已建设+五占位→两建设+四占位——029 后过时，036 审查 F11 挂账）
 - [ ] 拆书域开工时：立法 skill 调用契约（输入校验/输出格式/失败返回三要素模板）
 - [ ] 任一域引入外部依赖时：立法系统性依赖声明清单（Node 版本/pip 包/全局 CLI 逐项登记）
 - [x] scan 首次真测后：立法每域最低测试要求（几个场景/什么断言/怎么算通过）——034 批立法（每域最低测试要求四条见 docs/test-prompts.md 头注）
