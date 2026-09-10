@@ -1,9 +1,9 @@
 ---
 name: abzu-scan
-description: 扫榜调研——网文市场题材调研与选题决策。当用户想扫榜调研、看平台榜单、分析市场题材趋势、选题决策，或提到扫榜、榜单、市场题材时使用。触发方式：/abzu-scan 或上述任一话题的自然语言。边界：仅适用于网文市场调研与选题；写正文、列大纲等属 Abzu 其他域（/abzu-outline 等）。
+description: 扫榜调研——网文市场题材调研与选题决策。触发方式：仅 /abzu-scan 显式调用；自然语言提及不触发。边界：仅适用于网文市场调研与选题；写正文、列大纲等属 Abzu 其他域（/abzu-outline 等）。
 license: MIT
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Abzu · 扫榜调研（scan）

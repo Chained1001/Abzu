@@ -1,9 +1,9 @@
 ---
 name: abzu-outline
-description: 大纲——新书立项、世界观设定、人物卡与全书总纲设计。当用户想开新书、立项、提炼卖点与金手指、搭世界观、写设定、做人物卡、列总纲，或提到大纲、立项、世界观、设定、总纲、开书时使用。触发方式：/abzu-outline 或上述任一话题的自然语言。边界：仅适用于全书规划阶段；单卷规划与写正文属 Abzu 其他域（/abzu-volume、/abzu-write 等），市场调研属 /abzu-scan。
+description: 大纲——新书立项、世界观设定、人物卡与全书总纲设计。触发方式：仅 /abzu-outline 显式调用；自然语言提及不触发。边界：仅适用于全书规划阶段；单卷规划与写正文属 Abzu 其他域（/abzu-volume、/abzu-write 等），市场调研属 /abzu-scan。
 license: MIT
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Abzu · 大纲（outline）

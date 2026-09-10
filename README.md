@@ -24,7 +24,9 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 
 **卸载**：删除目标项目内的 `.agents/`、`.claude/skills/`、`skills-lock.json`。
 
-安装后新开会话即可使用：敲 `/abzu-scan` 或直接说"扫一下起点榜"。
+安装后新开会话即可使用：敲六域命令进入对应工作流（见下方命令清单）。
+
+**六域命令**：`/abzu-scan`、`/abzu-analyze`、`/abzu-outline`（已建设可用）；`/abzu-volume`、`/abzu-write`、`/abzu-style`（待建，敲入即告知建设状态）。
 
 **本仓库内开发**：skill 在根目录 `skills/` 下（产品源码位，Claude Code 打开本仓库不自动加载）；实测一律在独立的目标项目目录走上面的安装流程，**禁止在本仓库内运行安装器**（见上方警告）。
 
@@ -42,7 +44,7 @@ cp -r skills/abzu-scan ~/.claude/skills/abzu-scan
 
 ## 快速上手
 
-（占位：待 skill 本体完成后补全——"我想开一本新书" / "继续写下一章" 示例）
+（占位：待 skill 本体完成后补全——未来示例用显式命令形态）
 
 ## 仓库结构
 

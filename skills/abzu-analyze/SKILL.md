@@ -1,9 +1,9 @@
 ---
 name: abzu-analyze
-description: 拆书分析——参考书结构化拆解与爆款机制提炼。当用户想拆书、拆解一本小说、分析它为什么火、提炼爆款机制、梳理人物关系、看节奏曲线或双时间线、验证扫榜选出的参考书时使用。触发方式：/abzu-analyze 或上述任一话题的自然语言。边界：仅适用于对用户提供的参考书做拆解分析，不做联网采集；市场扫榜与选题属 abzu-scan，写正文、列大纲等属 Abzu 其他域（/abzu-outline 等）。
+description: 拆书分析——参考书结构化拆解与爆款机制提炼。触发方式：仅 /abzu-analyze 显式调用；自然语言提及不触发。边界：仅适用于对用户提供的参考书做拆解分析，不做联网采集；市场扫榜与选题属 abzu-scan，写正文、列大纲等属 Abzu 其他域（/abzu-outline 等）。
 license: MIT
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Abzu · 拆书分析（analyze）

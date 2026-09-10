@@ -1,6 +1,6 @@
 # 术语表（Abzu 产品语言权威）
 
-> 版本：v0.5（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.6（沿革见 CHANGELOG 与 git 历史）
 > 定位：产品语言的唯一权威——宪法、文件规范、SKILL 正文、references 中的叫法一律以本表为准；本表与其他文档冲突时，以本表为准（发现冲突当次收口）。
 > 用法：每条 = 中文名 + 一句话定义 + 英文对应（用于 skill 内文件与代码命名）。
 
@@ -72,7 +72,7 @@
 | 子代理 | Claude Code 中由主会话派生的 AI 分身（独立上下文），T1 触发后启用；区别于 agent-browser 这类工具 | subagent |
 | skill 资产 | 随安装分发到用户机器的 skill 运行时文件（references/scripts），引用规则受部署自包含约束 | skill asset |
 | 仓库治理文档 | 仓库根目录与 docs/ 下的规范、记录类文件——不随 skill 安装分发，引用可用 Markdown 链接 | governance doc |
-| 调用双层 | skill 触发方式的分层裁定：六域 skill 一律 model-invoked（description 触发）、skill 间禁互调（跨域只经文件衔接）、预留命令薄壳属 user-invoked 编排层；详见 architecture §四 | model-invoked / user-invoked |
+| 调用双层 | skill 触发方式的分层裁定：六域 skill 入口唯一：/abzu-{域} 显式调用（自然语言不触发）；skill 间禁互调（跨域只经文件衔接）；预留命令薄壳属 user-invoked 编排层——与直呼同属用户显式发起，双层指『直呼域 skill / 薄壳编排』两级入口；详见 architecture §四 | model-invoked / user-invoked |
 
 ## 五、拆书分析类
 

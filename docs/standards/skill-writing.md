@@ -1,15 +1,16 @@
 # Skill 写作规范（SKILL.md 与 references 内容设计）
 
-> 版本：v0.6（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.7（沿革见 CHANGELOG 与 git 历史）
 > 定位：skill 内容（SKILL.md 正文、references 方法论、对用户话术）的写作与设计规范。正文格式归 [markdown-style.md](markdown-style.md)；文件命名归 [file-conventions.md](file-conventions.md)；行为验收归 [../test-prompts.md](../test-prompts.md)；版本归 [release-and-versioning.md](release-and-versioning.md)。
 > 依据：obra/superpowers writing-skills 元规范（社区实战验证）、Anthropic skill 官方指南。
 
 ## 一、description（触发器，官方上限 1024 字符）
 
-1. 第三人称，写清触发条件与关键词，含触发方式（如 `/abzu` 与自然语言）。
+1. 第三人称，写清触发条件与关键词，含触发方式（`/abzu-{域}` 显式调用——见下「触发方式单一化」）。
 2. **禁写工作流摘要**——agent 会把流程描述当捷径跳过正文（superpowers 实证事故：流程写了两次评审，agent 只做一次）。
-3. 塞满可检索触发词：用户的口语说法、术语表叫法、同义词。
+3. 可含可检索触发词（用户的口语说法、术语表叫法、同义词）——仅供命令面板与用户检索定位技能，**不构成自然语言自动触发授权**。
 4. 只在技能明确绑定某技术时提技术名，否则保持技术无关。
+5. **触发方式单一化**（2026-09-10 作者裁定立法）：SKILL.md description 的触发句一律为「触发方式：仅 /abzu-{域} 显式调用；自然语言提及不触发。」——禁止「或上述任一话题的自然语言」类模糊触发句（正例：三占位壳现行句；反例：实建壳旧句——六域同属写作场景，自然语言互抢误触发，mo-shu 实测教训，architecture §二 触发行）。description 仍须含做什么与边界（what/when 里的 when 即「仅显式调用时」）；「当用户想…时使用」邀请式从句移除，能力描述用名词化句式。
 
 ## 二、正文结构与预算
 

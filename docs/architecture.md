@@ -1,6 +1,6 @@
 # 架构决策记录（Abzu）
 
-> 版本：v1.4（沿革见 CHANGELOG 与 git 历史）
+> 版本：v1.5（沿革见 CHANGELOG 与 git 历史）
 > 定位：架构选型与理由的**唯一权威**——后续所有施工批以本文件为架构依据；变更须修订本文件并记录理由。
 > 配套：工程规范见 `docs/standards/`；术语见 [glossary.md](glossary.md)；验收见 [test-prompts.md](test-prompts.md)。
 
@@ -63,7 +63,7 @@ skills/
 
 多技能骨架下 **skill 本名即精准命令**：`/abzu-scan`、`/abzu-outline` 等由 Claude Code 斜杠菜单原生补全，无需命令薄壳（单技能时期的方案，随骨架切换退役）。域内细分操作按各域工作流的交互模态执行。
 
-**调用双层**（2026-09-07 参考 mattpocock/skills invocation 单轴模型立法）：六域 skill 一律 **model-invoked**（description 触发；斜杠直呼与本名命令同源）；skill 之间**禁止互相调用**——跨域只经落盘文件衔接（§六「域是平行的门」）。未来预留的命令薄壳（file-conventions 预留行）若启用，属 **user-invoked 编排层**：只可调用域 skill，域 skill 永不反向调用薄壳或其他域 skill。
+**调用双层**（2026-09-07 参考 mattpocock/skills invocation 单轴模型立法）：六域 skill 入口**唯一**——`/abzu-{域}` 显式调用（description 声明触发边界，自然语言提及不触发——2026-09-10 作者裁定，模糊触发不可控、入口确定性优先；mo-shu 自然语言互抢教训见 §二）。**层次收窄说明**：六域显式直呼与未来命令薄壳同属用户显式发起层——「双层」此后指「域 skill 直呼」与「薄壳编排」两级入口，模型自主匹配层退役；skill 之间**禁止互相调用**——跨域只经落盘文件衔接（§六「域是平行的门」）。未来预留的命令薄壳（file-conventions 预留行）若启用，属 **user-invoked 编排层**：只可调用域 skill，域 skill 永不反向调用薄壳或其他域 skill。
 
 ## 五、部署与实测循环
 
