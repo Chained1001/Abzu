@@ -97,7 +97,7 @@ metadata:
 | 运行时脚本与共享库（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1；共享库的「用法」段为导出函数清单） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | node --check + 契约对照（审查轨） |
 | 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
 | 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
-| 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 成稿审查工序（collab-log） |
+| 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 规格成稿审查（collab-log「独立审查分身」节）＋产物审查（触发线以上） |
 | 台账类（docs/specs/collab-log.md） | collab-log 自身节序（协作模板 + 核验协议 + 施工记录） | 头注两行式（定位/纪律，裸键）——豁免版本行与依据行（活账本逐次追加，版本无意义） | 宪法 §3.8 协作协议 | 追加登记时规划方自核 |
 | 工程配置（.jsonc/.gitignore/.gitattributes/.json） | 工具官方 schema | 顶部一行用途注释（纯 `.json` 语法无注释位，豁免——用途由字段自明） | 工具官方文档（T0 per tool） | — |
 
