@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.12（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.14（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -23,7 +23,7 @@
 | 用户产物（扫榜） | `扫榜/{平台}{方向}_{YYYYMMDD}/` 目录，产物中文命名（双语纪律 §二） | `扫榜/起点都市高武_20260901/选题决策.md` | 用户工作目录（不进仓库） |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
 | 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
-| 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本） |
+| 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录）；**同批附件**（随主规格产出的并列文档）沿用主规格序号、以语义后缀区分（如 `030-…-mo-shu架构评估报告.md`），不另编序号 | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本）；**作废批**（规格前提失效未施工）同移入 archive，文件名追加 `-已作废` 后缀并在正文头注标废（正例：`archive/046-2026-09-11-机制闸先行批-已作废.md`） |
 | 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
@@ -34,6 +34,7 @@
 | agent 设计规范 | `agent-design.md`（固定名，长期文档） | — | `docs/standards/` |
 | agent 文件（预留） | `abzu-{角色名}.md`，YAML frontmatter（name/description/tools/model）；T1 触发后启用——**启用前不得新增实例** | — | `.claude/agents/`（物化目标，仓库内源码位待 T1 定） |
 | 协作日志 | `collab-log.md`（固定名，逐次登记规格施工记录与协作模板） | — | `docs/specs/` |
+| 挂账台账 | `open-items.md`（固定名，活账本） | — | `docs/specs/` |
 
 > 表注（扩展名口径）：`.py` 文件用 snake_case（下划线，Python 惯例），`.sh` / `.js` 用 kebab-case（连字符）——上表运行时脚本/开发守卫/开发测试三行规则列之 `.py` 后缀以本表注为准（`{动词}-{对象}` 连字符式仅适用于 sh/js；立法时虚拟示例 `check-frontmatter.py` 未与实件对齐，实件对照为 `check_content.py`）。
 
@@ -81,7 +82,7 @@ metadata:
 ---
 ```
 
-约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，不以连字符开头或结尾，须与目录同名；`description` 非空 ≤1024 字符（须含做什么与何时使用）。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨）；单壳直调 `agentskills validate skills/abzu-{域}`。
+约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，不以连字符开头或结尾，须与目录同名；`description` 非空 ≤1024 字符（须含做什么与何时使用）。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨 + 规格静态自检）；单壳直调 `agentskills validate skills/abzu-{域}`。
 
 ## 五、内容规范矩阵（按文件类别——同类文件同类内容）
 
@@ -97,8 +98,8 @@ metadata:
 | 运行时脚本与共享库（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1；共享库的「用法」段为导出函数清单） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | node --check + 契约对照（审查轨） |
 | 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
 | 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
-| 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 规格成稿审查（collab-log「独立审查分身」节）＋产物审查（触发线以上） |
-| 台账类（docs/specs/collab-log.md） | collab-log 自身节序（协作模板 + 核验协议 + 施工记录） | 头注两行式（定位/纪律，裸键）——豁免版本行与依据行（活账本逐次追加，版本无意义） | 宪法 §3.8 协作协议 | 追加登记时规划方自核 |
+| 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 规格成稿审查（collab-log「独立审查分身」节）＋产物审查（触发线以上）＋静态自检（check.sh `[4]` 段） |
+| 台账类（docs/specs/collab-log.md、docs/specs/open-items.md） | 各件自身节序（collab-log：协作模板 + 核验协议 + 施工记录；open-items：挂账清单七分组表） | 头注两行式（定位/纪律，裸键，不设版本行——细则与豁免清单见 §五.2） | 宪法 §2 文件账本律 + §3.8 协作协议 | 追加登记时规划方自核 |
 | 工程配置（.jsonc/.gitignore/.gitattributes/.json） | 工具官方 schema | 顶部一行用途注释（纯 `.json` 语法无注释位，豁免——用途由字段自明） | 工具官方文档（T0 per tool） | — |
 
 ### §五.1 脚本文档头四要素（sh＝# 块 / py＝docstring / js＝JSDoc——要素相同，形态随语言）
@@ -121,6 +122,8 @@ metadata:
 （键名不加粗——在役治理文档统一裸键，归档件豁免；个别文档可加分工/配套类附加行（如本文件与术语表分工、architecture 配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch；两段制 minor 按数值递增（v0.9 → v0.10），不按字符串序比较。）
 
 版本制分工：治理文档用两段 vX.Y（本节 bump 语义管辖）；skill 套件发布用三段 X.Y.Z（release-and-versioning §二「四处一致」辖套件发布版本，不含治理文档头注 vX.Y）——两制各管其域，互不换算。
+
+**变体豁免**：活账本类文件（`collab-log.md`、`open-items.md`）用两行式头注（定位／纪律，裸键），**不设版本行**——逐次追加的账本无版本语义，与台账类豁免同源。
 
 ## 六、本规范的维护
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 一键检查（宪法 §0）：skills 目录完整性（符号链接化检测）+ 六壳 skill 格式校验 + Markdown 体检 + 引用闭合 + 加粗密度 + TOC
+# 一键检查（宪法 §0）：skills 目录完整性（符号链接化检测）+ 六壳 skill 格式校验 + Markdown 体检 + 引用闭合 + 加粗密度 + TOC + 规格静态自检
 # 用法：bash scripts/check.sh [--staged]
 #   --staged  仅检查 git 暂存区涉及的 .md 文件（增量模式，日常快速反馈）
-#   默认全量（六壳 validate + 全仓 markdownlint + 引用闭合 + 加粗密度 + TOC）
+#   默认全量（六壳 validate + 全仓 markdownlint + 引用闭合 + 加粗密度 + TOC + 规格静态自检）
 #
 # 依赖与前置：
 #   [1] agentskills —— pip 包 skills-ref；探测链 PATH → LOCALAPPDATA Python Scripts →
@@ -11,10 +11,12 @@
 #   [2] markdownlint-cli2 —— npx --no-install 本地调用；未安装时该段输出提示，先执行一次
 #       npx -y markdownlint-cli2 --version 拉取（提示去向：段内 echo）
 #   [3] Python 3 —— 按 §0 探测链定位（python3 → python → py）跑 scripts/check_content.py
+#   [4] 规格静态自检 —— 由 scripts/check_spec_assertions.py --static 提供；对象为 docs/specs/ 根下
+#       在制规格（两份台账除外），依赖同 [3] 的 Python 3
 #   任一依赖缺失不静默跳过：对应段输出 x 提示并置 fail=1，末尾统一「检查未全绿，禁止提交」exit 1
 #
 # 维护入口（新增检查项接入位置）：
-#   新增检查项 = 仿 [1][2][3] 段式追加一段「echo "[N] 标题…"; 命令 || fail=1」（编号顺延）；
+#   新增检查项 = 仿 [1][2][3][4] 段式追加一段「echo "[N] 标题…"; 命令 || fail=1」（编号顺延）；
 #   增量口径自行决定是否参考 [2] 的 $STAGED 分支；内容类新维度先进
 #   scripts/check_content.py 再由 [3] 段带入（避免本文件膨胀）
 set -u -o pipefail
@@ -75,6 +77,14 @@ fi
 
 echo "[3] 引用闭合 + 加粗密度 + TOC..."
 "$PY" scripts/check_content.py || fail=1
+
+echo "[4] 规格静态自检（在制规格）..."
+SPECS=$(ls docs/specs/*.md 2>/dev/null | grep -v -E "/(collab-log|open-items)\.md$" || true)
+if [ -n "$SPECS" ]; then
+  "$PY" scripts/check_spec_assertions.py --static $SPECS || fail=1
+else
+  echo "  无在制规格，跳过"
+fi
 
 if [ "$fail" -ne 0 ]; then
   echo "== 检查未全绿，禁止提交 =="

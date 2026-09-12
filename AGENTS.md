@@ -1,6 +1,6 @@
 # Abzu 项目宪法（AGENTS.md）
 
-> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill（名为 `abzu`），目标宿主 Claude Code（唯一）。skill 本体在 `skills/` 下（六域：abzu-scan 已建设 + 五占位壳，架构见 docs/architecture.md）。
+> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill 套件（六域各一 skill，本名即命令 `/abzu-{域}`），目标宿主 Claude Code（唯一）。skill 本体在 `skills/` 下（六域：abzu-scan、abzu-analyze 已建设 + 四占位壳，架构见 docs/architecture.md）。
 > **存在理由**（作者 2026-09-06 口述落盘）：本项目源于 mo-shu 的经验教训，但不是复刻——是进化版本：架构、形态、协作模式全部重新设计，目标是规范干净、持续可维护的开源写作 skill；作者日常在 VSCode 的 Claude Code 插件中使用。
 > **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件命名规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/术语表](docs/glossary.md) 为权威。流程术语（candidate、文件账本律、P0/P1、自由度分级等）均在首次出现处内联定义，或指向单点权威文件（协议细则类见 docs/specs/collab-log.md）。
 > **沿革纪律**：治理变更的来龙去脉记在 CHANGELOG 与 git 历史，本文件只保留当前有效状态，不写沿革史。
@@ -11,8 +11,8 @@
 
 **验证与常用命令**：
 
-- 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`
-- skill 格式校验：`bash scripts/check.sh`（真目录守卫 + 六壳 validate + markdownlint + 内容轨；agentskills 探测链固化于该脚本）
+- 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`——[0] skills 真目录守卫（安装器 symlink 化检测）＋[1] 六壳 validate ＋[2] markdownlint ＋[3] 内容轨（引用闭合/加粗密度/TOC）＋[4] 规格静态自检（在制规格的断言自噬预警与计数重算）；agentskills 与 Python 探测链固化于该脚本，新增检查项的接入位置见脚本头注「维护入口」
+- 增量快检（日常快速反馈）：`bash scripts/check.sh --staged`（仅查暂存区 .md）
 - Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
 - 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
 
@@ -28,7 +28,9 @@
 | [docs/standards/agent-design.md](docs/standards/agent-design.md) | Agent 设计规范 | T1 触发后设计 agent 前 |
 | [docs/glossary.md](docs/glossary.md) | 术语叫法 | 写 skill 正文 / 产品文案前 |
 | [docs/test-prompts.md](docs/test-prompts.md) | 行为验收基准 | 修改 skill 后 |
-| `docs/specs/` | 轻量规格与历史样例 | 非平凡改动开工前 |
+| [docs/specs/collab-log.md](docs/specs/collab-log.md) | 协作协议单点权威（提示词/回传模板、核验协议、审查工序、施工记录） | 非平凡改动开工前 |
+| [docs/specs/open-items.md](docs/specs/open-items.md) | 挂账台账（全部未办事项的单点来源） | 非平凡改动收尾核对 |
+| `docs/specs/` | 轻量规格与历史样例（在制件在根、验收通过后入 archive/） | 非平凡改动开工前 |
 
 **Windows 环境约定（Git Bash）**：
 
@@ -55,7 +57,7 @@
 
 ## 3. 开发节奏（Explore → Plan → Code → Commit）
 
-1. **非平凡改动**（新增脚本/reference/守卫、目录迁移、流程规则变更等跨文件改动；反例：错别字、单文件措辞微调＝平凡）：先探索现状 → 写轻量规格存 `docs/specs/YYYY-MM-DD-<主题>.md`（三要素：现状事实、文件级改动清单、验收标准）→ 用户确认 → 实施 → 验收 → 请求提交。
+1. **非平凡改动**（新增脚本/reference/守卫、目录迁移、流程规则变更等跨文件改动；反例：错别字、单文件措辞微调＝平凡）：先探索现状 → 写轻量规格存 `docs/specs/`（文件命名见[文件命名规范](docs/standards/file-conventions.md)；三要素：现状事实、文件级改动清单、验收标准；验收通过后移入 `docs/specs/archive/`，移动不留副本）→ 用户确认 → 实施 → 验收 → 请求提交。
 
    **判定表**（需不需要规格，查此表）：
 
@@ -71,7 +73,7 @@
 
    **外审驱动的修改**：外审报告须转为正式规格（docs/specs/），逐条标注采纳/拒绝及理由——禁止拿到外审直接改文件。**外部参考研究**（点名研读仓库/规范）同款处理，研究程序与裁定表用 collab-log「参考研究裁定表」模板。（2026-09-06 立例：连续 5 批外审驱动的修改未走规格流程；2026-09-07 补例：015 号 mattpocock/skills 研究经作者提醒才转规格。）
 2. **平凡改动**：直接做，commit 消息写清动机。
-3. **小步提交**，Conventional Commits 格式：`feat(skill): ...` / `fix(skill): ...` / `docs: ...` / `chore: ...` / `test: ...`。
+3. **小步提交**，Conventional Commits 格式 `type(scope): 主题`——type ∈ {feat, fix, docs, chore, test}；scope 取改动作用域（skill 资产＝`skill`，单域建设＝域名如 `analyze`，治理文档＝`governance`/`standards`/`constitution`，产品设计文档＝`product`）。
 4. **提交前自检**：改动是否越出规格范围；验收标准是否全绿；术语是否与术语表一致；新增文件是否符合[文件命名规范](docs/standards/file-conventions.md)。
 5. **main 单分支**：批次为原子单元直推 main；AI 会话不得自建分支（用户明确要求除外）。
 6. **审计双轨**：开展审计时结构与内容必须**同步**审计——结构（命名/层级/序号/格式）与内容（残留/指向/一致性/预设）缺一不可，只审结构不算完成审计。（2026-09-05 立例：结构审计放过了旧路径 bug 与 mo-shu 语境残留，作者质询后逐文件通读才补上。）
@@ -111,6 +113,7 @@
 | 8 | `git add -A` 后直接提交，不核对暂存内容——提交标签与实际内容不符 | 提交前必看 `git status`/`git diff --stat` 对照预期改动清单 | 2026-09-06 核验协议提交扫入施工方未验收改动 |
 | 9 | 纪律靠自觉不靠机制——写完纪律条文就以为会自动执行 | 可机械化的纪律必须固化为工具（check.sh/hook/脚本），不可机械化的须写明触发条件 | 2026-09-06 全天多次"该查没查/该走规格没走"（shebang/治理同步/外审未转规格） |
 | 10 | 在源仓库内运行分发/安装类工具（安装器把 tracked `skills/` 目录符号链接化，清理 vendor 目录后全量悬空） | 分发工具只在目标项目目录运行；仓库加真目录守卫（check.sh [0]）拦截 | 2026-09-07 首次真机安装实测（规格 027） |
+| 11 | 把整改/施工提示词发给错误对象（未核对目标 id 的角色，把施工指令发给审查分身） | 发送前核对目标 id 的角色与可续性（细则单点权威＝collab-log「施工提示词」节的「分身可续性」注记，此处只留判据） | 2026-09-11 044 批整改提示词误发复审分身（即时 interrupt ＋撤回，该分身回报未改动、零损失；登记于 collab-log 施工记录 044 批行——按规格号指认，不用行号，行号随追加漂移） |
 
 ## 6. 明确不做（每条带理由；勿静默引入）
 
@@ -125,17 +128,18 @@
 
 **Abzu v0 追加（事故驱动再评估）**：
 
-- 平行台账（施工日志 / 审核记录）—— spec 文件 + git 历史即台账
+- 平行台账（施工日志 / 审核记录）—— spec 文件 + git 历史即台账。台账类分两种：**禁**过程叙事台账（施工日志／审核记录），**准**欠账清单（[docs/specs/open-items.md](docs/specs/open-items.md)，只记未办事项与触发条件，不记已完成改动与过程叙事）
 - 注册表类守卫（行为契约 / 能力接线 / 引用闭包）—— 引入任何机制须在 §5 登记事故出身
 - shared-assets 多副本同步 —— 用单一真源 + 引用从根源避免副本
 - CI workflow —— 单人阶段，本地校验脚本够用
-- doc-budget 字数预算体系（登记表+守卫）—— 有条件缓建；先用 §7 体积条款约束。**解冻触发条件**：任一热路径文件连续两批触碰行数上限，或单文件实测字符数 > 2 万（〔abzu 自定〕初始阈值，调整须记录 CHANGELOG）。届时以字符实测立法（字符比行数贴近 token 成本），并含超限处理序与预算沿革登记
+- doc-budget 字数预算体系（登记表+守卫）—— 曾经有条件缓建，**本条至此了结**（缓建项不再重启；处置方式见下）。**解冻触发条件**：任一热路径文件连续两批触碰行数上限，或单文件实测字符数 > 2 万（〔abzu 自定〕初始阈值）。**处置裁定（2026-09-12）**：触发条件已由两个超限文件（`CHANGELOG.md`、`docs/specs/collab-log.md`）达成（实测值见 047 号规格），经作者裁定**不建登记表与守卫**——体积失控的实测成因是单条膨胀而非整体规模，故以单条纪律直击成因。**分文件处置**：`CHANGELOG.md` 适用 §7 体积纪律新增的「条目 ≤ 400 字符」条；**其余超限文件（含 collab-log 这类 append-only 活账本）凭核定夺**——阈值达标不自动触发处置，须由规划方在触发时呈作者裁定
 - 多人协作治理件（CONTRIBUTING / CODE_OF_CONDUCT / OWNERS）—— 单人开发，作者裁定；意外收到外部 PR 时再评估
 
 ## 7. 体积纪律
 
 - `SKILL.md` < 500 行（Agent Skills 开放规范硬约束）；references 单文件建议 < 300 行。**超限处理序：先压缩 → 仍超下沉冷路径 → 最后才调上限**（调整须在 CHANGELOG 记录理由——放宽标准是最后手段不是第一反应）。
 - **本文件上限 300 行**：超限先压缩；内容确实放不下时下沉到 docs/ 下单点权威文件并在此留一行链接（范式示例：§3.8 协议细则下沉 collab-log，宪法只留触发条件与铁律）。
+- **CHANGELOG 条目 ≤ 400 字符**：一条只写「改了什么 + 核验结论」，细节留在当批规格与 collab-log（二者的记录才是细节去处；挂账台账 `open-items.md` 记未办事项，不记已完成改动）。**自 047 批起生效**，存量超限条目不回溯改写（回填与否另行评估）。正例：047 批自身的条目；反例：044 号条（1,412 字符）。
 - **引用一层深**：SKILL.md → references 为止；references 之间不做深层引用链（同层互引时读者可能看不到对方）。
 
 ## 8. 命名与引用速记
