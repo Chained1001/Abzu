@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.15（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.16（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -42,7 +42,7 @@
 
 | 规则 | 内容 |
 | --- | --- |
-| 退出码 | `0` 成功 / `1` 违规 / `2` 参数或环境错误（三分类，缺/空/坏各明示） |
+| 退出码 | `0` 成功 / `1` 违规 / `2` 参数或环境错误 / `3` 需交互同意但当前为非交互环境（**四分类**，缺/空/坏各明示；`3` 的实件为 `skills/abzu-scan/scripts/setup-cdp-chrome.js` 的 `NEEDS_CONSENT`——该脚本 `1`／`2` 的语义与本表不一致，**不得据以仿写**，收口挂账台账 N20） |
 | 错误输出 | 错误写 `stderr`（`console.error`），数据写 `stdout`（`console.log`），不混流 |
 | 输入校验 | 命令行参数缺失或非法时输出用法说明并退出 2，不静默使用默认值 |
 | 输出格式 | 结构化数据用 Markdown（对照 scan-output-format），日志用纯文本，禁 JSON 散落 stdout |
@@ -82,7 +82,7 @@ metadata:
 ---
 ```
 
-约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，不以连字符开头或结尾，须与目录同名；`description` 非空 ≤1024 字符（须含做什么与何时使用）。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（[0] skills 真目录守卫 + [1] 六壳 validate + [2] markdownlint + [3] 内容轨 + [4] 规格静态自检）；单壳直调 `agentskills validate skills/abzu-{域}`。
+约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，不以连字符开头或结尾，须与目录同名；`description` 非空 ≤1024 字符（须含做什么与何时使用）。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（[0] skills 真目录守卫 + [1] 六壳 validate + [2] markdownlint + [3] 内容轨 + [4] 规格静态自检 + [5] 脚本语法检查）；单壳直调 `agentskills validate skills/abzu-{域}`。
 
 ## 五、内容规范矩阵（按文件类别——同类文件同类内容）
 
@@ -95,7 +95,7 @@ metadata:
 | 域工作流 {域}-workflow.md | skill-writing §三 workflow 模板 | 头部两行声明（消费点/边界，skill-writing §六.3） | T1 superpowers 元规范；skill-writing §五 | check_content.py（TOC/加粗/引用闭合） |
 | 方法论 {域}-{主题}.md | skill-writing §三 方法论底线与子类 | 同上 | 同上 | 同上 |
 | 产物模板 {域}-{产物名}-template.md | skill-writing §三 模板四段式 | 同上 | 同上 | 同上 |
-| 运行时脚本与共享库（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1；共享库的「用法」段为导出函数清单） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | node --check + 契约对照（审查轨） |
+| 运行时脚本与共享库（skills/*/scripts/*.js） | 无统一正文模板（工具程序） | 脚本文档头四要素（§五.1；共享库的「用法」段为导出函数清单） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋§一「脚本编写规范」契约 | `node --check`（`check.sh` `[5]` 段）+ 契约对照（审查轨） |
 | 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
 | 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
 | 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 规格成稿审查（collab-log「独立审查分身」节）＋产物审查（触发线以上）＋静态自检（check.sh `[4]` 段） |

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 一键检查（宪法 §0）：skills 目录完整性（符号链接化检测）+ 六壳 skill 格式校验 + Markdown 体检 + 引用闭合 + 加粗密度 + TOC + 规格静态自检
+# 一键检查（宪法 §0）：skills 目录完整性（符号链接化检测）+ 六壳 skill 格式校验 + Markdown 体检 + 引用闭合 + 加粗密度 + TOC + 规格静态自检 + 脚本语法检查
 # 用法：bash scripts/check.sh [--staged]
-#   --staged  仅检查 git 暂存区涉及的 .md 文件（增量模式，日常快速反馈）
-#   默认全量（六壳 validate + 全仓 markdownlint + 引用闭合 + 加粗密度 + TOC + 规格静态自检）
+#   --staged  仅 [2] markdownlint 收窄为「暂存区涉及的 .md」（其余段仍全量；增量模式，日常快速反馈）
+#   默认全量（六壳 validate + 全仓 markdownlint + 引用闭合 + 加粗密度 + TOC + 规格静态自检 + 脚本语法检查）
 #
 # 依赖与前置：
 #   [1] agentskills —— pip 包 skills-ref；探测链 PATH → LOCALAPPDATA Python Scripts →
@@ -13,10 +13,11 @@
 #   [3] Python 3 —— 按 §0 探测链定位（python3 → python → py）跑 scripts/check_content.py
 #   [4] 规格静态自检 —— 由 scripts/check_spec_assertions.py --static 提供；对象为 docs/specs/ 根下
 #       在制规格（两份台账除外），依赖同 [3] 的 Python 3
+#   [5] node —— 脚本语法检查（node --check）；缺失时该段输出 x 提示并置 fail=1
 #   任一依赖缺失不静默跳过：对应段输出 x 提示并置 fail=1，末尾统一「检查未全绿，禁止提交」exit 1
 #
 # 维护入口（新增检查项接入位置）：
-#   新增检查项 = 仿 [1][2][3][4] 段式追加一段「echo "[N] 标题…"; 命令 || fail=1」（编号顺延）；
+#   新增检查项 = 仿 [1][2][3][4][5] 段式追加一段「echo "[N] 标题…"; 命令 || fail=1」（编号顺延）；
 #   增量口径自行决定是否参考 [2] 的 $STAGED 分支；内容类新维度先进
 #   scripts/check_content.py 再由 [3] 段带入（避免本文件膨胀）
 set -u -o pipefail
@@ -84,6 +85,19 @@ if [ -n "$SPECS" ]; then
   "$PY" scripts/check_spec_assertions.py --static $SPECS || fail=1
 else
   echo "  无在制规格，跳过"
+fi
+
+echo "[5] 脚本语法检查（node --check）..."
+NODE_BIN=""
+command -v node >/dev/null 2>&1 && NODE_BIN=node
+if [ -z "$NODE_BIN" ]; then
+  echo "x node 未找到（脚本语法检查需要 Node.js）"
+  fail=1
+else
+  for f in skills/abzu-*/scripts/*.js; do
+    [ -e "$f" ] || continue
+    "$NODE_BIN" --check "$f" || fail=1
+  done
 fi
 
 if [ "$fail" -ne 0 ]; then
