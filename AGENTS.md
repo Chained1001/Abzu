@@ -25,7 +25,7 @@
 | [docs/standards/markdown-style.md](docs/standards/markdown-style.md) | Markdown 正文写法 | 写/改任何 .md 前 |
 | [docs/standards/skill-writing.md](docs/standards/skill-writing.md) | skill 内容设计 | 写/改 SKILL.md 与 references 前 |
 | [docs/standards/release-and-versioning.md](docs/standards/release-and-versioning.md) | 版本与发布 | bump 版本、发布、改写作项目结构前 |
-| [docs/standards/agent-design.md](docs/standards/agent-design.md) | Agent 设计规范 | T1 触发后设计 agent 前 |
+| [docs/standards/agent-design.md](docs/standards/agent-design.md) | Agent 设计规范 | T1 触发后设计 agent 前／**涉分身轨道条文引用前** |
 | [docs/glossary.md](docs/glossary.md) | 术语叫法 | 写 skill 正文 / 产品文案前 |
 | [docs/test-prompts.md](docs/test-prompts.md) | 行为验收基准 | 修改 skill 后 |
 | [docs/specs/collab-log.md](docs/specs/collab-log.md) | 协作协议单点权威（提示词/回传模板、核验协议、审查工序、施工记录） | 非平凡改动开工前 |
