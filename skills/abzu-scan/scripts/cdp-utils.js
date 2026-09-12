@@ -248,7 +248,8 @@ function requireIntArg(name, raw, def, min, max) {
   const value = raw === null || raw === undefined || raw === "" ? def : Number(raw);
   if (!Number.isInteger(value) || value < min || value > max) {
     console.error(`错误：--${name} 必须是 ${min}-${max} 的整数，收到「${raw ?? "(空)"}」`);
-    process.exit(1);
+    console.error("参数用法见调用本库的脚本头注「用法：」段。");
+    process.exit(2);
   }
   return value;
 }
@@ -304,12 +305,13 @@ function runCli(main, label) {
       const reasons = Array.isArray(outcome.partialReasons)
         ? outcome.partialReasons.filter(Boolean).map(String)
         : [];
+      // 部分成功按 1 上报（产物不可消费）；具体缺失项由下一行 stderr 逐条明示
       if (outcome.partial || failed > 0) {
         const details = [`wrote ${outcome.written}/${planned}`];
         if (failed > 0) details.push(`failed ${failed}`);
         details.push(...reasons);
         console.error(`${label} partial: ${details.join("; ")}`);
-        process.exitCode = 2;
+        process.exitCode = 1;
       }
     })
     .catch((error) => {

@@ -4,20 +4,23 @@
 // 通过此脚本，agent-browser 可以复用用户的 Chrome 登录态。
 //
 // 用法:
-//   node setup-cdp-chrome.js [port] [options]
+//   node setup-cdp-chrome.js [port] [options]（port 省略时默认 9222）
 //
 // Options:
 //   --detect-only            只探测当前状态（结构化输出），不做任何修改
-//   --yes                    确认杀死现有 Chrome，跳过交互提示
+//   --yes（别名 -y）         确认杀死现有 Chrome，跳过交互提示
 //   --reset                  清空 ~/chrome-debug-profile 后重新复制
 //   --profile <name>         使用指定 Chrome profile（默认: Default）
 //   --dry-run                打印将执行的操作，不实际执行
+//
+// 参数宽容口径：未知参数与无法识别的位置参数一律 ⚠️ 警告后忽略，不视为非法——本脚本参数
+//       均为可选，容忍无关参数以便被通用调用。
 //
 // 说明：CDP 端口已在监听时默认直接复用现有 Chrome 并退出 0；但传了 --reset 或显式
 //       --profile 时不复用——这两个参数就是要重建 debug profile（登录态过期即走这条路），
 //       会先关闭现有 Chrome（非 TTY 下需 --yes，否则 exit 3 报 NEEDS_CONSENT）。
 //       重建路径上有两道硬闸门：关完进程后端口必须真的不再应答（否则在动 profile 之前就
-//       exit 1 中止，绝不删一个还在运行的 Chrome 的 profile）；启动后必须证明「端口上应答的
+//       exit 2 中止，绝不删一个还在运行的 Chrome 的 profile）；启动后必须证明「端口上应答的
 //       就是本次启动的实例」——身份取得到且与重建前不同、spawn 出的进程还活着、端口的 LISTEN
 //       持有者全在这棵进程树里、且树里确有一个持有者带着本次的 --remote-debugging-port。
 //       任何一条证不出来（含查不到）都拒绝报成功，避免把别人的会话当新浏览器交出去。
@@ -37,9 +40,10 @@
 //
 // 退出码:
 //   0  成功 / detect-only 完成
-//   1  通用错误（环境缺失、超时等）
-//   2  用户拒绝（TTY 模式下回答 N）
+//   2  条件不满足（参数非法，或 Chrome/profile 缺失、端口被占或未释放、启动后校验未通过、启动超时或平台不支持等）
 //   3  需要同意但当前为非 TTY 且未传 --yes
+//   4  用户拒绝（TTY 模式下回答 N）
+//   1  本脚本不主动返回——它不产出内容判定（语义见 file-conventions「脚本编写规范」）
 //
 // detect-only 结构化输出（stdout，每行 KEY=value）:
 //   CDP_STATUS=ready|needs-setup
@@ -70,6 +74,17 @@ const readline = require("readline");
 // 参数解析
 // ---------------------------------------------------------------------------
 
+// 参数错误时向 stderr 打印 Options 一览（stdout 留给 detect-only 的结构化输出，不混流）。
+function usage() {
+  console.error("用法: node setup-cdp-chrome.js [port] [options]（port 省略时默认 9222）");
+  console.error("Options:");
+  console.error("  --detect-only            只探测当前状态（结构化输出），不做任何修改");
+  console.error("  --yes（别名 -y）         确认杀死现有 Chrome，跳过交互提示");
+  console.error("  --reset                  清空 ~/chrome-debug-profile 后重新复制");
+  console.error("  --profile <name>         使用指定 Chrome profile（默认: Default）");
+  console.error("  --dry-run                打印将执行的操作，不实际执行");
+}
+
 function parseArgs(argv) {
   const flags = { dryRun: false, yes: false, detectOnly: false, reset: false };
   let profile = "Default";
@@ -89,11 +104,13 @@ function parseArgs(argv) {
         profile = argv[++i];
         if (!profile) {
           console.error("❌ --profile 需要一个参数（例如: --profile \"Profile 1\"）");
-          process.exit(1);
+          usage();
+          process.exit(2);
         }
         if (profile.includes("..") || profile.includes("/") || profile.includes("\\")) {
           console.error("❌ --profile 不能包含路径分隔符或 ..（例如: --profile \"Profile 1\"）");
-          process.exit(1);
+          usage();
+          process.exit(2);
         }
         profileExplicit = true;
         break;
@@ -111,7 +128,8 @@ function parseArgs(argv) {
   if (port === null) port = 9222;
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     console.error(`❌ 端口非法: ${port}。必须是 1-65535 的整数。`);
-    process.exit(1);
+    usage();
+    process.exit(2);
   }
 
   return { flags, profile, profileExplicit, port };
@@ -222,7 +240,7 @@ function getConfig() {
   const config = PLATFORM_CONFIG[PLATFORM];
   if (!config) {
     err(`不支持的平台: ${PLATFORM}。支持 darwin/win32/linux。`);
-    process.exit(1);
+    process.exit(2);
   }
   return config;
 }
@@ -770,7 +788,7 @@ async function main() {
   if (!chromePath) {
     err("未找到 Google Chrome。请确保已安装。");
     err(`搜索路径: ${JSON.stringify(config.chromePaths, null, 2)}`);
-    process.exit(1);
+    process.exit(2);
   }
   log(`Chrome 路径: ${chromePath}`);
 
@@ -846,7 +864,7 @@ async function main() {
   if (!hasProfile) {
     err(`未找到 Chrome profile: ${defaultProfile}`);
     err("请确保已安装 Google Chrome 并至少使用过一次，或用 --profile <name> 指定其他 profile。");
-    process.exit(1);
+    process.exit(2);
   }
 
   // 4) 同意流程：如有 Chrome 进程要杀，先征得同意
@@ -854,7 +872,7 @@ async function main() {
   const consented = await ensureConsentToKill(runningPids);
   if (!consented) {
     err("用户拒绝，已中止。");
-    process.exit(2);
+    process.exit(4);
   }
 
   // 5) 杀死现有 Chrome 进程，等待退出
@@ -870,7 +888,7 @@ async function main() {
     if (remain.length > 0) {
       err(`仍有 ${remain.length} 个 Chrome 进程未退出，已中止。`);
       err("未删除、未改动 debug profile，也未启动新 Chrome——状态保持原样。");
-      process.exit(1);
+      process.exit(2);
     } else {
       ok("Chrome 已退出。");
     }
@@ -902,7 +920,7 @@ async function main() {
     if (holder) err(`占用者：${holder}`);
     err("未删除、未改动 debug profile，也未启动新 Chrome——状态保持原样。");
     err(`处理办法：手动结束占用 ${CDP_PORT} 的进程后重跑，或换一个端口（node setup-cdp-chrome.js <其他端口> ...）。`);
-    process.exit(1);
+    process.exit(2);
   }
   if (portWasListening) {
     ok(`CDP 端口 ${CDP_PORT} 已释放。`);
@@ -955,7 +973,7 @@ async function main() {
     for (const line of reasons) err(line);
     err("正在清理刚启动的 Chrome 进程...");
     terminateLaunchTree(childPid);
-    process.exit(1);
+    process.exit(2);
   }
 
   // 10) 等待启动并验证。光有人应答不算成功——那可能是没被关掉的旧实例，也可能是别的进程
@@ -1020,10 +1038,10 @@ async function main() {
   err("  - Chrome 不支持 --remote-debugging-port");
   err(`  - 端口 ${CDP_PORT} 已被其他进程占用`);
   err("  - debug profile 目录已损坏（试试 --reset）");
-  process.exit(1);
+  process.exit(2);
 }
 
 main().catch((e) => {
   err(`启动失败: ${e.message}`);
-  process.exit(1);
+  process.exit(2);
 });
