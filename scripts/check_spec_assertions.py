@@ -24,8 +24,9 @@
 维护入口：新增可执行命令形态扩 ALLOWED 白名单；提取规则（验收节定位/行内与围栏两种形态）
 改 extract()；输出格式改 report()。动态阶段三态：不可审计判据改 unauditable()、放行面改
 readonly()、三桶计数与摘要行改 report()。静态阶段：节定位常量 SECTION（验收标准）与
-CHANGE_SECTION（文件级改动清单），检查 A 改 check_swallow()、检查 B 改 check_counts()，
-阶段编排与退出码改 static_report() 与 __main__。核验比对：三项比对改 verify_report()
+CHANGE_SECTION（文件级改动清单），检查 A 改 check_swallow()、检查 B 改 check_counts()
+（配对判据＝路径紧邻段，段切分见 _segments()），阶段编排与退出码改 static_report() 与
+__main__。核验比对：三项比对改 verify_report()
 （改动面取 _git_changes()、施工记录表定位与结构取 _find_table()／_table_findings()），
 模式分派改 __main__。
 """
@@ -278,27 +279,44 @@ def check_swallow(text, root):
     return lines
 
 
+def _segments(line):
+    """行内代码 span 的「紧邻段」切分（检查 B 配对判据）：返回 [(span 内容, 紧邻段)]——
+    紧邻段＝自该 span 的反引号结束处起、至下一个反引号或行尾止的片段。计数声称只在紧邻段内
+    识别，故不再与行内他处的数字发生关系（中间隔着反引号时才成立）。残留面：紧邻段内指代
+    他物的数字仍会配对，彻底消除需语义解析——本函数只收窄、不自称根治。
+    嵌套反引号（``x``）形态下配对同样不成立：取码 span 退化为内层 token——包路径时即路径本身、
+    包数字时即纯数字；其紧邻段被紧随的残余反引号即刻截断为空，故路径不落入任何紧邻段（不构成
+    「路径 + 其后紧邻段」的有效配对单元）。"""
+    spans = list(INLINE_CODE.finditer(line))
+    out = []
+    for m in spans:
+        nxt = line.find('`', m.end())
+        out.append((m.group(1).strip(), line[m.end():nxt if nxt != -1 else len(line)]))
+    return out
+
+
 def check_counts(text, root):
-    """检查 B：计数实跑重算。返回 (输出行列表, 是否有「计数不符」)。"""
+    """检查 B：计数实跑重算。返回 (输出行列表, 是否有「计数不符」)。
+    配对判据＝路径紧邻段（见 _segments()）：一条计数声称只计入其所在紧邻段对应的路径。"""
     listed = _section(text, CHANGE_SECTION)
     lines = []
     bad = False
     cache = {}
     for line in text.splitlines():
-        targets = [t for t in (c.strip() for c in INLINE_CODE.findall(line))
+        targets = [(t, seg) for t, seg in _segments(line)
                    if t and os.path.isfile(_abs(t, root))]
         if not targets:
             continue
-        for target in targets:
+        for target, seg in targets:
             if target not in cache:
                 with open(_abs(target, root), encoding='utf-8') as f:
                     content = f.read()
                 cache[target] = (len(content), len(content.splitlines()))
             nchar, nline = cache[target]
-            for m in CLAIM.finditer(line):
+            for m in CLAIM.finditer(seg):
                 num, unit = m.group(1), m.group(2)
                 # 限额型数字不计：N 之前（允许中间隔空格）紧邻限额标记的，不视为对当前尺寸的声称
-                if line[:m.start()].rstrip().endswith(LIMIT_MARKS):
+                if seg[:m.start()].rstrip().endswith(LIMIT_MARKS):
                     continue
                 actual = nchar if unit == '字符' else nline
                 if int(num.replace(',', '')) == actual:

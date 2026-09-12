@@ -1,6 +1,6 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.14（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.15（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
 > 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
@@ -22,13 +22,13 @@
 | 拆书 CSV | 固定中文名 | `章节索引.csv`（五列，脚本产物）、`结构块.csv` | `拆书/{书名}/` |
 | 用户产物（扫榜） | `扫榜/{平台}{方向}_{YYYYMMDD}/` 目录，产物中文命名（双语纪律 §二） | `扫榜/起点都市高武_20260901/选题决策.md` | 用户工作目录（不进仓库） |
 | 开发守卫 | `check-{对象}.{sh,py,js}` | `check-frontmatter.py` | `scripts/`（仓库级） |
-| 开发测试 | `test-{对象}.{sh,py,js}` | `test-check-frontmatter.py` | `scripts/`（仓库级） |
+| 开发测试 | `test-{对象}.{sh,py,js}` | （**无实例，预留类目**：`scripts/` 下暂无 `test-*` 实例；**预立法，随首批实例校准**） | `scripts/`（仓库级） |
 | 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录）；**同批附件**（随主规格产出的并列文档）沿用主规格序号、以语义后缀区分（如 `030-…-mo-shu架构评估报告.md`），不另编序号 | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本）；**作废批**（规格前提失效未施工）同移入 archive，文件名追加 `-已作废` 后缀并在正文头注标废（正例：`archive/046-2026-09-11-机制闸先行批-已作废.md`） |
 | 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
 | 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
 | 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
-| 设计文档 | 中文命名，按产品线/阶段立件 | —（docs/product/ 现空，大纲阶段设计文档重设中——036 批） | `docs/product/` |
+| 设计文档 | 中文命名，按产品线/阶段立件 | —（现有《大纲阶段设计文档》与《大纲阶段追踪档》两件） | `docs/product/` |
 | 命令薄壳（预留） | `abzu-{路由键}.md`，单行内容 `abzu skill {路由键}`；多域上线、分发方案裁定后启用——**启用前不得新增实例** | — | `.claude/commands/`（现无实例） |
 | 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
 | agent 设计规范 | `agent-design.md`（固定名，长期文档） | — | `docs/standards/` |
@@ -82,7 +82,7 @@ metadata:
 ---
 ```
 
-约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，不以连字符开头或结尾，须与目录同名；`description` 非空 ≤1024 字符（须含做什么与何时使用）。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（六壳 validate + markdownlint + 内容轨 + 规格静态自检）；单壳直调 `agentskills validate skills/abzu-{域}`。
+约束（Agent Skills 开放规范）：`name` 小写字母/数字/连字符，≤64 字符，不以连字符开头或结尾，须与目录同名；`description` 非空 ≤1024 字符（须含做什么与何时使用）。校验（pip 包 `skills-ref`，命令行入口为 `agentskills`）：一键入口 `bash scripts/check.sh`（[0] skills 真目录守卫 + [1] 六壳 validate + [2] markdownlint + [3] 内容轨 + [4] 规格静态自检）；单壳直调 `agentskills validate skills/abzu-{域}`。
 
 ## 五、内容规范矩阵（按文件类别——同类文件同类内容）
 
