@@ -1,8 +1,8 @@
 # Abzu 项目宪法（AGENTS.md）
 
-> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill 套件（六域各一 skill，本名即命令 `/abzu-{域}`），目标宿主 Claude Code（唯一）。skill 本体在 `skills/` 下（六域：abzu-scan、abzu-analyze 已建设 + 四占位壳，架构见 docs/architecture.md）。
+> **本仓库是什么**：Abzu = 面向长篇网文创作的 AI 辅助写作工作流 skill 套件（六域各一 skill，本名即命令 `/abzu-{域}`），目标宿主 Claude Code（唯一）。skill 本体在 `skills/` 下（六域：abzu-scan、abzu-analyze 已建设 + 四占位壳，架构见 [docs/product/总纲.md](docs/product/总纲.md)）。
 > **存在理由**（作者 2026-09-06 口述落盘）：本项目源于 mo-shu 的经验教训，但不是复刻——是进化版本：架构、形态、协作模式全部重新设计，目标是规范干净、持续可维护的开源写作 skill；作者日常在 VSCode 的 Claude Code 插件中使用。
-> **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件命名规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/术语表](docs/glossary.md) 为权威。流程术语（candidate、文件账本律、P0/P1、自由度分级等）均在首次出现处内联定义，或指向单点权威文件（协议细则类见 docs/specs/collab-log.md）。
+> **本文件定位**：仓库唯一宪法——红线、分工原则、开发节奏、决策流程、不做清单。工程细则见 [docs/standards/ 文件命名规范](docs/standards/file-conventions.md)；产品语言叫法以 [docs/product/总纲.md](docs/product/总纲.md) §七 术语为权威。流程术语（candidate、文件账本律、P0/P1、自由度分级等）均在首次出现处内联定义，或指向单点权威文件（协议细则类见 docs/specs/collab-log.md）。
 > **沿革纪律**：治理变更的来龙去脉记在 CHANGELOG 与 git 历史，本文件只保留当前有效状态，不写沿革史。
 
 ---
@@ -14,22 +14,20 @@
 - 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`——[0] skills 真目录守卫（安装器 symlink 化检测）＋[1] 六壳 validate ＋[2] markdownlint ＋[3] 内容轨（引用闭合/加粗密度/TOC/SKILL.md 行数/CHANGELOG 条目限长）＋[4] 规格静态自检（在制规格的断言自噬预警、计数重算、[A] 项「替换为」侧文本逐字核对与规格写作机械检查）＋[5] 脚本语法检查（node --check）；agentskills 与 Python 探测链固化于该脚本，新增检查项的接入位置见脚本头注「维护入口」
 - 增量快检（日常快速反馈）：`bash scripts/check.sh --staged`（仅查暂存区 .md）
 - Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
-- 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
+- 行为验收：改 skill 资产后——`bash scripts/check.sh`（含守卫）必须全绿 + **真机走一遍该域主流程**，并对照该域上线验收清单逐条核对（做法与清单见 [docs/standards/testing.md](docs/standards/testing.md) §二／§三）
 
 **必读文档**：
 
 | 文档 | 管什么 | 何时必读 |
 | --- | --- | --- |
-| [docs/architecture.md](docs/architecture.md) | 架构选型与理由 | 架构相关改动 / 新域准入前 |
+| [docs/product/总纲.md](docs/product/总纲.md) | 定位/选型/路线/术语（全域层权威） | 架构相关改动 / 新域准入前 / 写 skill 正文与产品文案前 |
+| [docs/standards/testing.md](docs/standards/testing.md) | 守卫与验收（守卫全景、域上线验收清单、真机走查、已知缺口） | 改 skill 资产后 / 新域上线前 / 新增守卫前 |
 | [docs/standards/file-conventions.md](docs/standards/file-conventions.md) | 文件命名与格式 | 新增任何文件前 |
 | [docs/standards/markdown-style.md](docs/standards/markdown-style.md) | Markdown 正文写法 | 写/改任何 .md 前 |
 | [docs/standards/skill-writing.md](docs/standards/skill-writing.md) | skill 内容设计 | 写/改 SKILL.md 与 references 前 |
 | [docs/standards/release-and-versioning.md](docs/standards/release-and-versioning.md) | 版本与发布 | bump 版本、发布、改写作项目结构前 |
 | [docs/standards/agent-design.md](docs/standards/agent-design.md) | Agent 设计规范 | T1 触发后设计 agent 前／**涉分身轨道条文引用前** |
-| [docs/glossary.md](docs/glossary.md) | 术语叫法 | 写 skill 正文 / 产品文案前 |
-| [docs/test-prompts.md](docs/test-prompts.md) | 行为验收基准 | 修改 skill 后 |
 | [docs/specs/collab-log.md](docs/specs/collab-log.md) | 协作协议单点权威（提示词/回传模板、核验协议、审查工序、施工记录） | 非平凡改动开工前 |
-| [docs/specs/open-items.md](docs/specs/open-items.md) | 挂账台账（全部未办事项的单点来源） | 非平凡改动收尾核对 |
 | `docs/specs/` | 轻量规格与历史样例（在制件在根、验收通过后入 archive/） | 非平凡改动开工前 |
 
 **Windows 环境约定（Git Bash）**：
@@ -45,7 +43,7 @@
 1. **git 默认只读**：commit / push / reset / stash 等一切 git 写操作，每次单独取得用户明确确认；用户对其他操作（删文件、写文件等）的授权**不外延**到 git 提交推送。
 2. **临时产物不入库**：临时验证脚本与输出一律放 `.tmp/<任务>/`，用完即删；不以 `test_*` 前缀伪装正式测试。
 3. **外部参考只读**：引用的外部项目与参考目录绝对只读，不在其中安装依赖、跑构建、跑联网命令。
-4. **禁带病开工**：动工前先确认评估场景（[docs/test-prompts.md](docs/test-prompts.md)）当前无已知失败；有红先呈报裁决，不在红基线上叠改动。**基线定义**：建设期内，评估场景因「能力尚未建设」而失败的，不计入红基线；只有**已建设能力出现回归**才算红。
+4. **禁带病开工**：动工前先确认该域上线验收清单（[docs/standards/testing.md](docs/standards/testing.md) §二）当前无已知失败；有红先呈报裁决，不在红基线上叠改动。**基线定义**：建设期内，验收清单条目因「能力尚未建设」而失败的，不计入红基线；只有**已建设能力出现回归**才算红。
 5. **失败先判因**：任何测试/校验失败，先定位原因再改；**禁止改断言、改数字、删检查来变绿**。
 6. **密钥与凭据不入库**：token、key、密码、`.env` 类文件不进 git；凭据一律用环境变量；已提交的凭据视同泄露，立即轮换。
 
@@ -74,7 +72,7 @@
    **外审驱动的修改**：外审报告须转为正式规格（docs/specs/），逐条标注采纳/拒绝及理由——禁止拿到外审直接改文件。**外部参考研究**（点名研读仓库/规范）同款处理，研究程序与裁定表用 collab-log「参考研究裁定表」模板。（2026-09-06 立例：连续 5 批外审驱动的修改未走规格流程；2026-09-07 补例：015 号 mattpocock/skills 研究经作者提醒才转规格。）
 2. **平凡改动**：直接做，commit 消息写清动机。
 3. **小步提交**，Conventional Commits 格式 `type(scope): 主题`——type ∈ {feat, fix, docs, chore, test}；scope 取改动作用域（skill 资产＝`skill`，单域建设＝域名如 `analyze`，治理文档＝`governance`/`standards`/`constitution`，产品设计文档＝`product`）。
-4. **提交前自检**：改动是否越出规格范围；验收标准是否全绿；术语是否与术语表一致；新增文件是否符合[文件命名规范](docs/standards/file-conventions.md)。
+4. **提交前自检**：改动是否越出规格范围；验收标准是否全绿；术语是否与《产品与技术总纲》§七 术语一致；新增文件是否符合[文件命名规范](docs/standards/file-conventions.md)。
 5. **main 单分支**：批次为原子单元直推 main；AI 会话不得自建分支（用户明确要求除外）。
 6. **审计双轨**：开展审计时结构与内容必须**同步**审计——结构（命名/层级/序号/格式）与内容（残留/指向/一致性/预设）缺一不可，只审结构不算完成审计。（2026-09-05 立例：结构审计放过了旧路径 bug 与 mo-shu 语境残留，作者质询后逐文件通读才补上。）
 
@@ -128,7 +126,7 @@
 
 **Abzu v0 追加（事故驱动再评估）**：
 
-- 平行台账（施工日志 / 审核记录）—— spec 文件 + git 历史即台账。台账类分两种：**禁**过程叙事台账（施工日志／审核记录），**准**欠账清单（[docs/specs/open-items.md](docs/specs/open-items.md)，只记未办事项与触发条件，不记已完成改动与过程叙事）
+- 平行台账（施工日志 / 审核记录）—— spec 文件 + git 历史即台账。**不做全域欠账清单**（原全域台账已解散，沿革见 CHANGELOG）：构想与路线进 [docs/product/总纲.md](docs/product/总纲.md) §五 路线与阶段；已知缺陷**当批修完**，修不完的写进**当批规格的开放项**（随规格归档、由 git 历史承载），或该主题所属规范件的「已知缺口」小节——债跟着主题走，不跟着时间走
 - 注册表类守卫（行为契约 / 能力接线 / 引用闭包）—— 引入任何机制须在 §5 登记事故出身
 - shared-assets 多副本同步 —— 用单一真源 + 引用从根源避免副本
 - CI workflow —— 单人阶段，本地校验脚本够用
@@ -139,9 +137,9 @@
 
 - `SKILL.md` < 500 行（Agent Skills 开放规范硬约束）；references 单文件建议 < 300 行。**超限处理序：先压缩 → 仍超下沉冷路径 → 最后才调上限**（调整须在 CHANGELOG 记录理由——放宽标准是最后手段不是第一反应）。
 - **本文件上限 300 行**：超限先压缩；内容确实放不下时下沉到 docs/ 下单点权威文件并在此留一行链接（范式示例：§3.8 协议细则下沉 collab-log，宪法只留触发条件与铁律）。
-- **CHANGELOG 条目 ≤ 400 字符**：一条只写「改了什么 + 核验结论」，细节留在当批规格与 collab-log（二者的记录才是细节去处；挂账台账 `open-items.md` 记未办事项，不记已完成改动）。**自 047 批起生效**，存量超限条目不回溯改写（回填与否另行评估）。正例：047 批自身的条目；反例：044 号条（1,412 字符）。
+- **CHANGELOG 条目 ≤ 400 字符**：一条只写「改了什么 + 核验结论」，细节留在当批规格与 collab-log（二者的记录才是细节去处；未办事项按 §6「不做全域欠账清单」条的落点处置）。**自 047 批起生效**，存量超限条目不回溯改写（回填与否另行评估）。正例：047 批自身的条目；反例：044 号条（1,412 字符）。
 - **引用一层深**：SKILL.md → references 为止；references 之间不做深层引用链（同层互引时读者可能看不到对方）。
 
 ## 8. 命名与引用速记
 
-总表与细则见 [docs/standards/file-conventions.md](docs/standards/file-conventions.md)（单点权威）。速记：skill 与脚本英文 kebab-case；写作项目（书目录）内产物用中文名；路径一律正斜杠；术语叫法以 [docs/glossary.md](docs/glossary.md) 为准。
+总表与细则见 [docs/standards/file-conventions.md](docs/standards/file-conventions.md)（单点权威）。速记：skill 与脚本英文 kebab-case；写作项目（书目录）内产物用中文名；路径一律正斜杠；术语叫法以 [docs/product/总纲.md](docs/product/总纲.md) §七 术语为准。

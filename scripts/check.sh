@@ -12,7 +12,7 @@
 #       npx -y markdownlint-cli2 --version 拉取（提示去向：段内 echo）
 #   [3] Python 3 —— 按 §0 探测链定位（python3 → python → py）跑 scripts/check_content.py
 #   [4] 规格静态自检 —— 由 scripts/check_spec_assertions.py --static 提供；对象为 docs/specs/ 根下
-#       在制规格（两份台账除外），依赖同 [3] 的 Python 3
+#       在制规格（collab-log 除外），依赖同 [3] 的 Python 3
 #   [5] node —— 脚本语法检查（node --check）；缺失时该段输出 x 提示并置 fail=1
 #   任一依赖缺失不静默跳过：对应段输出 x 提示并置 fail=1，末尾统一「检查未全绿，禁止提交」exit 1
 #
@@ -80,7 +80,7 @@ echo "[3] 引用闭合 + 加粗密度 + TOC..."
 "$PY" scripts/check_content.py || fail=1
 
 echo "[4] 规格静态自检（在制规格）..."
-SPECS=$(ls docs/specs/*.md 2>/dev/null | grep -v -E "/(collab-log|open-items)\.md$" || true)
+SPECS=$(ls docs/specs/*.md 2>/dev/null | grep -v -E "/(collab-log)\.md$" || true)
 if [ -n "$SPECS" ]; then
   "$PY" scripts/check_spec_assertions.py --static $SPECS || fail=1
 else

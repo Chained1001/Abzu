@@ -83,8 +83,8 @@ BOLD_LEAD = re.compile(r'^\s*\*\*[^*\n]+\*\*\s*[：:]\s*$')
 LIST_LEAD = re.compile(r'^\s*(?:[-*+]|\d+[.)])\s')
 MD_LINK = re.compile(r'\[[^\]\n]*\]\(([^)\s]+?)\)')
 # 检查 D ④ 的适用面：该类判据隐含「该件会被归档」，故对**从不归档**的件不判——即 check.sh [4] 段
-# 扫描集排除的那两份台账（docs/specs/collab-log.md、docs/specs/open-items.md）
-NEVER_ARCHIVED = ('collab-log.md', 'open-items.md')
+# 扫描集排除的那份台账（docs/specs/collab-log.md）
+NEVER_ARCHIVED = ('collab-log.md',)
 
 
 def extract(text):
@@ -537,7 +537,7 @@ def check_writing(text, spec, root):
     定，与 markdownlint MD038 一致（`` `a ` ``／`` ` c` `` 报；`` ` x ` `` 与全空格跨度不报）；
     ③ 加粗引导行紧跟列表（`**…**：` 行 + 下一行列表标记起首）→ MD032；
     ④ 规格内可解析相对链接（按规格所在目录解析存在、按归档目录解析不存在 → 归档后必断链），
-    该类的适用面限于会归档的件（NEVER_ARCHIVED 两份台账不判）。
+    该类的适用面限于会归档的件（NEVER_ARCHIVED 的件不判）。
     围栏块内的行一律不判（块内不是行内代码，也不是链接）。"""
     src = text.splitlines()
     spec_dir = os.path.dirname(os.path.abspath(spec))

@@ -1,8 +1,8 @@
 # 文件规范（Abzu 仓库命名与格式总表）
 
-> 版本：v0.18（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.20（沿革见 CHANGELOG 与 git 历史）
 > 定位：仓库所有文件类型的命名规则与格式模板的**单点权威**。新增文件前先查本表；类型未覆盖 → 走 [AGENTS.md](../../AGENTS.md) §4 决策树，裁定结果**回写本表**。
-> 与术语表分工：[术语表](../glossary.md)管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
+> 与总纲分工：[产品技术总纲](../product/总纲.md) §七 术语管产品语言的叫法（面向使用者），本文件管文件系统的命名与格式（面向开发者）。
 
 ---
 
@@ -25,16 +25,14 @@
 | 开发测试 | `test-{对象}.{sh,py,js}` | （**无实例，预留类目**：`scripts/` 下暂无 `test-*` 实例；**预立法，随首批实例校准**） | `scripts/`（仓库级） |
 | 规格 | `{序号NNN}-{YYYY-MM-DD}-{中文主题}.md`，序号按立项顺序三位递增、永不复用；主题用中文（作者面向的治理记录） | `013-2026-09-06-多技能骨架切换.md` | `docs/specs/`；**实施验收全部通过后移动至** `docs/specs/archive/`（移动不留副本） |
 | 工程规范 | 英文 kebab-case | `file-conventions.md`、`markdown-style.md` | `docs/standards/` |
-| 项目参照 | 英文 kebab-case | `glossary.md`、`test-prompts.md` | `docs/` |
 | 根目录治理文件 | 固定名（生态惯例） | `AGENTS.md`、`README.md`、`CHANGELOG.md`、`LICENSE` | 仓库根 |
 | 根目录工程配置 | 固定名（工具惯例） | `.gitignore`、`.gitattributes`、`.markdownlint-cli2.jsonc` | 仓库根 |
-| 设计文档 | 中文命名，按产品线/阶段立件 | —（现有《大纲阶段设计文档》与《大纲阶段追踪档》两件） | `docs/product/` |
+| 设计文档 | 中文命名，按产品线/阶段立件；**全域层＝《产品与技术总纲》，域层＝各域设计文档** | —（现有《产品与技术总纲》与《大纲阶段设计文档》两件） | `docs/product/` |
 | 命令薄壳（预留） | `abzu-{路由键}.md`，单行内容 `abzu skill {路由键}`；多域上线、分发方案裁定后启用——**启用前不得新增实例** | — | `.claude/commands/`（现无实例） |
-| 架构决策记录 | `architecture.md`（固定名，长期文档） | — | `docs/` |
+| 产品技术总纲 | `总纲.md`（固定名，`docs/product/` 全域层唯一权威件） | — | `docs/product/` |
 | agent 设计规范 | `agent-design.md`（固定名，长期文档） | — | `docs/standards/` |
 | agent 文件（预留） | `abzu-{角色名}.md`，YAML frontmatter（name/description/tools/model）；T1 触发后启用——**启用前不得新增实例** | — | `.claude/agents/`（物化目标，仓库内源码位待 T1 定） |
 | 协作日志 | `collab-log.md`（固定名，逐次登记规格施工记录与协作模板） | — | `docs/specs/` |
-| 挂账台账 | `open-items.md`（固定名，活账本） | — | `docs/specs/` |
 
 > 表注（扩展名口径）：`.py` 文件用 snake_case（下划线，Python 惯例），`.sh` / `.js` 用 kebab-case（连字符）——上表运行时脚本/开发守卫/开发测试三行规则列之 `.py` 后缀以本表注为准（`{动词}-{对象}` 连字符式仅适用于 sh/js；立法时虚拟示例 `check-frontmatter.py` 未与实件对齐，实件对照为 `check_content.py`）。
 >
@@ -57,7 +55,7 @@
 ## 二、双语命名纪律
 
 - **英文 kebab-case**：skill 目录、references、脚本、守卫——开发者可见的一切；规格主题部分用中文（作者阅读的治理记录）。
-- **中文名**：写作项目（用户的书目录）内的产物文件，如 `卷纲_第1卷.md`、`人物卡_林晚.md`——由 skill 运行时创建，**不进本仓库**；命名细则将由立项域（outline）的 project-structure 规范定义（未建，安放方案见 architecture.md §三）；例外：`docs/product/` 设计文档中文命名（作者面向的产品文档类目）。
+- **中文名**：写作项目（用户的书目录）内的产物文件，如 `卷纲_第1卷.md`、`人物卡_林晚.md`——由 skill 运行时创建，**不进本仓库**；命名细则将由立项域（outline）的 project-structure 规范定义（未建，安放方案见[产品技术总纲](../product/总纲.md) §二「落定目录结构」）；例外：`docs/product/` 设计文档中文命名（作者面向的产品文档类目）。
 - 路径分隔符一律正斜杠（跨平台；反斜杠在 Unix 上失效）。
 
 ## 三、跨文件引用格式
@@ -88,7 +86,7 @@ metadata:
 
 ## 五、内容规范矩阵（按文件类别——同类文件同类内容）
 
-> 定位：矩阵是路由层——每类文件的完整模板与细则在「结构真源」列所指处，本表管分类全覆盖与速查；**具体行优先于泛类行**（如 collab-log 归台账类行，不从治理文档行）——新增文件类别时回写本表（§六维护条款同辖）。风格依据如实分三类标注：architecture §七 权威层（T0/T1/T2）、语言业界权威（PEP、Google Shell Style Guide——语言生态官方/通行规范）、仓库内部规范（markdown-style 等）——不虚标分级。
+> 定位：矩阵是路由层——每类文件的完整模板与细则在「结构真源」列所指处，本表管分类全覆盖与速查；**具体行优先于泛类行**（如 collab-log 归协作日志行，不从治理文档行）——新增文件类别时回写本表（§六维护条款同辖）。风格依据如实分三类标注：[产品技术总纲](../product/总纲.md) §六 权威层（T0/T1/T2）、语言业界权威（PEP、Google Shell Style Guide——语言生态官方/通行规范）、仓库内部规范（markdown-style 等）——不虚标分级。
 
 | 文件类别 | 结构/内容真源 | 头部规范 | 风格依据 | 机检 |
 | --- | --- | --- | --- | --- |
@@ -101,7 +99,7 @@ metadata:
 | 开发守卫（scripts/ 下 .sh/.py） | 无统一正文模板 | 同四要素（# 注释块 / 模块 docstring，形态随语言） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | check.sh 实跑即验 |
 | 治理与门面文档（AGENTS/README/docs/**.md） | 各文档自身节序 | 头注三行式（§五.2；AGENTS 内容型头部与 README 门面文档豁免） | markdown-style ＋ 中文文案排版指北（语言业界权威） | markdownlint + 引用闭合（check_content 治理段） |
 | 规格（docs/specs/**） | 三要素 + 规格自审记录（宪法 §3.1/§3.8） | 背景引言（自包含声明） | 宪法 §3；collab-log 协作模板 | 规格成稿审查（collab-log「独立审查分身」节）＋产物审查（触发线以上）＋静态自检（check.sh `[4]` 段） |
-| 台账类（docs/specs/collab-log.md、docs/specs/open-items.md） | 各件自身节序（collab-log：协作模板 + 核验协议 + 施工记录；open-items：挂账清单七分组表） | 头注两行式（定位/纪律，裸键，不设版本行——细则与豁免清单见 §五.2） | 宪法 §2 文件账本律 + §3.8 协作协议 | 追加登记时规划方自核 |
+| 协作日志（docs/specs/collab-log.md） | 各件自身节序（collab-log：协作模板 + 核验协议 + 施工记录） | 头注两行式（定位/纪律，裸键，不设版本行——细则与豁免清单见 §五.2） | 宪法 §2 文件账本律 + §3.8 协作协议 | 追加登记时规划方自核 |
 | 工程配置（.jsonc/.gitignore/.gitattributes/.json） | 工具官方 schema | 顶部一行用途注释（纯 `.json` 语法无注释位，豁免——用途由字段自明） | 工具官方文档（T0 per tool） | — |
 
 ### §五.1 脚本文档头四要素（sh＝# 块 / py＝docstring / js＝JSDoc——要素相同，形态随语言）
@@ -119,13 +117,30 @@ metadata:
 
 > 版本：vX.Y（沿革见 CHANGELOG 与 git 历史）
 > 定位：……（角色一句话，含单点权威声明如适用）
-> 依据：……（architecture §七 权威层 / 语言业界权威 / 仓库规范，如实标注）
+> 依据：……（[产品技术总纲](../product/总纲.md) §六 权威层 / 语言业界权威 / 仓库规范，如实标注）
 
-（键名不加粗——在役治理文档统一裸键，归档件豁免；个别文档可加分工/配套类附加行（如本文件与术语表分工、architecture 配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch；两段制 minor 按数值递增（v0.9 → v0.10），不按字符串序比较。）
+（键名不加粗——在役治理文档统一裸键，归档件豁免；个别文档可加分工/配套类附加行（如本文件与总纲 §术语分工、总纲配套行）；参照型文档第三行可用「用法」等变体行；治理文档 bump 语义：实质内容修订 minor、纯措辞 patch；两段制 minor 按数值递增（v0.9 → v0.10），不按字符串序比较。）
 
 版本制分工：治理文档用两段 vX.Y（本节 bump 语义管辖）；skill 套件发布用三段 X.Y.Z（release-and-versioning §二「四处一致」辖套件发布版本，不含治理文档头注 vX.Y）——两制各管其域，互不换算。
 
-**变体豁免**：活账本类文件（`collab-log.md`、`open-items.md`）用两行式头注（定位／纪律，裸键），**不设版本行**——逐次追加的账本无版本语义，与台账类豁免同源。
+**变体豁免**：活账本类文件（`collab-log.md`）用两行式头注（定位／纪律，裸键），**不设版本行**——逐次追加的账本无版本语义，与协作日志类豁免同源。
+
+### §五.3 域产物格式机检契约（用户侧产物）
+
+> 定位：用户书目录／工作目录内产物的**格式契约落点**——产物字段与表头一类可由脚本或文件系统确定性判定的断言归此（域上线验收清单只留人判要点，见 [testing.md](testing.md) §二）。**机检载体**列如实标注现状：已实现者写脚本名，待建者写「待建守卫」。域资产内的生产端真源一律指向该域 `references/` 的产物格式节，本表不复制其内容（一层深）。
+
+| 产物（所属域） | 格式契约（机检点） | 生产端真源 | 机检载体 |
+| --- | --- | --- | --- |
+| 采集文件（扫榜） | 头部含**数据质量三行**：数据质量／有效条目／问题摘要 | `skills/abzu-scan/references/scan/` 采集格式文档 | 待建守卫（`scan-analyze.js` 是消费端过滤，不校验「三行齐全」） |
+| `选题决策.md`（扫榜） | 模板 v2 **十七字段非空**（含读者代偿心理／开篇钩子公式／长期追读动力／题材雷区／参考候选等） | `skills/abzu-scan/references/scan/scan-topic-decision-template.md` | 待建守卫（现由域工作流自核） |
+| 扫榜目录与产物名（扫榜） | `扫榜/{平台}{方向}_{YYYYMMDD}/` 目录；产物中文命名 | `skills/abzu-scan/references/scan/scan-output-format.md` | 待建守卫 |
+| `章节索引.csv`（拆书） | **五列表头**（章号/标题/定位符/字数/状态），只由脚本生成、禁止模型手写替代 | `skills/abzu-analyze/references/analyze/analyze-structure-blocks-spec.md` | `skills/abzu-analyze/scripts/build-chapter-index.js` |
+| 拆书产物树（拆书） | 结构块 CSV ＋ 四份 md（六维／爆款机制／证据边界／黄金三章）齐全；默认模式**无逐章语义产物** | `skills/abzu-analyze/references/analyze/analyze-workflow.md` | 待建守卫 |
+| 原文备份（拆书） | `拆书/{书名}/原文/原文.txt` 备份存在（开工前先备份原文） | `skills/abzu-analyze/references/analyze/analyze-workflow.md` | 待建守卫 |
+| 选题决策回标注（拆书） | 拆书完成后对「参考候选」字段值追加〔已拆文验证 YYYYMMDD〕标注，其余字段与终裁记录不动 | `skills/abzu-analyze/references/analyze/analyze-workflow.md` | 待建守卫 |
+| 书目录骨架（大纲） | 立项步建齐目录与空文件：`创作进度.md`（阶段值）／`基本规格.md`／`大纲/大纲.md`／`设定/世界观底盘.md`／`资料/参考-{书名}.md`；门控确认前为**空模板** | 《大纲阶段设计文档》§5.3 书目录结构 | 待建守卫 |
+
+> 缺口如实记：上表「待建守卫」七项为已知机检缺口——是否逐一机械化由作者裁定（机械化的判据是「算术/结构断言」类，宪法 §2）。未建域（卷纲／正文／文风）的产物格式契约随各域设计真源出现时补入本表（其待启用验收点清单见 [testing.md](testing.md) §2.8；**预立法，随首批实例校准**）。
 
 ## 六、本规范的维护
 

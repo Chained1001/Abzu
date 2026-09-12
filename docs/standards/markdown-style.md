@@ -1,7 +1,7 @@
 # Markdown 写作规范（正文、排版与 AI 友好）
 
-> 版本：v0.6（沿革见 CHANGELOG 与 git 历史）
-> 定位：仓库所有 .md 文件正文写法的单点权威——结构、中文排版、AI 友好写作、符号与编码安全。文件命名归 [file-conventions.md](file-conventions.md)；术语叫法归 [../glossary.md](../glossary.md)。
+> 版本：v0.7（沿革见 CHANGELOG 与 git 历史）
+> 定位：仓库所有 .md 文件正文写法的单点权威——结构、中文排版、AI 友好写作、符号与编码安全。文件命名归 [file-conventions.md](file-conventions.md)；术语叫法归 [产品技术总纲](../product/总纲.md) §七 术语。
 > 依据：markdownlint 规则集（条文先行，工具配置见 `.markdownlint-cli2.jsonc`）、中文文案排版指北、Anthropic skill 写作实践。
 
 ## 一、结构规则
@@ -27,7 +27,7 @@
 
 ## 三、AI 友好写作
 
-1. 术语一致：全文只用术语表的叫法，发现第二种叫法当次收口。
+1. 术语一致：全文只用[产品技术总纲](../product/总纲.md) §七 术语的叫法，发现第二种叫法当次收口。
 2. 示例优先于规则：教格式或风格必须给输入/输出对——本文件 §三.9、§三.10 与下方示例对照块即此履约。
 3. 指令用命令式语态（"读文件后再改"）。
 4. 引用带节锚点：`scan-analysis-guide.md`「扫榜报告模板」节。

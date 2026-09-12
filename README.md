@@ -60,26 +60,26 @@ Abzu/
 │   ├── abzu-volume/             # 卷纲（占位壳）
 │   ├── abzu-write/              # 正文（占位壳）
 │   └── abzu-style/              # 文风（占位壳）
-├── docs/                        # 架构/规范/术语/评估/规格档案
+├── docs/                        # 产品总纲/工程规范/规格档案
 ├── AGENTS.md                    # 项目宪法
 └── README.md / CHANGELOG.md / LICENSE
 ```
 
 ## 开发
 
-见 [AGENTS.md](AGENTS.md)。修改 skill 后必须重跑 [docs/test-prompts.md](docs/test-prompts.md) 全部场景。
+见 [AGENTS.md](AGENTS.md)。改 skill 资产后：`bash scripts/check.sh`（含守卫）必须全绿 + 真机走一遍该域主流程，并对照该域上线验收清单逐条核对（见 [docs/standards/testing.md](docs/standards/testing.md) §二／§三）。
 
 ## Roadmap
 
-> 本节未勾选项为**历史挂账源**；现行挂账以 [docs/specs/open-items.md](docs/specs/open-items.md) 为准——新增挂账一律登记入该件，本节不再新增（存量是否回填另行评估）。
+> 本节未勾选项为**历史挂账源**；现行构想与路线以 [docs/product/总纲.md](docs/product/总纲.md) §五 路线与阶段为准——本节不再新增挂账（存量是否回填另行评估）。
 
-- [x] 阶段 0：基础设施（宪法/规范/术语表/评估场景/架构落盘）
+- [x] 阶段 0：基础设施（宪法/工程规范/总纲与术语/上线验收基准落盘）
 - [ ] 六域建设（每域：规格 → 开发 → 真测）：扫榜调研 ✅ ｜ 拆书 ✅ ｜ 大纲（2026-09-10 推倒重设中——036 批） ｜ 卷纲 ｜ 正文 ｜ 文风
-- [ ] 评估：[test-prompts](docs/test-prompts.md) 八场景全绿
+- [ ] 评估：各域上线验收全绿（逐域清单与走查做法见 [docs/standards/testing.md](docs/standards/testing.md) §二／§三）
 - [ ] v1.x：写作项目内 AGENTS.md 生成、示例项目
 - [ ] 拆书域开工时：立法 skill 调用契约（输入校验/输出格式/失败返回三要素模板）
 - [ ] 任一域引入外部依赖时：立法系统性依赖声明清单（Node 版本/pip 包/全局 CLI 逐项登记）
-- [x] scan 首次真测后：立法每域最低测试要求（几个场景/什么断言/怎么算通过）——034 批立法（每域最低测试要求四条见 docs/test-prompts.md 头注）
+- [x] scan 首次真测后：立法每域最低测试要求（几个场景/什么断言/怎么算通过）——034 批立法（每域最低测试要求四条见 [docs/standards/testing.md](docs/standards/testing.md) §三）
 - [x] 025 对齐批：存量文件对照 file-conventions.md §五 内容规范矩阵审计与 retrofit——六壳符合度核验（scan 壳 vs 域壳模板逐条；AGENTS/README 头注是否纳入三行式由立项时裁定）、七脚本文档头按 §五.1 四要素统一、治理文档头注按 §五.2 三行式对齐（glossary 版本行等偏离）、references 节序抽查
 - [ ] 发布前置：marketplace.json 元数据（category/keywords/metadata.description）内容标准立法
 - [ ] release-and-versioning §二「四处一致」补「辖套件发布版本」限定词（消解与治理文档头注 vX.Y 的字面张力——类目学批 R6 善后）

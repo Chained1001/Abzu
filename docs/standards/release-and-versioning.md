@@ -1,6 +1,6 @@
 # 版本与发布规范（含写作项目兼容）
 
-> 版本：v0.6（沿革见 CHANGELOG 与 git 历史）
+> 版本：v0.7（沿革见 CHANGELOG 与 git 历史）
 > 定位：版本号语义与流转、发布流程、写作项目（用户的书目录）兼容规则的单点权威（机制待新设计定义，见 §四）。
 > 依据：SemVer 2.0.0、Keep a Changelog 1.1.0。
 > 背景约束：Abzu 通过 skills.sh 或手动复制安装（无项目级物化），升级感知依赖版本号与 CHANGELOG。
@@ -36,12 +36,12 @@
 
 ## 三、发布流程（六步）
 
-1. 评估场景全绿——自包含口径：lint 0 违例 + 各壳 validate 通过 + 评估场景无「已建设能力」的回归失败（建设期未建设能力的失败不计红，详见宪法 §1.4）
+1. 上线验收全绿——自包含口径：lint 0 违例 + 各壳 validate 通过 + 该域上线验收清单无「已建设能力」的回归失败（建设期未建设能力的失败不计红，详见宪法 §1.4；清单与真机走查做法见 [testing.md](testing.md) §二／§三）
 2. CHANGELOG 定稿：`Unreleased` 段移为 `[X.Y.Z] - YYYY-MM-DD` 版本段（ISO 日期），新开空 `Unreleased`；（兼容影响类条目加 `[兼容]` 前缀，用户在升级说明中第一时间可见）
 3. bump 已建壳 `SKILL.md` 的 `metadata.version` 与 `.claude-plugin/marketplace.json` 的 `version`，并与 CHANGELOG 对齐（占位壳不动）
 4. `git tag vX.Y.Z`（发布时推送并确认——远程 origin 已建立，条件已满足）
 5. 插件清单预检（可选）：本机装有 claude CLI 时执行 `claude plugin validate . --strict`（校验 `.claude-plugin/` 清单）；CLI 缺失则记录跳过，不阻塞发布
-6. 安装实测：`npx skills add Chained1001/Abzu -y` 后在独立文件夹跑冒烟场景（场景 6）
+6. 安装实测：`npx skills add Chained1001/Abzu -y` 后在独立文件夹跑**该域真机主流程**（做法见 [testing.md](testing.md) §三）
 
 ## 四、写作项目兼容（核心：skill 的"数据库"在用户书目录里）
 
@@ -67,7 +67,15 @@
 - 当前：`npx skills add` 或手动复制到用户级 `~/.claude/skills/`。
 - 发布前置（届时执行）：Claude 插件市场提交（`.claude-plugin/marketplace.json` 已于 2026-09-06 入库；提交动作届时执行，预检命令见 §三第 5 步）；`THIRD_PARTY_NOTICES.md`（引入第三方内容时）。
 
-## 八、维护
+## 八、已知缺口
+
+> 定位：本主题（版本与发布）长期缺口的落点——债跟着主题走（宪法 §6「不做全域欠账清单」条）；协议类见 collab-log「已知缺口」，机检／工具类见 [testing.md](testing.md) §四。节内排序与清理时机为**预立法，随首批实例校准**。
+
+| 编号 | 缺口 | 触发条件 |
+| --- | --- | --- |
+| N23 | scan 域退出码契约变更（053 批，域资产行为变更）的**版本记录**：按 §一 属 minor，但版本 bump 归套件统一节奏（§二「四处一致」），故 053 批未 bump 任何 `metadata.version`——须在下次发布 bump 时并入 CHANGELOG 段（且届时须处理 `marketplace.json` 0.3.0 与两壳 0.4.1 的四处不一致） | 下次发布 bump |
+
+## 九、维护
 
 - 本规范与 CHANGELOG 实际内容冲突时当次修正（版本纪律以本文件为准）。
 - **远程仓库已建立**（origin，见 CHANGELOG 沿革），§三第 4 步的「建立远程后」条件已满足；但 **tag 推送尚未执行**——`git tag` 实测为空、CHANGELOG 无版本段，首次发布未发生，故该步在发布时按 §三 正常执行，本待办的性质由「条件未满足」改为「条件已解除、步骤保留」。
