@@ -2,21 +2,32 @@
 
 用途：从规格「验收标准」节提取命令断言（行内反引号与围栏整行命令），白名单只读执行，
 输出每条命令的退出码与输出摘要——不做通过/失败判定（规格断言多系施工后状态，
-本工具取的是当前树基线，供规划方对照规格内声称的基线/预验结论）。
+本工具取的是当前树基线，供规划方对照规格内声称的基线/预验结论）。动态阶段按三态呈报：
+可审计（执行并打印退出码与输出摘要）／不可审计（命令形态本身无法只读审计，跳过并注明命中的
+判据）／未跑成（取输出失败、打印时编码失败、超时——一律计入崩溃桶并追加证据不完整警示行）。
 静态自检阶段（`--static` 单独跑，或缺省时与动态阶段并跑）：不执行规格内任何命令，只做文件
 读取与文本匹配——检查 A 报「自噬预警」（断言 token 被自家替换文本吞掉，呈报预测值与规格
 「到位」列的差）；检查 B 重算规格内 `N 字符`／`N 行` 声称与实测的差（分成「计数不符」与
 「基线漂移」两档）。两段退出契约分立：动态阶段照下句不变；静态阶段仅「计数不符」置退出 1，
 「基线漂移」与「自噬预警」只呈报、不拦。
+核验比对模式（`--verify <规格路径>` 单独跑，与 `--static` 互斥）：供规划方核验收口做三项
+比对——改动面（规格声明集 ↔ `git status` 实际改动集，两侧差集呈报，非阻断提示）／过程产物
+三件（CHANGELOG 条目、collab-log 施工记录行、archive 归档，缺任一即阻断）／施工记录表结构
+（序号连续无重复、各行竖线数一致、末列非空）。只读规格、磁盘与 `git status`（只读子命令），
+不执行规格内任何命令、不写任何文件；该模式不进 `scripts/check.sh` 门禁（门禁运行点规格尚未
+归档，过程产物检查必然不符）。
 事故出身：020-025 六发断言自噬（断言吞自家 [A] 文本/对象错/计数错/恒真假绿）——
 2026-09-07 作者裁定守卫化（宪法 §2 candidate 永不拦截：本工具退出码恒 0，仅呈报）。
-用法：python scripts/check_spec_assertions.py [--static] <规格路径> [更多规格路径...]
+用法：python scripts/check_spec_assertions.py [--static|--verify] <规格路径> [更多规格路径...]
 依赖与前置：Python 3 标准库（re/subprocess/sys/os），零外部依赖；只读白名单命令，
 越权命令（写操作/重定向/git 写子命令/非 -n 的 sed/会留缓存产物的 py_compile）跳过并标注 SKIP。子进程输出统一按 UTF-8 解码，并对不可解码字节容错——中文 Windows 下本地编码为 GBK，按本地编码解码会崩（2026-09-11 实测）。
 维护入口：新增可执行命令形态扩 ALLOWED 白名单；提取规则（验收节定位/行内与围栏两种形态）
-改 extract()；输出格式改 report()。静态阶段：节定位常量 SECTION（验收标准）与
+改 extract()；输出格式改 report()。动态阶段三态：不可审计判据改 unauditable()、放行面改
+readonly()、三桶计数与摘要行改 report()。静态阶段：节定位常量 SECTION（验收标准）与
 CHANGE_SECTION（文件级改动清单），检查 A 改 check_swallow()、检查 B 改 check_counts()，
-阶段编排与退出码改 static_report() 与 __main__。
+阶段编排与退出码改 static_report() 与 __main__。核验比对：三项比对改 verify_report()
+（改动面取 _git_changes()、施工记录表定位与结构取 _find_table()／_table_findings()），
+模式分派改 __main__。
 """
 import os
 import re
@@ -77,20 +88,67 @@ def extract(text):
     return cmds
 
 
+def _outside_quotes(c):
+    """返回整行中「引号之外」的区间（单／双引号内的区间一概剔除）——引号内的元字符不计，
+    否则 `git grep -F -c -- "a|b" file` 这类合法且安全的固定串断言会被误判为不可审计而漏审
+    （本仓规格的断言 token 常含 `|`）。不做转义处理（够用即可）。"""
+    out, quote = [], None
+    for ch in c:
+        if quote:
+            if ch == quote:
+                quote = None
+            continue
+        if ch in ('"', "'"):
+            quote = ch
+            continue
+        out.append(ch)
+    return ''.join(out)
+
+
+def unauditable(c):
+    """不可审计判据（顺序在放行判据之前）：命中返回判据说明（含命中的元字符，便于判因），否则 None。
+    1 shell 解释器／包执行器整族；2 解释器任意代码入口（`-c` 后不要求空白，`-c"x"` 一并拦下）；
+    3 裸解释器；4 引号外的 shell 元字符；5 sed 非 -n（既有行为保留）。"""
+    m = re.match(r'^(bash|sh|node|npx)\b', c)
+    if m:
+        return f'shell 解释器／包执行器 {m.group(1)}'
+    if re.match(r'^(python3?|py)\b.*\s-c', c):
+        return '解释器任意代码入口（-c）'
+    if re.match(r'^(python3?|py)\s*$', c):
+        return '裸解释器'
+    outside = _outside_quotes(c)
+    for ch in ('|', ';', '&', '<', '>', '`'):
+        if ch in outside:
+            return f'引号外 shell 元字符 {ch}'
+    if c.startswith('sed') and ' -n' not in c:
+        return 'sed 非 -n'
+    return None
+
+
 def readonly(c):
     if MUTATING.search(c):
         return False
-    if re.match(r'^(e?grep|fgrep|wc|head|tail|ls|find|cat|bash|sh|node)\b', c):
+    if re.match(r'^(e?grep|fgrep|wc|head|tail|ls|find|cat)\b', c):
         return True
     if c.startswith(('sed',)) and ' -n' in c:
         return True
     if c.startswith('git') and re.match(r'git\s+(diff|status|log|show|grep)\b', c):
         return True
+    # 不可达死码（保留以明示任意代码入口）：`python -c` 形态已被 unauditable() 判据 2 先行拦下
     if c.startswith(('python', 'py')) and ' -c ' in c:
         return True
-    if c.startswith('npx') and '--no-install' in c:
-        return True
     return False
+
+
+def _emit(line):
+    """打印一行；编码侧兜底——stdout 若非 UTF-8（中文 Windows 默认 GBK）则 UnicodeEncodeError，
+    降级 ASCII 重打。返回 False 表示发生了编码崩溃（归入崩溃桶）。"""
+    try:
+        print(line)
+        return True
+    except UnicodeEncodeError:
+        print(line.encode('ascii', 'backslashreplace').decode('ascii'))
+        return False
 
 
 def report(spec):
@@ -99,10 +157,15 @@ def report(spec):
     if not cmds:
         print('未提取到命令断言（无验收节或无白名单命令）')
         return
-    ran = skipped = 0
+    ran = skipped = crashes = 0
     for i, (src, c) in enumerate(cmds, 1):
+        reason = unauditable(c)
+        if reason:
+            _emit(f'[{i}] {src} SKIP（不可审计形态：{reason}）: {c}')
+            skipped += 1
+            continue
         if not readonly(c):
-            print(f'[{i}] {src} SKIP（非只读白名单形态）: {c}')
+            _emit(f'[{i}] {src} SKIP（非只读白名单形态）: {c}')
             skipped += 1
             continue
         try:
@@ -110,13 +173,23 @@ def report(spec):
                                encoding='utf-8', errors='replace', timeout=120,
                                cwd=os.path.dirname(os.path.dirname(
                                    os.path.abspath(__file__))))
+            if r.stdout is None or r.stderr is None:
+                raise UnicodeError('解码侧未取到输出（stdout/stderr 为 None）')
             out = ((r.stdout or '') + (r.stderr or '')).strip().splitlines()
             head = ' ⏎ '.join(out[:3]) if out else '(无输出)'
-            print(f'[{i}] {src} exit={r.returncode}: {c}\n    {head[:200]}')
+            note = '（命令不可用）' if r.returncode in (126, 127) else ''
+            if not _emit(f'[{i}] {src} exit={r.returncode}{note}: {c}\n    {head[:200]}'):
+                raise UnicodeError('打印时编码失败（已降级 ASCII）')
+            ran += 1
         except subprocess.TimeoutExpired:
-            print(f'[{i}] {src} TIMEOUT: {c}')
-        ran += 1
-    print(f'== 共 {len(cmds)} 条：执行 {ran}｜跳过 {skipped}（基线呈报，不作通过判定）==')
+            _emit(f'[{i}] {src} CRASH（未跑成）: {c}')
+            crashes += 1
+        except Exception:
+            _emit(f'[{i}] {src} CRASH（未跑成）: {c}')
+            crashes += 1
+    print(f'== 共 {len(cmds)} 条：执行 {ran}｜跳过 {skipped}｜崩溃 {crashes} ==')
+    if crashes:
+        print('! 有断言未跑成——预验证据不完整')
 
 
 def repo_root():
@@ -257,8 +330,12 @@ def static_report(specs, root):
             print(line)
         blocking = blocking or bad
         drifted = drifted or any(l.startswith('· 基线漂移') for l in count_lines)
+    warn = [l for l in swallow if l.startswith('· 自噬预警')]
     if blocking or drifted:
         pass
+    elif warn:
+        # 有自噬预警时不打印「无发现」——该组合会被误读为「全干净」（049 收紧末尾行判据）
+        print(f'· 有预警 {len(warn)} 条（非阻断，请人工核对预测与到位期望）')
     elif swallow and all(l.startswith('· 跳过') for l in swallow):
         # 全部条目落「跳过」＝未命中任何可解析目标，与真阴性区分（假绿通道的可见化）
         print('· 全部跳过（未命中可解析目标——请核对调用位置与路径基准）')
@@ -267,11 +344,142 @@ def static_report(specs, root):
     return blocking
 
 
+def _git_changes(root):
+    """`git status --porcelain` 的实际改动集（只读子命令）；返回 [(状态码, 正斜杠相对路径)]，
+    重命名形态「旧 -> 新」取新路径。以 `-c core.quotepath=false` 调用：默认 quotepath 会把含
+    非 ASCII 的路径按 C 风格转义并加引号（本仓规格文件名含中文），不关掉则路径无法归一比对。"""
+    r = subprocess.run('git -c core.quotepath=false status --porcelain', shell=True,
+                       capture_output=True, encoding='utf-8', errors='replace',
+                       cwd=root)
+    changes = []
+    for line in (r.stdout or '').splitlines():
+        if len(line) < 4:
+            continue
+        path = line[3:]
+        if ' -> ' in path:
+            path = path.split(' -> ')[-1]
+        changes.append((line[:2].strip(), path.strip().strip('"').replace('\\', '/')))
+    return changes
+
+
+def _archive_equiv(p):
+    """归档移动等价（--verify 豁免①）：docs/specs/*.md ↔ docs/specs/archive/*.md 视为同一文件。"""
+    return p.replace('docs/specs/archive/', 'docs/specs/')
+
+
+def _find_table(text):
+    """定位施工记录表：含「首格为整数」数据行的表格块（collab-log 其余表格首格为 F1／①／P0 等，
+    不误判）；返回其行列表（含表头与分隔行），未定位到返回 None。"""
+    blocks, cur = [], []
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith('|') and s.endswith('|') and s != '|':
+            cur.append(s)
+        else:
+            if cur:
+                blocks.append(cur)
+            cur = []
+    if cur:
+        blocks.append(cur)
+    return next((b for b in blocks
+                 if any(re.match(r'^\|\s*\d+\s*\|', r) for r in b)), None)
+
+
+def _table_findings(rows):
+    """施工记录表结构核对（--verify 第三项）：返回不符项列表（空＝一致）。
+    核对序号 1..N 连续无重复、各行竖线数一致、末列非空。"""
+    if rows is None:
+        return ['未定位到施工记录表（无首格为整数的数据行）']
+    bad = []
+    nums = [int(re.match(r'^\|\s*(\d+)\s*\|', r).group(1))
+            for r in rows if re.match(r'^\|\s*\d+\s*\|', r)]
+    if nums != list(range(1, len(nums) + 1)):
+        bad.append(f'序号非 1..{len(nums)} 连续无重复: {nums}')
+    widths = sorted({r.count('|') for r in rows})
+    if len(widths) > 1:
+        bad.append(f'各行竖线数不一致: {widths}')
+    empty = [i for i, r in enumerate(rows, 1) if not r.split('|')[-2].strip()]
+    if empty:
+        bad.append(f'末列为空（表内序位）: {empty}')
+    return bad
+
+
+def verify_report(spec, root):
+    """核验比对模式（--verify）：三项比对，返回 True 表示有阻断项。只读规格、磁盘与 git status
+    （只读子命令），不执行规格内任何命令、不写任何文件。三项比对见规格 049 §二.1.C。"""
+    path = os.path.abspath(spec)
+    name = os.path.basename(path)
+    rel = os.path.relpath(path, root).replace('\\', '/')
+    with open(path, encoding='utf-8') as f:
+        text = f.read()
+    m = re.match(r'(\d{3})', name)
+    spec_no = m.group(1) if m else name
+    blocking = False
+
+    # 1) 改动面比对（非阻断提示）
+    declared = {_archive_equiv(p) for p in _sub_paths(_section(text, CHANGE_SECTION), root)}
+    actual = {_archive_equiv(p) for _, p in _git_changes(root)
+              if p != rel}   # 豁免②：待验规格自身恒在改动集内（判阻断即常驻红）
+    print('· 改动面比对（声明集 ↔ 实际改动集；非阻断提示）')
+    for p in sorted(declared - actual):
+        print(f'  · 声明但未动: {p}')
+    for p in sorted(actual - declared):
+        print(f'  · 动了但未声明: {p}')
+    if declared == actual:
+        print('· 改动面一致')
+
+    # 2) 过程产物三件（阻断）——未落过程产物即核验未完成
+    print('· 过程产物三件')
+    cl_path = os.path.join(root, 'CHANGELOG.md')
+    hits = []
+    if os.path.isfile(cl_path):
+        with open(cl_path, encoding='utf-8') as f:
+            # 条目行判据与 check_content.py 的限长守卫统一：列表符起首
+            hits = [l for l in f.read().splitlines()
+                    if re.match(r'^\s*[-*+]\s', l) and spec_no in l]
+    if hits:
+        print(f'· CHANGELOG 条目: 命中 {len(hits)} 条（规格号 {spec_no}）')
+    else:
+        print(f'x 核验不符: CHANGELOG.md 无规格号 {spec_no} 的条目行')
+        blocking = True
+    log_path = os.path.join(root, 'docs/specs/collab-log.md')
+    log = ''
+    if os.path.isfile(log_path):
+        with open(log_path, encoding='utf-8') as f:
+            log = f.read()
+    rows = _find_table(log)
+    if rows is not None and any(name in r for r in rows):
+        print(f'· 施工记录行: collab-log 施工记录表含 {name}')
+    else:
+        print(f'x 核验不符: collab-log 施工记录表无 {name}')
+        blocking = True
+    if os.path.isfile(os.path.join(root, 'docs/specs/archive', name)):
+        print(f'· 已归档: docs/specs/archive/{name}')
+    else:
+        print(f'x 核验不符: 规格未归档（docs/specs/archive/{name} 缺席）')
+        blocking = True
+
+    # 3) 施工记录表结构（阻断）——表是协作台账，结构损坏即账目失真
+    bad = _table_findings(rows)
+    if bad:
+        for b in bad:
+            print(f'x 核验不符: 施工记录表 {b}')
+        blocking = True
+    else:
+        print('· 施工记录表结构一致')
+    return blocking
+
+
 if __name__ == '__main__':
-    static_only = '--static' in sys.argv[1:]
-    specs = [a for a in sys.argv[1:] if a != '--static']
+    args = sys.argv[1:]
+    static_only = '--static' in args
+    verify_only = '--verify' in args
+    if static_only and verify_only:
+        print('x --static 与 --verify 互斥，请择一（参数错误）', file=sys.stderr)
+        sys.exit(2)
+    specs = [a for a in args if a not in ('--static', '--verify')]
     if not specs:
-        print('用法: python scripts/check_spec_assertions.py [--static] '
+        print('用法: python scripts/check_spec_assertions.py [--static|--verify] '
               '<规格路径> [更多规格路径...]', file=sys.stderr)
         sys.exit(2)
     missing = [a for a in specs if not os.path.isfile(a)]
@@ -281,6 +489,17 @@ if __name__ == '__main__':
         sys.exit(2)
     # 中文 Windows 下 stdout 默认 GBK，打印含 ⏎／中文的输出会 UnicodeEncodeError（2026-09-11 实测）
     sys.stdout.reconfigure(encoding='utf-8')
+    if verify_only:
+        root = repo_root()
+        if root is None:
+            print('x 无法定位仓库根（核验比对基准不可用）', file=sys.stderr)
+            sys.exit(2)
+        blocking = False
+        for spec in specs:
+            if len(specs) > 1:
+                print(f'-- {spec}')
+            blocking = verify_report(spec, root) or blocking
+        sys.exit(1 if blocking else 0)
     if not static_only:
         for spec in specs:
             report(spec)

@@ -11,7 +11,7 @@
 
 **验证与常用命令**：
 
-- 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`——[0] skills 真目录守卫（安装器 symlink 化检测）＋[1] 六壳 validate ＋[2] markdownlint ＋[3] 内容轨（引用闭合/加粗密度/TOC）＋[4] 规格静态自检（在制规格的断言自噬预警与计数重算）；agentskills 与 Python 探测链固化于该脚本，新增检查项的接入位置见脚本头注「维护入口」
+- 一键检查（提交前必跑，pre-commit hook 自动执行）：`bash scripts/check.sh`——[0] skills 真目录守卫（安装器 symlink 化检测）＋[1] 六壳 validate ＋[2] markdownlint ＋[3] 内容轨（引用闭合/加粗密度/TOC/SKILL.md 行数/CHANGELOG 条目限长）＋[4] 规格静态自检（在制规格的断言自噬预警与计数重算）；agentskills 与 Python 探测链固化于该脚本，新增检查项的接入位置见脚本头注「维护入口」
 - 增量快检（日常快速反馈）：`bash scripts/check.sh --staged`（仅查暂存区 .md）
 - Markdown 体检：`npx markdownlint-cli2`（配置 `.markdownlint-cli2.jsonc`，规则取舍见 [docs/standards/markdown-style.md](docs/standards/markdown-style.md)）
 - 行为验收：按 [docs/test-prompts.md](docs/test-prompts.md) 逐场景走查（修改 skill 后必跑）
