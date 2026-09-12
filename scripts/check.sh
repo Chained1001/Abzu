@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # 一键检查（提交前必跑）。段序即维护入口——新增检查在此追加一段；本头注是段序的唯一真源，其他文档不复述列表。
 # 用法：bash scripts/check.sh
+# 依赖与前置：Node.js（[1] 段需 npx，未找到即置红）；命令行按 Git Bash 语义执行（Windows）。
 #
 # [0] skills 目录完整性（安装器 symlink 化检测）——目录未建时跳过
 # [1] Markdown 体检（markdownlint）
