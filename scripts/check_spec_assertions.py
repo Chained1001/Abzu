@@ -8,7 +8,9 @@
 静态自检阶段（`--static` 单独跑，或缺省时与动态阶段并跑）：不执行规格内任何命令，只做文件
 读取与文本匹配——检查 A 报「自噬预警」（断言 token 被自家替换文本吞掉，呈报预测值与规格
 「到位」列的差）；检查 B 重算规格内 `N 字符`／`N 行` 声称与实测的差（分成「计数不符」与
-「基线漂移」两档）。两段退出契约分立：动态阶段照下句不变；静态阶段仅「计数不符」置退出 1，
+「基线漂移」两档）；检查 C 核对 [A] 项「替换为」侧文本的逐字落实、检查 D 报规格写作四类机械
+缺陷（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）——二者亦非阻断、
+不影响退出码。两段退出契约分立：动态阶段照下句不变；静态阶段仅「计数不符」置退出 1，
 「基线漂移」与「自噬预警」只呈报、不拦。
 核验比对模式（`--verify <规格路径>` 单独跑，与 `--static` 互斥）：供规划方核验收口做三项
 比对——改动面（规格声明集 ↔ `git status` 实际改动集，两侧差集呈报，非阻断提示）／过程产物
@@ -25,8 +27,9 @@
 改 extract()；输出格式改 report()。动态阶段三态：不可审计判据改 unauditable()、放行面改
 readonly()、三桶计数与摘要行改 report()。静态阶段：节定位常量 SECTION（验收标准）与
 CHANGE_SECTION（文件级改动清单），检查 A 改 check_swallow()、检查 B 改 check_counts()
-（配对判据＝路径紧邻段，段切分见 _segments()），阶段编排与退出码改 static_report() 与
-__main__。核验比对：三项比对改 verify_report()
+（配对判据＝路径紧邻段，段切分见 _segments()）、检查 C 改 check_pairs()（[A] 项「替换为」侧文本
+的逐字落实核对，非阻断）、检查 D 改 check_writing()（规格写作机械检查四类，非阻断），阶段编排、
+末尾三态判据与退出码改 static_report() 与 __main__。核验比对：三项比对改 verify_report()
 （改动面取 _git_changes()、施工记录表定位与结构取 _find_table()／_table_findings()），
 模式分派改 __main__。
 """
@@ -56,12 +59,32 @@ ASSERT_CMD = re.compile(
 # （不以「含 /」为必要条件——否则 AGENTS.md／README.md／CHANGELOG.md 等根级文件永不被命中）
 PATH_TOKEN = re.compile(r'[\w./-]+\.(?:md|js|sh|py|json|jsonc)')
 # 计数声称：N 容错千分位逗号；量词只覆盖「字符」与「行」（其余量词定义随文件类型而异，不实测）
-CLAIM = re.compile(r'(\d[\d,]*)\s*(字符|行)')
+# 左界否定环视：数字前紧邻字母/数字者不视为尺寸声称（如「MD034 行」「G1 行」的编号被读成行数）
+CLAIM = re.compile(r'(?<![A-Za-z0-9])(\d[\d,]*)\s*(字符|行)')
 # 限额标记：紧邻 N 之前的这类标记表明该数字是限额（如「条目 ≤ 400 字符」）而非实测尺寸，不计
 LIMIT_MARKS = ('≤', '≥', '<', '>', '最多', '上限', '不少于', '以内', '以上',
                '至少', '至多', '不超过')
 INLINE_CODE = re.compile(r'`([^`\n]+)`')
 FENCE_CODE = re.compile(r'```[a-z]*\n(.*?)```', re.S)
+# 行首内容判据（检查 N21）：行内命令名只在「剥去列表标记／复选框后居于行首」时才视为断言抽取对象，
+# 散文句中提及的命令名不抽取（形态：`- [ ] `cmd``／`1. `cmd``／裸行首跨度）
+LINE_LEAD = re.compile(r'^\s*(?:[-*+]\s+(?:\[[ xX]\]\s*)?|\d+[.)]\s+|\[[ xX]\]\s*)*')
+# 检查 C（[A] 替换文本逐字核对）：成对条目「现文」/「替换为」的行首标记（含（…）限定变体）
+PAIR_NOW = re.compile(r'^\s*[-*+]\s+现文(?:（[^）]*）)?\s*[：:]')
+PAIR_NEW = re.compile(r'^\s*[-*+]\s+替换为(?:（[^）]*）)?\s*[：:]')
+# 检查 C：成对条目按「当前 ### 小标题声明的路径 token」定目标（跨小标题重置）
+H3_HEAD = re.compile(r'^\s*###\s')
+# 检查 C（多行形态）：`**Na. …**` 小标题行以「替换为：」收尾，替换内容续在其后的围栏／缩进块里
+PAIR_NEW_HEAD = re.compile(r'^\s*\*\*[^*\n]+\*\*.*替换为\s*[：:]\s*$')
+FENCE_BLOCK = re.compile(r'^\s*```[a-zA-Z]*\s*$')
+# 检查 D：① ② 的 CommonMark 定界规则、③ 加粗引导行＋列表标记起首、④ 规格内可解析相对链接
+BACKTICK_RUN = re.compile(r'`+')
+BOLD_LEAD = re.compile(r'^\s*\*\*[^*\n]+\*\*\s*[：:]\s*$')
+LIST_LEAD = re.compile(r'^\s*(?:[-*+]|\d+[.)])\s')
+MD_LINK = re.compile(r'\[[^\]\n]*\]\(([^)\s]+?)\)')
+# 检查 D ④ 的适用面：该类判据隐含「该件会被归档」，故对**从不归档**的件不判——即 check.sh [4] 段
+# 扫描集排除的那两份台账（docs/specs/collab-log.md、docs/specs/open-items.md）
+NEVER_ARCHIVED = ('collab-log.md', 'open-items.md')
 
 
 def extract(text):
@@ -74,8 +97,12 @@ def extract(text):
         section = section[:nxt.start()]
     cmds = []
     seen = set()
-    for c in re.findall(r'`([^`\n]+)`', section):
-        c = c.strip()
+    # 行内抽取只认「行首跨度」（剥去列表标记／复选框后以该跨度起首）——散文句中提及的命令名不抽取
+    for line in section.splitlines():
+        m = re.match(r'`([^`\n]+)`', LINE_LEAD.sub('', line))
+        if not m:
+            continue
+        c = m.group(1).strip()
         if ALLOWED.match(c) and c not in seen:
             cmds.append(('行内', c))
             seen.add(c)
@@ -251,9 +278,14 @@ def _assert_refs(text):
 
 
 def check_swallow(text, root):
-    """检查 A：断言自噬预警（只呈报，不影响退出码）。返回输出行列表。"""
+    """检查 A：断言自噬预警（只呈报，不影响退出码）。返回输出行列表。
+    n == 0 的两种情形均不锁定单义（(cur, n) 二元分辨不出「哨兵型保留／[A] 项替换文本漏写」与
+    「归零型已达成」）：cur > 0 者计入一行中性汇总；cur == 0 者打中性行（既可能是替换文本漏写，
+    也可能是归零型已达成——053 的「四分类」「不得据以仿写」即后者）。预测行（cur + n 加法预测）
+    只在 cur > 0 且 n > 0 时输出：cur == 0 时不存在既有命中可被替换吞掉，加法预测无对象（N4 收窄）。"""
     subs = _subsections(text)
     lines = []
+    neutral = 0
     for token, target in _assert_refs(text):
         path = _abs(target, root)
         cur = 0
@@ -271,11 +303,18 @@ def check_swallow(text, root):
             for block in FENCE_CODE.findall(s):
                 n += block.count(token)
         if n == 0:
-            lines.append(f'· 自噬预警（无命中）: {token} @ {target} '
-                         f'—— 现行 {cur}｜替换文本内 0')
-        else:
+            if cur > 0:
+                # 哨兵型 token（到位＝现状，替换侧本不必提及）与归零型已达成同形：计入中性汇总，不单义锁定
+                neutral += 1
+            else:
+                lines.append(f'· 替换侧未提及且现行为 0: {token} @ {target}'
+                             f'（可能是 [A] 项替换文本漏写，也可能是归零型已达成）')
+        elif cur > 0:
             lines.append(f'· 自噬预警: {token} @ {target} —— 现行 {cur}｜替换文本内 {n}'
                          f'｜近似预测 {cur + n}（未计删除，须人工核对到位期望）')
+    if neutral:
+        lines.append(f'· 现行有值／替换侧未提及: {neutral} 个'
+                     f'（请对照到位列核对——可能是哨兵型保留，也可能是归零型已达成）')
     return lines
 
 
@@ -330,12 +369,219 @@ def check_counts(text, root):
     return lines, bad
 
 
+def _strip_wrap(s):
+    """剥去「替换为」侧文本的外层包裹（「」／单双反引号／表格管道），得逐字核验串。
+    只在首尾成对时剥一层：形如「`0` 成功 / …」的串（首字符恰为反引号）不会被误剥。
+    另做转义归一：规格要在代码跨度内嵌反引号，写作 `\\``（反斜杠是 Markdown 转义符、非内容），
+    实文里是裸反引号——不归一则这类条目在已完工件上恒报假阳性（050 批五处实测）。"""
+    s = s.strip().replace('\\`', '`')
+    if len(s) >= 2 and s.startswith('「') and s.endswith('」'):
+        s = s[1:-1].strip()
+    if len(s) >= 4 and s.startswith('``') and s.endswith('``'):
+        s = s[2:-2].strip()
+    elif len(s) >= 2 and s.startswith('`') and s.endswith('`'):
+        s = s[1:-1].strip()
+    if len(s) >= 2 and s.startswith('|') and s.endswith('|'):
+        s = s[1:-1].strip()
+    return s
+
+
+def _collect_block(sec, j):
+    """从 j 起收集「替换为」侧的多行正文：缩进续行，或紧随的围栏块（块内空行不视为终止）。
+    返回 (行列表, 下一个未消费的行号)——被并入块的行不再参与目标路径声明。"""
+    block = []
+    k = j
+    while k < len(sec):
+        s = sec[k]
+        if FENCE_BLOCK.match(s):
+            if block:
+                break                       # 已收集正文后又见围栏：不并入（保守）
+            k += 1
+            while k < len(sec) and not FENCE_BLOCK.match(sec[k]):
+                block.append(sec[k])
+                k += 1
+            if k < len(sec):
+                k += 1                      # 跳过收尾围栏
+            continue
+        if s.strip():
+            if s[:1].isspace():
+                block.append(s)
+                k += 1
+                continue
+            break
+        nxt = next((t for t in sec[k + 1:] if t.strip()), '')
+        if nxt[:1].isspace() or FENCE_BLOCK.match(nxt):
+            k += 1                          # 块内空行：跳过
+            continue
+        break
+    return block, k
+
+
+def _pair_bodies(sec, root):
+    """在「文件级改动清单」节内识别 [A] 成对条目，返回 [(替换为侧正文行列表, 目标路径列表)]。
+    形态①：`- 现文…` 与紧随其后的 `- 替换为…` bullet 成对（空行不断配对）；
+    形态②：`**Na. …**` 小标题行以「替换为：」收尾（成对条目的多行形态），替换内容续在其后。
+    两种形态的续行（缩进／围栏）并入正文，逐行切片核对。
+    **目标口径**：以当前所处的 `###` 小标题行声明的路径 token 为准（跨小标题即重置，故不支持「声明
+    在前、成对条目在后」的跨小节继承）；该小标题声明多个路径者全部保留，核对时任一命中即算落实。
+    围栏正文与散文行里的 token 不取——它们常引述他文件，取之即误配（048／050 批实测）。
+    内联载体（「整行替换为：」「…→ 替换为『…』」等）不覆盖——见规格 055 §二.1d 的载体分布缺口。"""
+    pairs = []
+    targets = []
+    pending = False
+    i = 0
+    while i < len(sec):
+        line = sec[i]
+        if H3_HEAD.match(line):
+            # 小标题重置目标集：本小节成对条目的目标＝本行声明的路径 token（已落盘者）
+            targets = [t for t in PATH_TOKEN.findall(line) if os.path.isfile(_abs(t, root))]
+            pending = False
+            i += 1
+            continue
+        if PAIR_NEW_HEAD.match(line):
+            block, j = _collect_block(sec, i + 1)
+            pairs.append((block, targets))
+            i = j
+            continue
+        m_new = PAIR_NEW.match(line)
+        if m_new and pending:
+            block, j = _collect_block(sec, i + 1)
+            pairs.append(([line[m_new.end():]] + block, targets))
+            pending = False
+            i = j
+            continue
+        if line.strip():
+            if PAIR_NOW.match(line):
+                pending = True
+            elif PAIR_NEW.match(line):
+                # 未成对的「替换为」行：不核（须有「现文」成对），但其续行同样不参与目标声明
+                pending = False
+                _, j = _collect_block(sec, i + 1)
+                i = j
+                continue
+        i += 1
+    return pairs
+
+
+def check_pairs(text, root):
+    """检查 C：[A] 项「替换为」侧文本的逐字落实核对（只呈报，不影响退出码）。返回输出行列表。
+    该串须在其 `###` 小标题声明的目标文件中逐字命中（声明多个者任一命中即算落实）；未命中即报
+    「未落实或已漂移」——前缀用 `·`（非 `x`），本文件的 `x` 前缀语义即阻断，而规格层发现的裁决权
+    在作者，机器只呈报。"""
+    if not CHANGE_SECTION.search(text):
+        return []
+    pairs = _pair_bodies(_section(text, CHANGE_SECTION).splitlines(), root)
+    lines = []
+    cache = {}
+    for bodies, targets in pairs:
+        contents = []
+        for target in targets:
+            path = _abs(target, root)
+            if path not in cache:
+                with open(path, encoding='utf-8') as f:
+                    cache[path] = f.read()
+            contents.append(cache[path])
+        if not contents:
+            continue        # 小标题未声明可解析的路径 token：无核对面，不报（不猜）
+        for body in bodies:
+            # 多行串按行切片，逐行要求命中（避免整段因一处空格差异而误判）；单行过短者跳过（噪声防护）
+            for piece in _strip_wrap(body).splitlines():
+                piece = piece.strip()
+                if len(piece) < 8:
+                    continue
+                if not any(piece in c for c in contents):
+                    lines.append(f'· [A] 未落实或已漂移: {piece[:60]} @ {"、".join(targets)}')
+    return lines
+
+
+def _inline_spans(line):
+    """按 CommonMark 定界规则切分行内代码跨度：n 个反引号开启、同长 n 个反引号闭合。
+    返回 [(内容, 开启段起, 开启段止, 闭合段止)]——跨度内文本不参与 ① ② 判定。
+    转义反引号（`\\``）是字面文本、不作定界符（否则形如 `…\\`x\\`…` 的合法跨度被切碎而误报）。"""
+    spans = []
+    runs = [(m.start(), m.end()) for m in BACKTICK_RUN.finditer(line)
+            if m.start() == 0 or line[m.start() - 1] != '\\']
+    i = 0
+    while i < len(runs):
+        s, e = runs[i]
+        n = e - s
+        j = next((k for k in range(i + 1, len(runs))
+                  if runs[k][1] - runs[k][0] == n), None)
+        if j is None:
+            i += 1
+            continue
+        cs, ce = runs[j]
+        spans.append((line[e:cs], s, e, ce))
+        i = j + 1
+    return spans
+
+
+def _edge_space(content):
+    """CommonMark 补齐规则：内容首尾皆为空格且不全为空格者，各剥一层。返回剥后仍存的
+    边缘空格方向 (首, 尾)——仍存即为 MD038 违例（剥后无边缘空格者合法，如 `` ` x ` ``；
+    全为空格的跨度不入本规则，实测 MD038 亦不报）。"""
+    c = content
+    if not c.strip(' '):
+        return False, False
+    if c.startswith(' ') and c.endswith(' '):
+        c = c[1:-1]
+    return c.startswith(' '), c.endswith(' ')
+
+
+def check_writing(text, spec, root):
+    """检查 D：规格写作机械检查（四类，只呈报，不影响退出码）。返回输出行列表。
+    ① 嵌套反引号／② 代码跨度边缘空格——先按 CommonMark 定界规则切分跨度、跨度内文本不判，
+    否则合法的双反引号补齐形态（如 `` `<path>` ``）会被朴素正则误报；
+    归类判据：边缘空格且**跨度内含反引号**者为 ①（真嵌套、仅双反引号定界形态下可能），
+    其余边缘空格者为 ②（含中文正文里「反引号紧贴文字」的常见误写）——「报不报」只由 _edge_space()
+    定，与 markdownlint MD038 一致（`` `a ` ``／`` ` c` `` 报；`` ` x ` `` 与全空格跨度不报）；
+    ③ 加粗引导行紧跟列表（`**…**：` 行 + 下一行列表标记起首）→ MD032；
+    ④ 规格内可解析相对链接（按规格所在目录解析存在、按归档目录解析不存在 → 归档后必断链），
+    该类的适用面限于会归档的件（NEVER_ARCHIVED 两份台账不判）。
+    围栏块内的行一律不判（块内不是行内代码，也不是链接）。"""
+    src = text.splitlines()
+    spec_dir = os.path.dirname(os.path.abspath(spec))
+    arch_dir = os.path.join(root, 'docs/specs/archive')
+    archivable = os.path.basename(spec) not in NEVER_ARCHIVED
+    lines = []
+    in_fence = False
+    for i, line in enumerate(src, 1):
+        if FENCE_BLOCK.match(line):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        for content, _s, _e, _ce in _inline_spans(line):
+            head, tail = _edge_space(content)
+            if not (head or tail):
+                continue
+            kind = '嵌套反引号' if '`' in content else '代码跨度边缘空格'
+            lines.append(f'· 规格写作预警（{kind}）: {i} {line.strip()[:60]}')
+        if BOLD_LEAD.match(line) and i < len(src) and LIST_LEAD.match(src[i]):
+            lines.append(f'· 规格写作预警（加粗引导行紧跟列表）: {i} {line.strip()[:60]}')
+        if not archivable:
+            continue
+        outside = list(line)
+        for _c, s, _e, ce in _inline_spans(line):
+            for k in range(s, ce):     # 跳过代码跨度内的文本（跨度内的 `[..](path)` 不是链接）
+                outside[k] = ' '
+        for m in MD_LINK.finditer(''.join(outside)):
+            t = m.group(1)
+            if t.startswith(('#', 'http://', 'https://', 'mailto:')) or os.path.isabs(t):
+                continue
+            if (os.path.exists(os.path.normpath(os.path.join(spec_dir, t)))
+                    and not os.path.exists(os.path.normpath(os.path.join(arch_dir, t)))):
+                lines.append(f'· 规格写作预警（规格内可解析相对链接）: {i} {line.strip()[:60]}')
+    return lines
+
+
 def static_report(specs, root):
     """静态自检阶段编排：打印 == 静态自检 == 与逐项结果；返回 True 表示有「计数不符」。"""
     print('== 静态自检 ==')
     blocking = False
     drifted = False
     swallow = []
+    extra = []      # 检查 C／D 输出（同为非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
     for spec in specs:
         if len(specs) > 1:
             print(f'-- {spec}')
@@ -343,17 +589,24 @@ def static_report(specs, root):
             text = f.read()
         count_lines, bad = check_counts(text, root)
         a_lines = check_swallow(text, root)
+        c_lines = check_pairs(text, root)
+        d_lines = check_writing(text, spec, root)
         swallow += a_lines
-        for line in a_lines + count_lines:
+        extra += c_lines + d_lines
+        for line in a_lines + c_lines + d_lines + count_lines:
             print(line)
         blocking = blocking or bad
         drifted = drifted or any(l.startswith('· 基线漂移') for l in count_lines)
     warn = [l for l in swallow if l.startswith('· 自噬预警')]
+    # 中性行（哨兵型汇总行与「替换侧未提及且现行为 0」行）同为发现项：计入末尾三态计数
+    sentinel = [l for l in swallow
+                if l.startswith(('· 现行有值／替换侧未提及', '· 替换侧未提及且现行为 0'))]
     if blocking or drifted:
         pass
-    elif warn:
-        # 有自噬预警时不打印「无发现」——该组合会被误读为「全干净」（049 收紧末尾行判据）
-        print(f'· 有预警 {len(warn)} 条（非阻断，请人工核对预测与到位期望）')
+    elif warn or sentinel or extra:
+        # 中性汇总行（哨兵型／归零型不可区分态）与检查 C／D 输出同为发现项：计入本行，不落「无发现」
+        print(f'· 有预警 {len(warn) + len(sentinel) + len(extra)} 条'
+              f'（非阻断，请人工核对预测与到位期望）')
     elif swallow and all(l.startswith('· 跳过') for l in swallow):
         # 全部条目落「跳过」＝未命中任何可解析目标，与真阴性区分（假绿通道的可见化）
         print('· 全部跳过（未命中可解析目标——请核对调用位置与路径基准）')
