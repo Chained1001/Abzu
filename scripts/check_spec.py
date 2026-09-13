@@ -1,7 +1,8 @@
 """规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出四类规格缺陷）。
 
 用途：对规格做**静态**检查（不执行规格内任何命令，只读规格、磁盘与只读 git 子命令）——检查 A 断言
-自噬预警（断言 token 被自家 [A] 行的目标文本吞掉，呈报预测值与规格「到位」列的差）、检查 B 计数实跑
+自噬预警（断言 token 被自家 [A]／[B] 行的目标文本吞掉，呈报预测值与规格「到位」列的差；另有「零命中
+待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
 机械检查四类（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）——四类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
@@ -416,28 +417,63 @@ def _assert_refs(text):
 
 def check_swallow(text, root):
     """检查 A：断言自噬预警（只呈报，不影响退出码）。返回 (输出行列表, 提取断言数, 命中条数)。
-    **hit 门**＝「该断言的目标件出现在某条 [A] 行」（表格形态判据；源件的「改动清单节内有 `###` 子节
-    声明目标路径」在本仓真规格上 `###` 计数恒 0 → 恒空转，故本批重做）：[A] 行的目标文本＝该行引号块
-    内容优先、缺则取「改动」单元格全文（见 _row_target_text()）；n＝目标文本内 token 出现次数，
-    cur＝目标件当前含 token 的行数。提取数＞0 而命中 0 时，由 static_report() 打印空转明示行
-    （与「· 无发现」不得同屏）。
-    n == 0 的两种情形均不锁定单义（(cur, n) 二元分辨不出「哨兵型保留／[A] 项目标文本漏写」与
+    **hit 门**＝「该断言的目标件出现在某条 [A]／[B] 行」（表格形态判据；源件的「改动清单节内有 `###`
+    子节声明目标路径」在本仓真规格上 `###` 计数恒 0 → 恒空转，故本批重做）：[A]／[B] 行的目标文本＝
+    该行引号块内容优先、缺则取「改动」单元格全文（见 _row_target_text()）——**`[B]` 行的「目标文本内」含
+    改动说明文字，故近似预测为上限**；n＝目标文本内 token 出现次数，cur＝目标件当前含 token 的行数。
+    提取数＞0 而命中 0 时，由 static_report() 打印空转明示行（与「· 无发现」不得同屏）。
+    **零命中待复核**（F2）：对**通过 hit 门**且**目标件实存**（os.path.isfile）的断言，在其命令所在行起
+    （**含本行**）其后 4 行的窗口内解析「期望 ≥N」（正则容 `各`／`依次`／`均` 前缀与 `**` 星号修饰，故
+    `期望各 ≥1`／`期望依次 ≥1` 一并认）——N ≥ 1 而 cur == 0 时报候选行。两个前提缺一不可：
+    hit 门不过或目标件不存在者 cur 恒 0，会把「目标件被解析成垃圾」的断言误报成永久候选；N == 0 不报
+    （「期望 0」型零命中即达成）。**判据只认「字面 token」**：cur 系字面子串计数（`token in line`），而
+    载体允许 `grep -c -E "…"` 形态——token 带正则元字符时 cur 恒 0，属假阳性，故仅当 token 的字符**全部
+    落在字面集**（字母／数字／汉字／`_`／`-`／`/`／`／`／空格）内才判，含字面集外字符（`.`／`|`／`^` 等）
+    者一律跳过该判、不报（保守方向：宁可漏报不可误报）。**取数面＝「期望」子句，分配型句一律不判**：
+    ① 期望行含**命令序数分配**（`第一命令`／`第二、三命令`）或「各命令」「分别」→ 跳过该判（数字无法与
+    命令对齐）；② 否则取「期望」子句内的数字（自首个「期望」出现处起，止于 `；`／`。`／`（预验`／行尾），
+    **全同才取之、不唯一则跳过**。故 `期望 ≥1；预验基线 0。` 判得 1（尾数不计），`期望：**≥1**／**0**／**0**`
+    与 `第一命令期望 ≥1（…）；第二、三命令期望 0` 不判（宁漏勿误，残留漏报记 G15）。
+    该行须计入 static_report() 的末尾三态判据（findings）。
+    n == 0 的两种情形均不锁定单义（(cur, n) 二元分辨不出「哨兵型保留／[A]／[B] 项目标文本漏写」与
     「归零型已达成」）：cur > 0 者计入一行中性汇总；cur == 0 者打中性行。预测行（cur + n 加法预测）
     只在 cur > 0 且 n > 0 时输出：cur == 0 时不存在既有命中可被替换吞掉，加法预测无对象。"""
-    a_rows = [r for r in _change_rows(text)[0] if '[A]' in r['freedom']]
+    a_rows = [r for r in _change_rows(text)[0]
+              if '[A]' in r['freedom'] or '[B]' in r['freedom']]
     refs = _assert_refs(text)
+    # 零命中待复核的行位置数据不在 _assert_refs() 的既有返回面内（不动其返回语义）：本函数内以
+    # ASSERT_CMD 复扫取行号——过滤判据与 _assert_refs() 同源，两份列表逐项对齐。
+    sec = _section(text, SECTION)
+    sec_lines = sec.splitlines()
+    located = []
+    for m in ASSERT_CMD.finditer(sec):
+        if not _assert_ok(m):
+            continue
+        args = m.group('args').strip().split('|')[0].split()
+        if not args:
+            continue
+        located.append(sec.count('\n', 0, m.start()) + 1)
+    expect_re = re.compile(r'期望[：:]?\s*(?:各|依次|均)?\s*\*{0,2}\s*(?:≥|>)?\s*(\d+)')
+    # 取数面＝「期望」子句（P1-6）：命令序数分配（第一命令／第二、三命令）或「各命令」「分别」→ 该判跳过；
+    # 子句终点＝；／。／（预验／行尾——本仓期望行普遍带「；预验基线 N」尾，按整行取数会把尾数计入而静默
+    distrib_re = re.compile(r'第[一二三四五六七八九十百\d]+'
+                            r'(?:\s*[、，,／/]\s*[一二三四五六七八九十百\d]+)*\s*命令')
+    expect_stops = ('；', '。', '（预验')
+    # 字面 token 判据（见 docstring）：\w 即字母／数字／汉字／下划线，另容 - 与两种斜杠、空格
+    literal_token = re.compile(r'^[\w/\uFF0F\- ]+$')
     lines = []
     neutral = 0
     hits = 0
-    for token, target in refs:
+    for (token, target), line_no in zip(refs, located):
         path = _abs(target, root)
+        exists = os.path.isfile(path)
         cur = 0
-        if os.path.isfile(path):
+        if exists:
             with open(path, encoding='utf-8') as f:
                 cur = sum(1 for line in f if token in line)
         hit = [r for r in a_rows if _row_mentions(r, target)]
         if not hit:
-            lines.append(f'· 跳过（无对应 [A] 行目标文本，[B] 项或纯新增）: {token} @ {target}')
+            lines.append(f'· 跳过（目标件不出现在任何改动行）: {token} @ {target}')
             continue
         hits += 1
         n = sum(_row_target_text(r).count(token) for r in hit)
@@ -447,10 +483,34 @@ def check_swallow(text, root):
                 neutral += 1
             else:
                 lines.append(f'· 目标文本未提及且现行为 0: {token} @ {target}'
-                             f'（可能是 [A] 项目标文本漏写，也可能是归零型已达成）')
+                             f'（可能是 [A]／[B] 项目标文本漏写，也可能是归零型已达成）')
         elif cur > 0:
             lines.append(f'· 自噬预警: {token} @ {target} —— 现行 {cur}｜目标文本内 {n}'
                          f'｜近似预测 {cur + n}（未计删除，须人工核对到位期望）')
+        # 零命中待复核（F2）：窗口＝命令所在行起（含本行）其后 4 行；只在 hit 门通过、目标件实存、
+        # 且 token 属字面集（无正则元字符——否则 cur 恒 0 必假阳性）时判
+        if exists and cur == 0 and literal_token.match(token):
+            # 取数行＝窗口内首个命中「期望」（＝正则口径的解析门）的那一行；**取数面＝「期望」子句**：
+            # ① 分配型句（命令序数分配／「各命令」「分别」）一律不判；② 否则自首个「期望」出现处起，
+            # 至 ；／。／（预验／行尾 止，该子句内数字全同才取之、不唯一则跳过该判（宁漏勿误，见 G15）
+            exp = None
+            for w in sec_lines[line_no - 1:line_no + 4]:
+                mm = expect_re.search(w)
+                if not mm:
+                    continue
+                if (distrib_re.search(w) or '各命令' in w or '分别' in w):
+                    break
+                tail = w[mm.start():]
+                cuts = [i for i in (tail.find(s) for s in expect_stops) if i != -1]
+                if cuts:
+                    tail = tail[:min(cuts)]
+                vals = {int(x) for x in re.findall(r'\d+', tail)}
+                if len(vals) == 1:
+                    exp = vals.pop()
+                break
+            if exp is not None and exp >= 1:
+                lines.append(f'· 零命中待复核: {token} @ {target} —— 期望 ≥{exp} 而当前命中 0'
+                             f'（施工前属预期；施工后仍零即口径已变或断言失效）')
     if neutral:
         lines.append(f'· 现行有值／目标文本未提及: {neutral} 个'
                      f'（请对照到位列核对——可能是哨兵型保留，也可能是归零型已达成）')
@@ -756,7 +816,9 @@ def static_report(specs, root):
     # 中性行（哨兵型汇总行与「目标文本未提及且现行为 0」行）同为发现项：计入末尾三态计数
     sentinel = [l for l in swallow
                 if l.startswith(('· 现行有值／目标文本未提及', '· 目标文本未提及且现行为 0'))]
-    findings = warn + sentinel + extra + counts
+    # 零命中待复核（F2）同属检查 A 的发现项：漏计则「· 有预警 N 条」少计、屏上发现行多于计数行
+    zero = [l for l in swallow if l.startswith('· 零命中待复核')]
+    findings = warn + zero + sentinel + extra + counts
     if findings:
         # 中性汇总行（哨兵型／归零型不可区分态）与检查 B／C／D 输出同为发现项：计入本行，不落「无发现」
         print(f'· 有预警 {len(findings)} 条'
