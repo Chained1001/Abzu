@@ -1,11 +1,11 @@
-"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出四类规格缺陷）。
+"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出五类规格缺陷）。
 
 用途：对规格做**静态**检查（不执行规格内任何命令，只读规格、磁盘与白名单内的只读 git 子命令）——检查 A 断言
 自噬预警（断言 token 被自家 [A]／[B] 行的目标文本吞掉，呈报预测值与规格「到位」列的差；另有「零命中
 待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
 命令对齐时呈报同名候选行）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
-机械检查四类（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）——四类一律
+机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）——五类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
 整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
 （规格断言多系施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
@@ -33,14 +33,16 @@
 维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；检查 A 判据改 check_swallow()；检查 B 的
   对象口径词表与判据改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 判据、表头别名与方向标记
   改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS 常量；检查 D 改
-  check_writing()；阶段编排、呈报前缀、空转明示与末尾三态判据改 static_report()；核验比对改
+  check_writing()；新增检查 E 的判据改 check_reconcile()／BAN_SECTION／BAN_PREFIX／
+  BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；阶段编排、呈报前缀、空转明示与
+  末尾三态判据改 static_report()；核验比对改
   verify_report()；模式分派与退出契约改 __main__；**动态阶段的执行面（族门／git 子命令参数白名单／
   展开符判据／子进程 env）改 readonly()／_git_readonly()／unauditable()／GIT_READONLY_OPTS／MUTATING／
   INJECT_ENV_***。
 事故出身：020–025 六发断言自噬（断言吞自家 [A] 文本／对象错／计数错／恒真假绿）——2026-09-07 作者裁定
   守卫化。本批（065）由旧仓 `main:scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
   `grep -c "TOKEN" FILE` 载体）。
-退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D 四类无论报出多少条发现，一律只呈报、
+退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E 五类无论报出多少条发现，一律只呈报、
   不影响退出码（`AGENTS.md` §五.2 候选永不拦截）。区分：`--verify` 模式的**过程产物缺失**可置退出 1
   （该模式不进 `check.sh` 门禁）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。
   呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类（故源件的 `x 计数不符` 本批改为
@@ -55,7 +57,8 @@
   生效，且单元格内有**方向标记**（`→`／`改述为`／`改为`／`改作`／`替换为`／`换为`）时只核**最后一个标记
   之后**的引号块（标记之前是「现文」＝改后已移除的旧文，核之必假阳性）；标记之后无引号块者该行不核、
   降为候选呈报（见 DIR_MARKS／_target_blocks()）。
-呈报守恒：末尾三态判据计入 A／B／C／D 四类全部输出（含 B 的计数行），「· 无发现」只在四类全空时打印。
+呈报守恒：末尾三态判据计入 A／B／C／D／E 五类全部输出（含 B 的计数行与 E 的候选行；**E 的汇总行
+  不计入**），「· 无发现」只在五类全空时打印。
 """
 import os
 import re
@@ -122,6 +125,24 @@ SECTION = re.compile(r'^##[^#\n]*验收(?:标准|断言).*$', re.M)
 # 静态检查阶段的节定位与识别口径（--static；只读，不执行规格内任何命令）
 # 改动清单节：容错「首轮落地改动清单」等变体（061／065 实测变体）
 CHANGE_SECTION = re.compile(r'^##[^#\n]*(?:首轮)?(?:落地)?文件级改动清单.*$', re.M)
+# 检查 E（三方对账：改动面 ↔ 禁改面 ↔ 断言排除集；077 批 F1）的取集常量——
+# 检索面 S＝`## …禁止事项…` 的**节全文**（`_section()` 取到下一个行首 `##` 止）。**不限 `- 禁止`
+# 起首行**：豁免句常写在标题不含「禁止」的兄弟条目里，只取 `- 禁止` 行会漏读并产假阳性。
+BAN_SECTION = re.compile(r'^##[^#\n]*禁止事项.*$', re.M)
+# 判一的 P 取集：S 内**字面以斜杠结尾的独立目录 token**——两侧不得紧邻路径字符，防从
+# `scripts/check.sh` 这类文件名反推出目录（实测有件因此被误判为「该目录被禁」）；
+# 命中者还须 `os.path.isdir` 为真（判据见 check_reconcile()）。
+BAN_PREFIX = re.compile(r'(?<![\w./\-])[\w.\-]+(?:/[\w.\-]+)*/(?![\w.\-])')
+# 判一的豁免判据＝**子句级双条件**（豁免词 ＋ 落点同子句）：「豁免词出现即放行」已实证在立法对象上
+# 恒空转（整句含「除」即被放行），故两条件须落同一子句。
+BAN_EXCUSE_MARKS = ('除', '除外', '例外', '不在禁改之列', '不在此列',
+                    '只许改', '只改', '只允许', '只在', '点名')
+BAN_LANDING = re.compile(r'§[一二三四五六七八九十百\d]|F\d|\[\d+\]')
+# 子句切分以；，、：为界——**不含圆括号**（括号会把授权语与其落点切到两个子句里，漏读豁免）
+BAN_CLAUSE_SPLIT = re.compile(r'[；，、：]')
+# 判二的 E 取集：验收断言节内 `':!<path>'` 形态（本仓补集式命令的既有写法，不猜其它写法）；
+# 归一化（去首尾空白与尾随斜杠）与「E 为空即跳过」见 check_reconcile()。
+EXCLUDE_TOKEN = re.compile(r"':!([^']+)'")
 # 断言载体两形态：`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`
 # （token 取引号内、目标取末参；选项顺序容错）
 ASSERT_CMD = re.compile(
@@ -160,7 +181,12 @@ QUOTE_BLOCK = re.compile(r'「([^「」\n]*)」|『([^『』\n]*)』')
 # 检查 C 的**方向标记**（§二 C 行 ③，产物审查 P0-1）：单元格内出现这些标记时，逐字核对面＝
 # **最后一个标记之后**的引号块（标记之前的是「现文」，改后已被移除，核之必假阳性）
 DIR_MARKS = ('→', '改述为', '改为', '改作', '替换为', '换为')
-FENCE_BLOCK = re.compile(r'^\s*```[a-zA-Z]*\s*$')
+FENCE_BLOCK = re.compile(r'^\s*(```|~~~)[a-zA-Z]*\s*$')
+# 围栏双认（077 批 F2）：开／合围栏同认三反引号与 `~~~`——本常量（检查 D 的围栏感知）与
+# `extract()` 内的 fenced 块模式（动态阶段的命令提取）**两处须同口径**；只改一处即留漏面。
+# **开合须按标记字符配对**（组 1＝标记，`check_writing()` 按它开合）：写成 `(?:```|~~~)` 这类两个
+# 独立分支即出错——「``` 块内一行孤立 `~~~`」会提前翻转围栏态，令其后（配对未复原时直到文件末）
+# 的检查 D 预警全部失效、`extract()` 静默丢弃该块内命令（077 批曾引入的假阴性，产物审查 P1-2）。
 # 检查 D：① ② 的 CommonMark 定界规则、③ 加粗引导行＋列表标记起首、④ 规格内可解析相对链接
 BACKTICK_RUN = re.compile(r'`+')
 BOLD_LEAD = re.compile(r'^\s*\*\*[^*\n]+\*\*\s*[：:]\s*$')
@@ -194,7 +220,10 @@ def extract(text):
         if ALLOWED.match(c) and c not in seen:
             cmds.append(('行内', c))
             seen.add(c)
-    for block in re.findall(r'```[a-zA-Z]*\n(.*?)```', section, re.S):
+    # 围栏块：开合按**同一标记字符**配对（反向引用闭合，组 1＝标记、组 2＝块内容）——写成
+    # `(?:```|~~~)` 两个独立分支即出错：「``` 块内一行孤立 `~~~`」会把块从中截断，
+    # 该块内的命令断言被静默丢弃（077 批 F2；产物审查 P1-2 夹具实证）
+    for _marker, block in re.findall(r'(```|~~~)[a-zA-Z]*\n(.*?)\1', section, re.S):
         for line in block.splitlines():
             c = line.strip()
             if (c and ALLOWED.match(c) and not c.startswith('#')
@@ -873,16 +902,23 @@ def check_writing(text, spec, root):
     ③ 加粗引导行紧跟列表（`**…**：` 行 + 下一行列表标记起首）→ MD032；
     ④ 规格内可解析相对链接（按规格所在目录解析存在、按归档目录解析不存在 → 归档后必断链），
     该类的适用面限于会归档的件（NEVER_ARCHIVED 的件不判）。
-    围栏块内的行一律不判（块内不是行内代码，也不是链接）。"""
+    围栏块内的行一律不判（块内不是行内代码，也不是链接）；**围栏开合按标记字符配对**（三反引号与
+    `~~~` 各自成对，见 FENCE_BLOCK）——「``` 块内一行孤立 `~~~`」不得提前翻转围栏态，否则该件
+    其余预警连带失效（077 批 F2；产物审查 P1-2 夹具实证）。"""
     src = text.splitlines()
     spec_dir = os.path.dirname(os.path.abspath(spec))
     arch_dir = os.path.join(root, 'docs/specs/archive')
     archivable = os.path.basename(spec) not in NEVER_ARCHIVED
     lines = []
-    in_fence = False
+    in_fence = None     # 当前围栏标记字符（None＝不在围栏内）；开合按**同一标记字符**配对
     for i, line in enumerate(src, 1):
-        if FENCE_BLOCK.match(line):
-            in_fence = not in_fence
+        fm = FENCE_BLOCK.match(line)
+        if fm:
+            mark = fm.group(1)[0]       # 标记字符（` 或 ~）；只按字符配对，不按长度
+            if in_fence is None:
+                in_fence = mark
+            elif in_fence == mark:
+                in_fence = None
             continue
         if in_fence:
             continue
@@ -910,17 +946,83 @@ def check_writing(text, spec, root):
     return lines
 
 
+def check_reconcile(text, root):
+    """检查 E：三方对账（改动面 ↔ 禁改面 ↔ 断言排除集；只呈报，不影响退出码）。
+    返回 **(候选行列表, 汇总行列表)**——候选行由调用方并入末尾三态判据（`findings`），
+    汇总行**只进逐件打印串、不计入**（角色同「· B：判定 …」明示行）。
+
+    **发射面**：只对「含文件级改动清单节**且** C ≠ ∅」的件产出——无该节或 C ＝ ∅ 的件
+    候选与汇总**皆不输出**（完全静默；「跳过」的可见化落点由本判各件的汇总行承担，
+    不逐件另打明示行——实测 16／19 件无补集式断言，逐件明示即 51 行噪声）。
+
+    **C（改动面）取集**：全部改动行的路径单元格内**逐个**路径 token 判实存，取实存者为改动件。
+    **不复用 `_row_target_file()`**——后者只返回首个 token，而实测有 3 行的路径列含 ≥2 个实存
+    token（066／074／076 各一行），复用即漏判。
+
+    **判一（禁改面未豁免）**：检索面 S＝`BAN_SECTION` 所定的**全节文本**（不限 `- 禁止` 起首行）；
+    P＝S 内字面以斜杠结尾的独立目录 token（`BAN_PREFIX`，不认从文件名反推的目录）且实存为目录者；
+    对**命中前缀**（`x` 以某 `p` ＋斜杠起首）的每件 `x`，**按子句**（`BAN_CLAUSE_SPLIT` 切分 S，
+    不含圆括号）判豁免——存在一个子句同时含 ① 豁免词（`BAN_EXCUSE_MARKS`）与 ② 落点（该件全路径
+    或基名／`§N`／`FN`／`[N]`）→ 已豁免；否则出候选行。P 为空或无 S 时不产候选行（适用面不成立）。
+    **在册的漏报方向**：写出「除…外」而实质无点名者本判不报（宁可漏报，见规格 §八 3）。
+
+    **判二（断言排除集缺）**：E＝验收断言节内 `':!<path>'` 形态（`EXCLUDE_TOKEN`）的路径集
+    （归一化＝去首尾空白与尾随斜杠）；**E 为空即跳过**（实测 19 件有验收节的语料中仅 3 件有此
+    形态，逐件报即纯噪声）；否则对每件 `x ∈ C`，无 `e ∈ E` 使 `x == e` 或以 `e` ＋斜杠起首者
+    → 出候选行（列缺项件名）。"""
+    rows, _skipped = _change_rows(text)
+    targets = []
+    for row in rows:
+        for t in PATH_TOKEN.findall(row['path'] or ''):
+            if t not in targets and os.path.isfile(_abs(t, root)):
+                targets.append(t)
+    targets.sort()
+    if not targets:
+        return [], []       # 无改动清单节或 C ＝ ∅：候选与汇总皆不输出（完全静默）
+    cands = []
+    ban = _section(text, BAN_SECTION)
+    no_ban = 1 if not ban.strip() else 0
+    hit_one = 0
+    if not no_ban:
+        prefixes = {m.rstrip('/') for m in BAN_PREFIX.findall(ban)
+                    if os.path.isdir(_abs(m.rstrip('/'), root))}
+        clauses = BAN_CLAUSE_SPLIT.split(ban)
+        for x in targets:
+            if not any(x.startswith(p + '/') for p in prefixes):
+                continue
+            excused = any(any(w in c for w in BAN_EXCUSE_MARKS)
+                          and (x in c or os.path.basename(x) in c or BAN_LANDING.search(c))
+                          for c in clauses)
+            if not excused:
+                cands.append(f'· 对账① 禁改面未豁免: {x}')
+                hit_one += 1
+    excludes = {e.strip().rstrip('/')
+                for e in EXCLUDE_TOKEN.findall(_section(text, SECTION))}
+    excludes = {e for e in excludes if e}
+    no_exc = 1 if not excludes else 0
+    missing = []
+    if excludes:
+        missing = [x for x in targets
+                   if not any(x == e or x.startswith(e + '/') for e in excludes)]
+        if missing:
+            cands.append(f'· 对账① 断言排除集缺 {len(missing)} 件: ' + '、'.join(missing))
+    summary = (f'· 对账① 汇总: 改动面 {len(targets)} 件｜判一命中 {hit_one}｜'
+               f'判二命中 {len(missing)}｜跳过：无禁改面句 {no_ban}｜无补集式断言 {no_exc}')
+    return cands, [summary]
+
+
 def static_report(specs, root):
     """静态检查阶段编排：打印 == 静态自检 == 与逐项结果。
-    **返回值恒为 False**：静态发现（A／B／C／D 四类）一律只呈报、不置退出码（差异⑤：源件对「计数不符」
+    **返回值恒为 False**：静态发现（A／B／C／D／E 五类）一律只呈报、不置退出码（差异⑤：源件对「计数不符」
     置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
-    末尾三态判据**须计入 A／B／C／D 四类全部输出**（含 B 的计数行与 C 的候选行）：「· 无发现」只在四类
+    末尾三态判据**须计入 A／B／C／D／E 五类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行；
+    **E 的汇总行不计入**——其角色同明示行）：「· 无发现」只在五类
     全空时打印——漏计 B 即假绿（产物审查 P0-2：B 单源时「计数不符」与「无发现」同屏）。
     空转明示：A 在「提取 N＞0 而命中 0」时打印明示行（并抑制「· 无发现」，两者不同屏）；B 在无可判定
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    extra = []      # 检查 C／D 输出（同为非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
+    extra = []      # 检查 C／D／E 候选输出（同为非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -936,14 +1038,17 @@ def static_report(specs, root):
         count_lines, judged, cand = check_counts(text, root)
         c_lines = check_pairs(text, root)
         d_lines = check_writing(text, spec, root)
+        # 检查 E（077 批 F1）：两列表分岔——候选行并入 `extra`（⇒ 计入末尾三态 `findings`），
+        # 汇总行只进下方的逐件打印串（**不计入**——漏计则三态少计，多计则计数行多于屏上明细）。
+        e_lines, e_summary = check_reconcile(text, root)
         swallow += a_lines
-        extra += c_lines + d_lines
+        extra += c_lines + d_lines + e_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
         b_judged += judged
         b_cand += cand
-        for line in a_lines + c_lines + d_lines + count_lines:
+        for line in a_lines + c_lines + d_lines + count_lines + e_lines + e_summary:
             print(line)
     # 检查 A 空转明示：触发点＝「提取 N＞0 而命中 0」（源件的「提取数＝0」在本仓真规格上不可达）
     if a_extract and not a_hit:
@@ -967,7 +1072,7 @@ def static_report(specs, root):
     undecided = [l for l in swallow if l.startswith('· 零命中核对未判')]
     findings = warn + zero + undecided + sentinel + extra + counts
     if findings:
-        # 中性汇总行（哨兵型／归零型不可区分态）与检查 B／C／D 输出同为发现项：计入本行，不落「无发现」
+        # 中性汇总行（哨兵型／归零型不可区分态）与检查 B／C／D／E 输出同为发现项：计入本行，不落「无发现」
         print(f'· 有预警 {len(findings)} 条'
               f'（非阻断，请人工核对预测与到位期望）')
     elif a_extract and not a_hit:
