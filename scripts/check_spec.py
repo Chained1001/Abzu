@@ -2,7 +2,8 @@
 
 用途：对规格做**静态**检查（不执行规格内任何命令，只读规格、磁盘与只读 git 子命令）——检查 A 断言
 自噬预警（断言 token 被自家 [A]／[B] 行的目标文本吞掉，呈报预测值与规格「到位」列的差；另有「零命中
-待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报）、检查 B 计数实跑
+待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
+命令对齐时呈报同名候选行）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
 机械检查四类（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）——四类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
@@ -34,7 +35,9 @@
   （token 取引号内、目标取末参）；② 改动清单为**表格**形态，列角色按**表头别名**定位（路径列＝表头含
   「文件」或「新产品文档」；自由度列＝表头含「自由度」、无则取末列；改动列＝表头含「改动」），无别名可
   识别者整表跳过并明示；③ 检查 B 用**对象口径**判据（仅当该数字之前的紧邻文本显式指向整件尺寸、或与
-  `wc -l` 类命令同段时才判，其余降为候选只计数不呈报）；④ 检查 C 的逐字判据只对**含引号块**的 `[A]` 行
+  `wc -l` 类命令同段时才判，其余降为候选只计数不呈报；量词为「处」者口径另定，见 `_whole_size()`：
+  仅当**整个紧邻段**含「加粗」且数字前紧邻文本不以「加」／「增」收尾时判为整件口径，实测值取加粗标记
+  出现次数）；④ 检查 C 的逐字判据只对**含引号块**的 `[A]` 行
   生效，且单元格内有**方向标记**（`→`／`改述为`／`改为`／`改作`／`替换为`／`换为`）时只核**最后一个标记
   之后**的引号块（标记之前是「现文」＝改后已移除的旧文，核之必假阳性）；标记之后无引号块者该行不核、
   降为候选呈报（见 DIR_MARKS／_target_blocks()）。
@@ -68,9 +71,11 @@ ASSERT_CMD = re.compile(
 # 路径样 token 判据：形如 [\w./-]+\.(md|js|sh|py|json|jsonc) 的裸串，且作为仓根相对路径存在于磁盘
 # （不以「含 /」为必要条件——否则 AGENTS.md／README.md／CHANGELOG.md 等根级文件永不被命中）
 PATH_TOKEN = re.compile(r'[\w./-]+\.(?:md|js|sh|py|json|jsonc)')
-# 计数声称：N 容错千分位逗号；量词只覆盖「字符」与「行」（其余量词定义随文件类型而异，不实测）
+# 计数声称：N 容错千分位逗号；量词覆盖「字符」与「行」＋「处」（072 按类扩，对象口径限死为**加粗标记
+# 计数**，见 _whole_size()）；「条」／「项」／「个」不扩（对象随文件类型而异，口径不唯一，
+# 见 `测试与验收标准` §4 G2）
 # 左界否定环视：数字前紧邻字母/数字者不视为尺寸声称（如「MD034 行」「G1 行」的编号被读成行数）
-CLAIM = re.compile(r'(?<![A-Za-z0-9])(\d[\d,]*)\s*(字符|行)')
+CLAIM = re.compile(r'(?<![A-Za-z0-9])(\d[\d,]*)\s*(字符|行|处)')
 # 限额标记：紧邻 N 之前的这类标记表明该数字是限额（如「条目 ≤ 400 字符」）而非实测尺寸，不计
 LIMIT_MARKS = ('≤', '≥', '<', '>', '最多', '上限', '不少于', '以内', '以上',
                '至少', '至多', '不超过')
@@ -429,12 +434,19 @@ def check_swallow(text, root):
     （「期望 0」型零命中即达成）。**判据只认「字面 token」**：cur 系字面子串计数（`token in line`），而
     载体允许 `grep -c -E "…"` 形态——token 带正则元字符时 cur 恒 0，属假阳性，故仅当 token 的字符**全部
     落在字面集**（字母／数字／汉字／`_`／`-`／`/`／`／`／空格）内才判，含字面集外字符（`.`／`|`／`^` 等）
-    者一律跳过该判、不报（保守方向：宁可漏报不可误报）。**取数面＝「期望」子句，分配型句一律不判**：
-    ① 期望行含**命令序数分配**（`第一命令`／`第二、三命令`）或「各命令」「分别」→ 跳过该判（数字无法与
-    命令对齐）；② 否则取「期望」子句内的数字（自首个「期望」出现处起，止于 `；`／`。`／`（预验`／行尾），
-    **全同才取之、不唯一则跳过**。故 `期望 ≥1；预验基线 0。` 判得 1（尾数不计），`期望：**≥1**／**0**／**0**`
-    与 `第一命令期望 ≥1（…）；第二、三命令期望 0` 不判（宁漏勿误，残留漏报记 G15）。
-    该行须计入 static_report() 的末尾三态判据（findings）。
+    者一律跳过该判、不报（保守方向：宁可漏报不可误报）。**取数面＝「期望」子句，按下列先后取数**
+    （顺序即口径，不得颠倒）：① 取子句内数字**有序列表** `nums`（自首个「期望」出现处起，止于 `；`／
+    `。`／`（预验`／行尾——尾数不计；**不得用 `set`**）；② `len(nums)` 等于本规格提取到的断言总数 `M`
+    ＝`len(refs)` 时，取 `nums[i]`（`i`＝该断言在 `refs` 中的序号，**0 基**）——该形态要求**每个数字各对
+    一条命令**，故不做「全同」要求、也不按分配型词面跳过；③ `len(nums) != M` 且该行是**分配型句**
+    （命令序数分配 `第一命令`／`第二、三命令`／「各命令」／「分别」）→ **不判**；④ `len(nums) != M` 且
+    子句数字**全同** → 取该值；⑤ 其余（`len(nums) != M` 且不全同）→ **不再静默**，产
+    「· 零命中核对未判（期望子句多值 …，与命令无法对齐）」候选行（`nums` 按出现顺序列举）。
+    故 `期望 ≥1；预验基线 0。` 判得 1（尾数不计）；`期望：**≥1**／**0**／**0**` 为 K≠M 且不全同 →
+    走 ⑤ 产未判候选行；`第一命令期望 ≥1（…）；第二、三命令期望 0` 为分配型 →
+    走 ③ 不判（数字无法与命令对齐；`062`:123 那类「分配型＋全同」的既有假阳性不得复活）。配对支路依赖「数字序＝命令序」
+    ——**写反即静默误配**（缓解＝`规格写作标准` §5.9）。「零命中待复核」与「零命中核对未判」两行
+    均须计入 static_report() 的末尾三态判据（findings）。
     n == 0 的两种情形均不锁定单义（(cur, n) 二元分辨不出「哨兵型保留／[A]／[B] 项目标文本漏写」与
     「归零型已达成」）：cur > 0 者计入一行中性汇总；cur == 0 者打中性行。预测行（cur + n 加法预测）
     只在 cur > 0 且 n > 0 时输出：cur == 0 时不存在既有命中可被替换吞掉，加法预测无对象。"""
@@ -464,7 +476,7 @@ def check_swallow(text, root):
     lines = []
     neutral = 0
     hits = 0
-    for (token, target), line_no in zip(refs, located):
+    for i, ((token, target), line_no) in enumerate(zip(refs, located)):
         path = _abs(target, root)
         exists = os.path.isfile(path)
         cur = 0
@@ -490,25 +502,34 @@ def check_swallow(text, root):
         # 零命中待复核（F2）：窗口＝命令所在行起（含本行）其后 4 行；只在 hit 门通过、目标件实存、
         # 且 token 属字面集（无正则元字符——否则 cur 恒 0 必假阳性）时判
         if exists and cur == 0 and literal_token.match(token):
-            # 取数行＝窗口内首个命中「期望」（＝正则口径的解析门）的那一行；**取数面＝「期望」子句**：
-            # ① 分配型句（命令序数分配／「各命令」「分别」）一律不判；② 否则自首个「期望」出现处起，
-            # 至 ；／。／（预验／行尾 止，该子句内数字全同才取之、不唯一则跳过该判（宁漏勿误，见 G15）
+            # 取数行＝窗口内首个命中「期望」（＝正则口径的解析门）的那一行；**取数面＝「期望」子句**，
+            # 按 docstring 的五步先后取数（顺序即口径）：① 取有序数字列表 nums；② K＝M 按命令序号（0 基）
+            # 配对取值——每数字各对一条命令，不要求全同、不看分配型；③ K≠M 且分配型句 → 不判；
+            # ④ K≠M 且数字全同 → 取该值；⑤ 其余 → 产「未判」候选行（不再静默，见 072 与 G15）
             exp = None
+            undecided = None
             for w in sec_lines[line_no - 1:line_no + 4]:
                 mm = expect_re.search(w)
                 if not mm:
                     continue
-                if (distrib_re.search(w) or '各命令' in w or '分别' in w):
-                    break
                 tail = w[mm.start():]
-                cuts = [i for i in (tail.find(s) for s in expect_stops) if i != -1]
+                cuts = [j for j in (tail.find(s) for s in expect_stops) if j != -1]
                 if cuts:
                     tail = tail[:min(cuts)]
-                vals = {int(x) for x in re.findall(r'\d+', tail)}
-                if len(vals) == 1:
-                    exp = vals.pop()
+                nums = [int(x) for x in re.findall(r'\d+', tail)]
+                if len(nums) == len(refs):
+                    exp = nums[i]       # ② K＝M：按序配对（i 与 refs 序号对齐，从 0 起）
+                elif (distrib_re.search(w) or '各命令' in w or '分别' in w):
+                    pass                # ③ 分配型句不判——先于「全同取值」，既有假阳性不得复活
+                elif len(set(nums)) == 1:
+                    exp = nums[0]       # ④ K≠M 且全同：取该值
+                else:
+                    undecided = nums    # ⑤ K≠M 且不全同：产未判候选行（不再静默）
                 break
-            if exp is not None and exp >= 1:
+            if undecided is not None:
+                lines.append(f'· 零命中核对未判（期望子句多值 {undecided}，'
+                             f'与命令无法对齐）: {token} @ {target}')
+            elif exp is not None and exp >= 1:
                 lines.append(f'· 零命中待复核: {token} @ {target} —— 期望 ≥{exp} 而当前命中 0'
                              f'（施工前属预期；施工后仍零即口径已变或断言失效）')
     if neutral:
@@ -538,10 +559,17 @@ def _whole_size(seg, start, unit, line):
     是＝**该数字之前的紧邻文本内**含整件标记（全文／本件／实件／总行数——照 `LIMIT_MARKS` 的左界
     做法，标记须前置，否则同一紧邻段里**另一条**声称的「全文」会把本声称误判为整件口径）、或含
     「共 N 行」式声称、或量词为「字符」（字符量词本身即整件口径）、或该行与 `wc -l` 类命令同段。
-    否＝降为候选（只计数、不逐条呈报）。"""
+    否＝降为候选（只计数、不逐条呈报）。
+    量词「处」（072 按类扩、口径收紧）：对象口径**限死为加粗标记计数**——仅当**整个紧邻段 `seg`**
+    含「加粗」（不看「加粗」在数字之前还是之后），且**数字之前**紧邻文本（`seg[:start]` 去尾空白后）
+    **不以「加」／「增」收尾**（增量式如「本批给该件加 16 处加粗」不判）时判为整件口径；否则降为候选。
+    不收窄即生假阳性（宽松闸在归档语料上 7 条判定 6 条报到，其中 3 条为假阳性，实测见 072 §一⑦）；「条」／「项」／
+    「个」不扩（对象随文件类型而异，无法确定实测对象）。"""
     if unit == '字符':
         return True
     head = seg[:start]
+    if unit == '处':
+        return '加粗' in seg and not head.rstrip().endswith(('加', '增'))
     if any(mark in head for mark in WHOLE_MARKS):
         return True
     if WHOLE_CLAIM.search(head):
@@ -604,7 +632,13 @@ def check_counts(text, root):
                     cand += 1
                     continue
                 judged += 1
-                actual = nchar if unit == '字符' else nline
+                if unit == '处':
+                    # 「处」的实测值＝加粗标记出现次数（`**` 的 count，口径同 `文档写作标准` §一.3.8）；
+                    # 缓存只存字符数与行数两项，故此处按目标件另读一次取标记计数
+                    with open(_abs(target, root), encoding='utf-8') as f:
+                        actual = f.read().count('**')
+                else:
+                    actual = nchar if unit == '字符' else nline
                 if int(num.replace(',', '')) == actual:
                     continue
                 head = f'{target} 称「{num} {unit}」实测 {actual}'
@@ -818,7 +852,10 @@ def static_report(specs, root):
                 if l.startswith(('· 现行有值／目标文本未提及', '· 目标文本未提及且现行为 0'))]
     # 零命中待复核（F2）同属检查 A 的发现项：漏计则「· 有预警 N 条」少计、屏上发现行多于计数行
     zero = [l for l in swallow if l.startswith('· 零命中待复核')]
-    findings = warn + zero + sentinel + extra + counts
+    # 零命中核对未判（072 F1）：期望子句多值且与命令无法对齐——同为检查 A 的发现项，同理须计入
+    # （否则新支路的产出在汇总里隐形，与「修缺口」的立法目的相悖）
+    undecided = [l for l in swallow if l.startswith('· 零命中核对未判')]
+    findings = warn + zero + undecided + sentinel + extra + counts
     if findings:
         # 中性汇总行（哨兵型／归零型不可区分态）与检查 B／C／D 输出同为发现项：计入本行，不落「无发现」
         print(f'· 有预警 {len(findings)} 条'
