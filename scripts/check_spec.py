@@ -1,14 +1,19 @@
 """规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出四类规格缺陷）。
 
-用途：对规格做**静态**检查（不执行规格内任何命令，只读规格、磁盘与只读 git 子命令）——检查 A 断言
+用途：对规格做**静态**检查（不执行规格内任何命令，只读规格、磁盘与白名单内的只读 git 子命令）——检查 A 断言
 自噬预警（断言 token 被自家 [A]／[B] 行的目标文本吞掉，呈报预测值与规格「到位」列的差；另有「零命中
 待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
 命令对齐时呈报同名候选行）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
 机械检查四类（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）——四类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
-整行命令），白名单只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定（规格断言多系
-施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
+整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
+（规格断言多系施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
+**执行面白名单（修后实况，075 批 F1）**：可执行族仅 `e?grep`／`fgrep`／`wc`／`head`／`tail`／`ls`／`cat`
+与 git 的 `diff`／`status`／`log`／`show`／`grep`（git 族另按「子命令 ＋ 参数白名单」判，见
+`GIT_READONLY_OPTS`）；`find`／`sed` **在提取面、不在执行面**（仍被提取，仍以「跳过（非只读白名单
+形态）」呈报——二者参数面含写盘与命令执行）；`$` 与反引号**不论引号内外**一律判不可审计（引号内不是
+壳层保护）。口径＝**宁可漏审不可误执行**。
 用法与参数：`python scripts/check_spec.py [--static|--verify] <规格路径> [更多规格路径...]`
   · `--static`：只跑静态检查（`check.sh` [4] 段的调用形态）；**零位置参数时打印「无在制规格，跳过」
     并退出 0**（提交时在制规格通常为 0，明示跳过属预期常态）。
@@ -16,13 +21,18 @@
     **不进 `check.sh` 门禁**（门禁运行点在制规格尚未归档，过程产物检查必然不符）。
   · 两者都不给：先跑动态阶段，再跑静态阶段。
 依赖与前置：Python 3 标准库（re／subprocess／sys／os），零外部依赖；不联网、不装依赖、不跑 LLM。
-  **本工具不写任何文件**（只读规格、磁盘与只读 git 子命令）；语法自检用 `ast.parse`，不用 `py_compile`
-  （后者会留缓存产物）。子进程输出统一按 UTF-8 解码并对不可解码字节容错（中文 Windows 本地编码为 GBK）。
+  **本工具不写任何文件**（只读规格、磁盘与白名单内的只读 git 子命令；**两处 git 子进程**——动态阶段
+  `report()` 与核验模式 `_git_changes()`——统一经 `_child_env()` 置 `GIT_OPTIONAL_LOCKS=0` 并剔除 git
+  注入变量，消掉 `git status`／`diff` 刷新 `.git/` 下 index 的默认写盘副作用）；语法自检用 `ast.parse`，
+  不用 `py_compile`（后者会留缓存产物）。子进程输出与目标件读取统一按 UTF-8 解码并对不可解码字节容错
+  （`errors='replace'`；中文 Windows 本地编码为 GBK）。
 维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；检查 A 判据改 check_swallow()；检查 B 的
   对象口径词表与判据改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 判据、表头别名与方向标记
   改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS 常量；检查 D 改
   check_writing()；阶段编排、呈报前缀、空转明示与末尾三态判据改 static_report()；核验比对改
-  verify_report()；模式分派与退出契约改 __main__。
+  verify_report()；模式分派与退出契约改 __main__；**动态阶段的执行面（族门／git 子命令参数白名单／
+  展开符判据／子进程 env）改 readonly()／_git_readonly()／unauditable()／GIT_READONLY_OPTS／MUTATING／
+  INJECT_ENV_***。
 事故出身：020–025 六发断言自噬（断言吞自家 [A] 文本／对象错／计数错／恒真假绿）——2026-09-07 作者裁定
   守卫化。本批（065）由旧仓 `main:scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
   `grep -c "TOKEN" FILE` 载体）。
@@ -55,7 +65,50 @@ MUTATING = re.compile(
     r'(^|\s)(rm|rmdir|mv|cp|mkdir|touch|chmod)(\s|$)'
     r'|git\s+(add|commit|push|pull|reset|checkout|merge|rebase|stash|mv|clean|tag)\b'
     r'|>>|npx\s+-y\b|py_compile'
+    # 纵深防御（075 批 F1 ③）：git 系的写盘选项与 find／sed 的写型参数——find／sed 已移出可执行面
+    # （见 readonly()），此处仍显式记名，防将来白名单误放；`--output` 与 find 的写型谓词成稿审查实证过
+    r'|git\s+[^\n]*\s--output([=\s]|$)'
+    r'|(^|\s)(-delete|-exec|-execdir|-fprint|-fprint0|-fprintf|-fls|-ok|-okdir)(\s|$)'
+    r'|sed\s+[^\n]*-i(\s|$|[.;&|])'
 )
+# git 族可执行参数白名单（075 批 F1 ①）：**子命令 ＋ 参数白名单**——以 `-` 起首的实参（剥去外层引号后）
+# 须落在该子命令的允许集内，否则判非只读。不用黑名单枚举：黑名单天然不完备（成稿审查实证四条通路
+# 被放行并执行——`git grep -O` 走 pager 执行任意命令、`--textconv`、`git diff --ext-diff`、
+# `git diff --output=FILE` 写盘 14202B）。形态：exact＝逐字命中集；prefix＝带值形态的前缀集
+# （`-U<n>`／`--pretty=<fmt>`／`--untracked-files=<mode>`／`-u<mode>`）；`--` 为参数分隔符，恒允许。
+_GIT_DIFF_LIKE = (('-p', '--stat', '--numstat', '--shortstat', '--name-only', '--name-status',
+                   '--word-diff', '--no-index', '--oneline', '--no-color'),
+                  ('-U', '--pretty='))
+GIT_READONLY_OPTS = {
+    'grep': (('-F', '-c', '-n', '-i', '-w', '-l', '-L', '-e', '-E', '-G', '-P',
+              '--fixed-strings', '--count', '--line-number', '--ignore-case', '--word-regexp',
+              '--files-with-matches', '--files-without-match', '--regexp', '--extended-regexp',
+              '--basic-regexp', '--perl-regexp'), ()),
+    'diff': _GIT_DIFF_LIKE,
+    'log': _GIT_DIFF_LIKE,
+    'show': _GIT_DIFF_LIKE,
+    'status': (('-s', '-b', '--porcelain', '--short', '--branch', '--ignored', '--no-color'),
+               ('-u', '--untracked-files=')),
+}
+# 子进程 env 收严的剔除面（075 批 F1 ④）：前三项拉起外部程序，后七项经窄域复核实证可注入 git 配置
+# （仅置 `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=diff.external GIT_CONFIG_VALUE_0=…` 即拉起外部程序）；
+# 带序号的 `GIT_CONFIG_KEY_<n>`／`GIT_CONFIG_VALUE_<n>` 按前缀剔除。
+INJECT_ENV_EXACT = ('GIT_EXTERNAL_DIFF', 'GIT_PAGER', 'PAGER', 'GIT_CONFIG_COUNT',
+                    'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_GLOBAL', 'GIT_CONFIG_SYSTEM',
+                    'GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE')
+INJECT_ENV_PREFIX = ('GIT_CONFIG_KEY_', 'GIT_CONFIG_VALUE_')
+
+
+def _child_env():
+    """子进程 env 收严（075 批 F1 ④）：置 `GIT_OPTIONAL_LOCKS=0`（消掉 `git status`／`diff` 刷新
+    `.git/` 下 index 的默认写盘副作用）并剔除 git 注入面（`INJECT_ENV_*`——后七项可注入
+    `diff.external` 之类的配置从而拉起外部程序）。**两处 git 子进程共用**：动态阶段 `report()` 与
+    核验模式 `_git_changes()`（后者同样跑 `git status`，不收严则「本工具不写任何文件」在核验模式下不成立）。"""
+    env = {k: v for k, v in os.environ.items()
+           if k not in INJECT_ENV_EXACT and not k.startswith(INJECT_ENV_PREFIX)}
+    env['GIT_OPTIONAL_LOCKS'] = '0'
+    return env
+
 # 断言节定位：**只认节名、不带位次**（位次随批次变，三／四均有）；节名容「验收断言」与旧称「验收标准」
 SECTION = re.compile(r'^##[^#\n]*验收(?:标准|断言).*$', re.M)
 
@@ -82,7 +135,7 @@ LIMIT_MARKS = ('≤', '≥', '<', '>', '最多', '上限', '不少于', '以内'
 # 检查 B 的对象口径词表（仅当紧邻段显式指向整件尺寸时才判；「实件」为语料真阳性用词，须入表）：
 # 全文／本件／实件／总行数／共 N 行／N 字符（字符量词由 CLAIM 的 unit 直接判为整件口径）
 WHOLE_MARKS = ('全文', '本件', '实件', '总行数')
-WHOLE_CLAIM = re.compile(r'共\s*[\d,]+\s*行')
+WHOLE_CLAIM = re.compile(r'共[\s\d,]*$')
 # `wc -l` 类命令：与尺寸声称同段（同行）时，视为整件口径（命令自身不可解析为路径，故按行检测）
 WC_CMD = re.compile(r'\bwc\b[^\n]{0,40}?\s-[A-Za-z]*l')
 INLINE_CODE = re.compile(r'`([^`\n]+)`')
@@ -147,7 +200,10 @@ def extract(text):
 def _outside_quotes(c):
     """返回整行中「引号之外」的区间（单／双引号内的区间一概剔除）——引号内的元字符不计，
     否则 `git grep -F -c -- "a|b" file` 这类合法且安全的固定串断言会被误判为不可审计而漏审
-    （本仓规格的断言 token 常含 `|`）。不做转义处理（够用即可）。"""
+    （本仓规格的断言 token 常含 `|`）。不做转义处理（够用即可）。
+    **只供「引号内惰性」的元字符使用**（`|`／`;`／`&`／`<`／`>`）：壳层在引号内**仍会展开**的 `$` 与
+    反引号由 `unauditable()` 直接查整条命令原文、**不经本函数**——「引号内」对二者不是壳层保护
+    （075 批 F1 ② 的安全核心；写成「引号外才查」即等于没修）。"""
     out, quote = [], None
     for ch in c:
         if quote:
@@ -164,7 +220,11 @@ def _outside_quotes(c):
 def unauditable(c):
     """不可审计判据（顺序在放行判据之前）：命中返回判据说明（含命中的元字符，便于判因），否则 None。
     1 shell 解释器／包执行器整族；2 解释器任意代码入口（`-c` 后不要求空白，`-c"x"` 一并拦下）；
-    3 裸解释器；4 引号外的 shell 元字符；5 sed 非 -n（既有行为保留）。"""
+    3 裸解释器；4 **展开符 `$` 与反引号——不论引号内外一律拦**（「引号内」对二者不是壳层保护：
+    `"$(cmd)"` 与引号内反引号都会被壳层展开；判据施于**整条命令原文**，不经 `_outside_quotes()`）；
+    5 引号**外**的 shell 元字符 `|`／`;`／`&`／`<`／`>`（引号内确惰性，保持现口径——一律拦会把本仓
+    规格里含 `|` 与括号的既有断言 token 全部降为「不可审计」而丢覆盖）；
+    6 sed 非 -n（既有行为保留；`sed` 已移出执行面，故本项只作提前呈报，见 `readonly()`）。"""
     m = re.match(r'^(bash|sh|node|npx)\b', c)
     if m:
         return f'shell 解释器／包执行器 {m.group(1)}'
@@ -172,8 +232,12 @@ def unauditable(c):
         return '解释器任意代码入口（-c）'
     if re.match(r'^(python3?|py)\s*$', c):
         return '裸解释器'
+    if '$' in c:
+        return '展开符 $（引号内外一律不可审计）'
+    if '`' in c:
+        return '展开符 `（引号内外一律不可审计）'
     outside = _outside_quotes(c)
-    for ch in ('|', ';', '&', '<', '>', '`'):
+    for ch in ('|', ';', '&', '<', '>'):
         if ch in outside:
             return f'引号外 shell 元字符 {ch}'
     if c.startswith('sed') and ' -n' not in c:
@@ -181,15 +245,42 @@ def unauditable(c):
     return None
 
 
+def _git_readonly(c):
+    """git 族：**子命令 ＋ 参数白名单**（075 批 F1 ①）。返回 False＝非只读（含未知子命令、
+    集外选项、聚合短选项如 `-sb` 或 `-nO`——逐字匹配天然拒之，宁可漏审不可误执行）。
+    每个以 `-` 起首的实参（**剥去外层引号后**判——`git diff "--output=F"` 经壳层剥离引号后即为选项，
+    不剥即漏）须落在该子命令的允许集内；`--` 为参数分隔符，恒允许。"""
+    parts = c.split()
+    if len(parts) < 2:
+        return False
+    spec_opts = GIT_READONLY_OPTS.get(parts[1])
+    if spec_opts is None:
+        return False
+    exact, prefix = spec_opts
+    for a in parts[2:]:
+        t = a.lstrip('"\'')
+        if not t.startswith('-') or t == '--':
+            continue
+        if t in exact or any(t.startswith(p) for p in prefix):
+            continue
+        return False
+    return True
+
+
 def readonly(c):
+    """只读判据＝**执行面白名单**（075 批 F1 ①）。放行面＝参数面确定无副作用的族：
+    `e?grep`／`fgrep`／`wc`／`head`／`tail`／`ls`／`cat` ＋ git 的 `diff`／`status`／`log`／`show`／`grep`
+    （git 族按「子命令 ＋ 参数白名单」判，见 `_git_readonly()`／`GIT_READONLY_OPTS`）。
+    **`find`／`sed` 不在执行面**：二者参数面含写盘与命令执行（`find` 的 `-delete`／`-exec`／`-fprint*`；
+    `sed` 的脚本命令 `w`／`W`／`r`／`e` 与 `-i`），黑名单枚举天然不完备（成稿审查实证四通路）——二者
+    仍在**提取面**，由本函数判否后以「跳过（非只读白名单形态）」呈报。`MUTATING` 先行拦一道（纵深防御），
+    随后是族门与 git 参数门。"""
     if MUTATING.search(c):
         return False
-    if re.match(r'^(e?grep|fgrep|wc|head|tail|ls|find|cat)\b', c):
+    if re.match(r'^(e?grep|fgrep|wc|head|tail|ls|cat)\b', c):
         return True
-    if c.startswith(('sed',)) and ' -n' in c:
-        return True
-    if c.startswith('git') and re.match(r'git\s+(diff|status|log|show|grep)\b', c):
-        return True
+    if c.startswith('git'):
+        return _git_readonly(c)
     # 不可达死码（保留以明示任意代码入口）：`python -c` 形态已被 unauditable() 判据 2 先行拦下
     if c.startswith(('python', 'py')) and ' -c ' in c:
         return True
@@ -214,6 +305,7 @@ def report(spec):
         print('未提取到命令断言（无验收节或无白名单命令）')
         return
     ran = skipped = crashes = 0
+    env = _child_env()      # 子进程 env 收严（F1 ④）：置 GIT_OPTIONAL_LOCKS=0 ＋ 剔除 git 注入面
     for i, (src, c) in enumerate(cmds, 1):
         reason = unauditable(c)
         if reason:
@@ -227,6 +319,7 @@ def report(spec):
         try:
             r = subprocess.run(c, shell=True, capture_output=True,
                                encoding='utf-8', errors='replace', timeout=120,
+                               env=env,
                                cwd=os.path.dirname(os.path.dirname(
                                    os.path.abspath(__file__))))
             if r.stdout is None or r.stderr is None:
@@ -397,11 +490,14 @@ def _row_mentions(row, target):
 
 
 def _assert_ok(m):
-    """载体门：两形态都认——`git grep` 须带 `-F` 与 `-c`，裸 `grep` 须带 `-c`（计数形态）。"""
-    letters = ''.join(o.lstrip('-') for o in m.group('opts').split())
+    """载体门：两形态都认——`git grep` 须带 `-F`（或其长选项 `--fixed-strings`）与 `-c`，裸 `grep` 须带
+    `-c`（计数形态）。长选项形态同认：`letters` 取法对 `--fixed-strings` 只得 `fixedstrings`，含不了 `F`，
+    故另按选项串判长选项本字（075 批 F5——否则该载体被静默跳过）。"""
+    opts = m.group('opts').split()
+    letters = ''.join(o.lstrip('-') for o in opts)
     if 'c' not in letters:
         return False
-    if m.group('cmd').startswith('git') and 'F' not in letters:
+    if m.group('cmd').startswith('git') and 'F' not in letters and '--fixed-strings' not in opts:
         return False
     return True
 
@@ -557,8 +653,11 @@ def _segments(line):
 def _whole_size(seg, start, unit, line):
     """检查 B 的**对象口径**判据：该尺寸声称是否指向**整件尺寸**。
     是＝**该数字之前的紧邻文本内**含整件标记（全文／本件／实件／总行数——照 `LIMIT_MARKS` 的左界
-    做法，标记须前置，否则同一紧邻段里**另一条**声称的「全文」会把本声称误判为整件口径）、或含
-    「共 N 行」式声称、或量词为「字符」（字符量词本身即整件口径）、或该行与 `wc -l` 类命令同段。
+    做法，标记须前置，否则同一紧邻段里**另一条**声称的「全文」会把本声称误判为整件口径）、或**紧邻段
+    左界**含「共 … 行」式声称（`WHOLE_CLAIM` 为**左界形**——「共」起首、其间容空白与数字与千分位逗号、
+    至行尾止；仍施于 `head`：「共 100 行」的 `head` 止于「共 」即命中，而同一紧邻段里**另一条**声称的
+    「共」不在其 `head` 末尾则不命中，左界纪律不破）、
+    或量词为「字符」（字符量词本身即整件口径）、或该行与 `wc -l` 类命令同段。
     否＝降为候选（只计数、不逐条呈报）。
     量词「处」（072 按类扩、口径收紧）：对象口径**限死为加粗标记计数**——仅当**整个紧邻段 `seg`**
     含「加粗」（不看「加粗」在数字之前还是之后），且**数字之前**紧邻文本（`seg[:start]` 去尾空白后）
@@ -584,7 +683,11 @@ def check_counts(text, root):
     判据（本批改动清单节内提及者记「基线漂移」、否则记「计数不符」）与源件同；尺寸声称的识别由词形
     黑名单改为**对象口径**（仅当该数字之前的紧邻文本显式指向整件尺寸时才判，见 _whole_size()），其余
     降为候选——只计数、不逐条呈报（四类已知假阳性：表行数／diff 增量／零命中数／引用行号）。两类输出
-    皆只呈报、不置退出码。"""
+    皆只呈报、不置退出码。
+    **实测值口径**（075 批）：目标件读取按 UTF-8 ＋ `errors='replace'`（遇二进制／非 UTF-8 件不抛
+    `UnicodeDecodeError`，与模块头注的容错口径一致，本批 F12）；行数＝该件 `'\\n'` 出现次数（与
+    `wc -l` 同口径：末行无换行者不多算 1，本批 F3）；`char`／`line`／**加粗标记数**三项一次读入缓存，
+    「处」的实测值取缓存第三项（不再按目标件另读一次，本批 F11 收敛 073-1 的遗留）。"""
     listed = _section(text, CHANGE_SECTION)
     lines = []
     judged = cand = 0
@@ -596,10 +699,13 @@ def check_counts(text, root):
             continue
         for target, seg in targets:
             if target not in cache:
-                with open(_abs(target, root), encoding='utf-8') as f:
+                # 容错读（F12）：二进制／非 UTF-8 件不抛 UnicodeDecodeError（目标件可能是任意被引用件）
+                with open(_abs(target, root), encoding='utf-8', errors='replace') as f:
                     content = f.read()
-                cache[target] = (len(content), len(content.splitlines()))
-            nchar, nline = cache[target]
+                # 三元组＝（字符数／行数／加粗标记数）：行数与 `wc -l` 同口径（`'\n'` 计数，F3）；
+                # 加粗标记数一次读入即缓存，「处」的实测值取第三项（F11，收敛 073-1 的「另读一次」）
+                cache[target] = (len(content), content.count('\n'), content.count('**'))
+            nchar, nline, nbold = cache[target]
             for m in CLAIM.finditer(seg):
                 num, unit = m.group(1), m.group(2)
                 # 限额型数字不计：N 之前（允许中间隔空格）紧邻限额标记的，不视为对当前尺寸的声称
@@ -611,9 +717,9 @@ def check_counts(text, root):
                 judged += 1
                 if unit == '处':
                     # 「处」的实测值＝加粗标记出现次数（`**` 的 count，口径同 `文档写作标准` §一.3.8）；
-                    # 缓存只存字符数与行数两项，故此处按目标件另读一次取标记计数
-                    with open(_abs(target, root), encoding='utf-8') as f:
-                        actual = f.read().count('**')
+                    # 值取缓存第三项（加粗标记数，随字符数／行数一次读入即算，不再按目标件另读一次——
+                    # F11 收敛 073-1 的遗留：原二元组只存字符数与行数，故另读一次取标记计数）
+                    actual = nbold
                 else:
                     actual = nchar if unit == '字符' else nline
                 if int(num.replace(',', '')) == actual:
@@ -847,9 +953,15 @@ def static_report(specs, root):
 
 
 def _stdout_utf8():
-    """中文 Windows 下 stdout 默认 GBK，打印含 ⏎／中文的输出会 UnicodeEncodeError（2026-09-11 实测）。"""
+    """中文 Windows 下 stdout／stderr 默认 GBK，打印含 ⏎／中文的输出会 UnicodeEncodeError（2026-09-11
+    实测；`x` 起首的参数错误类输出走 stderr，只重配 stdout 则其中文仍可能崩）。两流各自 try／except：
+    某流不可 reconfigure（如已被替换为无该方法的对象）不影响另一流。"""
     try:
         sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
     except Exception:
         pass
 
@@ -857,9 +969,11 @@ def _stdout_utf8():
 def _git_changes(root):
     """`git status --porcelain` 的实际改动集（只读子命令）；返回 [(状态码, 正斜杠相对路径)]，
     重命名形态「旧 -> 新」取新路径。以 `-c core.quotepath=false` 调用：默认 quotepath 会把含
-    非 ASCII 的路径按 C 风格转义并加引号（本仓规格文件名含中文），不关掉则路径无法归一比对。"""
+    非 ASCII 的路径按 C 风格转义并加引号（本仓规格文件名含中文），不关掉则路径无法归一比对。
+    子进程 env 同 `report()` 收严（见 `_child_env()`，F1 ④——`git status` 默认会刷新 `.git/` 下 index）。"""
     r = subprocess.run('git -c core.quotepath=false status --porcelain', shell=True,
                        capture_output=True, encoding='utf-8', errors='replace',
+                       env=_child_env(),
                        cwd=root)
     changes = []
     for line in (r.stdout or '').splitlines():

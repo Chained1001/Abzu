@@ -20,6 +20,7 @@ if [ -d skills ]; then
   else
     echo "  skills 为真目录"
   fi
+elif [ -e skills ] || [ -L skills ]; then echo "x skills 存在但非目录（异常形态）"; fail=1
 else
   echo "  skills 目录尚未建立，跳过"
 fi
@@ -42,9 +43,8 @@ elif command -v python >/dev/null 2>&1; then
 elif command -v py >/dev/null 2>&1; then
   PY=py
 fi
-if [ -z "$PY" ]; then
-  echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3"
-  fail=1
+if [ -z "$PY" ]; then echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3"; fail=1
+elif ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)'; then echo "x $PY 非 Python 3（实测 $("$PY" -V 2>&1)）——本段需要 Python 3"; fail=1
 else
   # 在制规格枚举口径：docs/specs/[0-9][0-9][0-9]-*.md——显式排除非规格件 docs/specs/施工机制.md
   # （其 §八 模板内嵌本节标题，扫之即假发现源）

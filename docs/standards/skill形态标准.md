@@ -143,7 +143,7 @@ metadata:
 | 运行时脚本与共享库 | 无统一正文模板 | 脚本文档头四要素（用途／用法与参数／依赖与前置／维护入口） | 仓库既有惯例（Node 工具脚本无单一业界权威，如实标注）＋[运行环境标准](运行环境标准.md) 脚本契约 | `node --check`／`py_compile`（待接入 check.sh） |
 | 开发守卫（`scripts/` 下 .sh／.py） | 无统一正文模板 | 同四要素（# 注释块／模块 docstring） | .sh 参考 Google Shell Style Guide；.py 遵循 PEP 8 与 PEP 257 | `scripts/check.sh` 实跑即验 |
 | 治理与门面文档（AGENTS／README／docs/**.md） | 各文档自身节序 | 头注两行式（定位／依据；不设版本行——沿革记 CHANGELOG 与 git 历史）；**例外**：入口类文件（`AGENTS.md`／`README.md`）头注可为自由形态——其读者是首次进入者，须先答「这是什么仓库、开发与运行如何分工、业务在哪」，其余治理文档仍两行式 | [文档写作标准](文档写作标准.md) ＋中文文案排版指北 | markdownlint（check.sh [1]） |
-| 规格（`docs/specs/**`） | 三要素 + 规格自审（见[规格写作标准](规格写作标准.md)） | 背景引言（自包含声明） | 同上 | 规格成稿审查 ＋ 静态自检（待建） |
+| 规格（`docs/specs/**`） | 三要素 + 规格自审（见[规格写作标准](规格写作标准.md)） | 背景引言（自包含声明） | 同上 | 规格成稿审查 ＋ 静态自检（`check_spec.py --static`，接入 `check.sh` [4]） |
 | 工程配置（.jsonc／.gitignore／.gitattributes） | 工具官方 schema | 顶部一行用途注释（纯 `.json` 语法无注释位则豁免——用途由字段自明） | 工具官方文档 | — |
 
 ## 二、正例与反例
