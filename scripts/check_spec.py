@@ -608,29 +608,6 @@ def check_counts(text, root):
                 if not _whole_size(seg, m.start(), unit, line):
                     cand += 1
                     continue
-    listed = _section(text, CHANGE_SECTION)
-    lines = []
-    judged = cand = 0
-    cache = {}
-    for line in text.splitlines():
-        targets = [(t, seg) for t, seg in _segments(line)
-                   if t and os.path.isfile(_abs(t, root))]
-        if not targets:
-            continue
-        for target, seg in targets:
-            if target not in cache:
-                with open(_abs(target, root), encoding='utf-8') as f:
-                    content = f.read()
-                cache[target] = (len(content), len(content.splitlines()))
-            nchar, nline = cache[target]
-            for m in CLAIM.finditer(seg):
-                num, unit = m.group(1), m.group(2)
-                # 限额型数字不计：N 之前（允许中间隔空格）紧邻限额标记的，不视为对当前尺寸的声称
-                if seg[:m.start()].rstrip().endswith(LIMIT_MARKS):
-                    continue
-                if not _whole_size(seg, m.start(), unit, line):
-                    cand += 1
-                    continue
                 judged += 1
                 if unit == '处':
                     # 「处」的实测值＝加粗标记出现次数（`**` 的 count，口径同 `文档写作标准` §一.3.8）；
