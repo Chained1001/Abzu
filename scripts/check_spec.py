@@ -330,8 +330,13 @@ def _change_rows(text):
 
 def _quoted_blocks(cell):
     """单元格内的引号块内容列表（「…」／『…』，按出现顺序）；无引号块返回空列表。
-    引号块＝逐字目标文本的载体：检查 C 只对含引号块的行做逐字核对，检查 A 的目标文本亦优先取它。"""
-    return [a if a else b for a, b in QUOTE_BLOCK.findall(cell or '')]
+    引号块＝逐字目标文本的载体：检查 C 只对含引号块的行做逐字核对，检查 A 的目标文本亦优先取它。
+    **空引号对（`「」`）不计入**：`findall` 对未参与匹配的组给空串，`a if a else b` 会把空串换成 `None`
+    而让 `_row_target_text()` 误以空串为「有目标文本」的列表——不再回落改动单元格、真实预警被吞
+    （066 批产物审查 F-02／F-05）。故取值按「组是否参与匹配」并滤除空块，与 `_target_blocks()` 同口径。"""
+    blocks = [m.group(1) if m.group(1) is not None else m.group(2)
+              for m in QUOTE_BLOCK.finditer(cell or '')]
+    return [b for b in blocks if b]
 
 
 def _dir_split(cell):
@@ -350,11 +355,14 @@ def _dir_split(cell):
 def _target_blocks(cell):
     """检查 C 的逐字核对面（§二 C 行 ③）：**有方向标记**的单元格取最后一个标记**之后**的引号块
     （标记之前的是「现文」，改后已被移除，核之必假阳性）；**无方向标记**者取全部引号块（维持原口径）。
+    **空引号对（`「」`）不进核验面**：取块内容按「组是否参与匹配」判定——`or` 会把空串判假后回落到
+    `None`（另一分支未参与匹配），下游 `_strip_wrap()` 随即崩（066 批实跑触发）；故空块滤除、非空块照核。
     返回 (核验块列表, 标记后无引号块)；后者为真＝该行不核逐字、降为候选呈报。"""
     cell = cell or ''
     n, pos = _dir_split(cell)
-    blocks = [(m.start(), (m.group(1) or m.group(2)))
+    blocks = [(m.start(), m.group(1) if m.group(1) is not None else m.group(2))
               for m in QUOTE_BLOCK.finditer(cell)]
+    blocks = [(s, b) for s, b in blocks if b]
     if not n:
         return [b for _, b in blocks], False
     after = [b for s, b in blocks if s >= pos]
