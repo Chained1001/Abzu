@@ -11,6 +11,7 @@
 # TODO: [5] 脚本语法（node --check 逐域脚本）——待落 contracts 脚本后加入
 set -u
 fail=0
+seg_note_rt=()              # 运行时跳过登记（段号→括注）：末尾收尾汇总按实况拼（078 批 F5，见 _seg_summary）
 
 echo "[0] skills 目录完整性（安装器 symlink 化检测）..."
 if [ -d skills ]; then
@@ -22,7 +23,11 @@ if [ -d skills ]; then
   fi
 elif [ -e skills ] || [ -L skills ]; then echo "x skills 存在但非目录（异常形态）"; fail=1
 else
+  # 跳过不静默（078 批 F5）：原因与手动路径两行**顶格**打印（段输出规范——跳过项要告诉作者手工怎么补跑；
+  # 断言判据按行首锚定，缩进即假红）；段号登记给末尾收尾汇总（按实况拼，不写死机器状态）。
   echo "  skills 目录尚未建立，跳过"
+  echo '手动路径：确认 `skills/` 为真实目录（`ls -ld skills`）且未被安装器符号链接化'
+  seg_note_rt[0]="[0] skills 未建"
 fi
 
 echo "[1] Markdown 体检（markdownlint）..."
@@ -57,6 +62,35 @@ else
   # 也不置红；静态发现恒 0（非阻断，候选类只呈报），故本段置红只可能来自 Python 缺失或工具参数错误
   "$PY" scripts/check_spec.py --static ${spec_files[@]+"${spec_files[@]}"} || fail=1
 fi
+
+_seg_summary() {
+  # 收尾汇总（078 批 F5）：跳过项的可见化落点 ＋ 手动路径指引——**顶格打印**（段输出规范：跳过不得静默；
+  # 判据按行首 `^共 N 段` 锚定，缩进即假红）。段序与待建段按**头注**（段序唯一真源）实况取：`# [N] `
+  # 行＝已实现段、`# TODO: [N] ` 行＝待建段；运行时跳过由各段登记给 seg_note_rt——均不得写死机器状态
+  # （`skills/` 一旦建起，写死的「跳过」即变假陈述）。
+  local _l _i _ran=0 _skip=0 _desc="" _self="${BASH_SOURCE[0]:-$0}"
+  if [ ! -r "$_self" ]; then
+    # 段序来源不可读（078 批 P-4）：只打显式标记——**不**打错误段数、**不**置红
+    echo "段序来源不可读（${_self:-未取到路径}）：段数与跳过项未取到，手动路径见各段"
+    return
+  fi
+  while IFS= read -r _l; do
+    [ "$_l" = "set -u" ] && break     # 头注止于 `set -u` 行（078 批 P-3）：其后正文的列 0 注释不计成段
+    case "$_l" in
+      '# TODO: ['[0-9]*']'*) _i=${_l#'# TODO: ['}; _i=${_i%%]*}
+        _skip=$((_skip + 1)); _desc="${_desc}[${_i}] 待建／" ;;
+      '# ['[0-9]*']'*) _i=${_l#'# ['}; _i=${_i%%]*}
+        if [ -n "${seg_note_rt[$_i]:-}" ]; then
+          _skip=$((_skip + 1)); _desc="${_desc}${seg_note_rt[$_i]}／"
+        else
+          _ran=$((_ran + 1))
+        fi ;;
+    esac
+  done < "$_self"
+  [ -n "$_desc" ] || _desc="无"
+  echo "共 $((_ran + _skip)) 段：已跑 ${_ran}｜跳过 ${_skip}（${_desc%／}）｜手动路径见各段"
+}
+_seg_summary
 
 if [ "$fail" -ne 0 ]; then
   echo "== 检查未全绿，禁止提交 =="

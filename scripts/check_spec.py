@@ -13,11 +13,17 @@
 与 git 的 `diff`／`status`／`log`／`show`／`grep`（git 族另按「子命令 ＋ 参数白名单」判，见
 `GIT_READONLY_OPTS`）；`find`／`sed` **在提取面、不在执行面**（仍被提取，仍以「跳过（非只读白名单
 形态）」呈报——二者参数面含写盘与命令执行）。口径＝**宁可漏审不可误执行**。
-**不可审计类（六类，枚举的唯一落点＝本节；判据实现见 `unauditable()`）**：① shell 解释器／包执行器族
-（`bash`／`sh`／`node`／`npx`）；② 解释器任意代码入口（`python -c`，`-c` 后不要求空白）；③ 裸解释器
-（`python` 单命令）；④ 展开符 `$` 与反引号——**不论引号内外**一律判不可审计（引号内不是壳层保护）；
-⑤ 引号**外** shell 元字符（`|`／`;`／`&`／`<`／`>`）；⑥ `sed` 非 `-n`（`sed` 已移出执行面，本项只作
-提前呈报）。
+**不可审计类（六类，枚举的唯一落点＝本节；判据实现见 `unauditable()`，正则族 `^(python3?|py)\\b`
+——② 另接 `.*\\s-c`、③ 另接 `\\s*$`）**：
+① shell 解释器／包执行器族（`bash`／`sh`／`node`／`npx`）；② 解释器任意代码入口（`python3 -c`／
+`python -c`／`py -c`，`-c` 后不要求空白）；③ 裸解释器（`python3`／`python`／`py` 单命令）；④ 展开符
+`$` 与反引号——**不论引号内外**一律判不可审计（引号内不是壳层保护）；⑤ 引号**外** shell 元字符
+（`|`／`;`／`&`／`<`／`>`）；⑥ `sed` 非 `-n`（`sed` 已移出执行面，本项只作提前呈报）。
+**子进程与宿主语义（078 批 F4）**：两处子进程（动态阶段 `report()`／核验模式 `_git_changes()`）经
+`shell=True` 调用，宿主语义为「POSIX→`/bin/sh`、Windows→`cmd.exe`」（本机为后者，动态阶段历批实证
+可用）；`$`／反引号／引号外元字符一律判不可审计后，两宿主的**可达命令面已是同一批简单 argv 形态**、
+差异面已关闭——故不改调用方式（显式 `executable='bash'` 须另解「bash 在哪」，Windows 下
+`shutil.which('bash')` 未必命中且可能是 WSL 语义）。解冻触发＝作者要求守卫行为跨宿主可复现时。
 用法与参数：`python scripts/check_spec.py [--static|--verify] <规格路径> [更多规格路径...]`
   · `--static`：只跑静态检查（`check.sh` [4] 段的调用形态）；**零位置参数时打印「无在制规格，跳过」
     并退出 0**（提交时在制规格通常为 0，明示跳过属预期常态）。
@@ -191,7 +197,11 @@ FENCE_BLOCK = re.compile(r'^\s*(```|~~~)[a-zA-Z]*\s*$')
 BACKTICK_RUN = re.compile(r'`+')
 BOLD_LEAD = re.compile(r'^\s*\*\*[^*\n]+\*\*\s*[：:]\s*$')
 LIST_LEAD = re.compile(r'^\s*(?:[-*+]|\d+[.)])\s')
-MD_LINK = re.compile(r'\[[^\]\n]*\]\(([^)\s]+?)\)')
+# 带 title 的链接（078 批 F2）：目标＝非空且不含空白／`)`，其后可跟**一个**由空白分隔的**引号包裹**
+# title 段（只认 CommonMark 的 `"…"`／`'…'` 两种，**不得**扩认全角括号等形态）——`[x](p "t")` 形态
+# 照常计数并查断链。**不得**放宽为「`)` 前可有空白」：那会把 `[x](a b)` 这类**非法**形态静默吞入
+# （现形式下整条不匹配，正是本批要修的假阴性；本仓语料带 title 链接 0 条，故现形式下零差异）。
+MD_LINK = re.compile(r'''\[[^\]\n]*\]\(([^)\s]+?)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\)''')
 # 检查 D ④ 的适用面：该类判据隐含「该件会被归档」，故对**从不归档**的件不判——即 check.sh [4] 段
 # 扫描集排除的那份台账（docs/specs/collab-log.md）；**历史形态保留**（该台账机制已废、文件不存在，
 # 常量留作「未来同类件」的显式登记位）
@@ -480,16 +490,17 @@ def _quoted_blocks(cell):
 
 
 def _dir_split(cell):
-    """按**方向标记**切分单元格：返回 (标记数, 最后一个标记的结束位置)。无标记返回 (0, 0)。
+    """按**方向标记**切分单元格：返回 (是否含标记, 最后一个标记的结束位置)。无标记返回 (False, 0)。
     标记判定在**整格原文**上做（标记可能落在引号块内部——如 059 D2 的 `→`，此时其后无引号块，
-    正是「不核逐字」分支要的形态）。"""
-    pos, n = 0, 0
+    正是「不核逐字」分支要的形态）。**计数语义已在 078 批删除**（F3）：调用方（`_target_blocks()`）
+    只把首元作布尔用（旧 `n` 的真假 ≡ `n ≥ 1`），故返回布尔——行为等价，逐例可核。"""
+    pos, hit = 0, False
     for mark in DIR_MARKS:
         i = (cell or '').rfind(mark)
         if i != -1:
-            n += 1
+            hit = True
             pos = max(pos, i + len(mark))
-    return n, pos
+    return hit, pos
 
 
 def _target_blocks(cell):
@@ -499,11 +510,11 @@ def _target_blocks(cell):
     `None`（另一分支未参与匹配），下游 `_strip_wrap()` 随即崩（066 批实跑触发）；故空块滤除、非空块照核。
     返回 (核验块列表, 标记后无引号块)；后者为真＝该行不核逐字、降为候选呈报。"""
     cell = cell or ''
-    n, pos = _dir_split(cell)
+    has_mark, pos = _dir_split(cell)
     blocks = [(m.start(), m.group(1) if m.group(1) is not None else m.group(2))
               for m in QUOTE_BLOCK.finditer(cell)]
     blocks = [(s, b) for s, b in blocks if b]
-    if not n:
+    if not has_mark:
         return [b for _, b in blocks], False
     after = [b for s, b in blocks if s >= pos]
     return after, not after
@@ -951,9 +962,10 @@ def check_reconcile(text, root):
     返回 **(候选行列表, 汇总行列表)**——候选行由调用方并入末尾三态判据（`findings`），
     汇总行**只进逐件打印串、不计入**（角色同「· B：判定 …」明示行）。
 
-    **发射面**：只对「含文件级改动清单节**且** C ≠ ∅」的件产出——无该节或 C ＝ ∅ 的件
-    候选与汇总**皆不输出**（完全静默；「跳过」的可见化落点由本判各件的汇总行承担，
-    不逐件另打明示行——实测 16／19 件无补集式断言，逐件明示即 51 行噪声）。
+    **发射面**（078 批 F1 收口）：对「含文件级改动清单节**且** C ≠ ∅」的件产 候选行 ＋ 汇总行；
+    对「有该节**且有改动行**、而 C ＝ ∅」的件产**一行空转明示**（同候选行计入 `findings`——观测缺口
+    的可见化）；无该节的件 候选／汇总／空转**皆不输出**（完全静默——「跳过」的可见化落点由汇总行与
+    空转明示承担，不逐件另打明示行——实测 16／19 件无补集式断言，逐件明示即 51 行噪声）。
 
     **C（改动面）取集**：全部改动行的路径单元格内**逐个**路径 token 判实存，取实存者为改动件。
     **不复用 `_row_target_file()`**——后者只返回首个 token，而实测有 3 行的路径列含 ≥2 个实存
@@ -969,7 +981,8 @@ def check_reconcile(text, root):
     **判二（断言排除集缺）**：E＝验收断言节内 `':!<path>'` 形态（`EXCLUDE_TOKEN`）的路径集
     （归一化＝去首尾空白与尾随斜杠）；**E 为空即跳过**（实测 19 件有验收节的语料中仅 3 件有此
     形态，逐件报即纯噪声）；否则对每件 `x ∈ C`，无 `e ∈ E` 使 `x == e` 或以 `e` ＋斜杠起首者
-    → 出候选行（列缺项件名）。"""
+    → 出候选行（列缺项件名）；汇总行记其**缺项件数**（字段名 `判二缺`——078 批 F1 由旧名
+    `判二命中` 改名，**取值不变**）。"""
     rows, _skipped = _change_rows(text)
     targets = []
     for row in rows:
@@ -978,11 +991,15 @@ def check_reconcile(text, root):
                 targets.append(t)
     targets.sort()
     if not targets:
-        return [], []       # 无改动清单节或 C ＝ ∅：候选与汇总皆不输出（完全静默）
+        # 空转明示（078 批 F1）：只对「有改动清单节**且有改动行**、而 C ＝ ∅」的件产一行（该行同候选行
+        # **计入** `findings`）；无该节者仍**完全静默**——逐件明示即刷屏（见函数头注「发射面」）。
+        if rows:
+            return [f'· 对账① 空转: 有改动行 {len(rows)} 行而无可解析实存件——对账未判'], []
+        return [], []       # 无改动清单节：候选与汇总皆不输出（完全静默）
     cands = []
     ban = _section(text, BAN_SECTION)
     no_ban = 1 if not ban.strip() else 0
-    hit_one = 0
+    applicable = 0      # 判一**命中前缀**的件数（无论是否豁免；078 批 F1）
     if not no_ban:
         prefixes = {m.rstrip('/') for m in BAN_PREFIX.findall(ban)
                     if os.path.isdir(_abs(m.rstrip('/'), root))}
@@ -990,12 +1007,12 @@ def check_reconcile(text, root):
         for x in targets:
             if not any(x.startswith(p + '/') for p in prefixes):
                 continue
+            applicable += 1
             excused = any(any(w in c for w in BAN_EXCUSE_MARKS)
                           and (x in c or os.path.basename(x) in c or BAN_LANDING.search(c))
                           for c in clauses)
             if not excused:
                 cands.append(f'· 对账① 禁改面未豁免: {x}')
-                hit_one += 1
     excludes = {e.strip().rstrip('/')
                 for e in EXCLUDE_TOKEN.findall(_section(text, SECTION))}
     excludes = {e for e in excludes if e}
@@ -1006,8 +1023,13 @@ def check_reconcile(text, root):
                    if not any(x == e or x.startswith(e + '/') for e in excludes)]
         if missing:
             cands.append(f'· 对账① 断言排除集缺 {len(missing)} 件: ' + '、'.join(missing))
-    summary = (f'· 对账① 汇总: 改动面 {len(targets)} 件｜判一命中 {hit_one}｜'
-               f'判二命中 {len(missing)}｜跳过：无禁改面句 {no_ban}｜无补集式断言 {no_exc}')
+    # 汇总行四项计数（078 批 F1 口径收口）：改动行＝该件改动清单**表体行数** M（非路径 token 数——
+    # 059 实测 33 行而可解析仅 3 件）；可解析＝C 的件数 N；判一适用＝**命中禁改面前缀**的件数 K
+    # （无论是否豁免；**出候选**的件数不另计——即本判「禁改面未豁免」候选行的条数）；
+    # 判二缺＝断言排除集**缺项**件数 P（旧字段 `判二命中` 之值，**只改名不改值**，不得读作「已覆盖」）。
+    summary = (f'· 对账① 汇总: 改动行 {len(rows)} 行｜可解析 {len(targets)} 件｜'
+               f'判一适用 {applicable} 件｜判二缺 {len(missing)} 件｜'
+               f'跳过：无禁改面句 {no_ban}｜无补集式断言 {no_exc}')
     return cands, [summary]
 
 
