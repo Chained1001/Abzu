@@ -12,8 +12,12 @@
 **执行面白名单（修后实况，075 批 F1）**：可执行族仅 `e?grep`／`fgrep`／`wc`／`head`／`tail`／`ls`／`cat`
 与 git 的 `diff`／`status`／`log`／`show`／`grep`（git 族另按「子命令 ＋ 参数白名单」判，见
 `GIT_READONLY_OPTS`）；`find`／`sed` **在提取面、不在执行面**（仍被提取，仍以「跳过（非只读白名单
-形态）」呈报——二者参数面含写盘与命令执行）；`$` 与反引号**不论引号内外**一律判不可审计（引号内不是
-壳层保护）。口径＝**宁可漏审不可误执行**。
+形态）」呈报——二者参数面含写盘与命令执行）。口径＝**宁可漏审不可误执行**。
+**不可审计类（六类，枚举的唯一落点＝本节；判据实现见 `unauditable()`）**：① shell 解释器／包执行器族
+（`bash`／`sh`／`node`／`npx`）；② 解释器任意代码入口（`python -c`，`-c` 后不要求空白）；③ 裸解释器
+（`python` 单命令）；④ 展开符 `$` 与反引号——**不论引号内外**一律判不可审计（引号内不是壳层保护）；
+⑤ 引号**外** shell 元字符（`|`／`;`／`&`／`<`／`>`）；⑥ `sed` 非 `-n`（`sed` 已移出执行面，本项只作
+提前呈报）。
 用法与参数：`python scripts/check_spec.py [--static|--verify] <规格路径> [更多规格路径...]`
   · `--static`：只跑静态检查（`check.sh` [4] 段的调用形态）；**零位置参数时打印「无在制规格，跳过」
     并退出 0**（提交时在制规格通常为 0，明示跳过属预期常态）。
@@ -75,14 +79,17 @@ MUTATING = re.compile(
 # 须落在该子命令的允许集内，否则判非只读。不用黑名单枚举：黑名单天然不完备（成稿审查实证四条通路
 # 被放行并执行——`git grep -O` 走 pager 执行任意命令、`--textconv`、`git diff --ext-diff`、
 # `git diff --output=FILE` 写盘 14202B）。形态：exact＝逐字命中集；prefix＝带值形态的前缀集
-# （`-U<n>`／`--pretty=<fmt>`／`--untracked-files=<mode>`／`-u<mode>`）；`--` 为参数分隔符，恒允许。
+# （`-U<n>`／`--pretty=<fmt>`／`--untracked-files=<mode>`／`-u<mode>`）；**`-e`／`--regexp` 已移出
+# `grep` 允许集**（076 批 F3 ①——取值型选项会把紧随的「`--`」当成它的**值**吃掉、其后实参仍按选项解析，
+# 故 `git grep -F -e -- -O <pager> f` 原会被放行并重开 pager 面）：**允许集内已无取值型选项，故 `--`
+# 必为真分隔符**，`_git_readonly()` 遇 `--` 即跳出、其后实参一律放行（076 批 F3 ②）。
 _GIT_DIFF_LIKE = (('-p', '--stat', '--numstat', '--shortstat', '--name-only', '--name-status',
                    '--word-diff', '--no-index', '--oneline', '--no-color'),
                   ('-U', '--pretty='))
 GIT_READONLY_OPTS = {
-    'grep': (('-F', '-c', '-n', '-i', '-w', '-l', '-L', '-e', '-E', '-G', '-P',
+    'grep': (('-F', '-c', '-n', '-i', '-w', '-l', '-L', '-E', '-G', '-P',
               '--fixed-strings', '--count', '--line-number', '--ignore-case', '--word-regexp',
-              '--files-with-matches', '--files-without-match', '--regexp', '--extended-regexp',
+              '--files-with-matches', '--files-without-match', '--extended-regexp',
               '--basic-regexp', '--perl-regexp'), ()),
     'diff': _GIT_DIFF_LIKE,
     'log': _GIT_DIFF_LIKE,
@@ -187,7 +194,7 @@ def extract(text):
         if ALLOWED.match(c) and c not in seen:
             cmds.append(('行内', c))
             seen.add(c)
-    for block in re.findall(r'```[a-z]*\n(.*?)```', section, re.S):
+    for block in re.findall(r'```[a-zA-Z]*\n(.*?)```', section, re.S):
         for line in block.splitlines():
             c = line.strip()
             if (c and ALLOWED.match(c) and not c.startswith('#')
@@ -249,7 +256,10 @@ def _git_readonly(c):
     """git 族：**子命令 ＋ 参数白名单**（075 批 F1 ①）。返回 False＝非只读（含未知子命令、
     集外选项、聚合短选项如 `-sb` 或 `-nO`——逐字匹配天然拒之，宁可漏审不可误执行）。
     每个以 `-` 起首的实参（**剥去外层引号后**判——`git diff "--output=F"` 经壳层剥离引号后即为选项，
-    不剥即漏）须落在该子命令的允许集内；`--` 为参数分隔符，恒允许。"""
+    不剥即漏）须落在该子命令的允许集内；遇 `--` 即跳出循环——**`--` 之后一律放行**（其后的实参按通用
+    语义是路径／模式，不是选项）。**不变量**：允许集内已无取值型选项（`-e`／`--regexp` 已移出，076 批
+    F3 ①），故 `--` 必为真分隔符；若将来往允许集里加回任何**消耗实参**的选项，此「跳出」即失效（该
+    选项会把 `--` 当值吃掉、其后实参仍按选项解析），届时须同步收严本判据。"""
     parts = c.split()
     if len(parts) < 2:
         return False
@@ -259,7 +269,9 @@ def _git_readonly(c):
     exact, prefix = spec_opts
     for a in parts[2:]:
         t = a.lstrip('"\'')
-        if not t.startswith('-') or t == '--':
+        if t == '--':
+            break
+        if not t.startswith('-'):
             continue
         if t in exact or any(t.startswith(p) for p in prefix):
             continue
@@ -516,6 +528,18 @@ def _assert_refs(text):
     return refs
 
 
+def _read_target(path):
+    """**目标件读取口径的唯一落点**（076 批 F2）：UTF-8 解码 ＋ 对不可解码字节容错（`errors` 取
+    `replace`——遇二进制／非 UTF-8 件不抛 `UnicodeDecodeError`），返回该件**文本**。三处调用点共用——
+    `check_swallow()`（按行计数）、`check_pairs()`（逐字命中）、`check_counts()`（字符数／行数／加粗
+    标记数）：口径漂移即出自三处各写一遍（075 批只改了 `check_counts()` 一处，另两处同型崩溃面留存）。
+    **行数口径＝换行符出现次数**（与 `wc -l` 一致）：调用方切行须**以 `'\\n'` 为唯一分隔**
+    （`text.split('\\n')`）——**禁**用 `splitlines()`（后者额外在垂直制表符／换页符／NEL／行分隔符处
+    切行，同一件会多算行）。"""
+    with open(path, encoding='utf-8', errors='replace') as f:
+        return f.read()
+
+
 def check_swallow(text, root):
     """检查 A：断言自噬预警（只呈报，不影响退出码）。返回 (输出行列表, 提取断言数, 命中条数)。
     **hit 门**＝「该断言的目标件出现在某条 [A]／[B] 行」（表格形态判据；源件的「改动清单节内有 `###`
@@ -577,8 +601,10 @@ def check_swallow(text, root):
         exists = os.path.isfile(path)
         cur = 0
         if exists:
-            with open(path, encoding='utf-8') as f:
-                cur = sum(1 for line in f if token in line)
+            content = _read_target(path)
+            # 行计数＝换行符出现次数（`'\n'` 为唯一分隔符，与 `wc -l` 同口径；**禁** `splitlines()`，
+            # 它会在垂直制表符／换页符等处额外切行——076 批 F2 把读法收进 `_read_target()`）
+            cur = sum(1 for line in content.split('\n') if token in line)
         hit = [r for r in a_rows if _row_mentions(r, target)]
         if not hit:
             lines.append(f'· 跳过（目标件不出现在任何改动行）: {token} @ {target}')
@@ -699,9 +725,9 @@ def check_counts(text, root):
             continue
         for target, seg in targets:
             if target not in cache:
-                # 容错读（F12）：二进制／非 UTF-8 件不抛 UnicodeDecodeError（目标件可能是任意被引用件）
-                with open(_abs(target, root), encoding='utf-8', errors='replace') as f:
-                    content = f.read()
+                # 容错读（076 批 F2）：二进制／非 UTF-8 件不抛 UnicodeDecodeError（目标件可能是任意
+                # 被引用件）；读口径统一在 `_read_target()`（本处原为就地容错读，075 批 F12）
+                content = _read_target(_abs(target, root))
                 # 三元组＝（字符数／行数／加粗标记数）：行数与 `wc -l` 同口径（`'\n'` 计数，F3）；
                 # 加粗标记数一次读入即缓存，「处」的实测值取第三项（F11，收敛 073-1 的「另读一次」）
                 cache[target] = (len(content), content.count('\n'), content.count('**'))
@@ -786,8 +812,9 @@ def check_pairs(text, root):
             continue
         path = _abs(target, root)
         if path not in cache:
-            with open(path, encoding='utf-8') as f:
-                cache[path] = f.read()
+            # 容错读（076 批 F2）：本处原为裸读（容错解码参数缺位），引用二进制目标件时同型
+            # `UnicodeDecodeError` 残留；读口径统一在 `_read_target()`
+            cache[path] = _read_target(path)
         content = cache[path]
         for block in blocks:
             # 多行串按行切片，逐行要求命中（避免整段因一处空格差异而误判）；单行过短者跳过（噪声防护）
