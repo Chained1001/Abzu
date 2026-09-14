@@ -36,7 +36,7 @@
   注入变量，消掉 `git status`／`diff` 刷新 `.git/` 下 index 的默认写盘副作用）；语法自检用 `ast.parse`，
   不用 `py_compile`（后者会留缓存产物）。子进程输出与目标件读取统一按 UTF-8 解码并对不可解码字节容错
   （`errors='replace'`；中文 Windows 本地编码为 GBK）。
-维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；检查 A 判据改 check_swallow()；检查 B 的
+维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理（含 083 批反转义）改 _assert_refs()；检查 A 判据改 check_swallow()（**候选待办**：`_row_target_text()` 的反转义口径未统一——若规格表格与断言命令两处转义写法不一致会失配，触发＝出现实例时同口径补反转义）；检查 B 的
   对象口径词表与判据改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 判据、表头别名与方向标记
   改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS 常量；检查 D 改
   check_writing()；新增检查 E 的判据改 check_reconcile()／BAN_SECTION／BAN_PREFIX／
@@ -564,7 +564,7 @@ def _assert_refs(text):
         args = m.group('args').strip().split('|')[0].split()
         if not args:
             continue
-        # token 反转义（083）：规格表格／围栏内的 markdown 转义（`` \` ``／`\[`／`\]`）进入命令原文，不还原则永不命中（081 断言 12／082 断言 4 两例）；**不**反转义 `\.`／`\|`（regex 语义，非字面）
+        # token 反转义（083）：规格表格／围栏内的 markdown 转义（`` \` ``／`\[`／`\]`）进入命令原文，不还原则永不命中（081 断言 12／082 断言 4 两例）；**不**反转义 `\.`／`\|`——grep BRE 中二者反转义会改语义（`\|`＝OR 操作符，裸 `|` 才是字面；`\.`＝字面点，裸 `.` 是任意符）；`\[`／`\]` 反转义前后均为字面，故安全
         refs.append((m.group('token').replace('\\`', '`').replace('\\[', '[').replace('\\]', ']'), args[-1].strip('\'"`')))
     return refs
 
@@ -981,7 +981,7 @@ def check_reconcile(text, root):
 
     **判二（断言排除集缺）**：E＝验收断言节内 `':!<path>'` 形态（`EXCLUDE_TOKEN`）的路径集
     （归一化＝去首尾空白与尾随斜杠）；**E 为空即跳过**（实测 19 件有验收节的语料中仅 3 件有此
-    形态，逐件报即纯噪声）；否则对每件 `x ∈ C`，无 `e ∈ E` 使 `x == e` 或以 `e` ＋斜杠起首者
+    形态，逐件报即纯噪声。**取舍为有意**——信号由汇总行「跳过：无补集式断言」字段逐件承载（人据此判不需要或忘写），不另产候选行）；否则对每件 `x ∈ C`，无 `e ∈ E` 使 `x == e` 或以 `e` ＋斜杠起首者
     → 出候选行（列缺项件名）；汇总行记其**缺项件数**（字段名 `判二缺`——078 批 F1 由旧名
     `判二命中` 改名，**取值不变**）。"""
     rows, _skipped = _change_rows(text)
