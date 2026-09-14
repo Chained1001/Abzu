@@ -6,6 +6,8 @@
 
 ### Added
 
+- 最小壳与真机试验（087）：首个 skill 壳落地（`skills/abzu-outline/SKILL.md`——四节骨架／五键／建设状态如实告知段）；`check.sh` 启用 `[2]` 段（纯本地断言：逐壳六项＋段行一条，零外部依赖；产物审查后补修四节名锚定、二级目录形态与段内 locale）；各处「未建」状态真源同步（产品层 6 处／外部 2 处／标准件 12 处，另两处后置待走查）；真机走查改本地安装路径（明文禁 `npx skills add`——其装远端旧壳）。核验：`bash scripts/check.sh` 全绿、lint 0 issue、链接一行式 175／断链 0、断言 1–12 逐条实跑（两处已呈报并据裁定订正规格：4② 锚点补 `#` 前缀／5 两控限 `[2]` 段内）。
+
 ### Changed
 
 - skill 资产结构对齐（086）：资产结构由「目录三件」对齐为 Agent Skills 标准形态——引入 `assets/`（模板与资源）、模板从 `references/` 迁 `assets/`、`references` 平铺去 `{skill 名}/` 子目录层、分流判据（被读的说明归 `references/`、被填的骨架归 `assets/`）落 §1、修「三件」三处自相抵（§1／条目 3／机检锚点）、`术语标准` 的 skill 资产定义同步；改动 17 处／3 件标准件（`skill形态标准` 8／`命名标准` 8／`术语标准` 1），本批只对齐规则、不建 `skills/`。核验：`bash scripts/check.sh` 全绿、lint 0 issue、链接一行式 175 断链 0、断言 1-9 全过、`git status` 5 行无 `skills/`。
