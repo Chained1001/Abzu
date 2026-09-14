@@ -564,7 +564,8 @@ def _assert_refs(text):
         args = m.group('args').strip().split('|')[0].split()
         if not args:
             continue
-        refs.append((m.group('token'), args[-1].strip('\'"`')))
+        # token 反转义（083）：规格表格／围栏内的 markdown 转义（`` \` ``／`\[`／`\]`）进入命令原文，不还原则永不命中（081 断言 12／082 断言 4 两例）；**不**反转义 `\.`／`\|`（regex 语义，非字面）
+        refs.append((m.group('token').replace('\\`', '`').replace('\\[', '[').replace('\\]', ']'), args[-1].strip('\'"`')))
     return refs
 
 
