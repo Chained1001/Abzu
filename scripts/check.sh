@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# 一键检查（提交前必跑）。段序即维护入口——新增检查在此追加一段；本头注是段序的唯一真源，其他文档不复述列表。
+# 一键检查（提交前必跑）。段序即维护入口——新增检查在此追加一段；本头注是段序的唯一真源，其他文档不复述列表。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判据的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
 # 用法：bash scripts/check.sh
-# 依赖与前置：Node.js（[1] 段需 npx，未找到即置红）；Python 3（[3]／[4] 段需 python3／python／py，三级链均缺即置红）；命令行按 Git Bash 语义执行（Windows）。
+# 依赖与前置：Node.js（[1] 段需 npx，未找到即置红）；Python 3（[3]／[4]／[5] 段需 python3／python／py，三级链均缺即置红）；命令行按 Git Bash 语义执行（Windows）。
 #
 # [0] skills 目录完整性（安装器 symlink 化检测）——目录未建时跳过
 # [1] Markdown 体检（markdownlint）
@@ -154,7 +154,7 @@ fi
 echo "[5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）..."
 # 三类目标件逐类跑：`skills/*/scripts/*.js`（node --check）／`scripts/*.py`（ast.parse——**不用
 # `py_compile`**：后者落 `__pycache__`，守卫不得有写盘副作用）／各 `.sh`（`bash -n`，含
-# `scripts/hooks/pre-commit`）。本批零 `.js` 目标件——**不探 Node**、只打一行信息；
+# `scripts/hooks/pre-commit`）。**零 `.js` 目标件**——**不探 Node**、只打一行信息；
 # **仅当三类目标件全空时**才明示跳过并登记 seg_note_rt[5]（有 `.py`／`.sh` 即不跳过）。
 # 置红接线（093 批 F6④）：语法错与前置缺失均接到 fail。
 seg_js=0
