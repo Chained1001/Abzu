@@ -1,4 +1,4 @@
-"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出六类规格缺陷）。
+"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出七类规格缺陷）。
 
 事故出身与历次裁定：见 `CHANGELOG.md` 对应条目与 `docs/specs/archive/` 各批规格。
 
@@ -7,7 +7,7 @@
 待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
 命令对齐时呈报同名候选行）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
-机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）——六类一律
+机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）——七类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
 整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
 （规格断言多系施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
@@ -45,6 +45,8 @@
   BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；新增检查 F 的判据改
   check_ban_words()／_ban_words()／BAN_WORD_CLAUSE／BAN_WORD_RUN（**顶层第六类「检查 F」**——
   与规格正文内的子判据标签 `（F1）`／`（F2）` **不同族**：后者是某条改动的自由度子项，勿混读）；
+  新增检查 G 的判据改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL；
+  格数校验（F8）改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH／_cell_mismatch_reset()；
   阶段编排、呈报前缀、空转明示与
   末尾三态判据改 static_report()；核验比对改
   verify_report()；模式分派与退出契约改 __main__；**动态阶段的执行面（族门／git 子命令参数白名单／
@@ -54,7 +56,7 @@
   断言吞自家 [A] 文本／对象错／计数错／恒真假绿；2026-09-07 作者裁定守卫化）；本工具由旧仓
   `scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
   `grep -c "TOKEN" FILE` 载体）。
-退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F 六类无论报出多少条发现，一律只呈报、
+退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G 七类无论报出多少条发现，一律只呈报、
   不影响退出码（`AGENTS.md` §五.2 候选永不拦截）。区分：`--verify` 模式的**过程产物缺失**可置退出 1
   （该模式不进 `check.sh` 门禁）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。
   呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类（故源件的 `x 计数不符` 改为
@@ -69,8 +71,8 @@
   生效，且单元格内有**方向标记**（`→`／`改述为`／`改为`／`改作`／`替换为`／`换为`）时只核**最后一个标记
   之后**的引号块（标记之前是「现文」＝改后已移除的旧文，核之必假阳性）；标记之后无引号块者该行不核、
   降为候选呈报（见 DIR_MARKS／_target_blocks()）。
-呈报守恒：末尾三态判据计入 A／B／C／D／E／F 六类全部输出（含 B 的计数行与 **E／F** 的候选行；**E／F 的汇总行
-  不计入**），「· 无发现」只在六类全空时打印。
+呈报守恒：末尾三态判据计入 A／B／C／D／E／F／G 七类全部输出（含 B 的计数行与 **E／F／G** 的候选行；**E／F／G 的汇总行
+  不计入**），「· 无发现」只在七类全空时打印。
 """
 import os
 import re
@@ -196,6 +198,8 @@ LINE_LEAD = re.compile(r'^\s*(?:[-*+]\s+(?:\[[ xX]\]\s*)?|\d+[.)]\s+|\[[ xX]\]\s
 # 检查 A／C 共用的表格形态判据：改动清单为 Markdown 表格，列角色按表头别名定位
 TABLE_ROW = re.compile(r'^\s*\|.*\|\s*$')
 TABLE_SEP = re.compile(r'^\s*\|[\s:|\-]+\|\s*$')
+# 表格单元格切分（093 批 F7）：分隔符＝**未转义**竖线——负向后视排除 `\|`（转义竖线是单元格内容）
+_CELL_SPLIT = re.compile(r'(?<!\\)\|')
 HDR_PATH_ALIASES = ('文件', '新产品文档')
 HDR_FREEDOM_ALIAS = '自由度'
 HDR_CHANGE_ALIAS = '改动'
@@ -226,6 +230,12 @@ NEVER_ARCHIVED = ('collab-log.md',)
 # 静态检查的扫描面排除项：`施工机制.md` **不是规格**，其 §八 模板内嵌本节标题（扫之即假发现源）；
 # `check.sh` [4] 段的枚举口径已排除，此处再兜一道（工具被直接喂入时亦跳过并明示）
 NEVER_SCANNED = ('施工机制.md',)
+# 检查 G（093 批 F22）：规格头注「自由度分布」的三种可数结构 ＋ 表头行的定位词。
+# 头注形态（各批实测）：`[A]×15 [B]×6 ＋ **混合×2**（…），共 **23 行**`／`[A]×4 [B]×8（F1／…）`
+FREEDOM_HEAD = re.compile(r'自由度分布')
+FREEDOM_COUNT = re.compile(r'\[([ABC])\]\s*[×xX*]\s*(\d+)')
+FREEDOM_MIXED = re.compile(r'混合\s*[×xX*]\s*(\d+)')
+FREEDOM_TOTAL = re.compile(r'共\s*\**\s*(\d+)\s*\**\s*行')
 
 
 def extract(text):
@@ -435,13 +445,18 @@ def _section(text, pattern):
 
 
 def _cells(line):
-    """Markdown 表格行 → 单元格文本列表（去首尾竖线与每格空白）。"""
+    """Markdown 表格行 → 单元格文本列表（去首尾竖线与每格空白）。
+    **认转义竖线**（093 批 F7）：按**未转义**竖线切分（`_CELL_SPLIT` 的负向后视形态），并把切出的
+    单元格内的转义竖线**还原为竖线字符**——朴素按字符切分（`s.split('|')`）会把含 `\\|` 的行切出
+    多于表头的格数、令 `[A]` 落到错列，进而被 `check_pairs()` 的
+    `if '[A]' not in row['freedom']: continue` **静默跳过**（091 批加粗漂移即由此漏网；盲区根因与
+    补登记见 `092` §七）。收尾竖线的剥除同认转义：束尾者恰为 `\\|` 时它是**内容**、不剥。"""
     s = line.strip()
     if s.startswith('|'):
         s = s[1:]
-    if s.endswith('|'):
+    if s.endswith('|') and not s.endswith('\\|'):
         s = s[:-1]
-    return [c.strip() for c in s.split('|')]
+    return [c.strip().replace('\\|', '|') for c in _CELL_SPLIT.split(s)]
 
 
 def _tables(text):
@@ -459,12 +474,33 @@ def _tables(text):
     return tables
 
 
+# 格数校验的暂存（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行。**模块级暂存**的理由是
+# 该函数的 **5 处调用点**（`:631` 附近／`:851` 附近／`:1004` 附近／`:1091` 附近／`:1240` 附近的原始
+# 行序）签名与既有行为不得变更——不能增第三个返回值；**件名与行号由调用方补**（`static_report()`
+# 持有规格路径，在打印周期内取 `_cell_mismatch()`）。每次 `_change_rows()` 调用起始处重置；
+# `static_report()` 逐件循环起始处亦重置（无改动清单节的件不得沿用上一件的残留）。
+_CELL_MISMATCH = []
+
+
+def _cell_mismatch_reset():
+    """清空格数校验暂存（`_change_rows()` 每次调用起始处 ＋ `static_report()` 逐件起始处调用）。"""
+    del _CELL_MISMATCH[:]
+
+
+def _cell_mismatch():
+    """取最近一次解析周期的格数不符记录：`[(行原文, 实测格数, 表头格数)]`（只读，不清空）。"""
+    return list(_CELL_MISMATCH)
+
+
 def _change_rows(text):
     """解析「文件级改动清单」节内的**表格**，返回 (行列表, 跳过表数)。
     行＝{'path','change','freedom','raw'}（各自为单元格文本，缺列时为空串）。列角色按**表头别名**定位：
     路径列＝表头含「文件」或「新产品文档」者（059 的路径列在第 1 列且表头为「新产品文档」）；自由度列＝
     表头含「自由度」者（无则取末列——059／`施工机制` §八 模板形态）；改动列＝表头含「改动」者（无则取
-    整行原文）。**无任何别名可识别的表整表跳过并计数**（由调用方明示），不猜列角色。"""
+    整行原文）。**无任何别名可识别的表整表跳过并计数**（由调用方明示），不猜列角色。
+    **格数校验**（093 批 F8）：表体行的格数与表头不符者（疑似转义竖线或列数错）记入模块级
+    `_CELL_MISMATCH`（**认不出也不静默**的第二道防线；件名与行号由调用方补，见该常量处的说明）。"""
+    _cell_mismatch_reset()
     rows, skipped = [], 0
     for table in _tables(_section(text, CHANGE_SECTION)):
         header = _cells(table[0])
@@ -481,6 +517,9 @@ def _change_rows(text):
             if TABLE_SEP.match(line):
                 continue
             cells = _cells(line)
+            if len(cells) != len(header):
+                # 格数校验（093 批 F8）：疑似转义竖线或列数错——记入暂存，件名与行号由调用方补
+                _CELL_MISMATCH.append((line, len(cells), len(header)))
             path = cells[path_i] if path_i is not None and path_i < len(cells) else ''
             if free_i is None:
                 free = cells[-1] if cells else ''
@@ -1105,18 +1144,75 @@ def check_ban_words(text, root):
     return cands, [summary]
 
 
+def check_freedom(text, root):
+    """检查 G（093 批 F22）：规格头注「自由度分布」↔ §二 改动清单**自由度列**的逐行统计。
+    返回 **(候选行列表, 汇总行列表)**——口径同检查 E／F：候选行由调用方并入末尾三态判据、汇总行只进
+    逐件打印串（**不计入**）；**候选非阻断、恒不置红**（`AGENTS.md` §五.2），退出契约不受影响。
+
+    **判据**：两侧都是**可数结构**。头注侧＝`FREEDOM_HEAD` 所在行内的 `[A]×n`／`[B]×m`／`混合×k`／
+    `共 N 行` 四种结构（`FREEDOM_*` 常量；`共 N 行` 与清单**表体行数**比对，缺写者标 `未写` 并**只比
+    已给出的项**）；清单侧＝§二 各表体行自由度单元格内 `[A]`／`[B]` 的**并存**情形——两者皆含者计入
+    「混合」，只含其一者计入该侧，两者皆无者只进总行数（`[C]` 行不属 A／B 两侧，故由 `共 N 行` 兜住）。
+    **混合×k 缺写＝按 0 比**：只声明 `[A]×n [B]×m` 而清单内实有 `[A]／[B]` 并存行者即出候选——该族
+    缺陷本仓第五次复发才机械化（`测试与验收标准` §4 G22）。
+    **静默条件（硬）**：头注无「自由度分布」行 ⇒ **完全不输出**（连汇总行都不打——防误报的判据落在
+    字面上）；有改动清单节而**一行表体行都解析不出**者仍出候选（两侧无法对账，属真不自洽）。
+    本检查不读写磁盘（核对面取自规格文本本身，`root` 只作签名一致）。"""
+    head = next((l for l in text.split('\n') if FREEDOM_HEAD.search(l)), '')
+    if not head:
+        return [], []
+    declared = {k: int(v) for k, v in FREEDOM_COUNT.findall(head)}
+    m_mixed = FREEDOM_MIXED.search(head)
+    m_total = FREEDOM_TOTAL.search(head)
+    d_mixed = int(m_mixed.group(1)) if m_mixed else None
+    d_total = int(m_total.group(1)) if m_total else None
+    rows, _skipped = _change_rows(text)
+    c_a = c_b = c_mixed = 0
+    for row in rows:
+        cell = row['freedom'] or ''
+        has_a, has_b = '[A]' in cell, '[B]' in cell
+        if has_a and has_b:
+            c_mixed += 1
+        elif has_a:
+            c_a += 1
+        elif has_b:
+            c_b += 1
+
+    def fmt(a, b, k, t):
+        return f'[A]×{a} [B]×{b} 混合×{k} 共 {t} 行'
+
+    def show(v):
+        return v if v is not None else '未写'
+
+    head_s = fmt(declared.get('A', '未写'), declared.get('B', '未写'), show(d_mixed), show(d_total))
+    list_s = fmt(c_a, c_b, c_mixed, len(rows))
+    diffs = []
+    for name, d, c in (('[A]', declared.get('A'), c_a), ('[B]', declared.get('B'), c_b),
+                       ('混合', d_mixed if d_mixed is not None else 0, c_mixed),
+                       ('共 N 行', d_total, len(rows))):
+        if d is not None and d != c:
+            diffs.append(f'{name} 头注 {d} ≠ 清单 {c}')
+    cands = []
+    if diffs:
+        cands.append(f'· 检查 G 头注「自由度分布」与改动清单不符: 头注 {head_s}；清单 {list_s}'
+                     f'（' + '；'.join(diffs) + '）')
+    summary = (f'· 检查 G 汇总: 头注 {head_s}｜清单 {list_s}｜'
+               f'不符 {len(diffs)} 项')
+    return cands, [summary]
+
+
 def static_report(specs, root):
     """静态检查阶段编排：打印 == 静态自检 == 与逐项结果。
-    **返回值恒为 False**：静态发现（A／B／C／D／E／F 六类）一律只呈报、不置退出码（差异⑤：源件对「计数不符」
-    置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
-    末尾三态判据**须计入 A／B／C／D／E／F 六类全部输出**（含 B 的计数行、C 的候选行与 E／F 的候选行；
-    **E／F 的汇总行不计入**——其角色同明示行）：「· 无发现」只在六类
+    **返回值恒为 False**：静态发现（A／B／C／D／E／F／G 七类）一律只呈报、不置退出码（差异⑤：源件对
+    「计数不符」置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
+    末尾三态判据**须计入 A／B／C／D／E／F／G 七类全部输出**（含 B 的计数行、C 的候选行与 E／F／G 的
+    候选行、F8 的格数不符行；**E／F／G 的汇总行不计入**——其角色同明示行）：「· 无发现」只在七类
     全空时打印——漏计 B 即假绿（产物审查 P0-2：B 单源时「计数不符」与「无发现」同屏）。
     空转明示：A 在「提取 N＞0 而命中 0」时打印明示行（并抑制「· 无发现」，两者不同屏）；B 在无可判定
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    extra = []      # 检查 C／D／E／F 候选输出（同为非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
+    extra = []      # 检查 C／D／E／F／G 候选与 F8 格数不符输出（非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1128,6 +1224,7 @@ def static_report(specs, root):
             print(f'-- {spec}')
         with open(spec, encoding='utf-8') as f:
             text = f.read()
+        _cell_mismatch_reset()    # 格数校验暂存（093 批 F8）：逐件起始处清空，不沿用上一件残留
         a_lines, extracted, hits = check_swallow(text, root)
         count_lines, judged, cand = check_counts(text, root)
         c_lines = check_pairs(text, root)
@@ -1138,15 +1235,27 @@ def static_report(specs, root):
         # 检查 F（089 批 F8）：口径同 E（候选并入 `extra`、汇总只打印）；禁词表为空时**两表皆空**，
         # 该件在屏上完全静默（不打汇总、不打空转明示）——这是「不误报」判据的落点。
         f_lines, f_summary = check_ban_words(text, root)
+        # 检查 G（093 批 F22）：口径同 E／F（候选并入 `extra`、汇总只打印）；头注无「自由度分布」行时
+        # **两表皆空**，该件在屏上完全静默（不误报的判据落在字面上）。
+        g_lines, g_summary = check_freedom(text, root)
         swallow += a_lines
-        extra += c_lines + d_lines + e_lines + f_lines
+        extra += c_lines + d_lines + e_lines + f_lines + g_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
         b_judged += judged
         b_cand += cand
-        for line in a_lines + c_lines + d_lines + count_lines + e_lines + e_summary + f_lines + f_summary:
+        for line in (a_lines + c_lines + d_lines + count_lines + e_lines + e_summary
+                     + f_lines + f_summary + g_lines + g_summary):
             print(line)
+        # 格数校验（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行——**件名与行号在此补**
+        # （该函数只入参 text、无件名上下文，且 5 处调用点的签名与既有行为不得变更）；行号按行原文在
+        # 本件文本内的**首个**出现位置取（表内重复行取首现，仍是可检索的定位符）。
+        txt_lines = text.splitlines()
+        for raw, n_cells, n_head in _cell_mismatch():
+            ln = txt_lines.index(raw) + 1 if raw in txt_lines else 0
+            print(f'· 格数与表头不符（疑似转义竖线或列数错）: {spec}:{ln} 实测 {n_cells} 格／'
+                  f'表头 {n_head} 格 | {raw.strip()[:60]}')
     # 检查 A 空转明示：触发点＝「提取 N＞0 而命中 0」（源件的「提取数＝0」在本仓真规格上不可达）
     if a_extract and not a_hit:
         print(f'· A：提取 {a_extract} 条断言、命中 0 条——判据未适配本仓形态？')

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # 一键检查（提交前必跑）。段序即维护入口——新增检查在此追加一段；本头注是段序的唯一真源，其他文档不复述列表。
 # 用法：bash scripts/check.sh
-# 依赖与前置：Node.js（[1] 段需 npx，未找到即置红）；Python 3（[4] 段需 python3／python／py，三级链均缺即置红）；命令行按 Git Bash 语义执行（Windows）。
+# 依赖与前置：Node.js（[1] 段需 npx，未找到即置红）；Python 3（[3]／[4] 段需 python3／python／py，三级链均缺即置红）；命令行按 Git Bash 语义执行（Windows）。
 #
 # [0] skills 目录完整性（安装器 symlink 化检测）——目录未建时跳过
 # [1] Markdown 体检（markdownlint）
 # [2] skill 格式校验（本地断言：壳结构／frontmatter／目录形态）
-# TODO: [3] 内容轨（引用闭合 + 加粗密度 + TOC + 行数 + 条目限长）——待建 scripts/check_content.py 后加入
-# [4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
-# TODO: [5] 脚本语法（node --check 逐域脚本）——待落 contracts 脚本后加入
+# [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注）——scripts/check_content.py；分档见测试与验收标准 §1.2
+# [4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对／**自由度分布核对**）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
+# [5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）
 set -u
 fail=0
 seg_note_rt=()              # 运行时跳过登记（段号→括注）：末尾收尾汇总按实况拼（078 批 F5，见 _seg_summary）
@@ -107,8 +107,9 @@ else
   echo "  域壳 $skill_n 个，逐壳六项全过（⑦段行见头注）"
 fi
 
-echo "[4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对）..."
 # Python 三级链探测：python3 → python → py（口径见 docs/standards/运行环境标准.md §一.4；顺序不可换）
+# 探测上移（093 批 F6①）：[3] 与 [4] 两段**共用**本处结果，各段不再自带第二份探测链
+# （`运行环境标准` §一.4「逐脚本不重复实现」）。
 PY=""
 if command -v python3 >/dev/null 2>&1; then
   PY=python3
@@ -117,6 +118,23 @@ elif command -v python >/dev/null 2>&1; then
 elif command -v py >/dev/null 2>&1; then
   PY=py
 fi
+
+echo "[3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注）..."
+# 前置缺失时不静默跳过（体例同 [0]／[2] 段）：原因 ＋ 手动路径两行 ＋ seg_note_rt 登记。
+# 输出体例沿用：段标题行以 [N] 起首、x 起首＝失败、两空格缩进＝信息。
+# 置红接线（093 批 F6④）：工具置红（退出 1）与参数／环境错（退出 2）一并接到 fail。
+if [ ! -f scripts/check_content.py ]; then
+  echo "  内容轨检查器尚未建立，跳过"
+  echo '手动路径：新建 scripts/check_content.py 后本段自动接入（命名与位置见 docs/standards/命名标准.md §2）'
+  seg_note_rt[3]="[3] 工具未建"
+elif [ -z "$PY" ]; then
+  echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3"
+  fail=1
+else
+  "$PY" scripts/check_content.py --static || fail=1
+fi
+
+echo "[4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对／**自由度分布核对**）..."
 if [ -z "$PY" ]; then echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3"; fail=1
 elif ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)'; then echo "x $PY 非 Python 3（实测 $("$PY" -V 2>&1)）——本段需要 Python 3"; fail=1
 else
@@ -130,6 +148,49 @@ else
   # 无在制规格属预期常态（规格验收通过后即归档）：由工具打印「无在制规格，跳过」——此处不重复打印，
   # 也不置红；静态发现恒 0（非阻断，候选类只呈报），故本段置红只可能来自 Python 缺失或工具参数错误
   "$PY" scripts/check_spec.py --static ${spec_files[@]+"${spec_files[@]}"} || fail=1
+fi
+
+echo "[5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）..."
+# 三类目标件逐类跑：`skills/*/scripts/*.js`（node --check）／`scripts/*.py`（ast.parse——**不用
+# `py_compile`**：后者落 `__pycache__`，守卫不得有写盘副作用）／各 `.sh`（`bash -n`，含
+# `scripts/hooks/pre-commit`）。本批零 `.js` 目标件——**不探 Node**、只打一行信息；
+# **仅当三类目标件全空时**才明示跳过并登记 seg_note_rt[5]（有 `.py`／`.sh` 即不跳过）。
+# 置红接线（093 批 F6④）：语法错与前置缺失均接到 fail。
+seg_js=0
+for _f in skills/*/scripts/*.js; do
+  [ -f "$_f" ] || continue
+  seg_js=$((seg_js + 1))
+  if command -v node >/dev/null 2>&1; then
+    node --check "$_f" || { echo "x 语法错：$_f（node --check 未通过）"; fail=1; }
+  else
+    echo "x 未找到 node（本段需要 Node.js 跑 node --check）：$_f"
+    fail=1
+  fi
+done
+[ "$seg_js" -gt 0 ] || echo "  skills/ 下暂无 .js 目标件（本段不探 Node）"
+seg_py=0
+for _f in scripts/*.py; do
+  [ -f "$_f" ] || continue
+  seg_py=$((seg_py + 1))
+  if [ -z "$PY" ]; then
+    echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3 跑 ast.parse"
+    fail=1
+    break
+  elif ! "$PY" -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8").read())' "$_f"; then
+    echo "x 语法错：$_f（ast.parse 未通过）"
+    fail=1
+  fi
+done
+seg_sh=0
+for _f in scripts/*.sh scripts/*/*.sh scripts/hooks/pre-commit; do
+  [ -f "$_f" ] || continue
+  seg_sh=$((seg_sh + 1))
+  bash -n "$_f" || { echo "x 语法错：$_f（bash -n 未通过）"; fail=1; }
+done
+if [ "$seg_js" -eq 0 ] && [ "$seg_py" -eq 0 ] && [ "$seg_sh" -eq 0 ]; then
+  echo "  三类脚本目标件均为空，跳过"
+  echo '手动路径：落 scripts/*.py／scripts/*.sh 或 skills/{skill 名}/scripts/*.js 后本段自动接入'
+  seg_note_rt[5]="[5] 零目标件"
 fi
 
 _seg_summary() {
