@@ -7,7 +7,7 @@
 # [1] Markdown 体检（markdownlint）
 # [2] skill 格式校验（本地断言：壳结构／frontmatter／目录形态）
 # TODO: [3] 内容轨（引用闭合 + 加粗密度 + TOC + 行数 + 条目限长）——待建 scripts/check_content.py 后加入
-# [4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
+# [4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
 # TODO: [5] 脚本语法（node --check 逐域脚本）——待落 contracts 脚本后加入
 set -u
 fail=0
@@ -42,8 +42,7 @@ echo "[2] skill 格式校验（本地断言：壳结构／frontmatter／目录�
 # 纯本地断言、零外部依赖（外部校验器仅走查期可选——其白名单不含本仓硬约束键）：逐 skills/*/ 校**逐壳六项**——
 # ①SKILL.md 存在 ②H1 形态 ③frontmatter 五键 ④四节名齐（整行匹配：H3 或带后缀的节名不算）⑤官方三条约束
 # （name 与目录同名／name ≤64 字符／description 非空且 ≤1024 字符）⑥目录形态（一层子目录名限 references／assets／scripts；
-# `{skill 名}` 同名子目录层与三层深度均违 §1 平铺——二级一并查）。另**段行一条**：⑦头注段行（本段已由头注改列 0 落地，
-# 非逐壳判据；段状态由 `_seg_summary` 按头注取）。
+# `{skill 名}` 同名子目录层与三层深度均违 §1 平铺——二级一并查）。另**段行一条**：⑦**头注段行校验由 `_seg_summary` 统一处理，不在本段逐壳判**（**段序与段状态按头注取**；本段已由头注改列 0 落地）。
 # 计数口径：`${#}` 按**字符**计——段首显式 `export LC_ALL=C.UTF-8`（`运行环境标准` §一 未规定 locale；缺省 locale 为 C 时
 # 按字节计，>341 汉字的 description 会误红挡提交）。
 # 输出形态（087 批）：仅段标题行以 `[2] ` 起首，其余行按既有体例（`x ` 起首＝失败／两空格缩进＝信息）；
@@ -108,7 +107,7 @@ else
   echo "  域壳 $skill_n 个，逐壳六项全过（⑦段行见头注）"
 fi
 
-echo "[4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查）..."
+echo "[4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对）..."
 # Python 三级链探测：python3 → python → py（口径见 docs/standards/运行环境标准.md §一.4；顺序不可换）
 PY=""
 if command -v python3 >/dev/null 2>&1; then
