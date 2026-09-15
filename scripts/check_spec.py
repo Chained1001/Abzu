@@ -46,6 +46,7 @@
   check_ban_words()／_ban_words()／BAN_WORD_CLAUSE／BAN_WORD_RUN（**顶层第六类「检查 F」**——
   与规格正文内的子判据标签 `（F1）`／`（F2）` **不同族**：后者是某条改动的自由度子项，勿混读）；
   新增检查 G 的判据改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL；
+  新增检查 H 的判据改 check_nuclear()／NUCLEAR_SECTION／NUCLEAR_STATES／NUCLEAR_TALLY；
   格数校验（F8）改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH／_cell_mismatch_reset()；
   阶段编排、呈报前缀、空转明示与
   末尾三态判据改 static_report()；核验比对改
@@ -56,7 +57,7 @@
   断言吞自家 [A] 文本／对象错／计数错／恒真假绿；2026-09-07 作者裁定守卫化）；本工具由旧仓
   `scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
   `grep -c "TOKEN" FILE` 载体）。
-退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G 七类无论报出多少条发现，一律只呈报、
+退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G／H 八类无论报出多少条发现，一律只呈报、
   不影响退出码（`AGENTS.md` §五.2 候选永不拦截）。区分：`--verify` 模式的**过程产物缺失**可置退出 1
   （该模式不进 `check.sh` 门禁）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。
   呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类（故源件的 `x 计数不符` 改为
@@ -146,6 +147,12 @@ BAN_SECTION = re.compile(r'^##[^#\n]*禁止事项.*$', re.M)
 # 判一的 P 取集：S 内**字面以斜杠结尾的独立目录 token**——两侧不得紧邻路径字符，防从
 # `scripts/check.sh` 这类文件名反推出目录（实测有件因此被误判为「该目录被禁」）；
 # 命中者还须 `os.path.isdir` 为真（判据见 check_reconcile()）。
+NUCLEAR_SECTION = re.compile(r'^##[^#\n]*本批核销.*$', re.M)
+# 检查 H（2026-09-16 加）的两侧可数结构：汇总行五档计数 ＋ 表体状态列档词。档词表即 `施工机制` §七
+# 「状态取五档之一」的五值——**顺序即汇总行的书写序**（已履行｜作废｜本批处置｜仍待｜待作者）。
+NUCLEAR_STATES = ('已履行', '作废', '本批处置', '仍待', '待作者')
+NUCLEAR_TALLY = re.compile(
+    r'已履行\s*(\d+)｜作废\s*(\d+)｜本批处置\s*(\d+)｜仍待\s*(\d+)｜待作者\s*(\d+)\s*＝\s*(\d+)')
 BAN_PREFIX = re.compile(r'(?<![\w./\-])[\w.\-]+(?:/[\w.\-]+)*/(?![\w.\-])')
 # 判一的豁免判据＝**子句级双条件**（豁免词 ＋ 落点同子句）：「豁免词出现即放行」已实证在立法对象上
 # 恒空转（整句含「除」即被放行），故两条件须落同一子句。
@@ -1014,6 +1021,87 @@ def check_writing(text, spec, root):
     return lines
 
 
+def check_nuclear(text, root):
+    """检查 H（2026-09-16 加）：规格 §七「本批核销」表的**汇总行 ↔ 表体状态列**逐格对账。
+    返回 **(候选行列表, 汇总行列表)**——口径同检查 E／F／G：候选行由调用方并入末尾三态判据、汇总行只进
+    逐件打印串（**不计入**）；**候选非阻断、恒不置红**。
+
+    **判据**：两侧都是**可数结构**。表体侧＝该节表格每行「状态」列内的档词（五档：已履行／作废／本批处置／
+    仍待／待作者）；汇总侧＝`NUCLEAR_TALLY` 命中的五个计数与总数。逐档比对，不符即出候选。
+    **另判「五档外状态词」**：状态列既不含五档任一者即出候选（该格是档位错写／自由措辞——本仓实例：
+    规划方曾写「不适用」，而 `施工机制` §七 明定「状态取五档之一」）。
+    **静默条件（硬）**：无 §七 核销节、或节内无数出状态列的表格 ⇒ **完全不输出**（连汇总行都不打——
+    防误报的判据落在字面上）。表体有行而汇总行缺失 ⇒ 出候选（有表无账属真不自洽）。
+    事故出身：2026-09-16 规划方在 `099` 两轮审查与 `100` 首轮**三次同型**写错该汇总行（表体改了而汇总
+    未跟着重算／档位计错），三次都靠审查方逐行点数才发现——本条把它机械化。本检查不读写磁盘。"""
+    sec = _section(text, NUCLEAR_SECTION)
+    if not sec:
+        return [], []
+    tally = None
+    t_lines = sec.split('\n')
+    for ln in t_lines:
+        m = NUCLEAR_TALLY.search(ln)
+        if m:
+            tally = [int(x) for x in m.groups()]
+            break
+    rows = []
+    for ln in t_lines:
+        if not ln.lstrip().startswith('|'):
+            continue
+        cells = _cells(ln)
+        if len(cells) < 3:
+            continue
+        rows.append(cells)
+    if tally is None and not rows:
+        return [], []
+    counts = {k: 0 for k in NUCLEAR_STATES}
+    outside = []
+    for cells in rows:
+        if all(c.strip(' -*') == '' for c in cells):
+            continue
+        head = cells[0].strip()
+        st = cells[2].replace('*', '').strip()
+        if head.startswith('来源') or set(st) <= set('-: '):
+            continue                      # 表头行与分隔行
+        hit = next((k for k in NUCLEAR_STATES if k in st), None)
+        if hit is None:
+            outside.append(f'· 检查 H 五档外状态词: {st[:30]}（表头行「{head[:20]}」）')
+        else:
+            counts[hit] += 1
+    diffs = []
+    if tally is None:
+        diffs.append('汇总行缺失')
+        declared = None
+    else:
+        declared = dict(zip(NUCLEAR_STATES, tally[:5]))
+        for k in NUCLEAR_STATES:
+            if declared[k] != counts[k]:
+                diffs.append(f'{k} 汇总 {declared[k]} ≠ 表体 {counts[k]}')
+        if tally[5] != len(rows) - _nuclear_nonbody(rows):
+            diffs.append(f'总数 汇总 {tally[5]} ≠ 表体 {len(rows) - _nuclear_nonbody(rows)}')
+    def fmt(d):
+        return '｜'.join(f'{k} {d[k] if d else "缺"}' for k in NUCLEAR_STATES)
+    cands = list(outside)
+    if diffs:
+        cands.append('· 检查 H 核销表汇总与表体不符: '
+                     + ('汇总行缺失；' if tally is None else f'汇总 {fmt(declared)}；')
+                     + f'表体 {fmt(counts)}（' + '；'.join(diffs) + '）')
+    summary = (f'· 检查 H 汇总: 汇总行 {fmt(declared)}｜表体 {fmt(counts)}｜'
+               f'五档外 {len(outside)} 项｜不符 {len(diffs)} 项')
+    return cands, [summary]
+
+
+def _nuclear_nonbody(rows):
+    """核销表里**非数据行**的条数（表头 + 分隔行）——总数据仅比数据行。"""
+    n = 0
+    for cells in rows:
+        head = cells[0].strip()
+        st = cells[2].replace('*', '').strip() if len(cells) > 2 else ''
+        if head.startswith('来源') or (st and set(st) <= set('-: ')):
+            n += 1
+    return n
+
+
 def check_reconcile(text, root):
     """检查 E：三方对账（改动面 ↔ 禁改面 ↔ 断言排除集；只呈报，不影响退出码）。
     返回 **(候选行列表, 汇总行列表)**——候选行由调用方并入末尾三态判据（`findings`），
@@ -1212,7 +1300,7 @@ def static_report(specs, root):
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    extra = []      # 检查 C／D／E／F／G 候选与 F8 格数不符输出（非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
+    extra = []      # 检查 C／D／E／F／G／H 候选与 F8 格数不符输出（非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1238,15 +1326,18 @@ def static_report(specs, root):
         # 检查 G（093 批 F22）：口径同 E／F（候选并入 `extra`、汇总只打印）；头注无「自由度分布」行时
         # **两表皆空**，该件在屏上完全静默（不误报的判据落在字面上）。
         g_lines, g_summary = check_freedom(text, root)
+        # 检查 H（2026-09-16 加）：口径同 E／F／G（候选并入 `extra`、汇总只打印）；无 §七 核销节、
+        # 或节内数不出状态列时**两表皆空**，该件对该项完全静默（不误报的判据落在字面上）。
+        h_lines, h_summary = check_nuclear(text, root)
         swallow += a_lines
-        extra += c_lines + d_lines + e_lines + f_lines + g_lines
+        extra += c_lines + d_lines + e_lines + f_lines + g_lines + h_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
         b_judged += judged
         b_cand += cand
         for line in (a_lines + c_lines + d_lines + count_lines + e_lines + e_summary
-                     + f_lines + f_summary + g_lines + g_summary):
+                     + f_lines + f_summary + g_lines + g_summary + h_lines + h_summary):
             print(line)
         # 格数校验（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行——**件名与行号在此补**
         # （该函数只入参 text、无件名上下文，且 5 处调用点的签名与既有行为不得变更）；行号按行原文在
