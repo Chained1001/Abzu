@@ -6,9 +6,10 @@
 # [0] skills 目录完整性（安装器 symlink 化检测）——目录未建时跳过
 # [1] Markdown 体检（markdownlint）
 # [2] skill 格式校验（本地断言：壳结构／frontmatter／目录形态）
-# [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注）——scripts/check_content.py；分档见测试与验收标准 §1.2
+# [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注）（**加粗密度不实现**——阈值未立法，见 `测试与验收标准` §4 G1）——scripts/check_content.py；分档见测试与验收标准 §1.2
 # [4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对／自由度分布核对）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
 # [5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）
+# 段序区止于恰为「set -u」的行——_seg_summary 以该行为扫描终止哨兵；改此行须同步改其终止判据
 set -u
 fail=0
 seg_note_rt=()              # 运行时跳过登记（段号→括注）：末尾收尾汇总按实况拼（078 批 F5，见 _seg_summary）

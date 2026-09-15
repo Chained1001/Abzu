@@ -39,7 +39,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOC_HEAD = re.compile(r'^##\s*目录\s*$', re.M)
 H2 = re.compile(r'^##\s+(.*?)\s*$', re.M)
 TOC_ITEM = re.compile(r'^[-*+]\s+(.*?)\s*$', re.M)
-MD_LINK = re.compile(r'\[[^\]\n]*\]\(([^)\s]+?)\)')
+MD_LINK = re.compile(r'''\[[^\]\n]*\]\(([^)\s]+?)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\)''')
 # skill 资产内的路径引用（skill 根相对；`命名标准` §5 表：禁裸文件名、用根相对路径文字）
 ASSET_REF = re.compile(r'`((?:references|assets|scripts)/[A-Za-z0-9._/\-]+)`')
 # ⑤ 的形态：「见／按／引／依照／据 ＋ 可选空格与左括号 ＋ 反引号治理件名」
