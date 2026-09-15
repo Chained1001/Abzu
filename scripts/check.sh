@@ -7,7 +7,7 @@
 # [1] Markdown 体检（markdownlint）
 # [2] skill 格式校验（本地断言：壳结构／frontmatter／目录形态）
 # [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注）——scripts/check_content.py；分档见测试与验收标准 §1.2
-# [4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对／**自由度分布核对**）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
+# [4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对／自由度分布核对）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
 # [5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）
 set -u
 fail=0
@@ -134,7 +134,7 @@ else
   "$PY" scripts/check_content.py --static || fail=1
 fi
 
-echo "[4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对／**自由度分布核对**）..."
+echo "[4] 规格静态自检（断言自噬／计数重算／[A] 逐字／写作检查／三方对账／禁改面禁词核对／自由度分布核对）..."
 if [ -z "$PY" ]; then echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3"; fail=1
 elif ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)'; then echo "x $PY 非 Python 3（实测 $("$PY" -V 2>&1)）——本段需要 Python 3"; fail=1
 else
@@ -226,5 +226,5 @@ if [ "$fail" -ne 0 ]; then
   echo "== 检查未全绿，禁止提交 =="
   exit 1
 fi
-echo "== 检查全绿 =="
+echo "== 检查全绿（已检：真目录／lint／skill 格式／内容轨／规格静态自检／脚本语法；候选类只呈报，见各段输出）=="
 exit 0
