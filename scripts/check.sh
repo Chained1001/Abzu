@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# 一键检查（提交前必跑）。段序即维护入口——新增检查在此追加一段；本头注是段序的唯一真源，其他文档不复述列表（`测试与验收标准` §1.1 的现状表除外）。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判据的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
+# 一键检查（提交前必跑）。段序即维护入口——新增检查在此追加一段；本头注是段序的唯一真源，其他文档不复述列表；段现状（已实现／待建）亦以本头注段行为准（`# [N]`＝已实现、`# TODO: [N]`＝待建——原《测试与验收标准》§1.1 现状表已随 2026-09-17 重构删除）。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判据的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
 # 用法：bash scripts/check.sh
 # 依赖与前置：Node.js（[1] 段需 npx，未找到即置红）；Python 3（[3]／[4]／[5] 段需 python3／python／py，三级链均缺即置红）；命令行按 Git Bash 语义执行（Windows）。
 #
 # [0] skills 目录完整性（安装器 symlink 化检测）——目录未建时跳过
 # [1] Markdown 体检（markdownlint）
 # [2] skill 格式校验（本地断言：壳结构／frontmatter／目录形态）
-# [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注／**热路径字数预算**／**用词**（候选））（**加粗密度不实现**——阈值未立法，见 `测试与验收标准` §4 G1）——scripts/check_content.py；分档见测试与验收标准 §1.2
+# [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注／**热路径字数预算**／**用词**（候选））（**加粗密度不实现**——阈值未立法，见 `docs/specs/守卫缺口清单.md` G1）——scripts/check_content.py；分档＝可置红：行数与条目限长，余项候选只呈报（`施工机制` §四）
 # [4] 规格静态自检（检查A 断言自噬／检查B 计数重算／检查C `[A]` 逐字／检查D 写作检查／检查E 三方对账／回写面对账／档位核对／检查F 禁改面禁词核对／检查G 自由度分布／检查H 核销表汇总核对／仍待项断链核对／检查I 锚点对源核对／检查J 审查记录核对／开放项台账归宿核对／§九 成本字段核对；检查A 的发现项含自噬预警／**零命中待复核**／**零命中核对未判**／**口径不可判**）——scripts/check_spec.py --static；非阻断（候选类只呈报，静态发现恒 0）
 # [5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）
 # 段序区止于恰为「set -u」的行——_seg_summary 以该行为扫描终止哨兵；改此行须同步改其终止判据
@@ -99,7 +99,7 @@ for _d in skills/*/; do
 done
 if [ "$skill_n" -eq 0 ]; then
   echo "  skills/ 下未落域壳，跳过"
-  echo '手动路径：在 skills/{skill 名}/SKILL.md 落域壳（形态见 docs/standards/skill形态标准.md §2／§3）'
+  echo '手动路径：在 skills/{skill 名}/SKILL.md 落域壳（形态见 docs/standards/skill资产标准.md §2／§3）'
   seg_note_rt[2]="[2] 无域壳"
 elif [ "$skill_bad" -ne 0 ]; then
   echo "  不通过 $skill_bad 个（共 $skill_n 个域壳）"
@@ -126,7 +126,7 @@ echo "[3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出�
 # 置红接线（093 批 F6④）：工具置红（退出 1）与参数／环境错（退出 2）一并接到 fail。
 if [ ! -f scripts/check_content.py ]; then
   echo "  内容轨检查器尚未建立，跳过"
-  echo '手动路径：新建 scripts/check_content.py 后本段自动接入（命名与位置见 docs/standards/命名标准.md §2）'
+  echo '手动路径：新建 scripts/check_content.py 后本段自动接入（命名与位置见 docs/standards/文字与命名标准.md §1）'
   seg_note_rt[3]="[3] 工具未建"
 elif [ -z "$PY" ]; then
   echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3"

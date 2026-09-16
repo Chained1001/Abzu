@@ -8,10 +8,10 @@
   存在性（常驻文档 >100 行须有 `## 目录` 且条目与 H2 逐字一致；**规格与归档件不适用**）③ `SKILL.md`
   ≤500 行 ＋ 单 reference <300 行 ④ `CHANGELOG` 条目 ≤400 字符 ⑤ 「维护出处」标注（skill 资产行内
   出现「**见／按／引／依照／据** ＋ 反引号治理件名」形态而无标注者）。
-  ⑥ 热路径字数预算（见 `HOT_BUDGET`）⑦ 用词（禁用清单见 `docs/standards/用词标准.md` §一.2；
+  ⑥ 热路径字数预算（见 `HOT_BUDGET`）⑦ 用词（禁用清单见 `docs/standards/文字与命名标准.md` §6；
   守卫逐行读该件界标段）。
 
-  **加粗密度不实现**——阈值未立法且仓内零**适用**目标件（见 `docs/standards/测试与验收标准.md` §4 G1 与 `文档写作标准` §一.3.8）。
+  **加粗密度不实现**——阈值未立法且仓内零**适用**目标件（见 `docs/specs/守卫缺口清单.md` G1 与 `文字与命名标准` §13）。
 用法与参数：`python scripts/check_content.py [--static]`
   · `--static` 与**无参数同义**（保留该写法只因 `[4]` 段既有调用惯例）；两者均**扫全仓**——本工具
     **无「本批改动面」概念**，七项检查一律扫全仓。
@@ -47,16 +47,16 @@ MD_LINK = re.compile(r'''\[[^\]\n]*\]\(([^)\s]+?)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?
 # 围栏块开合行判定（101 批 F21）：整行仅由 ``` 或 ~~~ 构成（可带语言名）——围栏内的行不参与 ①；
 # 开合按标记字符配对（形态照 check_spec 的 FENCE_BLOCK，不跨件 import）
 FENCE_LINE = re.compile(r'^\s*(```|~~~)[a-zA-Z]*\s*$')
-# skill 资产内的路径引用（skill 根相对；`命名标准` §5 表：禁裸文件名、用根相对路径文字）
+# skill 资产内的路径引用（skill 根相对；`文字与命名标准` §4 表：禁裸文件名、用根相对路径文字）
 ASSET_REF = re.compile(r'`((?:references|assets|scripts)/[A-Za-z0-9._/\-]+)`')
 # ⑤ 的形态：「见／按／引／依照／据 ＋ 可选空格与左括号 ＋ 反引号治理件名」
 GOV_MENTION = re.compile(r'(?:见|按|引|依照|据)[ \t（]*`([^`\n]+)`')
 MAINT_MARK = '维护出处'
 CHANGELOG = 'CHANGELOG.md'
-SKILL_LINE_MAX = 500          # `skill形态标准` §5.1：`SKILL.md` 硬上限（超限＝置红）
-REF_LINE_MAX = 300            # `skill形态标准` §5.1：单 reference <300 行（≥300＝置红）
+SKILL_LINE_MAX = 500          # `skill资产标准` §9：`SKILL.md` 硬上限（超限＝置红）
+REF_LINE_MAX = 300            # `skill资产标准` §9：单 reference <300 行（≥300＝置红）
 ENTRY_CHAR_MAX = 400          # `版本与分发标准` §3 第 2 步：`CHANGELOG` 条目 ≤400 字符（超限＝置红）
-TOC_LINE_MIN = 100            # `文档写作标准` §一.1.3：超 100 行文件头部放节目录
+TOC_LINE_MIN = 100            # `文字与命名标准` §10 第 3 条：超 100 行文件头部放节目录
 SPECS_PREFIX = 'docs/specs/'  # 规格与归档件不适用 TOC 存在性
 
 
@@ -111,7 +111,7 @@ def _repo_files():
 
 def _gov_names(files):
     """治理件名集合（用于 ⑤ 的「反引号治理件名」判据）：非 `skills/` 下 `.md` 的**仓根相对路径**
-    与**基名**两种写法都收（`命名标准` §5：资产内指向治理文档写 `{件名}`，如 `书目录契约`）。"""
+    与**基名**两种写法都收（`文字与命名标准` §4：资产内指向治理文档写 `{件名}`，如 `书目录契约`）。"""
     names = set()
     for f in files:
         if not f.endswith('.md') or f.startswith('skills/'):
@@ -155,7 +155,7 @@ def _span_ranges(line):
 def _check_refs(gov, assets):
     """① 引用闭合（候选）：① 治理文档的相对 Markdown 链接目标须实存
     ② skill 资产内的 `references/`／`assets/`／`scripts/` 路径引用须实存（基准＝skill 根）。
-    **候选类**：存量债面宽（`测试与验收标准` §1.2 分档）。① 的链接扫描**跳过行内代码跨度与
+    **候选类**：存量债面宽（`施工机制` §四 分档）。① 的链接扫描**跳过行内代码跨度与
     围栏块**（跨度内与围栏内的示例串不是链接——101 批 F21；判据见 `_span_ranges()`／`FENCE_LINE`）。"""
     cands = []
     for path in gov:
@@ -208,7 +208,7 @@ def _toc_state(text):
 
 def _check_toc(guards):
     """② TOC 存在性（候选）：常驻文档（非 `docs/specs/**`）超 100 行者须有 `## 目录`，且条目与
-    H2 **逐字一致**（判据真源＝`文档写作标准` §一.1.3；规格与归档件不适用——其节序由规格形态承载）。"""
+    H2 **逐字一致**（判据真源＝`文字与命名标准` §10 第 3 条；规格与归档件不适用——其节序由规格形态承载）。"""
     cands = []
     for path in guards:
         if path.startswith(SPECS_PREFIX):
@@ -235,19 +235,19 @@ def _check_toc(guards):
 
 def _check_lines(files):
     """③ 行数（**可置红**）：`skills/*/SKILL.md` ≤500 行、单 reference <300 行
-    （阈值真源＝`skill形态标准` §5.1；`assets/` 不计行数预算，同条）。"""
+    （阈值真源＝`skill资产标准` §9；`assets/` 不计行数预算，同条）。"""
     reds = []
     for path in files:
         parts = path.split('/')
         if len(parts) == 3 and parts[0] == 'skills' and parts[2] == 'SKILL.md':
             n = _lines(_read(os.path.join(ROOT, path)))
             if n > SKILL_LINE_MAX:
-                reds.append(_red(f'{path}: {n} 行 > {SKILL_LINE_MAX}（`skill形态标准` §5.1）'))
+                reds.append(_red(f'{path}: {n} 行 > {SKILL_LINE_MAX}（`skill资产标准` §9）'))
         elif (len(parts) == 4 and parts[0] == 'skills' and parts[2] == 'references'
                 and path.endswith('.md')):
             n = _lines(_read(os.path.join(ROOT, path)))
             if n >= REF_LINE_MAX:
-                reds.append(_red(f'{path}: {n} 行 ≥ {REF_LINE_MAX}（`skill形态标准` §5.1）'))
+                reds.append(_red(f'{path}: {n} 行 ≥ {REF_LINE_MAX}（`skill资产标准` §9）'))
     return [], reds
 
 
@@ -268,8 +268,8 @@ def _check_changelog():
 
 def _check_maint(gov_names, files):
     """⑤ 「维护出处」标注（候选）：skill 资产行内出现「见／按／引／依照／据 ＋ 反引号治理件名」形态而该行
-    **无标注**者（判据真源＝`命名标准` §5「运行时资产引用治理文档」；写法与正例同节 §5 表末行）。
-    **候选类**：判据含近似（无标注的等价写法会漏报——`测试与验收标准` §4 G23）。"""
+    **无标注**者（判据真源＝`文字与命名标准` §4「运行时资产引用治理文档」；写法与正例同节 §5 表末行）。
+    **候选类**：判据含近似（无标注的等价写法会漏报——`守卫缺口清单` G23）。"""
     cands = []
     for path in files:
         if not path.startswith('skills/') or not path.endswith('.md'):
@@ -292,8 +292,9 @@ def _check_maint(gov_names, files):
 # **候选、恒不置红**（`AGENTS.md` §五.2）：预算用于防回涨，不用于拦截正确改动。
 HOT_BUDGET = (
     ('AGENTS.md', 8000, '宪法入口'),
-    ('docs/specs/施工机制.md', 13000, '协作真源热路径（2026-09-17 T2 冷热分离后；实测值见上条注释；冻结线，目标 ≤12000）'),
-    ('docs/specs/施工机制-附录.md', 13000, '冷路径附录（按需读；冻结线，防其变成第二本百科）'),
+    ('docs/specs/施工机制.md', 13000, '协作真源热路径（冻结线，目标 ≤12000）'),
+    ('docs/specs/施工机制-附录.md', 16000, '冷路径附录（按需读；2026-09-17 重构并入规格写作细则后由 13000 上调）'),
+    ('docs/specs/守卫缺口清单.md', 12000, '冷件（触守卫时读）'),
     ('docs/standards/', 15000, '标准件（逐件）'),
 )
 
@@ -323,11 +324,11 @@ def _check_budget(files):
     return cands, []
 
 
-# ⑦ 用词（2026-09-17 用词规范与禁用清单批）：禁用清单**唯一出处**＝`docs/standards/用词标准.md`
-# §一.2 的界标段（守卫**逐行读本段**）；存量迁移分三批（该件 §一.3），迁移期**恒为新旧双读**。
-# **候选、恒不置红**（存量逾千处，迁移分三批，做法见 `docs/standards/用词标准.md` §一.3；
+# ⑦ 用词（2026-09-17 用词规范与禁用清单批；同年开发侧重构随《用词标准》并入《文字与命名标准》）：禁用清单**唯一出处**＝`docs/standards/文字与命名标准.md`
+# §6 的界标段（守卫**逐行读本段**）；存量迁移分三批（该件 §7），迁移期**恒为新旧双读**。
+# **候选、恒不置红**（存量逾千处，迁移分三批，做法见 `docs/standards/文字与命名标准.md` §7；
 # 每次运行的实测值由末行报出，不在此写死）。
-WORD_SRC = 'docs/standards/用词标准.md'
+WORD_SRC = 'docs/standards/文字与命名标准.md'
 WORD_BEGIN = '<!-- 用词禁用清单：'
 WORD_END = '<!-- 用词禁用清单完 -->'
 WORD_BATCH_SPEC = re.compile(r'^docs/specs/\d{3}-')
@@ -362,7 +363,7 @@ def _ban_list():
 
 
 def _check_words(files):
-    """⑦ 用词（**候选，恒不置红**；判据真源＝`docs/standards/用词标准.md` §一.2 的界标段，守卫逐行读该段）。
+    """⑦ 用词（**候选，恒不置红**；判据真源＝`docs/standards/文字与命名标准.md` §6 的界标段，守卫逐行读该段）。
     逐件报「用词待改」一行（含命中词与次数，最多 4 词），末行报清单词数与命中件／处数。
     **跳过面**：`docs/specs/archive/`、在制批次规格（`docs/specs/NNN-*.md`）、`CHANGELOG.md`、清单件自身
     ——前三者是过程记录与历史证据，须逐字保留当时的旧词。**长词优先**：命中即以占位符遮盖，避免
@@ -397,7 +398,7 @@ def _check_words(files):
         top = '、'.join('%s×%d→%s' % (o, n, w) for o, n, w in found[:4])
         more = '' if len(found) <= 4 else '（另 %d 词）' % (len(found) - 4)
         cands.append(_cand('用词待改: %s —— %d 处：%s%s' % (path, n_file, top, more)))
-    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处——存量分批收口（见 %s §一.3）'
+    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处——存量分批收口（见 %s §7）'
                        % (len(bans), hit_files, hits_total, WORD_SRC)))
     return cands, []
 
@@ -421,7 +422,7 @@ def main(argv=None):
     _stdout_utf8()
     ap = argparse.ArgumentParser(
         prog='check_content.py',
-        description='内容轨检查器（只读；扫全仓 Markdown 七项检查。分档见 docs/standards/测试与验收标准.md §1.2）')
+        description='内容轨检查器（只读；扫全仓 Markdown 七项检查。分档见 施工机制 §四）')
     ap.add_argument('--static', action='store_true',
                     help='与无参数同义：扫全仓（本工具无「在制」概念）')
     args = ap.parse_args(argv)
@@ -438,7 +439,7 @@ def main(argv=None):
     gov_n = len([f for f in files if f.endswith('.md') and not f.startswith('skills/')])
     asset_n = len([f for f in files if f.endswith('.md') and f.startswith('skills/')])
     print(_info(f'扫描 {gov_n + asset_n} 件 Markdown（治理文档 {gov_n}／skill 资产 {asset_n}）；'
-                f'加粗密度未实现（见 测试与验收标准 §4 G1）'))
+                f'加粗密度未实现（见 守卫缺口清单 G1）'))
     for c, r in results:
         for line in c + r:
             print(line)
