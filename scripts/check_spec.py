@@ -1193,9 +1193,10 @@ def check_anchor(text, root):
             for mb in ANCHOR_BARELINE.finditer(raw):
                 refs += 1
                 _anchor_probe(ctx, int(mb.group(1)), quotes, root, seen, cands)
+    true_n = len(cands)     # 截断前的真实异常数（外审现场实测抓的潜伏缺陷：截断后再取 len 恒为 16）
     if len(cands) > 15:
-        cands = cands[:15] + [f'· 检查 I 另有 {len(cands) - 15} 条（截断显示）']
-    return cands, [f'· 检查 I 汇总: 锚点引用 {refs} 处｜异常 {len(cands)} 项']
+        cands = cands[:15] + [f'· 检查 I 另有 {true_n - 15} 条（截断显示）']
+    return cands, [f'· 检查 I 汇总: 锚点引用 {refs} 处｜异常 {true_n} 项']
 
 
 def check_reconcile(text, root):
