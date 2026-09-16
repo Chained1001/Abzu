@@ -7,11 +7,13 @@
   Markdown 链接须实存——**行内代码跨度与围栏块内不计**〔101 批 F21〕；skill 资产内 `references/`／`assets/`／`scripts/` 路径引用须实存）② TOC
   存在性（常驻文档 >100 行须有 `## 目录` 且条目与 H2 逐字一致；**规格与归档件不适用**）③ `SKILL.md`
   ≤500 行 ＋ 单 reference <300 行 ④ `CHANGELOG` 条目 ≤400 字符 ⑤ 「维护出处」标注（skill 资产行内
-  出现「**见／按／引／依照／据** ＋ 反引号治理件名」形态而无标注者）。**加粗密度不实现**——阈值未立法且仓内零
-  **适用**目标件（见 `docs/standards/测试与验收标准.md` §4 G1 与 `文档写作标准` §一.3.8）。
+  出现「**见／按／引／依照／据** ＋ 反引号治理件名」形态而无标注者）。
+
+  **加粗密度不实现**——阈值未立法且仓内零**适用**目标件（见 `docs/standards/测试与验收标准.md` §4 G1 与 `文档写作标准` §一.3.8）。
 用法与参数：`python scripts/check_content.py [--static]`
-  · `--static` 与**无参数同义**（保留该写法只因 `[4]` 段既有调用惯例）；两者均**扫全仓**——本工具无
-    「在制」概念，无「本批改动面」输入。
+  · `--static` 与**无参数同义**（保留该写法只因 `[4]` 段既有调用惯例）；两者均**扫全仓**——本工具
+    **无「本批改动面」概念**，五项检查一律扫全仓。
+    仍为全仓 `docs/`＋根 `*.md`（含归档、排本批在制规格）。
   · 参数非法（含未知选项）＝用法说明 ＋ 退出 `2`。
   · 输出体例（沿用 `check.sh` 段输出规范）：候选行＝`·` ＋ 空格起首；置红行＝`x` ＋ 空格起首；
     信息行＝两空格缩进。
@@ -24,7 +26,7 @@
   `py_compile`（后者会落 `__pycache__`——守卫不得有写盘副作用）。读文件一律显式 `encoding='utf-8'`。
 维护入口：新增检查在 `_checks()` 挂新 `_check_*`（返回 `(候选行, 置红行)`）；三体例改 `_cand()`／
   `_red()`／`_info()`；件清单改 `_repo_files()`；行数口径改 `_lines()`；TOC 判据改 `_toc_state()`；
-  ⑤ 的形态正则改 `GOV_MENTION`；① 链接扫描的跨度／围栏跳过判据改 `_span_ranges()`／`FENCE_LINE`；退出码与分档改 `main()`。
+  ⑤ 的形态正则改 `GOV_MENTION`；① 链接扫描的跨度／围栏跳过判据改 `_span_ranges()`／`FENCE_LINE`；
 """
 import argparse
 import io
@@ -307,6 +309,7 @@ def main(argv=None):
         print('x 取不到件清单（`git ls-files` 失败）——本工具须在 git 仓库内运行', file=sys.stderr)
         return 2
 
+    gov = [f for f in files if f.endswith('.md') and not f.startswith('skills/')]
     results = _checks(files)
     cands = [l for c, _ in results for l in c]
     reds = [l for _, r in results for l in r]
