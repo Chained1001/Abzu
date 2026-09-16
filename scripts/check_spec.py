@@ -1402,10 +1402,10 @@ def check_freedom(text, root):
     返回 **(候选行列表, 汇总行列表)**——口径同检查 E／F：候选行由调用方并入末尾三态判据、汇总行只进
     逐件打印串（**不计入**）；**候选非阻断、恒不置红**（`AGENTS.md` §五.2），退出契约不受影响。
 
-    **判据**：两侧都是**可数结构**。头注侧＝`FREEDOM_HEAD` 所在行内的 `[A]×n`／`[B]×m`／`混合×k`／
-    `共 N 行` 四种结构（`FREEDOM_*` 常量；`共 N 行` 与清单**表体行数**比对，缺写者标 `未写` 并**只比
-    已给出的项**）；清单侧＝§二 各表体行自由度单元格内 `[A]`／`[B]` 的**并存**情形——两者皆含者计入
-    「混合」，只含其一者计入该侧，两者皆无者只进总行数（`[C]` 行不属 A／B 两侧，故由 `共 N 行` 兜住）。
+    **判据**：两侧都是**可数结构**。头注侧＝`FREEDOM_HEAD` 所在行内的 `[A]×n`／`[B]×m`／`混合×k`／`[C]×j`／
+    `共 N 行` 五种结构（`FREEDOM_*` 常量；`共 N 行` 与清单**表体行数**比对，缺写者标 `未写` 并**只比
+    已给出的项**）；清单侧＝§二 各表体行自由度单元格内 `[A]`／`[B]`／`[C]` 的**并存**情形——两者皆含者计入
+    「混合」，只含其一者计入该侧；只含 `[C]`（不含 `[A]`／`[B]`）者计入头注侧已声明的 `[C]` 值（含 `[A]` 者视同 `[A]` 行、不另计 `[C]`——口径同下方计数实现），两者皆无者只进总行数。
     **混合×k 缺写＝按 0 比**：只声明 `[A]×n [B]×m` 而清单内实有 `[A]／[B]` 并存行者即出候选——该族
     缺陷本仓第五次复发才机械化（`测试与验收标准` §4 G22）。
     **静默条件（硬）**：头注无「自由度分布」行 ⇒ **完全不输出**（连汇总行都不打——防误报的判据落在
@@ -1420,28 +1420,32 @@ def check_freedom(text, root):
     d_mixed = int(m_mixed.group(1)) if m_mixed else None
     d_total = int(m_total.group(1)) if m_total else None
     rows, _skipped = _change_rows(text)
-    c_a = c_b = c_mixed = 0
+    c_a = c_b = c_mixed = c_c = 0
     for row in rows:
         cell = row['freedom'] or ''
-        has_a, has_b = '[A]' in cell, '[B]' in cell
+        has_a, has_b, has_c = '[A]' in cell, '[B]' in cell, '[C]' in cell
         if has_a and has_b:
             c_mixed += 1
         elif has_a:
             c_a += 1
         elif has_b:
             c_b += 1
+        elif has_c:
+            c_c += 1
 
-    def fmt(a, b, k, t):
-        return f'[A]×{a} [B]×{b} 混合×{k} 共 {t} 行'
+    def fmt(a, b, k, c, t):
+        return f'[A]×{a} [B]×{b} 混合×{k} [C]×{c} 共 {t} 行'
 
     def show(v):
         return v if v is not None else '未写'
 
-    head_s = fmt(declared.get('A', '未写'), declared.get('B', '未写'), show(d_mixed), show(d_total))
-    list_s = fmt(c_a, c_b, c_mixed, len(rows))
+    head_s = fmt(declared.get('A', '未写'), declared.get('B', '未写'), show(d_mixed),
+                 declared.get('C', '未写'), show(d_total))
+    list_s = fmt(c_a, c_b, c_mixed, c_c, len(rows))
     diffs = []
     for name, d, c in (('[A]', declared.get('A'), c_a), ('[B]', declared.get('B'), c_b),
                        ('混合', d_mixed if d_mixed is not None else 0, c_mixed),
+                       ('[C]', declared.get('C'), c_c),
                        ('共 N 行', d_total, len(rows))):
         if d is not None and d != c:
             diffs.append(f'{name} 头注 {d} ≠ 清单 {c}')
