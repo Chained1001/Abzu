@@ -49,7 +49,7 @@
   新增检查 H 的判据改 check_nuclear()／NUCLEAR_SECTION／NUCLEAR_STATES／NUCLEAR_TALLY；
   **仍待项断链**（检查 H 扩）与**开放项台账归宿**（检查 J 扩）两判据改 _item_anchors()／_ledger_text()／
   OPEN_SECTION／OPEN_ITEM／OPEN_TICK／OPEN_NUM／BATCH_TOKEN／LEDGER_FILES／LEDGER_DIRS；
-  §九 的**成本字段**判据（检查 J 扩）改 _cost_field_cands()／_cost_placeholder()／COST_WORDS／
+  §九 的**成本字段**判据（检查 J 扩）改 _cost_field_cands()／_cost_placeholder()／
   COST_FIELDS／COST_PLACEHOLDER；
   新增检查 I 的判据改 check_anchor()／ANCHOR_SECTION／ANCHOR_FILELINE／ANCHOR_FILEONLY／
   ANCHOR_BARELINE／ANCHOR_QUOTE／_anchor_probe()／_anchor_norm()；
@@ -1262,8 +1262,7 @@ OPEN_SKIP = ('作废', '已履行', '本批处置')
 # 故取该两处全集 ＋ `AGENTS.md`（台账面只增不减；任一处命中即压制报告，口径见 F3 ④）。
 LEDGER_FILES = ('docs/specs/施工机制.md', 'AGENTS.md')
 LEDGER_DIRS = ('docs/standards',)
-# 成本字段判据（§九；F14）：审查位记录行判据＝**整行**含该三词之一；两字段名与占位值。
-COST_WORDS = ('成稿审查', '产物审查', '单维核对')
+# 成本字段判据（§九；F14）：改按「节」判后不再需要审查位词表；两字段名与占位值。
 COST_FIELDS = ('工具往返数', '周期时长')
 COST_PLACEHOLDER = ('待汇总', '待填', '待补', '待定', 'TODO', 'TBD')
 # 五处台账全文的进程内缓存（同一进程内多规格共享，避免逐件重复读盘）。
@@ -1370,7 +1369,7 @@ def _cost_field_cands(sec):
     「工具往返数」与「周期时长」两字段、且两值均非占位值（`COST_PLACEHOLDER`）⇒ 该节**通过**；
     **整节都没有**这样的行 ⇒ 出**一条**候选（**候选文案的唯一出口＝本函数下方那一行**，全件只此
     一处含该串）。
-    **为何按节不按行**：首稿按「行」判（审查位记录行＝整行含 `COST_WORDS` 之一，缺字段即报），
+    **为何按节不按行**：首稿按「行」判（审查位记录行＝整行含三词之一，缺字段即报），
     在四件在制规格上出 **13 条**候选，逐条复核 **0 条真阳**——全是「成本两字段单列一行」（成本记账
     段）的**等效写法**，按行判会把等效写法误判为缺字段，属**过报**；该实例已记 `测试与验收标准`
     §4 `G19`（其触发条件正是「上线后出现大批人工逐条判为预期」的候选）。按节判后现行四件归 **0 条**。
