@@ -5,8 +5,9 @@
 用途：对规格做**静态**检查（不执行规格内任何命令，只读规格、磁盘与白名单内的只读 git 子命令）——检查 A 断言
 自噬预警（断言 token 被自家 [A]／[B] 行的目标文本吞掉，呈报预测值与规格「到位」列的差；另有「零命中
 待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
-命令对齐时呈报同名候选行）、检查 B 计数实跑
-重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
+命令对齐时呈报同名候选行，与「口径不可判」——token 含 BRE 真正特殊的正则元字符（含 `^` 剥锚后仍含者），
+字面口径测不出「现行」值、故不出「目标文本未提及且现行为 0」出口而改出明示行时呈报）、检查 B 计数实跑
+重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对（比对取「目标件原文 ∪ 去加粗视图」并集——加粗归一**两侧对称**，未命中者的文案另可追加「疑现状侧引文」**成因诊断**括注：该串亦见于改动面外件时标出、措辞取「成因待判」）、检查 D 规格写作
 机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）＋**路径定级核对**（头注「路径判定」自述 ↔ §二 清单行：**自称「快」而清单含 `[B]`／`[C]`／混合行即出候选**，`106` 加）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／**仍待项断链核对**（§七 仍待／待作者行的条目锚点 ↔ 五处台账全文）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）／**开放项台账归宿核对**（§八 开放项条目锚点 ↔ 五处台账全文）／**§九 成本字段核对**（§九 审查记录节须有**任一行**同时带「工具往返数」与「周期时长」且两值非占位）——十类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
 整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
@@ -38,9 +39,11 @@
   注入变量，消掉 `git status`／`diff` 刷新 `.git/` 下 index 的默认写盘副作用）；语法自检用 `ast.parse`，
   不用 `py_compile`（后者会留缓存产物）。子进程输出与目标件读取统一按 UTF-8 解码并对不可解码字节容错
   （`errors='replace'`；中文 Windows 本地编码为 GBK）。
-维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理（含 token 反转义）改 _assert_refs()；检查 A 判据改 check_swallow()（**候选待办**：`_row_target_text()` 的反转义口径未统一——若规格表格与断言命令两处转义写法不一致会失配，触发＝出现实例时同口径补反转义）；检查 B 的
+维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理（含 token 反转义）改 _assert_refs()；检查 A 判据改 check_swallow()（**候选待办**：`_row_target_text()` 的反转义口径未统一——若规格表格与断言命令两处转义写法不一致会失配，触发＝出现实例时同口径补反转义；**token 形态三分支**（`^` 剥锚按行首／BRE 元字符不可判／字面计数）的谓词改 `bre_meta`／`literal_token`——**不得复用 `literal_token` 作「不可判」谓词**，见该函数 docstring）；检查 B 的
   对象口径词表与判据改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 判据、表头别名与方向标记
-  改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS 常量；检查 D 改
+  改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS 常量；检查 C 的成因诊断
+   （未命中目标件的引号块 ↔ 改动面外件集＝`docs/specs/**/*.md` **减本件**，`109` F3）改 _out_of_scope_texts()／
+   _out_of_scope_hit()／_rel_key／_OUT_SCOPE_CACHE；检查 D 改
   check_writing()；新增检查 E 的判据改 check_reconcile()／BAN_SECTION／BAN_PREFIX／
   BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；新增检查 F 的判据改
   check_ban_words()／_ban_words()／BAN_WORD_CLAUSE／BAN_WORD_RUN（**顶层第六类「检查 F」**——
@@ -657,6 +660,65 @@ def _read_target(path):
         return f.read()
 
 
+# 改动面外件集的**去加粗视图**缓存（109 F3）：进程内一次建、跨行跨块复用（`read once` 口径见
+# `check_pairs()` docstring ③）；键＝`(仓根, 本件相对路径)`——**排除面随本件而变**，故缓存键须含本件
+# （同一进程内逐件扫描时，不把上一件的排除结果串给下一件）；值为 [(仓根相对路径, 去加粗文本), …]。
+_OUT_SCOPE_CACHE = {}
+
+
+def _out_of_scope_texts(root, spec=None):
+    """**改动面外件集**（`docs/specs/**/*.md` 中**非本件**者，含 `archive/`）的**去加粗**文本视图（109 F3）。
+
+    用途：`check_pairs()` 对**未命中目标件**的引号块做**成因诊断**——命中本件集者标「疑现状侧引文」。
+    实现口径：① 件集＝`docs/specs/**/*.md` **减去本件**（`spec` 传本件路径，按**仓根相对正斜杠形态**归一
+    比对；未传＝不排除，供不关心本件的调用）；② 只读盘、不跑 git、不联网（守卫零外部依赖）；③ **一次读盘
+    即缓存**（`_OUT_SCOPE_CACHE`，键＝`(仓根, 本件相对路径)`，进程内复用）；④ 逐件读用裸 `open` ＋ 宽
+    except 兜住——读完即弃、异常件跳过，漏一个既有件只影响**诊断完备性**、不影响「未落实」这条事实面
+    （故单件不可读时不得使全判据崩溃，`G40` 同族风险）。
+    返回 [(仓根相对路径, 去加粗文本), …]。"""
+    self_rel = _rel_key(spec, root) if spec else ''
+    key = (root, self_rel)
+    cached = _OUT_SCOPE_CACHE.get(key)
+    if cached is not None:
+        return cached
+    spec_dir = os.path.join(root, 'docs', 'specs')
+    out = []
+    for dirpath, _dirnames, filenames in os.walk(spec_dir):
+        for name in filenames:
+            if not name.endswith('.md'):
+                continue
+            full = os.path.join(dirpath, name)
+            rel = os.path.relpath(full, root).replace('\\', '/')
+            if self_rel and rel == self_rel:    # 非本件（109 F3 明文：件集＝docs/specs/**/*.md 减本件）
+                continue
+            try:
+                with open(full, encoding='utf-8', errors='replace') as f:
+                    out.append((rel, f.read().replace('**', '')))
+            except OSError:
+                continue
+    _OUT_SCOPE_CACHE[key] = out
+    return out
+
+
+def _rel_key(path, root):
+    """路径 → **仓根相对、正斜杠**的比对键（109 F3 的件集排除判据）。空串入空串。
+    规格路径可能是仓根相对（`docs/specs/…`）也可能是绝对（夹具调用），故先按根归一；`os.walk` 给出的
+    相对路径与本键**同口径**，两侧可直接 `==`（不按文件名或非 ASCII 正则比对——后者在中文 Windows 上
+    会因 `os.walk()` 文件名的代理转义而静默失配）。"""
+    if not path:
+        return ''
+    return os.path.relpath(path, root).replace('\\', '/')
+
+
+def _out_of_scope_hit(piece, root, spec=None):
+    """该引号块是否在**改动面外件集**中命中（109 F3 的成因诊断判据）。命中 ⇒ True。
+    `spec`＝本件路径（透传给 `_out_of_scope_texts()` 作**减本件**排除，F3 明文口径）。
+
+    **措辞纪律**：命中只说明「同样的串在改动面外的件里存在」，成因（现状侧旧文／巧合复用）**待判**——
+    调用方文案取「疑现状侧引文…成因待判」，不得冒充确定结论（机械判据只报候选，`AGENTS.md` §五.2）。"""
+    return any(piece in txt for _rel, txt in _out_of_scope_texts(root, spec))
+
+
 def check_swallow(text, root):
     """检查 A：断言自噬预警（只呈报，不影响退出码）。返回 (输出行列表, 提取断言数, 命中条数)。
     **hit 门**＝「该断言的目标件出现在某条 [A]／[B] 行」（表格形态判据；源件的「改动清单节内有 `###`
@@ -671,7 +733,15 @@ def check_swallow(text, root):
     （「期望 0」型零命中即达成）。**判据只认「字面 token」**：cur 系字面子串计数（`token in line`），而
     载体允许 `grep -c -E "…"` 形态——token 带正则元字符时 cur 恒 0，属假阳性，故仅当 token 的字符**全部
     落在字面集**（字母／数字／汉字／`_`／`-`／`/`／`／`／空格）内才判，含字面集外字符（`.`／`|`／`^` 等）
-    者一律跳过该判、不报（保守方向：宁可漏报不可误报）。**取数面＝「期望」子句，按下列先后取数**
+    者一律跳过该判、不报（保守方向：宁可漏报不可误报）。**三态取数（109 F2）**：上述字面口径对**含正则元
+    字符的 token 恒得 0**，而原实现仍把它当「现行为 0」报出（该出口对这类 token 恒假阳）——现按 token 形态
+    分三支：① **`^` 起首**者剥去该前导锚后按**行首字面**计数（`line.startswith(rest)`），该子集与 grep 的
+    **BRE** 行为一致、可严格等价判定；② 剥锚后**仍含 BRE 真正特殊字符**（`. * [ \\ ^ $` 及其反斜杠形态
+    `\\( \\) \\{ \\} \\| \\+ \\?`；**裸 `( ) + ? { }` 与裸竖线在 BRE 里是字面、归支③**——「竖线在 BRE 里是
+    字面」正是否决「按 `re` 解释 token」的理由）者 ⇒ **不可判**：不进「目标文本未提及且现行为 0」出口，改出
+    明示行 `· 口径不可判（token 含正则元字符，现行计数未测）: {token} @ {target}`（非候选语义的发现项，须计入
+    末尾三态）；③ 其余维持字面计数（现状口径）。该谓词**不复用 `literal_token`**（其类目与全角括号相抵，
+    `G14`／`G27` 同族）；「零命中待复核」门改用**归一后** token（即 `^` 已剥者按字面判）。**取数面＝「期望」子句，按下列先后取数**
     （顺序即口径，不得颠倒）：① 取子句内数字**有序列表** `nums`（自首个「期望」出现处起，止于 `；`／
     `。`／`（预验`／行尾——尾数不计；**不得用 `set`**）；② `len(nums)` 等于本规格提取到的断言总数 `M`
     ＝`len(refs)` 时，取 `nums[i]`（`i`＝该断言在 `refs` 中的序号，**0 基**）——该形态要求**每个数字各对
@@ -710,25 +780,49 @@ def check_swallow(text, root):
     expect_stops = ('；', '。', '（预验')
     # 字面 token 判据（见 docstring）：\w 即字母／数字／汉字／下划线，另容 - 与两种斜杠、空格
     literal_token = re.compile(r'^[\w/\uFF0F\- ]+$')
+    # BRE「不可判」谓词（109 F2）：**不复用 `literal_token`**——后者类目与全角括号相抵（「现存 48 件（…）」
+    # 过不了该门，见 `G14`），且本谓词判的是「含 ASCII 正则元字符」而非「是否字面集内」。收窄到 **BRE 里
+    # 真正特殊**的字符：`. * [ \ ^ $` 与反斜杠形态 `\(`／`\)`／`\{`／`\}`／`\|`／`\+`／`\?`——裸 `( ) + ? { }`
+    # 与**裸竖线 `|`** 在 BRE 里是字面（`|` 尤须收窄：`^| G42 |` 剥锚后归字面计数分支，不得出「口径不可判」）。
+    bre_meta = re.compile(r'[.*\[\\^$]|\\[(){}|+?]')
     lines = []
     neutral = 0
     hits = 0
     for i, ((token, target), line_no) in enumerate(zip(refs, located)):
         path = _abs(target, root)
         exists = os.path.isfile(path)
+        # 归一化 token（109 F2）：`^` 前导锚剥一层后供按行首计数与「零命中待复核」门共用（避免两处各剥一次）
+        norm = token[1:] if token.startswith('^') else token
         cur = 0
+        countable = True
         if exists:
             content = _read_target(path)
             # 行计数＝换行符出现次数（`'\n'` 为唯一分隔符，与 `wc -l` 同口径；**禁** `splitlines()`，
             # 它会在垂直制表符／换页符等处额外切行——076 批 F2 把读法收进 `_read_target()`）
-            cur = sum(1 for line in content.split('\n') if token in line)
+            if token.startswith('^'):
+                # 分支①（109 F2）：`^` 起首者剥去该前导锚后**按行首字面计数**——该子集与 grep 的 BRE 行为
+                # 一致，故可严格等价判定（`^` 之外的元字符仍走分支②）
+                if bre_meta.search(norm):
+                    countable = False
+                else:
+                    cur = sum(1 for line in content.split('\n') if line.startswith(norm))
+            elif bre_meta.search(token):
+                # 分支②（109 F2）：token 含 BRE 真正特殊的元字符 ⇒ 字面计数口径测不出「现行」值，
+                # 标「不可判」、**不进**「目标文本未提及且现行为 0」出口（原出口对这类 token 恒假阳，
+                # 锚点③④；静默跳过又会让「未测」与「测了为 0」同形，见 §六 否决项）
+                countable = False
+            else:
+                # 分支③：其余维持字面计数（现状口径，不改）
+                cur = sum(1 for line in content.split('\n') if token in line)
         hit = [r for r in a_rows if _row_mentions(r, target)]
         if not hit:
             lines.append(f'· 跳过（目标件不出现在任何改动行）: {token} @ {target}')
             continue
         hits += 1
         n = sum(_row_target_text(r).count(token) for r in hit)
-        if n == 0:
+        if not countable:
+            lines.append(f'· 口径不可判（token 含正则元字符，现行计数未测）: {token} @ {target}')
+        elif n == 0:
             if cur > 0:
                 # 哨兵型 token（到位＝现状，目标文本本不必提及）与归零型已达成同形：计入中性汇总，不单义锁定
                 neutral += 1
@@ -739,8 +833,8 @@ def check_swallow(text, root):
             lines.append(f'· 自噬预警: {token} @ {target} —— 现行 {cur}｜目标文本内 {n}'
                          f'｜近似预测 {cur + n}（未计删除，须人工核对到位期望）')
         # 零命中待复核（F2）：窗口＝命令所在行起（含本行）其后 4 行；只在 hit 门通过、目标件实存、
-        # 且 token 属字面集（无正则元字符——否则 cur 恒 0 必假阳性）时判
-        if exists and cur == 0 and literal_token.match(token):
+        # 且**归一后**的 token 属字面集（无正则元字符——否则 cur 恒 0 必假阳性）时判
+        if exists and cur == 0 and literal_token.match(norm):
             # 取数行＝窗口内首个命中「期望」（＝正则口径的解析门）的那一行；**取数面＝「期望」子句**，
             # 按 docstring 的五步先后取数（顺序即口径）：① 取有序数字列表 nums；② K＝M 按命令序号（0 基）
             # 配对取值——每数字各对一条命令，不要求全同、不看分配型；③ K≠M 且分配型句 → 不判；
@@ -879,7 +973,7 @@ def _strip_wrap(s):
     """剥去逐字核验串的外层包裹（「」／单双反引号／表格管道），得纯文本。
     只在首尾成对时剥一层：形如「`0` 成功 / …」的串（首字符恰为反引号）不会被误剥。
     另做转义归一：规格要在代码跨度内嵌反引号，写作 `\\``（反斜杠是 Markdown 转义符、非内容），
-    实文里是裸反引号——不归一则这类条目在已完工件上恒报假阳性（050 批五处实测）。另剥加粗标记（规格 A 级行惯以加粗标改动词、实文不含，不剥即恒报未落实假阳性——101 批 F1 行实例）。"""
+    实文里是裸反引号——不归一则这类条目在已完工件上恒报假阳性（050 批五处实测）。另剥加粗标记（规格 A 级行惯以加粗标改动词、实文不含，不剥即恒报未落实假阳性——101 批 F1 行实例）。**目标侧亦须同等去加粗**（否则恒假阳——109 F1 的落点：`check_pairs()` 另取 `content.replace('**','')` 视图并取两视图并集）。"""
     s = s.strip().replace('\\`', '`')
     # 剥加粗标记（规格 A 级行的 `**` 系强调记法、非目标文本；不剥即恒报「未落实」，101 批 F1 行实例）
     s = s.replace('**', '')
@@ -894,7 +988,7 @@ def _strip_wrap(s):
     return s
 
 
-def check_pairs(text, root):
+def check_pairs(text, root, spec=None):
     """检查 C：[A] 项**目标文本**的逐字落实核对（只呈报，不影响退出码）。返回输出行列表。
     ① 列角色按表头别名定位（见 _change_rows()）：路径列＝表头含「文件」或「新产品文档」；自由度列＝
     含「自由度」（无则取末列，**单元格内含 `[A]` 者视同 `[A]` 行**——059 有「[A]＋[C]」写法）；
@@ -905,6 +999,12 @@ def check_pairs(text, root):
     ③ **方向标记切分**（§二 C 行 ③，产物审查 P0-1）：单元格内有方向标记（见 DIR_MARKS）时，核对面＝
     **最后一个标记之后**的引号块（标记之前的是「现文」＝改后已移除的旧文，核之必假阳性）；标记之后无
     引号块者该行**不核逐字**、降为候选呈报（见 _target_blocks()）。
+    ④ **成因诊断（109 F3／反模式 `#33` 的机械判据）**：对**未命中目标件**的引号块，再到**改动面外件集**
+    （`docs/specs/**/*.md` 中**非本件**者，含 `archive/`；本件由 `spec` 参数排除，读盘一次缓存，见
+    `_out_of_scope_texts()`）中检索同一去加粗视图——命中者在该行文案末尾**追加**成因括注「（**疑现状侧
+    引文**：该串亦见于改动面外件，**成因待判**）」。措辞取「**待判**」：机械判据只报候选、不冒充确定结论；
+    **仍是一行、不新增候选行**，退出码不变（候选非阻断）。
+    ⑤ **加粗归一对称化（109 F1）**：命中判据取「原文 ∪ 去加粗视图」并集（见下），只减假阳、不引入假阴。
     目标件不可解析的行不核（不猜）并计数明示（见末尾汇总行）；前缀一律 `·`（非 `x`——`x` 前缀语义只
     留给参数错误类）。"""
     if not CHANGE_SECTION.search(text):
@@ -935,14 +1035,20 @@ def check_pairs(text, root):
             # `UnicodeDecodeError` 残留；读口径统一在 `_read_target()`
             cache[path] = _read_target(path)
         content = cache[path]
+        # 加粗归一对称化（109 F1）：`_strip_wrap()` 已剥**规格侧**的 `**`，而目标件原文可能同样含 `**`
+        # （规格 `[A]` 行惯以加粗标改动词，实文亦然）——只比原文即恒报「未落实或已漂移」（`G37` 永久假阳）。
+        # 故另取一份**去加粗视图**，命中判据取两视图的**并集**（析取）：失败集严格缩小，目标件内本就合法的
+        # 字面 `**` 仍可在原文侧命中 ⇒ 只减假阳、不引入假阴。
+        content_norm = content.replace('**', '')
         for block in blocks:
             # 多行串按行切片，逐行要求命中（避免整段因一处空格差异而误判）；单行过短者跳过（噪声防护）
             for piece in _strip_wrap(block).splitlines():
                 piece = piece.strip()
                 if len(piece) < 8:
                     continue
-                if piece not in content:
-                    lines.append(f'· [A] 未落实或已漂移: {piece[:60]} @ {target}')
+                if piece not in content and piece not in content_norm:
+                    note = '（疑现状侧引文：该串亦见于改动面外件，成因待判）' if _out_of_scope_hit(piece, root, spec) else ''
+                    lines.append(f'· [A] 未落实或已漂移: {piece[:60]} @ {target}{note}')
     if no_face:
         lines.append(f'· C：{no_face} 行无核对面（路径列未解析到仓根路径）')
     return lines
@@ -1688,7 +1794,7 @@ def static_report(specs, root):
         _cell_mismatch_reset()    # 格数校验暂存（093 批 F8）：逐件起始处清空，不沿用上一件残留
         a_lines, extracted, hits = check_swallow(text, root)
         count_lines, judged, cand = check_counts(text, root)
-        c_lines = check_pairs(text, root)
+        c_lines = check_pairs(text, root, spec)
         d_lines = check_writing(text, spec, root)
         # 检查 E（077 批 F1）：两列表分岔——候选行并入 `extra`（⇒ 计入末尾三态 `findings`），
         # 汇总行只进下方的逐件打印串（**不计入**——漏计则三态少计，多计则计数行多于屏上明细）。
@@ -1754,7 +1860,10 @@ def static_report(specs, root):
     # 零命中核对未判（072 F1）：期望子句多值且与命令无法对齐——同为检查 A 的发现项，同理须计入
     # （否则新支路的产出在汇总里隐形，与「修缺口」的立法目的相悖）
     undecided = [l for l in swallow if l.startswith('· 零命中核对未判')]
-    findings = warn + zero + undecided + sentinel + extra + counts
+    # 口径不可判（109 F2）：token 含 BRE 真正特殊的元字符、字面口径测不出「现行」值——同为检查 A 的发现项，
+    # 须并入 findings（否则「屏上有行、汇总少计」，`101` F26 同型）
+    uncountable = [l for l in swallow if l.startswith('· 口径不可判')]
+    findings = warn + zero + undecided + uncountable + sentinel + extra + counts
     if findings:
         # 中性汇总行（哨兵型／归零型不可区分态）与检查 B／C／D／E 输出同为发现项：计入本行，不落「无发现」
         print(f'· 有预警 {len(findings)} 条'
