@@ -7,7 +7,7 @@
 待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
 命令对齐时呈报同名候选行）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
-机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）＋**路径定级核对**（头注「路径判定」自述 ↔ §二 清单行：**自称「快」而清单含 `[B]`／`[C]`／混合行即出候选**，`106` 加）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）——十类一律
+机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）＋**路径定级核对**（头注「路径判定」自述 ↔ §二 清单行：**自称「快」而清单含 `[B]`／`[C]`／混合行即出候选**，`106` 加）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／**仍待项断链核对**（§七 仍待／待作者行的条目锚点 ↔ 五处台账全文）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）／**开放项台账归宿核对**（§八 开放项条目锚点 ↔ 五处台账全文）／**§九 成本字段核对**（§九 审查记录节须有**任一行**同时带「工具往返数」与「周期时长」且两值非占位）——十类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
 整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
 （规格断言多系施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
@@ -47,6 +47,10 @@
   与规格正文内的子判据标签 `（F1）`／`（F2）` **不同族**：后者是某条改动的自由度子项，勿混读）；
   新增检查 G 的判据改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL／FREEDOM_PATH；
   新增检查 H 的判据改 check_nuclear()／NUCLEAR_SECTION／NUCLEAR_STATES／NUCLEAR_TALLY；
+  **仍待项断链**（检查 H 扩）与**开放项台账归宿**（检查 J 扩）两判据改 _item_anchors()／_ledger_text()／
+  OPEN_SECTION／OPEN_ITEM／OPEN_TICK／OPEN_NUM／BATCH_TOKEN／LEDGER_FILES／LEDGER_DIRS；
+  §九 的**成本字段**判据（检查 J 扩）改 _cost_field_cands()／_cost_placeholder()／COST_WORDS／
+  COST_FIELDS／COST_PLACEHOLDER；
   新增检查 I 的判据改 check_anchor()／ANCHOR_SECTION／ANCHOR_FILELINE／ANCHOR_FILEONLY／
   ANCHOR_BARELINE／ANCHOR_QUOTE／_anchor_probe()／_anchor_norm()；
   格数校验（F8）改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH／_cell_mismatch_reset()；
@@ -1041,10 +1045,16 @@ def check_nuclear(text, root):
     仍待／待作者）；汇总侧＝`NUCLEAR_TALLY` 命中的五个计数与总数。逐档比对，不符即出候选。
     **另判「五档外状态词」**：状态列既不含五档任一者即出候选（该格是档位错写／自由措辞——本仓实例：
     规划方曾写「不适用」，而 `施工机制` §七 明定「状态取五档之一」）。
+    **另判「仍待项断链」（2026-09-16 扩）**：表体行状态列 ∈ {仍待, 待作者} 者——该行是「欠账仍在」
+    的声明——取其「条目」列锚点（取法与检查 J 的「开放项台账归宿」**同款**，见 `_item_anchors()`：
+    锚点一＝首个非批次号反引号跨度、锚点二＝首个 `§N`／`GN`／`#N`；两锚点皆取不到亦出候选），
+    该锚点在**五处台账**全文零命中即出候选（文案以「仍待项已断链」起——「条目」里写不出一个可查
+    落点者，等于该欠账已断链）。候选非阻断、恒不置红。
     **静默条件（硬）**：无 §七 核销节、或节内无数出状态列的表格 ⇒ **完全不输出**（连汇总行都不打——
     防误报的判据落在字面上）。表体有行而汇总行缺失 ⇒ 出候选（有表无账属真不自洽）。
     事故出身：2026-09-16 规划方在 `099` 两轮审查与 `100` 首轮**三次同型**写错该汇总行（表体改了而汇总
-    未跟着重算／档位计错），三次都靠审查方逐行点数才发现——本条把它机械化。本检查不读写磁盘。"""
+    未跟着重算／档位计错），三次都靠审查方逐行点数才发现——本条把它机械化。
+    **除「仍待项断链」一项外**本检查不读写磁盘（该项读五处台账全文，见 `_ledger_text()`）。"""
     sec = _section(text, NUCLEAR_SECTION)
     if not sec:
         return [], []
@@ -1079,6 +1089,27 @@ def check_nuclear(text, root):
             outside.append(f'· 检查 H 五档外状态词: {st[:30]}（表头行「{head[:20]}」）')
         else:
             counts[hit] += 1
+    # 「仍待项断链」（2026-09-16 扩）：§七 表体行状态 ∈ {仍待, 待作者} 者，其「条目」列锚点 ↔
+    # 五处台账全文——锚点零命中即报候选（取法与检查 J 的开放项判据同款，见 _item_anchors()）。
+    # **单列一表**：不得并入 `outside`（后者是「五档外状态词」的计数面，汇总行按 len 取数）。
+    ledger = _ledger_text(root)
+    broken = []
+    for cells in rows:
+        head = cells[0].strip()
+        st = cells[2].replace('*', '').strip()
+        if head.startswith('来源') or set(st) <= set('-: '):
+            continue
+        if not any(k in st for k in ('仍待', '待作者')):
+            continue
+        item = cells[1] if len(cells) > 1 else ''
+        anchors = _item_anchors(item)
+        if not anchors:
+            tail = '（两锚点皆取不到）'
+        elif not _anchors_hit(anchors, ledger):
+            tail = '（锚点 ' + '／'.join(anchors) + '）'
+        else:
+            continue
+        broken.append(f'· 检查 H 仍待项已断链: {item.strip()[:60]}{tail}')
     diffs = []
     if tally is None:
         diffs.append('汇总行缺失')
@@ -1092,7 +1123,7 @@ def check_nuclear(text, root):
             diffs.append(f'总数 汇总 {tally[5]} ≠ 表体 {len(rows) - _nuclear_nonbody(rows)}')
     def fmt(d):
         return '｜'.join(f'{k} {d[k] if d else "缺"}' for k in NUCLEAR_STATES)
-    cands = list(outside)
+    cands = list(outside) + broken
     if diffs:
         cands.append('· 检查 H 核销表汇总与表体不符: '
                      + ('汇总行缺失；' if tally is None else f'汇总 {fmt(declared)}；')
@@ -1212,6 +1243,143 @@ RECORD_PLACEHOLDER = re.compile(r'findings|共')
 # 档位计数：`P0`／`P1`／`P2` 与紧随的**首个**数字（中间容 `:`／空白／加粗标记等非数字字符）；
 # 窗口＝本条「findings 共 N」之后至该行行末（**禁整节求和**——在制规格常有多条审查记录）。
 RECORD_TIER = re.compile(r'(P0|P1|P2)[^\d\n]{0,6}(\d+)')
+# 检查 J 扩（2026-09-16 加）：§八「开放项」节——条目锚点 ↔ **五处台账**全文，以及成本字段判据（§九）。
+# 节定位模式**须含「八、」**（F3 ② 的定位写死条）：§七 标题「本批核销（相关归档规格的开放项）」
+# 含「开放项」字样而不含「八、」，据此不被它抢先命中。
+OPEN_SECTION = re.compile(r'^##[^#\n]*八[、.]\s*开放项.*$', re.M)
+# 条目起始符：`数字.` 与「连字符加空格」两种都认（F3 ①）。
+OPEN_ITEM = re.compile(r'^\s*(?:\d+[.)]|[-*+])\s')
+# 锚点一＝条目内**首个非批次号**的反引号跨度：纯数字／批次号在五处台账中恒命中（如 `106`），
+# 不排除则本闸一上线即**恒静默**（F3 ② 的兜底条）。
+OPEN_TICK = re.compile(r'`([^`\n]+)`')
+BATCH_TOKEN = re.compile(r'^\d+$')
+# 锚点二＝条目内**首个** `§N`／`GN`／`#N` 编号（`§` 后认阿拉伯与中文数字——本仓节号两种写法并存）。
+OPEN_NUM = re.compile(r'§\s*(?:\d+|[一二三四五六七八九十]+)|G\d+|#\d+')
+# 该条已自带「已处置／已失效」判定者跳过（F3 ③）。
+OPEN_SKIP = ('作废', '已履行', '本批处置')
+# 五处台账（`施工机制` §六 反模式表与已知缺口表／`测试与验收标准` §4 G 表／`docs/standards/` 全部
+# 标准件正文／`AGENTS.md`）——前四处的并集恰＝`施工机制.md` ＋ `docs/standards/*.md` 全部正文，
+# 故取该两处全集 ＋ `AGENTS.md`（台账面只增不减；任一处命中即压制报告，口径见 F3 ④）。
+LEDGER_FILES = ('docs/specs/施工机制.md', 'AGENTS.md')
+LEDGER_DIRS = ('docs/standards',)
+# 成本字段判据（§九；F14）：审查位记录行判据＝**整行**含该三词之一；两字段名与占位值。
+COST_WORDS = ('成稿审查', '产物审查', '单维核对')
+COST_FIELDS = ('工具往返数', '周期时长')
+COST_PLACEHOLDER = ('待汇总', '待填', '待补', '待定', 'TODO', 'TBD')
+# 五处台账全文的进程内缓存（同一进程内多规格共享，避免逐件重复读盘）。
+_LEDGER_CACHE = {}
+
+
+def _ledger_text(root):
+    """五处台账**全文**（检查 H 的「仍待项断链」与检查 J 的「开放项台账归宿」共用比对面）：
+    `施工机制.md` ＋ `docs/standards/*.md`（全部标准件正文）＋ `AGENTS.md`，逐件读盘一次后缓存。
+    缺件静默跳过（比对面不因缺件崩溃）；两判据的 ④ 口径＝「任一锚点在此全文命中即算有归宿」。"""
+    key = str(root)
+    if key in _LEDGER_CACHE:
+        return _LEDGER_CACHE[key]
+    names = list(LEDGER_FILES)
+    for d in LEDGER_DIRS:
+        full = os.path.join(root, d)
+        if os.path.isdir(full):
+            names += [f'{d}/{n}' for n in sorted(os.listdir(full)) if n.endswith('.md')]
+    parts = []
+    for rel in names:
+        try:
+            with open(_abs(rel, root), encoding='utf-8', errors='replace') as f:
+                parts.append(f.read())
+        except OSError:
+            continue
+    _LEDGER_CACHE[key] = '\n'.join(parts)
+    return _LEDGER_CACHE[key]
+
+
+def _open_items(sec):
+    """§八 节文本 → 条目列表：行首项起（起始符见 `OPEN_ITEM`）至下一个起始行止，续行并入本条
+    （条目常跨行书写；不并则锚点可能落在续行上而取不到）。"""
+    items, cur = [], None
+    for ln in sec.split('\n'):
+        if OPEN_ITEM.match(ln):
+            if cur is not None:
+                items.append('\n'.join(cur))
+            cur = [ln]
+        elif cur is not None:
+            cur.append(ln)
+    if cur is not None:
+        items.append('\n'.join(cur))
+    return items
+
+
+def _item_anchors(item):
+    """条目 → 锚点列表（检查 H「仍待项断链」与检查 J「开放项台账归宿」**同款取法**）：
+    锚点一＝首个**非批次号**反引号跨度（首个跨度是纯数字／批次号时跳过它）；锚点二＝首个
+    `§N`／`GN`／`#N` 编号。两者**都取不到**时返回空表——调用方据此出「无锚点」候选（**不跳过**：
+    闸门目的正是抓「写不出可查落点」的条目）。"""
+    toks = [t for t in OPEN_TICK.findall(item) if not BATCH_TOKEN.match(t.strip())]
+    out = [toks[0]] if toks else []
+    m = OPEN_NUM.search(item)
+    if m:
+        out.append(m.group(0))
+    return out
+
+
+def _anchors_hit(anchors, ledger):
+    """锚点集在台账全文是否命中（任一命中即算有归宿）——两判据共用的 ④ 判据。"""
+    return any(a in ledger for a in anchors)
+
+
+def _open_item_cands(text, root):
+    """检查 J 扩（2026-09-16 加）：§八「开放项」节条目锚点 ↔ 五处台账全文。
+    返回 **(候选行列表, 无锚点条目数, 已判条目数)**；无 §八 开放项节 ⇒ 三者皆空／0（静默）。
+    **候选非阻断、恒不置红**。"""
+    sec = _section(text, OPEN_SECTION)
+    if not sec:
+        return [], 0, 0
+    ledger = _ledger_text(root)
+    cands, noanchor, total = [], 0, 0
+    for item in _open_items(sec):
+        if any(w in item for w in OPEN_SKIP):
+            continue
+        total += 1
+        anchors = _item_anchors(item)
+        if not anchors:
+            noanchor += 1
+            cands.append('· 检查 J 开放项无锚点，无法核归宿: ' + item.strip()[:60])
+        elif not _anchors_hit(anchors, ledger):
+            cands.append('· 检查 J 开放项无台账归宿: ' + item.strip()[:60]
+                         + '（锚点 ' + '／'.join(anchors) + '）')
+    return cands, noanchor, total
+
+
+def _cost_placeholder(line, field):
+    """§九 审查记录行内某字段的**值**是否缺失或占位：取字段名之后至该行下一个「｜」或行末的片段，
+    剥 markdown 标记与空白；空值、花括号变量（如 `{R}`）与 `待汇总`／`待填` 类占位词均判占位
+    （F14：字段名与字段值**同判**——写「待汇总」等于没填）。"""
+    rest = line.split(field, 1)[1]
+    for sep in ('｜', '|'):
+        rest = rest.split(sep, 1)[0]
+    val = rest.strip().strip('*`：: ')
+    if not val:
+        return True
+    if re.fullmatch(r'\{[^}\n]{0,20}\}', val):
+        return True
+    return any(p in val for p in COST_PLACEHOLDER)
+
+
+def _cost_field_cands(sec):
+    """检查 J 扩（2026-09-16 加；同日**改按「节」判**）：§九 审查记录节内**任一行**同时含
+    「工具往返数」与「周期时长」两字段、且两值均非占位值（`COST_PLACEHOLDER`）⇒ 该节**通过**；
+    **整节都没有**这样的行 ⇒ 出**一条**候选（**候选文案的唯一出口＝本函数下方那一行**，全件只此
+    一处含该串）。
+    **为何按节不按行**：首稿按「行」判（审查位记录行＝整行含 `COST_WORDS` 之一，缺字段即报），
+    在四件在制规格上出 **13 条**候选，逐条复核 **0 条真阳**——全是「成本两字段单列一行」（成本记账
+    段）的**等效写法**，按行判会把等效写法误判为缺字段，属**过报**；该实例已记 `测试与验收标准`
+    §4 `G19`（其触发条件正是「上线后出现大批人工逐条判为预期」的候选）。按节判后现行四件归 **0 条**。
+    候选非阻断、恒不置红。"""
+    for ln in sec.split('\n'):
+        if all(f in ln for f in COST_FIELDS) and not any(_cost_placeholder(ln, f) for f in COST_FIELDS):
+            return []
+    return ['· 检查 J `§九 含成本字段` —— §九 审查记录节内无任一行同时带「工具往返数」与「周期时长」'
+            '且两值非占位（含「待汇总」「待填」等占位值者视同缺）']
 
 
 def check_archive_record(text, root):
@@ -1227,43 +1395,64 @@ def check_archive_record(text, root):
     **窗口口径**：本条命中处至该行行末（档位数取各档位**首个**数字——「P0-1／P1-2」类条目号不二次计数；
     故一条记录内同一档位写两个数字时只认首个——**宁漏报不误报**，多档位写法（P0:2 P1:5 P2:4）不受影响）。
 
-    **静默条件（硬）**：无该节者**完全静默**（连汇总行都不打——不误报的判据落在字面上）。
+    **本函数另含两条判据（2026-09-16 扩）**：⑤ **开放项台账归宿**——§八「开放项」节（定位模式
+    `OPEN_SECTION` 写死含「八、」，故不被 §七 标题「本批核销（相关归档规格的开放项）」抢先命中）
+    每条取两个锚点（取法与检查 H 的「仍待项断链」**同款**，见 `_item_anchors()`），两锚点在
+    **五处台账**全文零命中即出候选（文案以「开放项无台账归宿」起）；**两个锚点都取不到**者出候选、
+    文案以「开放项无锚点，无法核归宿」起（**不跳过**——闸门目的正是抓「写不出可查落点」的条目），
+    并在汇总行末加一格 `｜无锚点条目 {n} 条`；该条含「作废」「已履行」「本批处置」任一者跳过。
+    ⑥ **成本字段核对**（§九，见 `_cost_field_cands()`；**按节判**）——§九 节内**任一行**同时含
+    「工具往返数」与「周期时长」且两值非占位即通过；整节皆无则出**一条**候选。两条均**候选非阻断、
+    恒不置红**。
+
+    **静默条件（硬）**：无「审查记录」节**且**各处候选皆空 ⇒ **完全静默**（连汇总行都不打——不误报
+    的判据落在字面上）；**无「审查记录」节但 §八 开放项判据有候选时，仍照打汇总行**（汇总行的发射面
+    由「有无候选」决定、不由「有无 §九 节」决定；`｜无锚点条目 {n} 条` 是**运行期输出**，非规格内的
+    预估数）。
     事故出身：`091`／`095`／`096`／`097` 四件审查记录节**实质未填**（节内无任何「findings 共 ＋
     数字」），此前无机械面可查；`施工机制` §三 过程产物两项已立「审查记录须同批落」（本批 F5）。
-    本检查不读写磁盘（核对面取自规格文本本身，`root` 只作签名一致）。"""
+    **除开放项台账归宿一项外不读写磁盘**（审查记录核对面取自规格文本本身；开放项台账归宿一项另读
+    五处台账全文，见 `_ledger_text()`——`root` 为此而入参）。"""
     sec = _section(text, ARCHIVE_RECORD_SECTION)
-    if not sec:
+    cands, labels, diffs, hits = [], [], 0, []
+    if sec:
+        hits = list(RECORD_FINDINGS.finditer(sec))
+        if not hits:
+            if RECORD_PLACEHOLDER.search(sec):
+                cands.append('· 检查 J 审查记录留占位符: 节内无「findings 共 N」数字行（占位符未填）')
+            else:
+                cands.append('· 检查 J 审查记录留占位符: 节内无 findings 计数行（节存在而无内容）')
+        for m in hits:
+            raw = m.group(1)
+            line_end = sec.find('\n', m.start())
+            win = sec[m.end():line_end if line_end != -1 else len(sec)]
+            got = {k: None for k in ('P0', 'P1', 'P2')}
+            for k, v in RECORD_TIER.findall(win):
+                if got[k] is None:
+                    got[k] = int(v)
+            if raw.startswith('{'):
+                cands.append(f'· 检查 J 非数字占位: findings 共 {raw}（规格模板形态？模板以花括号变量记位）')
+                labels.append(raw)
+                diffs += 1
+                continue
+            n = int(raw.replace(',', ''))
+            s = sum(v for v in got.values() if v is not None)
+            labels.append(f'{n}：' + ' '.join(f'{k}:{got[k] if got[k] is not None else "-"}'
+                                            for k in ('P0', 'P1', 'P2')))
+            if n != s:
+                diffs += 1
+                cands.append(f'· 检查 J 审查记录 N 与档位不符: findings 共 {n} ≠ 各档位之和 {s}'
+                             f'（P0:{got["P0"]} P1:{got["P1"]} P2:{got["P2"]}）')
+        # ⑤ 成本字段判据（§九，2026-09-16 扩）：只对有审查记录节的件判（无该节即无处判成本行）。
+        cands += _cost_field_cands(sec)
+    # ⑥ 开放项台账归宿（2026-09-16 扩）：**不受 §九 存在性约束**——§八 是独立判据面，
+    # 审查记录节缺失时该判据仍须生效（否则最该抓的「开放项写不出落点」在缺节件上整段失明）。
+    open_cands, noanchor, _open_n = _open_item_cands(text, root)
+    cands += open_cands
+    if not sec and not cands:
         return [], []
-    cands, hits = [], list(RECORD_FINDINGS.finditer(sec))
-    if not hits:
-        if RECORD_PLACEHOLDER.search(sec):
-            cands.append('· 检查 J 审查记录留占位符: 节内无「findings 共 N」数字行（占位符未填）')
-        else:
-            cands.append('· 检查 J 审查记录留占位符: 节内无 findings 计数行（节存在而无内容）')
-    labels, diffs = [], 0
-    for m in hits:
-        raw = m.group(1)
-        line_end = sec.find('\n', m.start())
-        win = sec[m.end():line_end if line_end != -1 else len(sec)]
-        got = {k: None for k in ('P0', 'P1', 'P2')}
-        for k, v in RECORD_TIER.findall(win):
-            if got[k] is None:
-                got[k] = int(v)
-        if raw.startswith('{'):
-            cands.append(f'· 检查 J 非数字占位: findings 共 {raw}（规格模板形态？模板以花括号变量记位）')
-            labels.append(raw)
-            diffs += 1
-            continue
-        n = int(raw.replace(',', ''))
-        s = sum(v for v in got.values() if v is not None)
-        labels.append(f'{n}：' + ' '.join(f'{k}:{got[k] if got[k] is not None else "-"}'
-                                        for k in ('P0', 'P1', 'P2')))
-        if n != s:
-            diffs += 1
-            cands.append(f'· 检查 J 审查记录 N 与档位不符: findings 共 {n} ≠ 各档位之和 {s}'
-                         f'（P0:{got["P0"]} P1:{got["P1"]} P2:{got["P2"]}）')
     summary = (f'· 检查 J 汇总: 条目 {len(hits)} 条｜N 与档位不符 {diffs} 条｜'
-               f'声明 {"、".join(labels) if labels else "无"}')
+               f'声明 {"、".join(labels) if labels else "无"}｜无锚点条目 {noanchor} 条')
     return cands, [summary]
 
 
