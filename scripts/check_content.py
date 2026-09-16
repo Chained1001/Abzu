@@ -25,7 +25,7 @@
 只读不写盘**任何**文件：不跑 git 写命令、不跑目标件内任何命令；语法自检用 `ast.parse` 而**非**
   `py_compile`（后者会落 `__pycache__`——守卫不得有写盘副作用）。读文件一律显式 `encoding='utf-8'`。
 维护入口：新增检查在 `_checks()` 挂新 `_check_*`（返回 `(候选行, 置红行)`）；三体例改 `_cand()`／
-  `_red()`／`_info()`；件清单改 `_repo_files()`；行数口径改 `_lines()`；TOC 判据改 `_toc_state()`；
+  `_red()`／`_info()`；件清单改 `_repo_files()`；行数口径改 `_lines()`；热路径字数预算改 `_check_budget()`／`HOT_BUDGET`；TOC 判据改 `_toc_state()`；
   ⑤ 的形态正则改 `GOV_MENTION`；① 链接扫描的跨度／围栏跳过判据改 `_span_ranges()`／`FENCE_LINE`；
 """
 import argparse
@@ -282,8 +282,46 @@ def _check_maint(gov_names, files):
     return cands, []
 
 
+# ⑥ 热路径字数预算（2026-09-17 机制成本研究加）：热路径件被**每个 subagent 实例**装载，
+# 体量直接乘上批内实例数（109 实测：单批 5 个实例、交底点名面上限 ≈ 10.7 万字符/实例）。
+# 阈值＝(仓根相对路径, 上限字符, 说明)；目录前缀以 `/` 结尾表**逐件判**。
+# 依据＝`AGENTS.md` §四「doc-budget 字数预算」的解冻词「单文件 >2 万字符」——`施工机制` 2026-09-17
+# 实测 23,883 字符、条件成立，故此处取**冻结线**（只许缩不许涨；目标 ≤20,000）。
+# **候选、恒不置红**（`AGENTS.md` §五.2）：预算用于防回涨，不用于拦截正确改动。
+HOT_BUDGET = (
+    ('AGENTS.md', 8000, '宪法入口'),
+    ('docs/specs/施工机制.md', 24000, '协作真源（冻结线；目标 ≤20000）'),
+    ('docs/standards/', 15000, '标准件（逐件）'),
+)
+
+
+def _check_budget(files):
+    """⑥ 热路径字数预算（**候选，恒不置红**）：逐件核 `HOT_BUDGET`，超限即报候选行。
+    口径＝**字符数**（`len(_read(...))`，与 `规格写作标准` §5 一致，非字节）；件不存在则跳过（不猜）。"""
+    cands = []
+    for rel in files:
+        cap = None
+        for pat, lim, _why in HOT_BUDGET:
+            if pat.endswith('/'):
+                if rel.startswith(pat) and rel.endswith('.md'):
+                    cap = lim
+                    break
+            elif rel == pat:
+                cap = lim
+                break
+        if cap is None:
+            continue
+        try:
+            n = len(_read(os.path.join(ROOT, rel)))
+        except OSError:
+            continue
+        if n > cap:
+            cands.append(f'· 热路径字数超预算: {rel} —— 实测 {n} 字符 ＞ 预算 {cap}')
+    return cands, []
+
+
 def _checks(files):
-    """阶段编排：返回 [(候选行列表, 置红行列表), …]（顺序＝检查 ①–⑤）。"""
+    """阶段编排：返回 [(候选行列表, 置红行列表), …]（顺序＝检查 ①–⑥）。"""
     gov = [f for f in files if f.endswith('.md') and not f.startswith('skills/')]
     assets = [f for f in files if f.endswith('.md') and f.startswith('skills/')]
     return [
@@ -292,6 +330,7 @@ def _checks(files):
         _check_lines(files),
         _check_changelog(),
         _check_maint(_gov_names(files), files),
+        _check_budget(files),
     ]
 
 
