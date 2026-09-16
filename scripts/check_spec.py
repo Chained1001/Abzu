@@ -47,6 +47,8 @@
   与规格正文内的子判据标签 `（F1）`／`（F2）` **不同族**：后者是某条改动的自由度子项，勿混读）；
   新增检查 G 的判据改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL；
   新增检查 H 的判据改 check_nuclear()／NUCLEAR_SECTION／NUCLEAR_STATES／NUCLEAR_TALLY；
+  新增检查 I 的判据改 check_anchor()／ANCHOR_SECTION／ANCHOR_FILELINE／ANCHOR_FILEONLY／
+  ANCHOR_BARELINE／ANCHOR_QUOTE／_anchor_probe()／_anchor_norm()；
   格数校验（F8）改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH／_cell_mismatch_reset()；
   阶段编排、呈报前缀、空转明示与
   末尾三态判据改 static_report()；核验比对改
@@ -57,7 +59,7 @@
   断言吞自家 [A] 文本／对象错／计数错／恒真假绿；2026-09-07 作者裁定守卫化）；本工具由旧仓
   `scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
   `grep -c "TOKEN" FILE` 载体）。
-退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G／H 八类无论报出多少条发现，一律只呈报、
+退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G／H／I 九类无论报出多少条发现，一律只呈报、
   不影响退出码（`AGENTS.md` §五.2 候选永不拦截）。区分：`--verify` 模式的**过程产物缺失**可置退出 1
   （该模式不进 `check.sh` 门禁）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。
   呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类（故源件的 `x 计数不符` 改为
@@ -153,6 +155,12 @@ NUCLEAR_SECTION = re.compile(r'^##[^#\n]*本批核销.*$', re.M)
 NUCLEAR_STATES = ('已履行', '作废', '本批处置', '仍待', '待作者')
 NUCLEAR_TALLY = re.compile(
     r'已履行\s*(\d+)｜作废\s*(\d+)｜本批处置\s*(\d+)｜仍待\s*(\d+)｜待作者\s*(\d+)\s*＝\s*(\d+)')
+# 检查 I（2026-09-16 加）——§一「现状锚点」节 文件:行号 ↔ 目标件实况。引文归一化见 _anchor_norm()。
+ANCHOR_SECTION = re.compile(r'^##[^#\n]*现状锚点.*$', re.M)
+ANCHOR_FILELINE = re.compile(r'`([^`:\s]+\.md):(\d+)`')
+ANCHOR_FILEONLY = re.compile(r'`([^`:\s]+\.md)`')
+ANCHOR_BARELINE = re.compile(r'`:(\d+)`')
+ANCHOR_QUOTE = re.compile(r'「([^」]{6,200})」')
 BAN_PREFIX = re.compile(r'(?<![\w./\-])[\w.\-]+(?:/[\w.\-]+)*/(?![\w.\-])')
 # 判一的豁免判据＝**子句级双条件**（豁免词 ＋ 落点同子句）：「豁免词出现即放行」已实证在立法对象上
 # 恒空转（整句含「除」即被放行），故两条件须落同一子句。
@@ -1102,6 +1110,94 @@ def _nuclear_nonbody(rows):
     return n
 
 
+def _anchor_norm(s):
+    """锚点比对用的归一化：剥 markdown 定界（反引号与 *）与空白——规格引文常带 ** 强调标记
+    而目标件正文没有，逐字比对会假阳性（100 批审查实证）。"""
+    return re.sub(r'[`*\s]', '', s)
+
+
+def _anchor_probe(path, ln, quotes, root, seen, cands):
+    """单点核验一处 `path:ln`：行号实存、非空行、且该行±3 内含规格引文（「…」）。
+    引文不在附近时**全件搜索定位真行**——产出「实际在第 X 行」的可操作候选；全件无命中则报
+    「未在目标件出现」（§一 按定义只述现状，不该引目标文本）。路径不实存者静默跳过（示例串
+    不产噪声）。"""
+    full = os.path.normpath(os.path.join(root, path))
+    if not os.path.isfile(full):
+        return
+    key = (path, ln)
+    with open(full, encoding='utf-8', errors='replace') as f:
+        lines = f.read().split('\n')
+    if ln > len(lines):
+        if key not in seen:
+            seen.add(key)
+            cands.append(f'· 检查 I 锚点行号超出文件: {path}:{ln}（该件实有 {len(lines)} 行）')
+        return
+    if not lines[ln - 1].strip() and key not in seen:
+        seen.add(key)
+        cands.append(f'· 检查 I 锚点指向空行: {path}:{ln}')
+    norm_lines = [_anchor_norm(x) for x in lines]
+    for q in quotes:
+        nq = _anchor_norm(q)
+        # 省略号分段：规格引文常用「…」缩略（如「卷数按标尺派生区间回填——…」）——按 … 切段，
+        # 每段（≥6 字）须同现于该行才算命中；无 ≥6 字段者按整串处理。
+        parts = [p for p in nq.split('…') if len(p) >= 6] or [nq]
+        if len(nq) < 6:
+            continue
+        if all(any(p in x for x in norm_lines[max(0, ln - 4):ln + 3]) for p in parts):
+            continue
+        hit = next((k + 1 for k, v in enumerate(norm_lines)
+                    if all(p in v for p in parts)), None)
+        if hit is not None:
+            cands.append(f'· 检查 I 锚点漂移: {path}:{ln} 的引文实际在第 {hit} 行——「{q[:24]}」')
+        else:
+            cands.append(f'· 检查 I 引文未在目标件出现: {path}:{ln}——「{q[:24]}」（§一 应只述现状）')
+
+
+def check_anchor(text, root):
+    """检查 I（2026-09-16 加）：§一「现状锚点」节的 文件:行号 引用 ↔ 目标件实况核对。
+    返回 **(候选行列表, 汇总行列表)**——口径同 E／F／G／H：候选并入 `extra`（非阻断、恒不置红），
+    汇总行只打印。
+
+    **只扫 §一**：该节按定义只述**现状**（现行原文），引文可与磁盘逐字比对；§二 F 行引述
+    混合现状与目标文本，不在此核（扩展位＝出现 F 行锚点过时的事故后再议）。
+    **判据**：① 行号超出目标件实有行数 ② 行号指向空行 ③ 该行±3 内不含规格引文——引文在
+    全件他处命中时报**实际行号**（可直接改规格），全件无命中时报「未在目标件出现」。
+    引文取「…」形、归一化剥 ` 与 * 后比对（见 `_anchor_norm`）；不足 6 字者跳过（过短易伪命中）。
+    同行先出现的完整 `路径.md` 为其后裸 `:行号` 建立文件上下文；围栏块内不判。
+    无 §一 节 ⇒ **完全静默**（连汇总行都不打——不误报的判据落在字面上）。
+    事故出身：`098`／`099`／`100` 三批成稿审查的锚点 P0 族——`100`-P0-1 为**全表行号系前批
+    落地前旧号**（直接引发规格整体重写＋再一轮窄域复核，两轮 subagent 合计约 3.4M token）；
+    `099`-P0-4／`098`-P0-4 同型单点。本检查把该族从「独立上下文重测发现」前移到「送审前机器候选」。"""
+    sec = _section(text, ANCHOR_SECTION)
+    if not sec:
+        return [], []
+    cands, seen, refs = [], set(), 0
+    in_fence = False
+    for raw in sec.split('\n'):
+        if FENCE_BLOCK.match(raw):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        quotes = ANCHOR_QUOTE.findall(raw)
+        ctx = None
+        for m in ANCHOR_FILELINE.finditer(raw):
+            refs += 1
+            ctx = m.group(1)
+            _anchor_probe(ctx, int(m.group(2)), quotes, root, seen, cands)
+        if ctx is None:
+            mo = ANCHOR_FILEONLY.search(raw)
+            if mo:
+                ctx = mo.group(1)
+        if ctx:
+            for mb in ANCHOR_BARELINE.finditer(raw):
+                refs += 1
+                _anchor_probe(ctx, int(mb.group(1)), quotes, root, seen, cands)
+    if len(cands) > 15:
+        cands = cands[:15] + [f'· 检查 I 另有 {len(cands) - 15} 条（截断显示）']
+    return cands, [f'· 检查 I 汇总: 锚点引用 {refs} 处｜异常 {len(cands)} 项']
+
+
 def check_reconcile(text, root):
     """检查 E：三方对账（改动面 ↔ 禁改面 ↔ 断言排除集；只呈报，不影响退出码）。
     返回 **(候选行列表, 汇总行列表)**——候选行由调用方并入末尾三态判据（`findings`），
@@ -1300,7 +1396,7 @@ def static_report(specs, root):
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    extra = []      # 检查 C／D／E／F／G／H 候选与 F8 格数不符输出（非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
+    extra = []      # 检查 C／D／E／F／G／H／I 候选与 F8 格数不符输出（非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1329,15 +1425,19 @@ def static_report(specs, root):
         # 检查 H（2026-09-16 加）：口径同 E／F／G（候选并入 `extra`、汇总只打印）；无 §七 核销节、
         # 或节内数不出状态列时**两表皆空**，该件对该项完全静默（不误报的判据落在字面上）。
         h_lines, h_summary = check_nuclear(text, root)
+        # 检查 I（2026-09-16 加）：口径同 H（候选并入 `extra`、汇总只打印）；无 §一 现状锚点节时
+        # 两表皆空，该件对该项完全静默（不误报的判据落在字面上）。
+        i_lines, i_summary = check_anchor(text, root)
         swallow += a_lines
-        extra += c_lines + d_lines + e_lines + f_lines + g_lines + h_lines
+        extra += c_lines + d_lines + e_lines + f_lines + g_lines + h_lines + i_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
         b_judged += judged
         b_cand += cand
         for line in (a_lines + c_lines + d_lines + count_lines + e_lines + e_summary
-                     + f_lines + f_summary + g_lines + g_summary + h_lines + h_summary):
+                      + f_lines + f_summary + g_lines + g_summary + h_lines + h_summary
+                      + i_lines + i_summary):
             print(line)
         # 格数校验（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行——**件名与行号在此补**
         # （该函数只入参 text、无件名上下文，且 5 处调用点的签名与既有行为不得变更）；行号按行原文在
