@@ -8,7 +8,7 @@
 命令对齐时呈报同名候选行，与「口径不可判」——token 含 BRE 真正特殊的正则元字符（含 `^` 剥锚后仍含者），
 字面口径测不出「现行」值、故不出「目标文本未提及且现行为 0」出口而改出明示行时呈报）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对（比对取「目标件原文 ∪ 去加粗视图」并集——加粗归一**两侧对称**，未命中者的文案另可追加「疑现状侧引文」**成因诊断**括注：该串亦见于改动面外件时标出、措辞取「成因待判」）、检查 D 规格写作
-机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／**仍待项断链核对**（§七 仍待／待作者行的条目锚点 ↔ 五处台账全文）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）／**开放项台账归宿核对**（§八 开放项条目锚点 ↔ 五处台账全文）／**§九 成本字段核对**（§九 审查记录节须有**任一行**同时带「工具往返数」与「周期时长」且两值非占位）——十类一律
+机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／**仍待项断链核对**（§七 仍待／待作者行的条目锚点 ↔ 台账全集全文）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）／**开放项台账归宿核对**（§八 开放项条目锚点 ↔ 台账全集全文）／**§九 成本字段核对**（§九 审查记录节须有**任一行**同时带「工具往返数」与「周期时长」且两值非占位）——十类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
 整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
 （规格断言多系施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
@@ -44,14 +44,14 @@
   改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS 常量；检查 C 的成因诊断
    （未命中目标件的引号块 ↔ 改动面外件集＝`docs/specs/**/*.md` **减本件**，`109` F3）改 _out_of_scope_texts()／
    _out_of_scope_hit()／_rel_key／_OUT_SCOPE_CACHE；检查 D 改
-  check_writing()；新增检查 E 的判据改 check_reconcile()／BAN_SECTION／BAN_PREFIX／（**判三「回写面对账」表存在性**：本批触 `scripts/check*.py`／`check.sh` 时，规格须含该表——2026-09-17 机制成本研究加）
+  check_writing()；新增检查 E 的判据改 check_reconcile()／BAN_SECTION／BAN_PREFIX／（**判三「回写面对账」表存在性**：本批触 `scripts/check*.py`／`check.sh` 时，规格须含该表——2026-09-17 机制成本研究加）／（**判四·档位**：按 §二 清单实算「小改／主线」并与头注「路径判定」行比对，**自述只作声明不作依据**——2026-09-17 T2 加）
   BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；新增检查 F 的判据改
   check_ban_words()／_ban_words()／BAN_WORD_CLAUSE／BAN_WORD_RUN（**顶层第六类「检查 F」**——
   与规格正文内的子判据标签 `（F1）`／`（F2）` **不同族**：后者是某条改动的自由度子项，勿混读）；
   新增检查 G 的判据改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL；
   新增检查 H 的判据改 check_nuclear()／NUCLEAR_SECTION／NUCLEAR_STATES／NUCLEAR_TALLY；
   **仍待项断链**（检查 H 扩）与**开放项台账归宿**（检查 J 扩）两判据改 _item_anchors()／_ledger_text()／
-  OPEN_SECTION／OPEN_ITEM／OPEN_TICK／OPEN_NUM／BATCH_TOKEN／LEDGER_FILES／LEDGER_DIRS；
+  OPEN_SECTION／OPEN_ITEM／OPEN_TICK／OPEN_NUM／BATCH_TOKEN／LEDGER_FILES／LEDGER_DIRS；（**核验第 1 步机械化** `--reconcile` 与件级声明面改 `reconcile_report()`／`_declared_paths()`——2026-09-17 T5 加）
   §九 的**成本字段**判据（检查 J 扩）改 _cost_field_cands()／_cost_placeholder()／
   COST_FIELDS／COST_PLACEHOLDER；
   新增检查 I 的判据改 check_anchor()／ANCHOR_SECTION／ANCHOR_FILELINE／ANCHOR_FILEONLY／
@@ -145,7 +145,6 @@ def _child_env():
 
 # 断言节定位：**只认节名、不带位次**（位次随批次变，三／四均有）；节名容「验收断言」与旧称「验收标准」
 SECTION = re.compile(r'^##[^#\n]*验收(?:标准|断言).*$', re.M)
-
 # 静态检查阶段的节定位与识别口径（--static；只读，不执行规格内任何命令）
 # 改动清单节：容错「首轮落地改动清单」等变体（061／065 实测变体）
 CHANGE_SECTION = re.compile(r'^##[^#\n]*(?:首轮)?(?:落地)?文件级改动清单.*$', re.M)
@@ -1153,13 +1152,13 @@ def check_nuclear(text, root):
     **另判「仍待项断链」（2026-09-16 扩）**：表体行状态列 ∈ {仍待, 待作者} 者——该行是「欠账仍在」
     的声明——取其「条目」列锚点（取法与检查 J 的「开放项台账归宿」**同款**，见 `_item_anchors()`：
     锚点一＝首个非批次号反引号跨度、锚点二＝首个 `§N`／`GN`／`#N`；两锚点皆取不到亦出候选），
-    该锚点在**五处台账**全文零命中即出候选（文案以「仍待项已断链」起——「条目」里写不出一个可查
+    该锚点在**台账全集**全文零命中即出候选（文案以「仍待项已断链」起——「条目」里写不出一个可查
     落点者，等于该欠账已断链）。候选非阻断、恒不置红。
     **静默条件（硬）**：无 §七 核销节、或节内无数出状态列的表格 ⇒ **完全不输出**（连汇总行都不打——
     防误报的判据落在字面上）。表体有行而汇总行缺失 ⇒ 出候选（有表无账属真不自洽）。
     事故出身：2026-09-16 规划方在 `099` 两轮审查与 `100` 首轮**三次同型**写错该汇总行（表体改了而汇总
     未跟着重算／档位计错），三次都靠审查方逐行点数才发现——本条把它机械化。
-    **除「仍待项断链」一项外**本检查不读写磁盘（该项读五处台账全文，见 `_ledger_text()`）。"""
+    **除「仍待项断链」一项外**本检查不读写磁盘（该项读台账全集全文，见 `_ledger_text()`）。"""
     sec = _section(text, NUCLEAR_SECTION)
     if not sec:
         return [], []
@@ -1195,7 +1194,7 @@ def check_nuclear(text, root):
         else:
             counts[hit] += 1
     # 「仍待项断链」（2026-09-16 扩）：§七 表体行状态 ∈ {仍待, 待作者} 者，其「条目」列锚点 ↔
-    # 五处台账全文——锚点零命中即报候选（取法与检查 J 的开放项判据同款，见 _item_anchors()）。
+    # 台账全集全文——锚点零命中即报候选（取法与检查 J 的开放项判据同款，见 _item_anchors()）。
     # **单列一表**：不得并入 `outside`（后者是「五档外状态词」的计数面，汇总行按 len 取数）。
     ledger = _ledger_text(root)
     broken = []
@@ -1348,13 +1347,13 @@ RECORD_PLACEHOLDER = re.compile(r'findings|共')
 # 档位计数：`P0`／`P1`／`P2` 与紧随的**首个**数字（中间容 `:`／空白／加粗标记等非数字字符）；
 # 窗口＝本条「findings 共 N」之后至该行行末（**禁整节求和**——在制规格常有多条审查记录）。
 RECORD_TIER = re.compile(r'(P0|P1|P2)[^\d\n]{0,6}(\d+)')
-# 检查 J 扩（2026-09-16 加）：§八「开放项」节——条目锚点 ↔ **五处台账**全文，以及成本字段判据（§九）。
+# 检查 J 扩（2026-09-16 加）：§八「开放项」节——条目锚点 ↔ **台账全集**全文，以及成本字段判据（§九）。
 # 节定位模式**须含「八、」**（F3 ② 的定位写死条）：§七 标题「本批核销（相关归档规格的开放项）」
 # 含「开放项」字样而不含「八、」，据此不被它抢先命中。
 OPEN_SECTION = re.compile(r'^##[^#\n]*八[、.]\s*开放项.*$', re.M)
 # 条目起始符：`数字.` 与「连字符加空格」两种都认（F3 ①）。
 OPEN_ITEM = re.compile(r'^\s*(?:\d+[.)]|[-*+])\s')
-# 锚点一＝条目内**首个非批次号**的反引号跨度：纯数字／批次号在五处台账中恒命中（如 `106`），
+# 锚点一＝条目内**首个非批次号**的反引号跨度：纯数字／批次号在台账全集中恒命中（如 `106`），
 # 不排除则本闸一上线即**恒静默**（F3 ② 的兜底条）。
 OPEN_TICK = re.compile(r'`([^`\n]+)`')
 BATCH_TOKEN = re.compile(r'^\d+$')
@@ -1362,20 +1361,21 @@ BATCH_TOKEN = re.compile(r'^\d+$')
 OPEN_NUM = re.compile(r'§\s*(?:\d+|[一二三四五六七八九十]+)|G\d+|#\d+')
 # 该条已自带「已处置／已失效」判定者跳过（F3 ③）。
 OPEN_SKIP = ('作废', '已履行', '本批处置')
-# 五处台账（`施工机制` §六 反模式表与已知缺口表／`测试与验收标准` §4 G 表／`docs/standards/` 全部
-# 标准件正文／`AGENTS.md`）——前四处的并集恰＝`施工机制.md` ＋ `docs/standards/*.md` 全部正文，
-# 故取该两处全集 ＋ `AGENTS.md`（台账面只增不减；任一处命中即压制报告，口径见 F3 ④）。
-LEDGER_FILES = ('docs/specs/施工机制.md', 'AGENTS.md')
+# 台账全集（`施工机制` §六 反模式表与已知缺口表 ＋ 其**冷路径附录**／`测试与验收标准` §4 G 表／
+# `docs/standards/` 全部标准件正文／`AGENTS.md`）——并集 ＝ `施工机制.md` ＋ `施工机制-附录.md`
+# ＋ `docs/standards/*.md` 全部正文 ＋ `AGENTS.md`（台账面只增不减；任一处命中即压制报告）。
+# **2026-09-17 T2-2**：反模式表／缺口表／模板全文迁入附录件，故台账面同步加入该件。
+LEDGER_FILES = ('docs/specs/施工机制.md', 'docs/specs/施工机制-附录.md', 'AGENTS.md')
 LEDGER_DIRS = ('docs/standards',)
 # 成本字段判据（§九；F14）：改按「节」判后不再需要审查位词表；两字段名与占位值。
 COST_FIELDS = ('工具往返数', '周期时长')
 COST_PLACEHOLDER = ('待汇总', '待填', '待补', '待定', 'TODO', 'TBD')
-# 五处台账全文的进程内缓存（同一进程内多规格共享，避免逐件重复读盘）。
+# 台账全集全文的进程内缓存（同一进程内多规格共享，避免逐件重复读盘）。
 _LEDGER_CACHE = {}
 
 
 def _ledger_text(root):
-    """五处台账**全文**（检查 H 的「仍待项断链」与检查 J 的「开放项台账归宿」共用比对面）：
+    """台账全集**全文**（检查 H 的「仍待项断链」与检查 J 的「开放项台账归宿」共用比对面）：
     `施工机制.md` ＋ `docs/standards/*.md`（全部标准件正文）＋ `AGENTS.md`，逐件读盘一次后缓存。
     缺件静默跳过（比对面不因缺件崩溃）；两判据的 ④ 口径＝「任一锚点在此全文命中即算有归宿」。"""
     key = str(root)
@@ -1432,7 +1432,7 @@ def _anchors_hit(anchors, ledger):
 
 
 def _open_item_cands(text, root):
-    """检查 J 扩（2026-09-16 加）：§八「开放项」节条目锚点 ↔ 五处台账全文。
+    """检查 J 扩（2026-09-16 加）：§八「开放项」节条目锚点 ↔ 台账全集全文。
     返回 **(候选行列表, 无锚点条目数, 已判条目数)**；无 §八 开放项节 ⇒ 三者皆空／0（静默）。
     **候选非阻断、恒不置红**。"""
     sec = _section(text, OPEN_SECTION)
@@ -1502,7 +1502,7 @@ def check_archive_record(text, root):
     **本函数另含两条判据（2026-09-16 扩）**：⑤ **开放项台账归宿**——§八「开放项」节（定位模式
     `OPEN_SECTION` 写死含「八、」，故不被 §七 标题「本批核销（相关归档规格的开放项）」抢先命中）
     每条取两个锚点（取法与检查 H 的「仍待项断链」**同款**，见 `_item_anchors()`），两锚点在
-    **五处台账**全文零命中即出候选（文案以「开放项无台账归宿」起）；**两个锚点都取不到**者出候选、
+    **台账全集**全文零命中即出候选（文案以「开放项无台账归宿」起）；**两个锚点都取不到**者出候选、
     文案以「开放项无锚点，无法核归宿」起（**不跳过**——闸门目的正是抓「写不出可查落点」的条目），
     并在汇总行末加一格 `｜无锚点条目 {n} 条`；该条含「作废」「已履行」「本批处置」任一者跳过。
     ⑥ **成本字段核对**（§九，见 `_cost_field_cands()`；**按节判**）——§九 节内**任一行**同时含
@@ -1516,7 +1516,7 @@ def check_archive_record(text, root):
     事故出身：`091`／`095`／`096`／`097` 四件审查记录节**实质未填**（节内无任何「findings 共 ＋
     数字」），此前无机械面可查；`施工机制` §三 过程产物两项已立「审查记录须同批落」（本批 F5）。
     **除开放项台账归宿一项外不读写磁盘**（审查记录核对面取自规格文本本身；开放项台账归宿一项另读
-    五处台账全文，见 `_ledger_text()`——`root` 为此而入参）。"""
+    台账全集全文，见 `_ledger_text()`——`root` 为此而入参）。"""
     sec = _section(text, ARCHIVE_RECORD_SECTION)
     cands, labels, diffs, hits = [], [], 0, []
     if sec:
@@ -1641,8 +1641,30 @@ def check_reconcile(text, root):
         bw = len(touch_check)
         cands.append('· 对账③ 触检查面而无「回写面对账」表: ' + '、'.join(touch_check[:3])
                      + (f' 等 {len(touch_check)} 件' if len(touch_check) > 3 else ''))
+    # 判四·档位（2026-09-17 立，机制成本研究 T2）：按 §二 清单**实算档位**并与头注「路径判定」行比对。
+    # 判据（`施工机制` §二）：`小改` ＝ 件数 ≤3 ∧ 不触检查面（`scripts/check*.py`／`check.sh`）∧
+    # 不动 `skills/` 或 `docs/product/` ∧ 不触规范面（`docs/standards/**`、`AGENTS.md`）；其余＝主线。
+    # **头注自述只作声明、不作依据**（`105`／`106` 两批「自述豁免失守」的机械化落点）。
+    n_t = len(targets)
+    touch_check = any(re.match(r'scripts/check[^/]*\.(py|sh)$', x) for x in targets)
+    touch_soft = any(x.startswith('skills/') or x.startswith('docs/product/') for x in targets)
+    touch_rule = any(x == 'AGENTS.md' or x.startswith('docs/standards/') for x in targets)
+    computed = '小改' if (n_t <= 3 and not touch_check and not touch_soft and not touch_rule) else '主线'
+    headzone2 = text.split('\n## ', 1)[0]
+    pline2 = next((l for l in headzone2.split('\n') if '路径判定' in l), '')
+    g4 = 0
+    if not pline2:
+        g4 = 1
+        cands.append('· 判四 档位未写（检查 E）：头注缺「路径判定」行——档位不可核，照主线执行')
+    else:
+        declared = '小改' if ('小改' in pline2 and '主线' not in pline2) else '主线'
+        if declared != computed:
+            g4 = 1
+            cands.append(f'· 判四 档位与清单不符（检查 E）：头注自称「{declared}」而清单实算「{computed}」'
+                         f'（件数 {n_t}｜触检查面 {int(touch_check)}｜动 skills 或产品契约 {int(touch_soft)}'
+                         f'｜触规范面 {int(touch_rule)}）')
     summary = (f'· 对账① 汇总: 改动行 {len(rows)} 行｜可解析 {len(targets)} 件｜'
-               f'判一适用 {applicable} 件｜判二缺 {len(missing)} 件｜判三未表 {bw} 件｜'
+               f'判一适用 {applicable} 件｜判二缺 {len(missing)} 件｜判三未表 {bw} 件｜判四不符 {g4} 件｜'
                f'跳过：无禁改面句 {no_ban}｜无补集式断言 {no_exc}')
     return cands, [summary]
 
@@ -1862,8 +1884,12 @@ def static_report(specs, root):
     findings = warn + zero + undecided + uncountable + sentinel + extra + counts
     if findings:
         # 中性汇总行（哨兵型／归零型不可区分态）与检查 B／C／D／E 输出同为发现项：计入本行，不落「无发现」
+        _cls = [('自噬预警', warn), ('零命中待复核', zero), ('零命中核对未判', undecided),
+                ('口径不可判', uncountable), ('中性/哨兵', sentinel)]
+        # T5-3（2026-09-17）：分类计数**追加在既有汇总行末**（不新增行、不截断明细，零风险降噪）
+        _tail = '｜分类：' + '｜'.join(f'{k} {len(v)}' for k, v in _cls if v) if findings else ''
         print(f'· 有预警 {len(findings)} 条'
-              f'（非阻断，请人工核对预测与到位期望）')
+              f'（非阻断，请人工核对预测与到位期望）{_tail}')
     elif a_extract and not a_hit:
         # 提取＞0 而命中 0：每个断言都落「跳过」（＝未命中任何可解析目标），与真阴性区分（假绿通道的
         # 可见化）；同时抑制「· 无发现」——两者不得同屏（空转明示行已在上方打印）
@@ -1929,10 +1955,10 @@ def verify_report(spec, root):
     blocking = False
 
     # 1) 改动面比对（非阻断提示）
-    declared = {_archive_equiv(t) for r in _change_rows(text)[0]
-                for t in PATH_TOKEN.findall(r['path'])}
-    actual = {_archive_equiv(p) for _, p in _git_changes(root)
-              if p != rel}   # 豁免②：待验规格自身恒在改动集内（判阻断即常驻红）
+    # 2026-09-17 T5：与 `--reconcile` 共用同一实现（单一真源；原为两处各写一遍）
+    changed = _git_changed(root) or []
+    declared = _declared_paths(text)
+    actual = {p for p in changed if p != rel}   # 豁免②：待验规格自身恒在改动集内
     print('· 改动面比对（声明集 ↔ 实际改动集；非阻断提示）')
     for p in sorted(declared - actual):
         print(f'  · 声明但未动: {p}')
@@ -1963,14 +1989,58 @@ def verify_report(spec, root):
     return blocking
 
 
+def _git_changed(root):
+    """实盘改动件（只读 git；`core.quotepath=false` 保证中文路径不被转义加引号）。
+    返回排序后的仓根相对路径列表；git 不可用返回 None。`.tmp/` 不计（`AGENTS.md` 红线 2）。"""
+    out = set()
+    for cmd in (['diff', '--name-only', 'HEAD'], ['ls-files', '--others', '--exclude-standard']):
+        r = subprocess.run(['git', '-c', 'core.quotepath=false'] + cmd, cwd=root, capture_output=True)
+        if r.returncode != 0:
+            return None
+        out |= {n for n in r.stdout.decode('utf-8', 'replace').split('\n') if n.strip()}
+    return sorted(x for x in out if not x.startswith('.tmp/'))
+
+
+def _declared_paths(text):
+    """**声明改动面**＝§二 文件级改动清单各行「文件:位置」列里抽出的件级路径（两模式共用同一口径：
+    `--reconcile` 的清单外判定与 `--verify` 第 1 项；**不取正文里的一切路径**——正文提及≠声明改动，
+    取宽会把「声明但未动」刷成噪声，2026-09-17 T5 自审修）。"""
+    return {m.rstrip('.,;:，。；：') for r in _change_rows(text)[0]
+            for m in PATH_TOKEN.findall(r['path'] or '')}
+
+def reconcile_report(specs, root):
+    """**核验第 1 步机械化**（2026-09-17 T5 加）：实盘改动面 ↔ 规格声明面对账（**候选非阻断**）。
+
+    判据：取 `git diff --name-only HEAD` ∪ untracked（`.tmp/` 不计，`AGENTS.md` 红线 2），逐件核——
+    该件是否在规格正文出现过（件级路径串）；**未出现者＝「清单外改动件」候选**。本件自身不计。
+    用途＝把「核验第 1 步：`git status` 逐 hunk 对照规格清单」的一半（件级完整性）交给机器；
+    hunk 级与语义面仍归人（行级机械化会被编辑位移搞脆，见 `109` 批实测）。
+    **只读 git**：`diff --name-only`／`ls-files --others`，不写索引、不改仓库。"""
+    changed = _git_changed(root)
+    if changed is None:
+        print('x --reconcile: 只读 git 子命令失败（须在 git 仓库内运行）', file=sys.stderr)
+        return 2
+    for spec in specs:
+        with open(spec, encoding='utf-8', errors='replace') as f:
+            text = f.read()
+        rel = os.path.relpath(os.path.abspath(spec), root).replace('\\', '/')
+        declared = _declared_paths(text)
+        foreign = [f for f in changed if f != rel and f not in declared]
+        print(f'· 核验① 实盘改动 {len(changed)} 件｜本件声明 {len(declared)} 件｜**清单外 {len(foreign)} 件** @ {rel}')
+        for f in foreign:
+            print(f'· 核验① 清单外改动件: {f} —— 未在规格正文出现（件级）；hunk 级与语义面仍须人工过')
+    return 0
+
+
 if __name__ == '__main__':
     args = sys.argv[1:]
     static_only = '--static' in args
     verify_only = '--verify' in args
-    if static_only and verify_only:
-        print('x --static 与 --verify 互斥，请择一（参数错误）', file=sys.stderr)
+    reconcile_only = '--reconcile' in args
+    if sum((static_only, verify_only, reconcile_only)) > 1:
+        print('x --static／--verify／--reconcile 互斥，请择一（参数错误）', file=sys.stderr)
         sys.exit(2)
-    specs = [a for a in args if a not in ('--static', '--verify')]
+    specs = [a for a in args if a not in ('--static', '--verify', '--reconcile')]
     if not specs:
         # 零位置参数＝无在制规格（提交时规格已在验收后归档，属预期常态）：明示跳过、退出 0
         _stdout_utf8()
@@ -1982,6 +2052,12 @@ if __name__ == '__main__':
             print(f'x 文件不存在: {a}', file=sys.stderr)
         sys.exit(2)
     _stdout_utf8()
+    if reconcile_only:
+        root = repo_root()
+        if root is None:
+            print('x 无法定位仓库根（对账基准不可用）', file=sys.stderr)
+            sys.exit(2)
+        sys.exit(reconcile_report(specs, root))
     if verify_only:
         root = repo_root()
         if root is None:
