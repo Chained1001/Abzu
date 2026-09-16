@@ -7,7 +7,7 @@
 待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
 命令对齐时呈报同名候选行）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
-机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）——十类一律
+机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）＋**路径定级核对**（头注「路径判定」自述 ↔ §二 清单行：**自称「快」而清单含 `[B]`／`[C]`／混合行即出候选**，`106` 加）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）——十类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
 整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
 （规格断言多系施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
@@ -45,7 +45,7 @@
   BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；新增检查 F 的判据改
   check_ban_words()／_ban_words()／BAN_WORD_CLAUSE／BAN_WORD_RUN（**顶层第六类「检查 F」**——
   与规格正文内的子判据标签 `（F1）`／`（F2）` **不同族**：后者是某条改动的自由度子项，勿混读）；
-  新增检查 G 的判据改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL；
+  新增检查 G 的判据改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL／FREEDOM_PATH；
   新增检查 H 的判据改 check_nuclear()／NUCLEAR_SECTION／NUCLEAR_STATES／NUCLEAR_TALLY；
   新增检查 I 的判据改 check_anchor()／ANCHOR_SECTION／ANCHOR_FILELINE／ANCHOR_FILEONLY／
   ANCHOR_BARELINE／ANCHOR_QUOTE／_anchor_probe()／_anchor_norm()；
@@ -251,6 +251,7 @@ FREEDOM_HEAD = re.compile(r'自由度分布')
 FREEDOM_COUNT = re.compile(r'\[([ABC])\]\s*[×xX*]\s*(\d+)')
 FREEDOM_MIXED = re.compile(r'混合\s*[×xX*]\s*(\d+)')
 FREEDOM_TOTAL = re.compile(r'共\s*\**\s*(\d+)\s*\**\s*行')
+FREEDOM_PATH = re.compile(r'^\s*>\s*路径判定')
 
 
 def extract(text):
@@ -1408,17 +1409,20 @@ def check_freedom(text, root):
     「混合」，只含 `[A]`／只含 `[B]` 者计入该侧；只含 `[C]`（不含 `[A]`／`[B]`）者计入**清单侧** `[C]` 计数并与头注声明值比对；**同时**含 `[A]`／`[B]` 者按下方分支序只计前者、不进 `[C]` 计数；三者皆无者只进总行数。
     **混合×k 缺写＝按 0 比**：只声明 `[A]×n [B]×m` 而清单内实有 `[A]／[B]` 并存行者即出候选——该族
     缺陷本仓第五次复发才机械化（`测试与验收标准` §4 G22）。
+    **路径定级（106 加）**：另取**头注块（首个 `##` 二级标题之前）**内以 `>` 起首的「路径判定」行，若其**首个加粗片段**含「快」而清单含
+    `[B]`／`[C]`／混合行即出候选——「快」行的三条触发条件全靠规划方自述，本条是它的守卫（`施工机制` §六
+    `#31`）；该判定在 `head` 早退之前执行，故无「自由度分布」行时仍生效；无「路径判定」行时不判，只记
+    `定级 未写`。
     **静默条件（硬）**：头注无「自由度分布」行 ⇒ **完全不输出**（连汇总行都不打——防误报的判据落在
     字面上）；有改动清单节而**一行表体行都解析不出**者仍出候选（两侧无法对账，属真不自洽）。
     本检查不读写磁盘（核对面取自规格文本本身，`root` 只作签名一致）。"""
     head = next((l for l in text.split('\n') if FREEDOM_HEAD.search(l)), '')
-    if not head:
-        return [], []
-    declared = {k: int(v) for k, v in FREEDOM_COUNT.findall(head)}
-    m_mixed = FREEDOM_MIXED.search(head)
-    m_total = FREEDOM_TOTAL.search(head)
-    d_mixed = int(m_mixed.group(1)) if m_mixed else None
-    d_total = int(m_total.group(1)) if m_total else None
+    # 路径定级（106 F1 ⑤）：取数与判定须置于 `head` 早退**之前**——头注缺「自由度分布」行时本检查原
+    # 整段静默，则守卫可被一行之差整段关掉；此时仍出定级候选、但不打汇总行（静默条件只管自由度对账）。
+    headzone = text.split('\n## ', 1)[0]     # 头注块＝首个二级标题之前（106 产物审查 P1-3：原取全文首个匹配行，正文引文会致误报）
+    pline = next((l for l in headzone.split('\n') if FREEDOM_PATH.search(l)), '')
+    m_bold = re.search(r'\*\*(.+?)\*\*', pline)
+    declared_fast = bool(m_bold) and '快' in m_bold.group(1)
     rows, _skipped = _change_rows(text)
     c_a = c_b = c_mixed = c_c = 0
     for row in rows:
@@ -1432,6 +1436,18 @@ def check_freedom(text, root):
             c_b += 1
         elif has_c:
             c_c += 1
+    cands = []
+    if declared_fast and (c_b + c_c + c_mixed) > 0:
+        cands.append(f'· 路径定级失守（检查 G）：头注「路径判定」自称「快」而 §二 清单含 '
+                     f'[B]／[C]／混合行（{c_b}／{c_c}／{c_mixed} 行）——「快」行的三条触发条件'
+                     f'全靠规划方自述，本条是它的守卫（`施工机制` §六 `#31`）')
+    if not head:
+        return cands, []
+    declared = {k: int(v) for k, v in FREEDOM_COUNT.findall(head)}
+    m_mixed = FREEDOM_MIXED.search(head)
+    m_total = FREEDOM_TOTAL.search(head)
+    d_mixed = int(m_mixed.group(1)) if m_mixed else None
+    d_total = int(m_total.group(1)) if m_total else None
 
     def fmt(a, b, k, c, t):
         return f'[A]×{a} [B]×{b} 混合×{k} [C]×{c} 共 {t} 行'
@@ -1449,12 +1465,12 @@ def check_freedom(text, root):
                        ('共 N 行', d_total, len(rows))):
         if d is not None and d != c:
             diffs.append(f'{name} 头注 {d} ≠ 清单 {c}')
-    cands = []
     if diffs:
         cands.append(f'· 检查 G 头注「自由度分布」与改动清单不符: 头注 {head_s}；清单 {list_s}'
                      f'（' + '；'.join(diffs) + '）')
+    grade = '未写' if not pline else ('快' if declared_fast else '非快')
     summary = (f'· 检查 G 汇总: 头注 {head_s}｜清单 {list_s}｜'
-               f'不符 {len(diffs)} 项')
+               f'不符 {len(diffs)} 项｜定级 {grade}')
     return cands, [summary]
 
 
