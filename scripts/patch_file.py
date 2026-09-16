@@ -32,7 +32,7 @@
   **只读写命令行点名的目标件**：写盘经**同目录临时件 ＋ 整体替换**（异常路径删除临时件）；形态闸另落
   一个同目录 `.shapecheck.md` 临时副本（成功与失败路径均删）；不读规格、不跑 git、不写其它文件。
 维护入口：新增用法扩 `_apply()` 与 `build_parser()`；命中判据与「最接近的一行」改 `_hits()`／`_nearest()`；
-  写盘与回读改 `_write()`／`_readback()`；**形态闸改 `_shape_gate()`**；行尾与切行改 `_split_lines()`／
+  写盘与回读改 `_write()`／`_readback()`；**形态闸改 `_shape_gate()`**（其 `subprocess.run` **须显式 `encoding='utf-8', errors='replace'`**——缺此项则闸自崩、恒判未过，2026-09-16 实测）；行尾与切行改 `_split_lines()`／
   `_eol()`／`_split_text()`；批量解析改 `_load_batch()`；`--batch` 同件 alias 判据改 `_ident()`。
 """
 import argparse
@@ -300,7 +300,11 @@ def _shape_gate(path, text, no_lint):
         with open(tmp, 'w', encoding='utf-8', newline='') as f:
             f.write(text)
         try:
-            r = subprocess.run([npx, 'markdownlint-cli2', tmp], capture_output=True, text=True)
+            # 显式 encoding：Windows 默认 GBK 解码 markdownlint 的 UTF-8 输出会在 _readerthread 抛
+            # UnicodeDecodeError（本仓 2026-09-16 实测：闸自崩于取 returncode 之前，遂**恒判未过**、
+            # 对任何待写入文本都拦）；口径同 check_spec.py 的 `_read_target()`／`report()`。
+            r = subprocess.run([npx, 'markdownlint-cli2', tmp], capture_output=True,
+                               encoding='utf-8', errors='replace')
         except Exception as e:                  # 闸自身异常不得裸崩（收口为 Fail、零写盘）
             raise Fail([f'形态闸未能执行（{path}）：{e}——**本次全部编辑未写盘**',
                         '  （确需跳过形态闸：加 --no-lint）'])
