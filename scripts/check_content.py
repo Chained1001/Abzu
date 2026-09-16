@@ -3,29 +3,31 @@
 事故出身与历次裁定：见 `docs/specs/093-2026-09-15-守卫面建设批.md`（`[3]` 段待建一件 ＋
 `check_spec.py` 的 `\\|` 静默盲区一件，两件同批处置）。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判据的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
 
-用途：扫全仓 Markdown（治理文档 ＋ skill 资产）的**五项内容轨检查**——① 引用闭合（治理文档的相对
+用途：扫全仓 Markdown（治理文档 ＋ skill 资产）的**七项内容轨检查**——① 引用闭合（治理文档的相对
   Markdown 链接须实存——**行内代码跨度与围栏块内不计**〔101 批 F21〕；skill 资产内 `references/`／`assets/`／`scripts/` 路径引用须实存）② TOC
   存在性（常驻文档 >100 行须有 `## 目录` 且条目与 H2 逐字一致；**规格与归档件不适用**）③ `SKILL.md`
   ≤500 行 ＋ 单 reference <300 行 ④ `CHANGELOG` 条目 ≤400 字符 ⑤ 「维护出处」标注（skill 资产行内
   出现「**见／按／引／依照／据** ＋ 反引号治理件名」形态而无标注者）。
+  ⑥ 热路径字数预算（见 `HOT_BUDGET`）⑦ 用词（禁用清单见 `docs/standards/用词标准.md` §一.2；
+  守卫逐行读该件界标段）。
 
   **加粗密度不实现**——阈值未立法且仓内零**适用**目标件（见 `docs/standards/测试与验收标准.md` §4 G1 与 `文档写作标准` §一.3.8）。
 用法与参数：`python scripts/check_content.py [--static]`
   · `--static` 与**无参数同义**（保留该写法只因 `[4]` 段既有调用惯例）；两者均**扫全仓**——本工具
-    **无「本批改动面」概念**，五项检查一律扫全仓。
+    **无「本批改动面」概念**，七项检查一律扫全仓。
     仍为全仓 `docs/`＋根 `*.md`（含归档、排本批在制规格）。
   · 参数非法（含未知选项）＝用法说明 ＋ 退出 `2`。
   · 输出体例（沿用 `check.sh` 段输出规范）：候选行＝`·` ＋ 空格起首；置红行＝`x` ＋ 空格起首；
     信息行＝两空格缩进。
   · 退出码：`0` 无置红项（**候选不影响退出码**）／`1` 有置红项／`2` 参数或环境错。
-  · **分档**：可置红＝③④（阈值无歧义、现状全绿）；候选只呈报＝①②⑤（存量债面宽、判据含近似）。
+  · **分档**：可置红＝③④（阈值无歧义、现状全绿）；候选只呈报＝①②⑤⑥⑦（存量债面宽、判据含近似）。
 依赖与前置：Python 3 标准库（argparse／os／re／subprocess／sys），零外部依赖；不联网、不跑 LLM。
   前置＝git 仓库内（件清单取 `git ls-files -z` ＋ `--others --exclude-standard`，覆盖未跟踪但未忽略者；
   `-z` 亦回避 `core.quotepath` 对中文路径的引号化）。
 只读不写盘**任何**文件：不跑 git 写命令、不跑目标件内任何命令；语法自检用 `ast.parse` 而**非**
   `py_compile`（后者会落 `__pycache__`——守卫不得有写盘副作用）。读文件一律显式 `encoding='utf-8'`。
 维护入口：新增检查在 `_checks()` 挂新 `_check_*`（返回 `(候选行, 置红行)`）；三体例改 `_cand()`／
-  `_red()`／`_info()`；件清单改 `_repo_files()`；行数口径改 `_lines()`；热路径字数预算改 `_check_budget()`／`HOT_BUDGET`；TOC 判据改 `_toc_state()`；
+  `_red()`／`_info()`；件清单改 `_repo_files()`；行数口径改 `_lines()`；热路径字数预算改 `_check_budget()`／`HOT_BUDGET`；⑦ 用词改 `_check_words()`／`_ban_list()`／`WORD_SRC`；TOC 判据改 `_toc_state()`；
   ⑤ 的形态正则改 `GOV_MENTION`；① 链接扫描的跨度／围栏跳过判据改 `_span_ranges()`／`FENCE_LINE`；
 """
 import argparse
@@ -286,11 +288,11 @@ def _check_maint(gov_names, files):
 # 体量直接乘上批内实例数（109 实测：单批 5 个实例、交底点名面上限 ≈ 10.7 万字符/实例）。
 # 阈值＝(仓根相对路径, 上限字符, 说明)；目录前缀以 `/` 结尾表**逐件判**。
 # 依据＝`AGENTS.md` §四「doc-budget 字数预算」的解冻词「单文件 >2 万字符」——`施工机制` 2026-09-17
-# 曾实测 23,883 字符、条件成立；**同日 T2 冷热分离后降至 12,240**，故冻结线随之收紧至 13,000（只许缩不许涨）。
+# 曾实测 23,883 字符、条件成立；**同日 T2 冷热分离后降至 11,988**，故冻结线随之收紧至 13,000（只许缩不许涨）。
 # **候选、恒不置红**（`AGENTS.md` §五.2）：预算用于防回涨，不用于拦截正确改动。
 HOT_BUDGET = (
     ('AGENTS.md', 8000, '宪法入口'),
-    ('docs/specs/施工机制.md', 13000, '协作真源热路径（2026-09-17 T2 冷热分离后 12,240；冻结线，目标 ≤12000）'),
+    ('docs/specs/施工机制.md', 13000, '协作真源热路径（2026-09-17 T2 冷热分离后；实测值见上条注释；冻结线，目标 ≤12000）'),
     ('docs/specs/施工机制-附录.md', 13000, '冷路径附录（按需读；冻结线，防其变成第二本百科）'),
     ('docs/standards/', 15000, '标准件（逐件）'),
 )
@@ -321,8 +323,87 @@ def _check_budget(files):
     return cands, []
 
 
+# ⑦ 用词（2026-09-17 用词规范与禁用清单批）：禁用清单**唯一出处**＝`docs/standards/用词标准.md`
+# §一.2 的界标段（守卫**逐行读本段**）；存量迁移分三批（该件 §一.3），迁移期**恒为新旧双读**。
+# **候选、恒不置红**（存量逾千处，迁移分三批，做法见 `docs/standards/用词标准.md` §一.3；
+# 每次运行的实测值由末行报出，不在此写死）。
+WORD_SRC = 'docs/standards/用词标准.md'
+WORD_BEGIN = '<!-- 用词禁用清单：'
+WORD_END = '<!-- 用词禁用清单完 -->'
+WORD_BATCH_SPEC = re.compile(r'^docs/specs/\d{3}-')
+WORD_SKIP_PREFIX = ('docs/specs/archive/',)
+WORD_SKIP_FILES = ('CHANGELOG.md',)
+
+
+def _ban_list():
+    """读禁用清单（唯一出处）。返回 [(旧词, 新词)]（按旧词长度降序＝长词优先）；读不到返回 None。"""
+    path = os.path.join(ROOT, WORD_SRC)
+    if not os.path.isfile(path):
+        return None
+    text = _read(path)
+    s = text.find(WORD_BEGIN)
+    e = text.find(WORD_END, s + 1) if s >= 0 else -1
+    if s < 0 or e < 0:
+        return None
+    out = []
+    for line in text[s:e].split('\n'):
+        line = line.strip()
+        if not line or line.startswith(('#', '<!--', '```')):
+            continue
+        old, sep, new = line.partition('→')
+        if not sep:
+            continue
+        old, new = old.strip(), new.strip()
+        if old and new:
+            out.append((old, new))
+    if not out:
+        return None
+    return sorted(out, key=lambda kv: -len(kv[0]))
+
+
+def _check_words(files):
+    """⑦ 用词（**候选，恒不置红**；判据真源＝`docs/standards/用词标准.md` §一.2 的界标段，守卫逐行读该段）。
+    逐件报「用词待改」一行（含命中词与次数，最多 4 词），末行报清单词数与命中件／处数。
+    **跳过面**：`docs/specs/archive/`、在制批次规格（`docs/specs/NNN-*.md`）、`CHANGELOG.md`、清单件自身
+    ——前三者是过程记录与历史证据，须逐字保留当时的旧词。**长词优先**：命中即以占位符遮盖，避免
+    「机检锚点」与其内含的「锚点」重复计数。**读不到清单**（缺件／无界标／清单为空）时报一行
+    「用词检查未生效」——**不静默通过**（守卫失效须可见，`#31` 同族）。存量逾千处分三批迁移中
+    （每次运行的实测值由末行报出，不在此写死）。"""
+    bans = _ban_list()
+    if bans is None:
+        return [_cand('用词检查未生效：读不到 ' + WORD_SRC + ' 的禁用清单段（格式见该件 §一.2）')], []
+    cands = []
+    hit_files = 0
+    hits_total = 0
+    for path in files:
+        if not path.endswith('.md') or path == WORD_SRC or path in WORD_SKIP_FILES:
+            continue
+        if path.startswith(WORD_SKIP_PREFIX) or WORD_BATCH_SPEC.match(path):
+            continue
+        masked = _read(os.path.join(ROOT, path))
+        found = []
+        for old, new in bans:
+            n = masked.count(old)
+            if not n:
+                continue
+            found.append((old, n, new))
+            masked = masked.replace(old, '\u0000' * len(old))   # 长词优先：已计处不再重复计
+        if not found:
+            continue
+        hit_files += 1
+        n_file = sum(x[1] for x in found)
+        hits_total += n_file
+        found.sort(key=lambda t: -t[1])
+        top = '、'.join('%s×%d→%s' % (o, n, w) for o, n, w in found[:4])
+        more = '' if len(found) <= 4 else '（另 %d 词）' % (len(found) - 4)
+        cands.append(_cand('用词待改: %s —— %d 处：%s%s' % (path, n_file, top, more)))
+    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处——存量分批收口（见 %s §一.3）'
+                       % (len(bans), hit_files, hits_total, WORD_SRC)))
+    return cands, []
+
+
 def _checks(files):
-    """阶段编排：返回 [(候选行列表, 置红行列表), …]（顺序＝检查 ①–⑥）。"""
+    """阶段编排：返回 [(候选行列表, 置红行列表), …]（顺序＝检查 ①–⑦）。"""
     gov = [f for f in files if f.endswith('.md') and not f.startswith('skills/')]
     assets = [f for f in files if f.endswith('.md') and f.startswith('skills/')]
     return [
@@ -332,6 +413,7 @@ def _checks(files):
         _check_changelog(),
         _check_maint(_gov_names(files), files),
         _check_budget(files),
+        _check_words(files),
     ]
 
 
@@ -339,7 +421,7 @@ def main(argv=None):
     _stdout_utf8()
     ap = argparse.ArgumentParser(
         prog='check_content.py',
-        description='内容轨检查器（只读；扫全仓 Markdown 五项检查。分档见 docs/standards/测试与验收标准.md §1.2）')
+        description='内容轨检查器（只读；扫全仓 Markdown 七项检查。分档见 docs/standards/测试与验收标准.md §1.2）')
     ap.add_argument('--static', action='store_true',
                     help='与无参数同义：扫全仓（本工具无「在制」概念）')
     args = ap.parse_args(argv)
