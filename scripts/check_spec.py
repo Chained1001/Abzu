@@ -1,4 +1,4 @@
-"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出九类规格缺陷）。
+"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出十类规格缺陷）。
 
 事故出身与历次裁定：见 `CHANGELOG.md` 对应条目与 `docs/specs/archive/` 各批规格。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判据的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
 
@@ -7,7 +7,7 @@
 待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
 命令对齐时呈报同名候选行）、检查 B 计数实跑
 重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对、检查 D 规格写作
-机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）——九类一律
+机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方对账（改动面 ↔ 禁改面 ↔ 断言排除集）／检查 F 禁改面禁词核对（禁改面「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判据与 E 判一的目录前缀判据互补不重叠）／检查 G 自由度分布对账（头注「自由度分布」↔ 改动清单自由度列；两侧均为可数结构，不一致即出候选）／检查 H 核销表汇总核对（§七 汇总行 ↔ 表体状态列）／检查 I 锚点对源核对（§一 现状锚点 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 findings 共 N 的各档位之和；判据改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）——十类一律
 非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
 整行命令），依**执行面白名单**只读执行，三态呈报（可审计／不可审计／未跑成）——不做通过/失败判定
 （规格断言多系施工后状态，本工具取的是当前树基线，供规划方对照规格内声称的基线／预验结论）。
@@ -59,7 +59,7 @@
   断言吞自家 [A] 文本／对象错／计数错／恒真假绿；2026-09-07 作者裁定守卫化）；本工具由旧仓
   `scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
   `grep -c "TOKEN" FILE` 载体）。
-退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G／H／I 九类无论报出多少条发现，一律只呈报、
+退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G／H／I／J 十类无论报出多少条发现，一律只呈报、
   不影响退出码（`AGENTS.md` §五.2 候选永不拦截）。区分：`--verify` 模式的**过程产物缺失**可置退出 1
   （该模式不进 `check.sh` 门禁）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。
   呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类（故源件的 `x 计数不符` 改为
@@ -74,8 +74,8 @@
   生效，且单元格内有**方向标记**（`→`／`改述为`／`改为`／`改作`／`替换为`／`换为`）时只核**最后一个标记
   之后**的引号块（标记之前是「现文」＝改后已移除的旧文，核之必假阳性）；标记之后无引号块者该行不核、
   降为候选呈报（见 DIR_MARKS／_target_blocks()）。
-呈报守恒：末尾三态判据计入 A／B／C／D／E／F／G／H／I 九类全部输出（含 B 的计数行与 **E／F／G** 的候选行；**E／F／G 的汇总行
-  不计入**），「· 无发现」只在九类全空时打印。
+呈报守恒：末尾三态判据计入 A／B／C／D／E／F／G／H／I／J 十类全部输出（含 B 的计数行与 **E／F／G／H／I／J** 的候选行；**E／F／G／H／I／J 的汇总行
+  不计入**），「· 无发现」只在十类全空时打印。
 """
 import os
 import re
@@ -1201,6 +1201,72 @@ def check_anchor(text, root):
     return cands, [f'· 检查 I 汇总: 锚点引用 {refs} 处｜异常 {true_n} 项']
 
 
+# 检查 J（2026-09-16 加）——在制规格的「九、审查记录」节**存在性**与 findings 条目**N 对账**。
+# 节定位判据与检查 I 同口径：取「标题行以两个井号起、正文含『审查记录』」的节——**节号是否＝「九」交人判**。
+ARCHIVE_RECORD_SECTION = re.compile(r'^##[^#\n]*审查记录.*$', re.M)
+# 「findings 共 N」的载体形态：**容加粗**（归档实测有「共」与数字间插 `**` 的写法，如 `共**11**`）；
+# N 位取「数字串（容千分位逗号）」或「花括号变量」（后者＝非数字占位，另判）。
+RECORD_FINDINGS = re.compile(r'findings\s*(?:\*\*)?\s*共\s*(?:\*\*)?\s*(\{[^}\n]{0,20}\}|\d[\d,]{0,6})')
+RECORD_PLACEHOLDER = re.compile(r'findings|共')
+# 档位计数：`P0`／`P1`／`P2` 与紧随的**首个**数字（中间容 `:`／空白／加粗标记等非数字字符）；
+# 窗口＝本条「findings 共 N」之后至该行行末（**禁整节求和**——在制规格常有多条审查记录）。
+RECORD_TIER = re.compile(r'(P0|P1|P2)[^\d\n]{0,6}(\d+)')
+
+
+def check_archive_record(text, root):
+    """检查 J（2026-09-16 加）：在制规格的「审查记录」节**存在性**与 findings 条目**N 对账**。
+    返回 **(候选行列表, 汇总行列表)**——口径同 E／F／G／H／I：候选行由调用方并入 `extra`（⇒ 计入末尾
+    三态 `findings`）、汇总行只进逐件打印串（**不计入**）；**候选非阻断、恒不置红**。
+
+    **判据**：节定位＝「标题行以两个井号起、正文含『审查记录』」的节（`ARCHIVE_RECORD_SECTION`）；
+    **机检只判该节存在性与 N 对账，节号是否＝「九」交人判**。① 无该节 → 报候选；② 节内无
+    `findings` 与「共」的匹配 → 报候选「留占位符」（**容加粗形态**）；③ 数字位为花括号变量
+    （非数字占位）→ 报候选「非数字占位」；④ **逐条对账**：逐「findings 共 N」匹配各自取 N，与其后
+    **窗口内**各档位计数之和比对（**禁整节求和**——在制规格常有多条审查记录），N ≠ 各档位之和 → 报候选。
+    **窗口口径**：本条命中处至该行行末（档位数取各档位**首个**数字——「P0-1／P1-2」类条目号不二次计数；
+    故一条记录内同一档位写两个数字时只认首个——**宁漏报不误报**，多档位写法（P0:2 P1:5 P2:4）不受影响）。
+
+    **静默条件（硬）**：无该节者**完全静默**（连汇总行都不打——不误报的判据落在字面上）。
+    事故出身：`091`／`095`／`096`／`097` 四件审查记录节**实质未填**（节内无任何「findings 共 ＋
+    数字」），此前无机械面可查；`施工机制` §三 过程产物两项已立「审查记录须同批落」（本批 F5）。
+    本检查不读写磁盘（核对面取自规格文本本身，`root` 只作签名一致）。"""
+    sec = _section(text, ARCHIVE_RECORD_SECTION)
+    if not sec:
+        return [], []
+    cands, hits = [], list(RECORD_FINDINGS.finditer(sec))
+    if not hits:
+        if RECORD_PLACEHOLDER.search(sec):
+            cands.append('· 检查 J 审查记录留占位符: 节内无「findings 共 N」数字行（占位符未填）')
+        else:
+            cands.append('· 检查 J 审查记录留占位符: 节内无 findings 计数行（节存在而无内容）')
+    labels, diffs = [], 0
+    for m in hits:
+        raw = m.group(1)
+        line_end = sec.find('\n', m.start())
+        win = sec[m.end():line_end if line_end != -1 else len(sec)]
+        got = {k: None for k in ('P0', 'P1', 'P2')}
+        for k, v in RECORD_TIER.findall(win):
+            if got[k] is None:
+                got[k] = int(v)
+        if raw.startswith('{'):
+            cands.append(f'· 检查 J 非数字占位: findings 共 {raw}（规格模板形态？模板以花括号变量记位）')
+            labels.append(raw)
+            diffs += 1
+            continue
+        n = int(raw.replace(',', ''))
+        s = sum(v for v in got.values() if v is not None)
+        labels.append(f'{n}：' + ' '.join(f'{k}:{got[k] if got[k] is not None else "-"}'
+                                        for k in ('P0', 'P1', 'P2')))
+        if n != s:
+            diffs += 1
+            cands.append(f'· 检查 J 审查记录 N 与档位不符: findings 共 {n} ≠ 各档位之和 {s}'
+                         f'（P0:{got["P0"]} P1:{got["P1"]} P2:{got["P2"]}）')
+    summary = (f'· 检查 J 汇总: 条目 {len(hits)} 条｜N 与档位不符 {diffs} 条｜'
+               f'声明 {"、".join(labels) if labels else "无"}')
+    return cands, [summary]
+
+
+
 def check_reconcile(text, root):
     """检查 E：三方对账（改动面 ↔ 禁改面 ↔ 断言排除集；只呈报，不影响退出码）。
     返回 **(候选行列表, 汇总行列表)**——候选行由调用方并入末尾三态判据（`findings`），
@@ -1390,16 +1456,16 @@ def check_freedom(text, root):
 
 def static_report(specs, root):
     """静态检查阶段编排：打印 == 静态自检 == 与逐项结果。
-    **返回值恒为 False**：静态发现（A／B／C／D／E／F／G／H／I 九类）一律只呈报、不置退出码（差异⑤：源件对
+    **返回值恒为 False**：静态发现（A／B／C／D／E／F／G／H／I／J 十类）一律只呈报、不置退出码（差异⑤：源件对
     「计数不符」置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
-    末尾三态判据**须计入 A／B／C／D／E／F／G／H／I 九类全部输出**（含 B 的计数行、C 的候选行与 E／F／G 的
-    候选行、F8 的格数不符行；**E／F／G 的汇总行不计入**——其角色同明示行）：「· 无发现」只在九类
+    末尾三态判据**须计入 A／B／C／D／E／F／G／H／I／J 十类全部输出**（含 B 的计数行、C 的候选行与 E／F／G 的
+    候选行、F8 的格数不符行、**J 的审查记录核对**候选行；**E／F／G／H／I／J 的汇总行不计入**——其角色同明示行）：「· 无发现」只在十类
     全空时打印——漏计 B 即假绿（产物审查 P0-2：B 单源时「计数不符」与「无发现」同屏）。
     空转明示：A 在「提取 N＞0 而命中 0」时打印明示行（并抑制「· 无发现」，两者不同屏）；B 在无可判定
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    extra = []      # 检查 C／D／E／F／G／H／I 候选与 F8 格数不符输出（非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
+    extra = []      # 检查 C／D／E／F／G／H／I／J 候选与 F8 格数不符输出（非阻断；末尾三态判据须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1431,8 +1497,11 @@ def static_report(specs, root):
         # 检查 I（2026-09-16 加）：口径同 H（候选并入 `extra`、汇总只打印）；无 §一 现状锚点节时
         # 两表皆空，该件对该项完全静默（不误报的判据落在字面上）。
         i_lines, i_summary = check_anchor(text, root)
+        # 检查 J（2026-09-16 加）：口径同 H／I（候选并入 `extra`、汇总只打印）；无「审查记录」节时
+        # 两表皆空，该件对该项完全静默（不误报的判据落在字面上）。
+        j_lines, j_summary = check_archive_record(text, root)
         swallow += a_lines
-        extra += c_lines + d_lines + e_lines + f_lines + g_lines + h_lines + i_lines
+        extra += c_lines + d_lines + e_lines + f_lines + g_lines + h_lines + i_lines + j_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
@@ -1440,7 +1509,7 @@ def static_report(specs, root):
         b_cand += cand
         for line in (a_lines + c_lines + d_lines + count_lines + e_lines + e_summary
                       + f_lines + f_summary + g_lines + g_summary + h_lines + h_summary
-                      + i_lines + i_summary):
+                      + i_lines + i_summary + j_lines + j_summary):
             print(line)
         # 格数校验（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行——**件名与行号在此补**
         # （该函数只入参 text、无件名上下文，且 5 处调用点的签名与既有行为不得变更）；行号按行原文在
