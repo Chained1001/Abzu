@@ -155,14 +155,14 @@ BAN_SECTION = re.compile(r'^##[^#\n]*禁止事项.*$', re.M)
 # 判一的 P 取集：S 内**字面以斜杠结尾的独立目录 token**——两侧不得紧邻路径字符，防从
 # `scripts/check.sh` 这类文件名反推出目录（实测有件因此被误判为「该目录被禁」）；
 # 命中者还须 `os.path.isdir` 为真（判据见 check_reconcile()）。
-NUCLEAR_SECTION = re.compile(r'^##[^#\n]*本批核销.*$', re.M)
+NUCLEAR_SECTION = re.compile(r'^##[^#\n]*(?:本批核销|本批逐条确认).*$', re.M)
 # 检查 H（2026-09-16 加）的两侧可数结构：汇总行五档计数 ＋ 表体状态列档词。档词表即 `施工机制` §七
 # 「状态取五档之一」的五值——**顺序即汇总行的书写序**（已履行｜作废｜本批处置｜仍待｜待作者）。
 NUCLEAR_STATES = ('已履行', '作废', '本批处置', '仍待', '待作者')
 NUCLEAR_TALLY = re.compile(
     r'已履行\s*(\d+)｜作废\s*(\d+)｜本批处置\s*(\d+)｜仍待\s*(\d+)｜待作者\s*(\d+)\s*＝\s*(\d+)')
 # 检查 I（2026-09-16 加）——§一「现状锚点」节 文件:行号 ↔ 目标件实况。引文归一化见 _anchor_norm()。
-ANCHOR_SECTION = re.compile(r'^##[^#\n]*现状锚点.*$', re.M)
+ANCHOR_SECTION = re.compile(r'^##[^#\n]*(?:现状锚点|现状位置).*$', re.M)
 ANCHOR_FILELINE = re.compile(r'`([^`:\s]+\.md):(\d+)`')
 ANCHOR_FILEONLY = re.compile(r'`([^`:\s]+\.md)`')
 ANCHOR_BARELINE = re.compile(r'`:(\d+)`')
@@ -253,7 +253,7 @@ NEVER_ARCHIVED = ('collab-log.md',)
 NEVER_SCANNED = ('施工机制.md',)
 # 检查 G（093 批 F22）：规格头注「自由度分布」的五种可数结构 ＋ 表头行的定位词。
 # 头注形态（各批实测）：`[A]×15 [B]×6 ＋ **混合×2**（…），共 **23 行**`／`[A]×4 [B]×8（F1／…）`
-FREEDOM_HEAD = re.compile(r'自由度分布')
+FREEDOM_HEAD = re.compile(r'(?:自由度|可自定程度)分布')
 FREEDOM_COUNT = re.compile(r'\[([ABC])\]\s*[×xX*]\s*(\d+)')
 FREEDOM_MIXED = re.compile(r'混合\s*[×xX*]\s*(\d+)')
 FREEDOM_TOTAL = re.compile(r'共\s*\**\s*(\d+)\s*\**\s*行')
@@ -1476,8 +1476,7 @@ def _cost_field_cands(sec):
     一处含该串）。
     **为何按节不按行**：首稿按「行」判（审查位记录行＝整行含三词之一，缺字段即报），
     在四件在制规格上出 **13 条**候选，逐条复核 **0 条真阳**——全是「成本两字段单列一行」（成本记账
-    段）的**等效写法**，按行判会把等效写法误判为缺字段，属**过报**；该实例已记 `测试与验收标准`
-    §4 `G19`（其触发条件正是「上线后出现大批人工逐条判为预期」的候选）。按节判后现行四件归 **0 条**。
+    段）的**等效写法**，按行判会把等效写法误判为缺字段，属**过报**；该实例已记 `测试与验收标准` §4 `G19`（其触发条件正是「上线后出现大批人工逐条判为预期」的候选）。按节判后现行四件归 **0 条**。
     候选非阻断、恒不置红。"""
     for ln in sec.split('\n'):
         if all(f in ln for f in COST_FIELDS) and not any(_cost_placeholder(ln, f) for f in COST_FIELDS):
@@ -1637,9 +1636,11 @@ def check_reconcile(text, root):
     # 两批的隐式义务（「哪一面不用回写」从未落字）变成显式一行；候选非阻断（`AGENTS.md` §五.2）。
     touch_check = [x for x in targets if re.match(r'scripts/check[^/]*\.(py|sh)$', x)]
     bw = 0
-    if touch_check and '回写面对账' not in text:
+    # 用词迁移双读（2026-09-17 起）：旧表名「回写面对账」与新表名「需同步更新的文件核对」并认，
+    # 直到在制规格全部归档（`用词标准` §一.3 双读窗口）。
+    if touch_check and not any(k in text for k in ('回写面对账', '需同步更新的文件核对')):
         bw = len(touch_check)
-        cands.append('· 对账③ 触检查面而无「回写面对账」表: ' + '、'.join(touch_check[:3])
+        cands.append('· 对账③ 触检查面而无「需同步更新的文件核对」（旧称回写面对账）表: ' + '、'.join(touch_check[:3])
                      + (f' 等 {len(touch_check)} 件' if len(touch_check) > 3 else ''))
     # 判四·档位（2026-09-17 立，机制成本研究 T2）：按 §二 清单**实算档位**并与头注「路径判定」行比对。
     # 判据（`施工机制` §二）：`小改` ＝ 件数 ≤3 ∧ 不触检查面（`scripts/check*.py`／`check.sh`）∧
