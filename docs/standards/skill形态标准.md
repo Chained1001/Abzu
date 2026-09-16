@@ -13,7 +13,7 @@
 
 ### 1. 目录形态（`skills/{skill 名}/`）
 
-1. `SKILL.md`——固定名，每域一份，是入口；装进用户机器后由 skill 名路由。
+1. `SKILL.md`——固定名，每 skill（域）一份，是入口；装进用户机器后由 skill 名路由（命名与位置见 `命名标准` §2）。
 2. `references/`——**按需加载的文档**（方法论／话术／规范／查询表）；**平铺**（不设 `{skill 名}/` 子目录层）；`references` 之间不互相链接（**一层深**：`SKILL.md` → `references` 为止，同层互引读者可能看不到对方）。
 3. `assets/`——**模板与资源**（产物模板等需被填充／复制的骨架）；平铺。与 `references/` 的分工判据＝**被「读」的说明归 `references/`，被「填／复制」的骨架归 `assets/`**。
 4. `scripts/`——运行时脚本与共享库；无脚本的域不建该目录。
@@ -154,7 +154,7 @@ metadata:
 - ✅ frontmatter 五键齐全且 `name` 与目录同名（示例：`name: example-skill` ↔ `skills/example-skill/`）。
 - ✅ description 三段式（示例）：「Example 能力名：某能力的名词化描述。触发方式：仅 /example-skill 显式调用；自然语言提及不触发。范围限本 skill 覆盖的工作面，其余归 /another-skill。」
 - ✅ H1 格式（示例：「Example · 示例域（example）」）+ 四节固定节名。
-- ✅ 产物模板三要素齐备（字段定义表 + 示例行 + 定位注记约束）。
+- ✅ 产物模板三要素齐备（字段定义表 + 示例行 + 约束节）。
 - ✅ 模板新增字段的同批生产策略：加字段的同批在 workflow 对应 Stage 补「读哪个文件、怎么归纳」。
 - ✗ description 写工作流摘要（agent 照摘要走捷径，正文步骤被跳过——旧仓两次评审只做一次的事故）。
 - ✗ description 写「或上述任一话题的自然语言可触发」（模糊触发句——同一产品下的多个 skill 同属一个工作面，自然语言互抢误触发）。

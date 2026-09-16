@@ -4,7 +4,7 @@
 `check_spec.py` 的 `\\|` 静默盲区一件，两件同批处置）。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判据的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
 
 用途：扫全仓 Markdown（治理文档 ＋ skill 资产）的**五项内容轨检查**——① 引用闭合（治理文档的相对
-  Markdown 链接须实存；skill 资产内 `references/`／`assets/`／`scripts/` 路径引用须实存）② TOC
+  Markdown 链接须实存——**行内代码跨度与围栏块内不计**〔101 批 F21〕；skill 资产内 `references/`／`assets/`／`scripts/` 路径引用须实存）② TOC
   存在性（常驻文档 >100 行须有 `## 目录` 且条目与 H2 逐字一致；**规格与归档件不适用**）③ `SKILL.md`
   ≤500 行 ＋ 单 reference <300 行 ④ `CHANGELOG` 条目 ≤400 字符 ⑤ 「维护出处」标注（skill 资产行内
   出现「**见／按／引／依照／据** ＋ 反引号治理件名」形态而无标注者）。**加粗密度不实现**——阈值未立法且仓内零
@@ -24,7 +24,7 @@
   `py_compile`（后者会落 `__pycache__`——守卫不得有写盘副作用）。读文件一律显式 `encoding='utf-8'`。
 维护入口：新增检查在 `_checks()` 挂新 `_check_*`（返回 `(候选行, 置红行)`）；三体例改 `_cand()`／
   `_red()`／`_info()`；件清单改 `_repo_files()`；行数口径改 `_lines()`；TOC 判据改 `_toc_state()`；
-  ⑤ 的形态正则改 `GOV_MENTION`；退出码与分档改 `main()`。
+  ⑤ 的形态正则改 `GOV_MENTION`；① 链接扫描的跨度／围栏跳过判据改 `_span_ranges()`／`FENCE_LINE`；退出码与分档改 `main()`。
 """
 import argparse
 import io
@@ -40,6 +40,9 @@ TOC_HEAD = re.compile(r'^##\s*目录\s*$', re.M)
 H2 = re.compile(r'^##\s+(.*?)\s*$', re.M)
 TOC_ITEM = re.compile(r'^[-*+]\s+(.*?)\s*$', re.M)
 MD_LINK = re.compile(r'''\[[^\]\n]*\]\(([^)\s]+?)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\)''')
+# 围栏块开合行判定（101 批 F21）：整行仅由 ``` 或 ~~~ 构成（可带语言名）——围栏内的行不参与 ①；
+# 开合按标记字符配对（形态照 check_spec 的 FENCE_BLOCK，不跨件 import）
+FENCE_LINE = re.compile(r'^\s*(```|~~~)[a-zA-Z]*\s*$')
 # skill 资产内的路径引用（skill 根相对；`命名标准` §5 表：禁裸文件名、用根相对路径文字）
 ASSET_REF = re.compile(r'`((?:references|assets|scripts)/[A-Za-z0-9._/\-]+)`')
 # ⑤ 的形态：「见／按／引／依照／据 ＋ 可选空格与左括号 ＋ 反引号治理件名」
@@ -125,14 +128,50 @@ def _norm_link_target(path, url):
     return os.path.normpath(os.path.join(os.path.dirname(path), target)).replace(os.sep, '/')
 
 
+def _span_ranges(line):
+    """行内代码跨度的区间（**含定界反引号**）：[(起, 止)]——区间内文本不参与 ① 的链接判定
+    （101 批 F21）。算法形态照 check_spec 的 `_inline_spans`（不跨件 import）：n 个反引号开启、
+    同长 n 个反引号闭合；转义反引号（反斜杠后随）是字面文本、不作定界符。"""
+    runs = [(m.start(), m.end()) for m in re.finditer(r'`+', line)
+            if m.start() == 0 or line[m.start() - 1] != '\\']
+    spans = []
+    i = 0
+    while i < len(runs):
+        s, e = runs[i]
+        j = next((k for k in range(i + 1, len(runs))
+                  if runs[k][1] - runs[k][0] == e - s), None)
+        if j is None:
+            i += 1
+            continue
+        spans.append((s, runs[j][1]))
+        i = j + 1
+    return spans
+
+
 def _check_refs(gov, assets):
     """① 引用闭合（候选）：① 治理文档的相对 Markdown 链接目标须实存
     ② skill 资产内的 `references/`／`assets/`／`scripts/` 路径引用须实存（基准＝skill 根）。
-    **候选类**：存量债面宽（`测试与验收标准` §1.2 分档）。"""
+    **候选类**：存量债面宽（`测试与验收标准` §1.2 分档）。① 的链接扫描**跳过行内代码跨度与
+    围栏块**（跨度内与围栏内的示例串不是链接——101 批 F21；判据见 `_span_ranges()`／`FENCE_LINE`）。"""
     cands = []
     for path in gov:
+        in_fence = None          # 围栏标记字符（None＝不在围栏内）；开合按同一标记字符配对
         for i, line in enumerate(_read(os.path.join(ROOT, path)).split('\n'), 1):
-            for url in MD_LINK.findall(line):
+            fm = FENCE_LINE.match(line)
+            if fm:
+                mark = fm.group(1)[0]
+                if in_fence is None:
+                    in_fence = mark
+                elif in_fence == mark:
+                    in_fence = None
+                continue
+            if in_fence:
+                continue          # 围栏块内的行不是链接（口径同 check_spec.check_writing）
+            outside = list(line)
+            for s, e in _span_ranges(line):   # 行内代码跨度内的 `[..](url)` 不是链接（同上口径）
+                for k in range(s, e):
+                    outside[k] = ' '
+            for url in MD_LINK.findall(''.join(outside)):
                 if url.startswith(('http', '#', 'mailto')):
                     continue
                 target = _norm_link_target(path, url)
