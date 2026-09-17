@@ -1,20 +1,21 @@
-"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出九类规格缺陷）。
+"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出十类规格缺陷）。
 
 事故出身与历次裁定：见 `CHANGELOG.md` 对应条目与 `docs/specs/archive/` 各批规格。行内不写批号——事故与沿革记 `CHANGELOG` 与 git 历史，指认归档规格用全路径。
 
-用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格与磁盘）——九类：
+用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格与磁盘）——十类：
 
 - **检查 A** 断言自我匹配预警：断言 token 被自家 `[A]`／`[B]` 行的目标文本吞掉；另有「零命中待复核」「零命中核对未判」「计算方式不可判」三种明示行。
 - **检查 B** 计数实跑重算：规格内「整件尺寸」声称与实测的差。
 - **检查 C** `[A]` 项目标文本的逐字落实核对：比对取「目标件原文 ∪ 去加粗视图」并集，未命中者追加「疑现状侧引文」成因诊断。
 - **检查 D** 规格写作机械检查四项：嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接。
-- **检查 E** 三方核对（改动文件 ↔ 禁改文件 ↔ 断言排除集）＋需同步更新的文件核对＋模式判定核对——按改动清单实算简单／标准／全量并与头注比对，**自述只作声明不作依据**。
+- **检查 E** 三方核对（改动文件 ↔ 禁改文件 ↔ 断言排除集）＋需同步更新的文件核对＋模式判定核对——按改动清单实算简单／标准／全量并与头注比对（**声明高于实算＝作者升档、合法不报；低于实算才报**）。
 - **检查 H** 逐条确认表汇总核对（§七 汇总行 ↔ 表体状态列）＋仍待项找不到对应核对。
-- **检查 I** 位置对源核对：§一 现状位置 ↔ 目标件实况。
+- **检查 I** 位置对源核对：§一 现状位置 ↔ 目标件实况；另有 §二 改动清单**位置格**腿（格内 `路径:行号` 的越界与空行）。
 - **检查 J** 审查记录核对（§九 审查记录节 ↔ 发现的问题各档之和）＋开放项清单归到哪条规则核对＋§九 成本字段核对。
 - **检查 K** 规格模板节名 ↔ **有模板对应**的工具正则（防「模板改了工具没跟上」的静默失效；其余四个 `*_SECTION` 入白名单）。
+- **检查 M** §四 规格自审**留痕表**核对：节在则核表形态、表头含「项」与「判定」、**每格非空非占位**（§四 节缺失→静默；**无汇总行**）。
 
-九类一律非阻断（`AGENTS.md` §五.2 候选永不拦截）。
+十类一律非阻断（`AGENTS.md` §五.2 候选永不拦截）。
 
 用法与参数：`python scripts/check_spec.py --static|--verify|--reconcile <规格路径> [更多规格路径...]`
 
@@ -25,13 +26,13 @@
 
 依赖与前置：Python 3 标准库（os／re／sys）；零外部依赖，不联网、不装依赖、不跑 LLM。**本工具不写任何文件**（只读规格与磁盘）；语法自检用 `ast.parse`，不用 `py_compile`（后者会留缓存产物）。目标件读取统一按 UTF-8 解码并对不可解码字节容错（`errors='replace'`）。
 
-维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
+维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()／CHANGE_POS／_change_position_probe()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；检查 M 改 check_audit()／AUDIT_SECTION／AUDIT_HEADERS；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
 
-退出契约（**须带限定词**）：**静态发现恒 0**——九类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的**过程产物缺失**或**git 不可用**（改动面未核）均可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
+退出契约（**须带限定词**）：**静态发现恒 0**——十类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的**过程产物缺失**或**git 不可用**（改动面未核）均可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
 
 载体形态说明：① 断言载体两种形态都认——`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`（token 取引号内、目标取末参）；② 改动清单为**表格**形态，列角色按表头别名定位（路径列＝表头含「文件」或「新产品文档」；改动列＝表头含「改动」），无别名可识别者整表跳过并明示；③ 检查 B 用**对象计算方式**判定标准（仅当数字之前的紧邻文本显式指向整件尺寸、或与 `wc -l` 类命令同段时才判）；④ 检查 C 的逐字判定标准只对**含引号块**的 `[A]` 行生效，且单元格内有**方向标记**时只核**最后一个标记之后**的引号块。
 
-呈报守恒：末尾三种结果判定标准计入九类全部输出（含 B 的计数行与 **E／H／I／J／K** 的候选行；**E／H／I／J／K 的汇总行不计入**），「· 无发现」只在九类全空时打印。
+呈报守恒：末尾三种结果判定标准计入十类全部输出（含 B 的计数行、**E／H／I／J／K／M 的候选行**与 §二 位置格候选行；**E／H／I／J／K 的汇总行不计入**——检查 M 无汇总行），「· 无发现」只在十类全空时打印。
 
 已知限制（债跟主题走——不再另立缺口清单）：
   ① 检查 B（计数重算）在归档语料上误报偏高；若长期无真阳性，评估删除。
@@ -44,6 +45,8 @@
   ⑧ `skills/{skill 名}/scripts/*.py` 不在任何检查面内（`check.sh [5]` 与 `check_content` 皆不扫）。
   ⑨ 检查 I 的「引文未在目标件出现」不区分**预期陈旧**（目标件已被后续批改动）与真异常（现已在文案内提示，但仍需人判）。
   ⑩ 检查 K 是**单向核**——只核「模板有节名而工具不认」；模板**新增**节名而工具正则本就宽泛时不报。
+  ⑪ 检查 M 只核留痕表「非空非占位」，**不核格内是否属实**（填假值仍会通过，由审查位独立实跑逮）；也不核「表行数 ↔ 标题条数」（须解析中文数字，且该形态无事故出身）。
+  ⑫ 检查 I 的 §二 腿**只判越界与空行**，不核「行号所指处是否真是那句现状」（§二 现状侧多为描述性散文，逐字核成片误报）。
 """
 import os
 import re
@@ -1005,13 +1008,22 @@ def _anchor_probe(path, ln, quotes, root, seen, cands):
                          f'（§一 应只述现状；**若目标件已被本批或后续批改动，属预期陈旧、非缺陷**）')
 
 
+def _anchor_cut(lst, n=15):
+    """候选截断（检查 I 用）。**分腿各截**——单腿占满截断位会使另一腿的发现整批隐形
+    （产物审查 P2-⑦ 实测：§一 16 条占满 15 位、§二 8 条全不可见）。"""
+    if len(lst) <= n:
+        return list(lst)
+    return lst[:n] + [f'· 检查 I 另有 {len(lst) - n} 条（截断显示）']
+
+
 def check_anchor(text, root):
     """检查 I（2026-09-16 加）：§一「现状位置」节的 文件:行号 引用 ↔ 目标件实况核对。
     返回 **(候选行列表, 汇总行列表)**——计算方式同 E／H：候选并入 `extra`（非阻断、恒不判为失败），
     汇总行只打印。
 
-    **只扫 §一**：该节按定义只述**现状**（现行原文），引文可与磁盘逐字比对；§二 F 行引述
-    混合现状与目标文本，不在此核（扩展位＝出现 F 行位置过时的事故后再议）。
+    **射程＝§一 ＋ §二 位置格**：§一 按定义只述**现状**（现行原文），引文可与磁盘逐字比对；§二 的
+    位置格按**格内**解析 `路径:行号` 判越界与空行（**不跨格、不跨行继承上下文**——实测跨行继承会成片
+    假阳：098→338 条）。§二 的现状列引文与 ±3 引文核**未纳入**（描述性散文多，逐字核成片误报）。
     **判定标准**：① 行号超出目标件实有行数 ② 行号指向空行 ③ 该行±3 内不含规格引文——引文在
     全件他处命中时报**实际行号**（可直接改规格），全件无命中时报「未在目标件出现」。
     引文取「…」形、归一化剥 ` 与 * 后比对（见 `_anchor_norm`）；不足 6 字者跳过（过短易伪命中）。
@@ -1021,11 +1033,9 @@ def check_anchor(text, root):
     落地前旧号**（直接引发规格整体重写＋再一轮窄域复核，两轮 subagent 合计约 3.4M token）；
     同型单点。本检查把该族从「独立上下文重测发现」前移到「送审前机器候选」。"""
     sec = _section(text, ANCHOR_SECTION)
-    if not sec:
-        return [], []
     cands, seen, refs = [], set(), 0
     in_fence = None     # 当前围栏标记字符（None＝不在围栏内）；开合按**同一标记字符**配对
-    for raw in sec.split('\n'):
+    for raw in (sec or '').split('\n'):
         _fm = FENCE_BLOCK.match(raw)
         if _fm:
             _mark = _fm.group(1)[0]
@@ -1050,9 +1060,15 @@ def check_anchor(text, root):
             for mb in ANCHOR_BARELINE.finditer(raw):
                 refs += 1
                 _anchor_probe(ctx, int(mb.group(1)), quotes, root, seen, cands)
-    true_n = len(cands)     # 截断前的真实异常数（外审现场实测抓的潜伏缺陷：截断后再取 len 恒为 16）
-    if len(cands) > 15:
-        cands = cands[:15] + [f'· 检查 I 另有 {true_n - 15} 条（截断显示）']
+    i_cands = list(cands)                                          # §一 腿候选（截断前）
+    p2_cands = []                                                  # §二 腿候选（另存，见下的分腿截断）
+    refs += _change_position_probe(text, root, seen, p2_cands)     # §二 位置格腿（2026-09-17 加）
+    if not sec and not i_cands and not p2_cands:
+        return [], []       # 无 §一 且 §二 腿无发现 ⇒ 完全静默（连汇总行都不打）
+    true_n = len(i_cands) + len(p2_cands)   # 截断前的真实异常数（截断后再取 len 会失真）
+    # **分腿截断**（产物审查 P2-⑦）：原为整表截断，§一 候选多时会占满 15 个截断位，使 §二 腿的
+    # 发现**整批隐形**（098 实测：§一 16 条占满、§二 8 条全不可见）——两腿各截各的，保底可见。
+    cands = _anchor_cut(i_cands) + _anchor_cut(p2_cands)
     return cands, [f'· 检查 I 汇总: 位置引用 {refs} 处｜异常 {true_n} 项']
 
 
@@ -1358,6 +1374,7 @@ def check_reconcile(text, root):
         cands.append('· 核对③ 触检查脚本而无「需同步更新的文件核对」（旧称需同步更新的文件核对）表: ' + '、'.join(touch_check[:3])
                      + (f' 等 {len(touch_check)} 件' if len(touch_check) > 3 else ''))
     # 模式判定核对（2026-09-17 立；同日随三模式重设计）：按清单**实算模式**并与头注「模式」行比对。
+    # 同日**单向化**：档位序见 `_MODE_RANK`——声明高于实算＝作者升档、不报；低于实算才报。
     # 判定标准（`施工机制` §二）：简单 ＝ 件数 ≤3 ∧ 不触规则面（`AGENTS.md`／`docs/standards/**`）
     # ∧ 不触检查脚本（`scripts/check*.py`／`check.sh`）；标准 ＝ 其余（件数 4–10 ∨ 触规则面 ∨ 触检查脚本）；
     # 全量 ＝ 件数 ＞10。**头注自述只作声明、不作依据**（「自述豁免失守」的机械化写入位置）。
@@ -1381,9 +1398,11 @@ def check_reconcile(text, root):
         if not declared:
             g4 = 1
             cands.append('· 模式判定核对 取值不可判（检查 E）：头注「模式」行未写简单／标准／全量之一')
-        elif declared != computed:
+        elif _MODE_RANK.index(declared) < _MODE_RANK.index(computed):
+            # **单向化**（2026-09-17）：声明**高于**实算＝作者升档（`施工机制` §二「作者可随时改模式」），
+            # 合法、不报；只在**声明低于实算**（降档失守）时报——「自述豁免失守」的机械化写入位置。
             g4 = 1
-            cands.append(f'· 模式判定核对 与清单不符（检查 E）：头注自称「{declared}」而清单实算「{computed}」'
+            cands.append(f'· 模式判定核对 降档失守（检查 E）：头注自称「{declared}」而清单实算「{computed}」'
                          f'（件数 {n_t}｜触检查脚本 {int(touch_check)}｜触规则面 {int(touch_rule)}）')
     summary = (f'· 核对① 汇总: 改动行 {len(rows)} 行｜可解析 {len(targets)} 件｜'
                f'判一适用 {applicable} 件｜判二缺 {len(missing)} 件｜同步更新文件核对未表 {bw} 件｜模式判定核对不符 {g4} 件｜'
@@ -1425,19 +1444,127 @@ def check_template_names(root):
         return [f'· 检查 K 跳过：读不到 {CHECK_K_SPEC} 的模板节（节名无从核）'], []
     cands = []
     for label, rx in (('SECTION', SECTION), ('CHANGE_SECTION', CHANGE_SECTION),
-                      ('ANCHOR_SECTION', ANCHOR_SECTION)):
+                      ('ANCHOR_SECTION', ANCHOR_SECTION), ('AUDIT_SECTION', AUDIT_SECTION)):
         if not any(rx.search('## ' + n) for n in names):   # 正则判据是整行（`^## `），故补前缀再测
             cands.append(f'· 检查 K 模板节名无对应正则: {label} 不命中模板任何节名——'
                          f'模板改了而工具没跟上？（白名单：' + '／'.join(CHECK_K_WHITELIST) + '）')
     return cands, []
 
 
+# 三模式档位序（模式判定核对「单向化」用，2026-09-17）：声明**高于**实算＝作者升档、合法不报；
+# **低于**实算＝降档失守、报。`施工机制` §二「作者可随时改模式」是升档合法性的条文出处。
+_MODE_RANK = ('简单', '标准', '全量')
+
+
+# 检查 M（2026-09-17 立）：§四 规格自审**留痕表**核对——把「自审五条」从散文承诺改为逐行留痕，
+# 机器核「每格非空非占位」，即「核过」这件事必须留下可重跑的证据。**无汇总行**（同 A／B／C／D）。
+AUDIT_SECTION = re.compile(r'^##[^#\n]*规格自审.*$', re.M)
+# 表头须含的两列（缺即报——防「表在但列不对」）。
+AUDIT_HEADERS = ('项', '判定')
+
+
+def _audit_rows(sec):
+    """§四 留痕表的数据行（含表头；去分隔行）：逐行按未转义竖线切格（复用 `_CELL_SPLIT`）。"""
+    rows = []
+    for ln in sec.split('\n'):
+        s = ln.strip()
+        if not s.startswith('|'):
+            continue
+        cells = [c.strip() for c in _CELL_SPLIT.split(s.strip('|'))]
+        if all(re.fullmatch(r':?-{2,}:?', c) for c in cells if c):
+            continue        # 分隔行（| --- | --- |）
+        rows.append(cells)
+    return rows
+
+
+def check_audit(text):
+    """检查 M：§四 规格自审**留痕表**核对。返回候选行列表（**无汇总行**——故只入候选面枚举）。
+
+    **判定标准**：① §四 节缺失 → **完全静默**（连候选都不打，同检查 I 对缺 §一 的做法——不误报的
+    判定标准落在字面上）；② 节在但**无表格** → 报「非留痕表形态」1 条；③ 表头缺「项」或「判定」
+    → 报缺列；④ 表体每格**非空非占位**（空串、`{…}` 花括号变量、`待填`／`待汇总` 类占位词——复用
+    `COST_PLACEHOLDER`）。
+
+    **能力边界**（见模块「已知限制」⑪）：只核「非空非占位」，**不核格内是否属实**——填假值仍会通过，
+    那由审查位独立实跑逮；也**不核「表行数 ↔ 标题声明的条数」**。
+
+    事故出身：自审五条原为散文，`grep -c "规格自审" scripts/check_spec.py` 实测 0——五条填成什么样
+    都无机器可见面，「没核」因此没有阻力（`AGENTS.md` §五.3 文件账本律）。"""
+    sec = _section(text, AUDIT_SECTION)
+    if not sec:
+        return []
+    rows = _audit_rows(sec)
+    if not rows:
+        return ['· 检查 M §四 非留痕表形态：节内无表格——自审五条须改写为留痕表'
+                '（项｜核法与命令｜实测输出摘要｜判定）']
+    hdr, body = rows[0], rows[1:]
+    cands = [f'· 检查 M 表头缺列: {h}（留痕表须含「项」与「判定」两列）'
+             for h in AUDIT_HEADERS if not any(h in c for c in hdr)]
+    if not body:
+        # 空表（仅表头 ＋ 分隔行）：无格可核 ⇒ 上面那条「每格非空非占位」永不触发——**该报不报**。
+        # 判据出自模板原文「留痕表不能是空表」，故本支是执行既有条文、非新增门槛。
+        cands.append('· 检查 M 留痕表无数据行（仅表头 ＋ 分隔行）——留痕表不能是空表')
+    for i, r in enumerate(body, 1):
+        for j, c in enumerate(r, 1):
+            v = c.strip().strip('*`：: ')
+            if not v or re.fullmatch(r'\{[^}\n]{0,40}\}', v) or any(p in v for p in COST_PLACEHOLDER):
+                cands.append(f'· 检查 M 留痕表第 {i} 行第 {j} 格为空或占位: {c[:40]}')
+    return cands
+
+
+# 检查 I 的 §二 腿（2026-09-17 加）：改动清单**位置格**内的 `路径:行号`。
+# **只按格解析**——路径与行号须在**同一格内相邻**（故本正则不带行首锚，逐格 finditer）；
+# 实测「跨行继承路径上下文」的写法在本仓语料上成片假阳（098→338 条），故**不继承**。
+CHANGE_POS = re.compile(r'`?([\w./\-]+\.(?:md|py|sh|js|jsonc|json))`?[:：](\d+)')
+
+
+def _change_position_probe(text, root, seen, cands):
+    """§二 改动清单**位置格**核：① 行号 ＞ 实有行数 ② 指向空行（两者皆**硬事实**，恒判）。
+    路径不实存者静默跳过（示例串／未落地的新增件不产噪声）。返回**核过的引用处数**。
+
+    事故出身：检查 I 的 docstring 原把本射程的扩展挂成**待触发条件**（等出现 F 行位置过时的事故才
+    评估），而该条件实测已满足四次（098 P0-4／100 P0-1／108 P0-1／110 P2-2）——把触发条件写在注释里
+    而无观察机制，等于没有条件。"""
+    sec = _section(text, CHANGE_SECTION)
+    if not sec:
+        return 0
+    refs = 0
+    for raw in sec.split('\n'):
+        s = raw.strip()
+        if not s.startswith('|'):
+            continue
+        cells = [c.strip() for c in _CELL_SPLIT.split(s.strip('|'))]
+        if all(re.fullmatch(r':?-{2,}:?', c) for c in cells if c):
+            continue
+        for cell in cells:
+            for m in CHANGE_POS.finditer(cell):
+                path, ln = m.group(1), int(m.group(2))
+                full = os.path.normpath(os.path.join(root, path))
+                if not os.path.isfile(full):
+                    continue
+                refs += 1
+                key = ('§二', path, ln)     # 与 §一 腿的 (path, ln) 不撞
+                if key in seen:
+                    continue
+                seen.add(key)
+                try:
+                    with open(full, encoding='utf-8', errors='replace') as f:
+                        lines = f.read().split('\n')
+                except OSError:
+                    continue
+                if ln > len(lines):
+                    cands.append(f'· 检查 I §二 位置行号超出文件: {path}:{ln}（该件实有 {len(lines)} 行）')
+                elif not lines[ln - 1].strip():
+                    cands.append(f'· 检查 I §二 位置指向空行: {path}:{ln}')
+    return refs
+
+
 def static_report(specs, root):
     """静态检查阶段编排：打印 == 静态自检 == 与逐项结果。
-    **返回值恒为 False**：静态发现（A／B／C／D／E／H／I／J／K 九类）一律只呈报、不置退出码（源件对
+    **返回值恒为 False**：静态发现（A／B／C／D／E／H／I／J／K／M 十类）一律只呈报、不置退出码（源件对
     「计数不符」置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
-    末尾三种结果判定标准**须计入 A／B／C／D／E／H／I／J／K 九类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行、
-    F8 的格数不符行、**J 的审查记录核对**候选行；**E／H／I／J／K 的汇总行不计入**——其角色同明示行）：「· 无发现」只在九类
+    末尾三种结果判定标准**须计入 A／B／C／D／E／H／I／J／K／M 十类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行、
+    F8 的格数不符行、**J 的审查记录核对**候选行、**M 的留痕表**候选行；**E／H／I／J／K 的汇总行不计入**——其角色同明示行）：「· 无发现」只在十类
     全空时打印——漏计 B 即假绿（产物审查 P0-2：B 单源时「计数不符」与「无发现」同屏）。
     空跑明示：A 在「提取 N＞0 而命中 0」时打印明示行（并抑制「· 无发现」，两者不同屏）；B 在无可判定
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
@@ -1446,7 +1573,7 @@ def static_report(specs, root):
     k_lines, _k_reds = check_template_names(root)   # 检查 K：全局一次（不逐件）
     for _l in k_lines:
         print(_l)
-    extra = list(k_lines)   # 检查 C／D／E／H／I／J／K 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
+    extra = list(k_lines)   # 检查 C／D／E／H／I／J／K／M 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1475,15 +1602,18 @@ def static_report(specs, root):
         # 检查 J（2026-09-16 加）：计算方式同 H／I（候选并入 `extra`、汇总只打印）；无「审查记录」节时
         # 两表皆空，该件对该项完全静默（不误报的判定标准落在字面上）。
         j_lines, j_summary = check_archive_record(text, root)
+        # 检查 M（2026-09-17 立）：**只有候选、无汇总行**，故只并入 `extra`；无 §四 规格自审节时
+        # 返回空表，该件对该项完全静默（不误报的判定标准落在字面上）。
+        m_lines = check_audit(text)
         swallow += a_lines
-        extra += c_lines + d_lines + e_lines + h_lines + i_lines + j_lines
+        extra += c_lines + d_lines + e_lines + h_lines + i_lines + j_lines + m_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
         b_judged += judged
         b_cand += cand
         for line in (a_lines + c_lines + d_lines + count_lines + e_lines + e_summary
-                      + h_lines + h_summary + i_lines + i_summary + j_lines + j_summary):
+                      + h_lines + h_summary + i_lines + i_summary + j_lines + j_summary + m_lines):
             print(line)
         # 格数校验（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行——**件名与行号在此补**
         # （该函数只入参 text、无件名上下文，且 5 处调用点的签名与既有行为不得变更）；行号按行原文在
