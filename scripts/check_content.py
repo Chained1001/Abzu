@@ -50,9 +50,9 @@ TOC_ITEM = re.compile(r'^[-*+]\s+(.*?)\s*$', re.M)
 MD_LINK = re.compile(r'''\[[^\]\n]*\]\(([^)\s]+?)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\)''')
 # 围栏块开合行判定（101 批 F21）：整行仅由 ``` 或 ~~~ 构成（可带语言名）——围栏内的行不参与 ①；
 # 开合按标记字符配对（形态照 check_spec 的 FENCE_BLOCK，不跨件 import）
-FENCE_LINE = re.compile(r'^\s*(```|~~~).*$')   # 117 围栏统一：info-string 不限（c++／json5／四反引号栏此前不识）
+FENCE_LINE = re.compile(r'^\s*(\`{3,}|~{3,}).*$')   # 119：捕全长标记串＋info 不限；长度配对见 _check_refs
 # skill 资产内的路径引用（skill 根相对；`文字与命名标准` §4 表：禁裸文件名、用根相对路径文字）
-ASSET_REF = re.compile(r'`((?:references|assets|scripts)/[A-Za-z0-9._/\-]+)`')
+ASSET_REF = re.compile(r'`((?:references|assets|scripts)/[A-Za-z0-9._/\-]+)`')   # 119：ASCII 路径引用才检查——中文／空格路径漏检属已知界
 # ⑤ 的形态：「见／按／引／依照／据 ＋ 可选空格与左括号 ＋ 反引号治理件名」
 GOV_MENTION = re.compile(r'(?:见|按|引|依照|据)[ \t（]*`([^`\n]+)`')
 MAINT_MARK = '维护出处'
@@ -166,14 +166,14 @@ def _check_refs(gov, assets):
     for path in gov:
         if path.startswith('docs/specs/archive/'):
             continue             # 归档只读（`文字与命名标准` §7）——扫描面排除，候选才可能被清空
-        in_fence = None          # 围栏标记字符（None＝不在围栏内）；开合按同一标记字符配对
+        in_fence = None          # (标记字符, 开栏长度)；开合按长度配对（119）
         for i, line in enumerate(_read(os.path.join(ROOT, path)).split('\n'), 1):
             fm = FENCE_LINE.match(line)
             if fm:
-                mark = fm.group(1)[0]
+                mark = fm.group(1)
                 if in_fence is None:
-                    in_fence = mark
-                elif in_fence == mark:
+                    in_fence = (mark[0], len(mark))     # 119 长度配对：闭合须同字符且长度 ≥ 开栏
+                elif mark[0] == in_fence[0] and len(mark) >= in_fence[1]:
                     in_fence = None
                 continue
             if in_fence:
@@ -268,7 +268,7 @@ def _check_changelog():
                 _cand(f'手动路径：确认 {CHANGELOG} 在仓库根（`ls {CHANGELOG}`）')], []
     reds = []
     for i, line in enumerate(_read(path).split('\n'), 1):
-        if not line.startswith('- '):
+        if not re.match(r'^\s*[-*+]\s', line):   # 119：与 check_spec.verify_report 同判（列表符 -/*/+）
             continue
         if len(line) > ENTRY_CHAR_MAX:
             reds.append(_red(f'{CHANGELOG}:{i} 条目 {len(line)} 字符 > {ENTRY_CHAR_MAX}'))
@@ -327,7 +327,7 @@ def _check_budget(files):
         except OSError:
             continue
         if n > cap:
-            cands.append(f'· 每批必读件字数超预算: {rel} —— 实测 {n} 字符 ＞ 预算 {cap}')
+            cands.append(_cand(f'每批必读件字数超预算: {rel} —— 实测 {n} 字符 ＞ 预算 {cap}'))   # 119：改走 _cand 三体例
     return cands, []
 
 
@@ -402,9 +402,14 @@ def _check_words(files):
     for path in files:
         if not path.endswith('.md') or path == WORD_SRC or path in WORD_SKIP_FILES:
             continue
-        if path.startswith(WORD_SKIP_PREFIX) or WORD_BATCH_SPEC.match(path):
-            continue
+        if path.startswith(WORD_SKIP_PREFIX):
+            continue             # 归档冻结（`文字与命名标准` §7 归档不得改写）——维持跳过
         masked = _read(os.path.join(ROOT, path))
+        if WORD_BATCH_SPEC.match(path):
+            # 119（作者裁定：规格里面也不能有黑话）：在制规格**纳入**扫描；计数前遮盖引文与代码跨度
+            # ——引用待改旧词的合法形态不计，散文黑话照抓。（初版误置于 _read 之前——遮的是上一
+            # 文件的残留变量，首件即 NameError 被前件赋值掩盖成静默错遮，施工自查逮住。）
+            masked = re.sub(r'「[^」]*」|『[^』]*』|`[^`]*`', lambda _m: chr(0) * len(_m.group(0)), masked)
         for w in ok_words:   # §8 产品领域词豁免（产品专名先遮盖再计数——如 标尺／底盘／处方／定格）
             masked = masked.replace(w, '\u0000' * len(w))
         # 大小写折叠（117 第 14 项）：英文禁用词大写形态此前漏报——计数与遮盖都走小写缓冲
@@ -426,8 +431,10 @@ def _check_words(files):
         top = '、'.join('%s×%d→%s' % (o, n, w) for o, n, w in found[:4])
         more = '' if len(found) <= 4 else '（另 %d 词）' % (len(found) - 4)
         cands.append(_cand('用词待改: %s —— %d 处：%s%s' % (path, n_file, top, more)))
-    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处——存量已清零，命中即新引入（见 %s §7）'
-                       % (len(bans), hit_files, hits_total, WORD_SRC)))
+    tail = ('——存量已清零，命中即新引入' if hits_total == 0
+                else '——存量尚有 %d 处：清单迁移未完或新引入' % hits_total)   # 119：命中>0 不再自称已清零
+    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处%s（见 %s §7）'
+    % (len(bans), hit_files, hits_total, tail, WORD_SRC)))
     return cands, []
 
 

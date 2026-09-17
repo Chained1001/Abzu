@@ -290,7 +290,10 @@ def _readback(doc, path, text):
 
 def _lint_ignores(path):
     """117：从目标件**最近祖先目录**的 `.markdownlint-cli2.jsonc` 读 ignore 串（零依赖 JSONC 近似——只取
-    "ignores" 数组内的引号串，负向串 `!…` 跳过；读不到返回 (None, [])＝无从自判、照旧走 lint）。"""
+    "ignores" 数组内的引号串；**两界**（119）：① 负向串 `!…` 不支持——本仓配置全正向，含负向串的配置会让
+    本自判按保守方向失准＝误报「未覆盖」（不产假「通过」）；② **extends 合并配置不覆盖**——只读本目录
+    配置文件的 ignores，ignore 来自 extends／上层配置时自判漏判、同样保守误报。读不到返回 (None, [])＝
+    无从自判、照旧走 lint）。"""
     d = os.path.dirname(os.path.abspath(path))
     while True:
         cfg = os.path.join(d, '.markdownlint-cli2.jsonc')
@@ -337,7 +340,7 @@ def _shape_gate(path, text, no_lint):
                         '——该件**未经形态检查**写入（如实记录，非「通过」）')
     npx = shutil.which('npx')       # Windows 上为 npx.cmd——须用解析后的全路径（CreateProcess 不查 PATHEXT）
     if npx is None:
-        return 'npx 不可用——形态检查跳过（.md 目标件未跑 lint）'
+        return '形态检查未生效：npx 不可用（.md 目标件未跑 lint）——与排除面同判，汇总不得称「全部通过」'
     tmp = os.path.join(os.path.dirname(os.path.abspath(path)),
                        os.path.basename(path) + '.shapecheck.md')
     try:

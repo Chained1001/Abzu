@@ -131,7 +131,7 @@ QUOTE_BLOCK = re.compile(r'「([^「」\n]*)」|『([^『』\n]*)』')
 # 检查 C 的**方向标记**（§二 C 行 ③，产物审查 P0-1）：单元格内出现这些标记时，逐字核对面＝
 # **最后一个标记之后**的引号块（标记之前的是「现文」，改后已被移除，核之必误报）
 DIR_MARKS = ('→', '改述为', '改为', '改作', '替换为', '换为')
-FENCE_BLOCK = re.compile(r'^\s*(```|~~~).*$')   # 117 围栏统一：info-string 不限（原只认纯字母，「``` python」开栏不识、闭合栏误当开栏而漏检其后内容）；与检查 L 旧宽松形态合一，此即唯一围栏判定
+FENCE_BLOCK = re.compile(r'^\s*(\`{3,}|~{3,}).*$')   # 119：捕**全长**标记串（原组恰三根——四反引号栏长度配对无从量起）   # 117 围栏统一：info-string 不限（原只认纯字母，「``` python」开栏不识、闭合栏误当开栏而漏检其后内容）；与检查 L 旧宽松形态合一，此即唯一围栏判定
 # 围栏双认：开／合围栏同认三反引号与 `~~~`（本常量服务检查 D 的围栏感知）。
 # **开合须按标记字符配对**（组 1＝标记，`check_writing()` 与 `check_anchor()` 按它开合）：写成
 # `(?:```|~~~)` 这类两个独立分支即出错——「``` 块内一行孤立 `~~~`」会提前翻转围栏态，令其后
@@ -347,10 +347,13 @@ def _assert_ok(m):
 
 
 def _assert_refs(text):
-    """从断言节提取断言（token, 目标件）列表；载体两形态都认：`git grep -F -c -- "TOKEN" FILE`
-    与 `grep -c "TOKEN" FILE`（token 取引号内、目标取末参）。"""
+    """从断言节提取断言 (token, 目标件, 行号) 列表（119：行号随提取返回——原由 check_swallow 二次
+    扫描 `located` 对齐，两份过滤须逐字同步、漂移即 zip 静默截断）；载体两形态都认：
+    `git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`（token 取引号内、目标取末参；
+    行号＝断言节内 1 基行号，与 sec_lines 同基准）。"""
+    sec = _section(text, SECTION)
     refs = []
-    for m in ASSERT_CMD.finditer(_section(text, SECTION)):
+    for m in ASSERT_CMD.finditer(sec):
         if not _assert_ok(m):
             continue
         # 117：断言命令写在代码跨度内时，args 会被「收尾反引号＋→ 期望 N。」一起吞到行尾，
@@ -360,7 +363,8 @@ def _assert_refs(text):
         if not args:
             continue
         # token 反转义（083）：规格表格／围栏内的 markdown 转义（`` \` ``／`\[`／`\]`）进入命令原文，不还原则永不命中（081 断言 12／082 断言 4 两例）；**不**反转义 `\.`／`\|`——grep BRE 中二者反转义会改语义（`\|`＝OR 操作符，裸 `|` 才是字面；`\.`＝字面点，裸 `.` 是任意符）；`\[`／`\]` 反转义前后均为字面，故安全
-        refs.append((m.group('token').replace('\\`', '`').replace('\\[', '[').replace('\\]', ']'), args[-1].strip('\'"`')))
+        refs.append((m.group('token').replace('\\`', '`').replace('\\[', '[').replace('\\]', ']'),
+                      args[-1].strip('\'"`'), sec.count('\n', 0, m.start()) + 1))
     return refs
 
 
@@ -474,7 +478,7 @@ def check_swallow(text, root):
     故 `期望 ≥1；预验起点 0。` 判得 1（尾数不计）；`期望：**≥1**／**0**／**0**` 为 K≠M 且不全同 →
     走 ⑤ 产未判候选行；`第一命令期望 ≥1（…）；第二、三命令期望 0` 为分配型 →
     走 ③ 不判（数字无法与命令对齐；「分配型＋全同」的既有误报不得复活）。配对支路依赖「数字序＝命令序」
-    ——**写反即静默误配**（缓解＝断言写法第 9 条，见 `施工机制` §二 规格条）。「零命中待复核」与「零命中核对未判」两行
+    ——**写反即静默误配**（缓解＝断言写法第 ⑤ 条「一条断言一条命令一个期望值」，见 `施工机制` §九 断言写法七条——119 订正：原引用双错（所指节无此条文、条号超七条之界））。「零命中待复核」与「零命中核对未判」两行
     均须计入 static_report() 的末尾三种结果判定标准（发现的问题）。
     n == 0 的两种情形均不锁定单义（(cur, n) 二元分辨不出「哨兵型保留／[A]／[B] 项目标文本漏写」与
     「归零型已达成」）：cur > 0 者计入一行中性汇总；cur == 0 者打中性行。预测行（cur + n 加法预测）
@@ -489,18 +493,9 @@ def check_swallow(text, root):
     # 本规格改的件」，全部改动行同涵此意，[A]／[B] 行是其子集。
     a_rows = _change_rows(text)[0]
     refs = _assert_refs(text)
-    # 零命中待复核的行位置数据不在 _assert_refs() 的既有返回面内（不动其返回语义）：本函数内以
-    # ASSERT_CMD 复扫取行号——过滤判定标准与 _assert_refs() 同源，两份列表逐项对齐。
+    # 119：行号已随 _assert_refs 返回（上），located 二次扫描删除——单一扫描，无双扫漂移面。
     sec = _section(text, SECTION)
     sec_lines = sec.splitlines()
-    located = []
-    for m in ASSERT_CMD.finditer(sec):
-        if not _assert_ok(m):
-            continue
-        args = m.group('args').split('`')[0].strip().split('|')[0].split()   # 117：同 _assert_refs 反引号截断
-        if not args:
-            continue
-        located.append(sec.count('\n', 0, m.start()) + 1)
     expect_re = re.compile(r'期望[：:]?\s*(?:各|依次|均)?\s*\*{0,2}\s*(?:≥|>)?\s*(\d+)')
     # 取数面＝「期望」子句（P1-6）：命令序数分配（第一命令／第二、三命令）或「各命令」「分别」→ 该判跳过；
     # 子句终点＝；／。／（预验／行尾——本仓期望行普遍带「；预验起点 N」尾，按整行取数会把尾数计入而静默
@@ -521,6 +516,10 @@ def check_swallow(text, root):
         for w in sec_lines[line_no - 1:line_no + 4]:
             mm = expect_re.search(w)
             if not mm:
+                # 119：上限形态（≤／<／＝）——expect_re 不认，返回哨兵 -1 并**立即停扫**（否则落空
+                # 续扫会采信后续行的正常期望＝跨行错配；调用侧打明示行，不参与静默与 F2）。
+                if re.search(r'期望.{0,8}[≤<＝=]', w):
+                    return -1, None
                 continue
             tail = w[mm.start():]
             cuts = [j for j in (tail.find(s) for s in expect_stops) if j != -1]
@@ -539,7 +538,7 @@ def check_swallow(text, root):
     lines = []
     neutral = 0
     hits = 0
-    for i, ((token, target), line_no) in enumerate(zip(refs, located)):
+    for i, (token, target, line_no) in enumerate(refs):
         path = _abs(target, root)
         exists = os.path.isfile(path)
         # 归一化 token（109 F2）：`^` 前导锚剥一层后供按行首计数与「零命中待复核」门共用（避免两处各剥一次）
@@ -576,10 +575,16 @@ def check_swallow(text, root):
         # 门——目标件不存在时「未提及」行是路径写错的唯一信号，不得压）。分配型／多值／无期望＝不采信，
         # 行为与修前逐字节同。中性计数不动（哨兵/归零同形是 109 明载的设计取舍）。
         _exp, _und = _expect_probe(line_no)
+        if _exp == -1:
+            lines.append(f'· 期望为上限形态（≤／<／＝），静默与待复核均不适用——须人工核: {token} @ {target}')
         if not countable:
             lines.append(f'· 计算方式不可判（token 含正则元字符，现行计数未测）: {token} @ {target}')
         elif n == 0:
-            if cur > 0:
+            if cur > 0 and _exp == 0:
+                # 119：期望 0 而目标件仍有命中＝该消失而未消失——原被中性汇总吞没，单列候选。
+                lines.append(f'· 应为零而现存: {token} @ {target} —— 期望 0 但目标件现有 {cur} 行命中'
+                             f'（删除未落地，或断言失效）')
+            elif cur > 0:
                 # 哨兵型 token（到位＝现状，目标文本本不必提及）与归零型已达成同形：计入中性汇总，不单义锁定
                 neutral += 1
             elif _exp == 0:
@@ -832,6 +837,22 @@ def _edge_space(content):
     return c.startswith(' '), c.endswith(' ')
 
 
+def _fence_toggle(state, line):
+    """围栏开合**长度配对**（119，CommonMark 语义）：闭合须同标记字符且长度 ≥ 开栏——四反引号块内的
+    三反引号行不再被误当闭合。state＝None（栏外）或 (标记字符, 开栏长度)；返回新 state。
+    栏线自身恒返回「已消费」（调用方以 state 真值 continue，语义与旧字符配对版一致）。"""
+    fm = FENCE_BLOCK.match(line)
+    if not fm:
+        return state
+    mark = fm.group(1)
+    if state is None:
+        return (mark[0], len(mark))
+    ch, n0 = state
+    if ch == mark[0] and len(mark) >= n0:
+        return None
+    return state
+
+
 def check_writing(text, spec, root):
     """检查 D：规格写作机械检查（四类，只呈报，不影响退出码）。返回输出行列表。
     ① 嵌套反引号／② 代码跨度边缘空格——先按 CommonMark 定界规则切分跨度、跨度内文本不判，
@@ -850,16 +871,9 @@ def check_writing(text, spec, root):
     arch_dir = os.path.join(root, 'docs/specs/archive')
     archivable = os.path.basename(spec) not in NEVER_ARCHIVED
     lines = []
-    in_fence = None     # 当前围栏标记字符（None＝不在围栏内）；开合按**同一标记字符**配对
+    in_fence = None
     for i, line in enumerate(src, 1):
-        fm = FENCE_BLOCK.match(line)
-        if fm:
-            mark = fm.group(1)[0]       # 标记字符（` 或 ~）；只按字符配对，不按长度
-            if in_fence is None:
-                in_fence = mark
-            elif in_fence == mark:
-                in_fence = None
-            continue
+        in_fence = _fence_toggle(in_fence, line)   # 119：长度配对（原字符配对版四反引号栏内三反引号行会误闭合）
         if in_fence:
             continue
         for content, _s, _e, _ce in _inline_spans(line):
@@ -1009,8 +1023,11 @@ def _anchor_probe(path, ln, quotes, root, seen, cands):
     if not os.path.isfile(full):
         return
     key = (path, ln)
-    with open(full, encoding='utf-8', errors='replace') as f:
-        lines = f.read().split('\n')
+    try:
+        with open(full, encoding='utf-8', errors='replace') as f:
+            lines = f.read().split('\n')
+    except OSError:
+        return               # 119：权限／竞态打不开＝跳过该目标（对齐 _quote_probe；裸抛会崩整段 [4]）
     n_real = len(lines) - (1 if lines and lines[-1] == '' else 0)   # 物理行数（末尾换行不计空行——117 与 wc -l 对齐）
     if ln <= 0:
         if key not in seen:
@@ -1101,16 +1118,9 @@ def check_anchor(text, root):
     同型单点。本检查把该族从「独立上下文重测发现」前移到「送审前机器候选」。"""
     sec = _section(text, ANCHOR_SECTION)
     cands, seen, refs = [], set(), 0
-    in_fence = None     # 当前围栏标记字符（None＝不在围栏内）；开合按**同一标记字符**配对
+    in_fence = None
     for raw in (sec or '').split('\n'):
-        _fm = FENCE_BLOCK.match(raw)
-        if _fm:
-            _mark = _fm.group(1)[0]
-            if in_fence is None:
-                in_fence = _mark
-            elif in_fence == _mark:
-                in_fence = None
-            continue
+        in_fence = _fence_toggle(in_fence, raw)   # 119：长度配对
         if in_fence:
             continue
         quotes = ANCHOR_QUOTE.findall(raw)
@@ -1165,7 +1175,7 @@ RECORD_FINDINGS = re.compile(r'发现的问题\s*(?:\*\*)?\s*共\s*(?:\*\*)?\s*(
 RECORD_PLACEHOLDER = re.compile(r'发现的问题|共')
 # 流程计数：`P0`／`P1`／`P2` 与紧随的**首个**数字（中间容 `:`／空白／加粗标记等非数字字符）；
 # 窗口＝本条「发现的问题 共 N」之后至该行行末（**禁整节求和**——在制规格常有多条审查记录）。
-RECORD_TIER = re.compile(r'(P0|P1|P2)[^\d\n]{0,6}(\d+)')
+RECORD_TIER = re.compile(r'(P0|P1|P2)(?![-－])[^\d\n]{0,6}(\d+)')   # 119：负向断言排「P0-1」条目号形态（否则当计数 P0:1，与「共 N」对不上即误报）
 # 检查 J 扩（2026-09-16 加）：§八「开放项」节——条目位置 ↔ **清单全集**全文，以及成本字段判定标准（§九）。
 # 节定位模式**须含「八、」**（F3 ② 的定位写死条）：§七 标题「本批逐条确认（相关归档规格的开放项）」
 # 含「开放项」字样而不含「八、」，据此不被它抢先命中。
@@ -1181,7 +1191,7 @@ OPEN_NUM = re.compile(r'§\s*(?:\d+|[一二三四五六七八九十]+)|G\d+|#\d+
 # 该条已自带「已处置／已失效」判定者跳过（F3 ③）。
 OPEN_SKIP = ('作废', '已履行', '本批处置')
 # 清单全集（`施工机制.md` ＋ `docs/standards/*.md` 全部正文 ＋ `AGENTS.md`）——任一处命中即压制报告。
-LEDGER_FILES = ('docs/specs/施工机制.md', 'AGENTS.md')
+LEDGER_FILES = ('docs/specs/施工机制.md', 'AGENTS.md', 'docs/specs/施工问题记录.md')   # 119：补问题记录——开放项位置写在问题记录里时 J/H 须能找到对应
 LEDGER_DIRS = ('docs/standards',)
 # 成本字段判定标准（§九；F14）：改按「节」判后不再需要审查位词表；两字段名与占位值。
 COST_FIELDS = ('工具往返数', '周期时长')
@@ -1516,7 +1526,7 @@ def _template_section_names(root):
     # 只取 §九 的**第一个围栏块**（＝规格模板）——模板内的 `## 一、…` 节名就在块内，
     # 故**不得**「截到下一个 H2」（那会把模板正文截掉，实测得 None）
     names = []
-    for _mark, block in re.findall(r'(```|~~~)[a-zA-Z]*\n(.*?)\1', text, re.S):
+    for _mark, block in re.findall(r'(\`{3,}|~{3,})[^\n]*\n(.*?)\1', text, re.S):   # 119：info 放宽但不跨行（re.S 下 '.' 会吞全段——K 因此失读，施工自查逮住）   # 119：info-string 放宽（与 117 围栏统一同型）；锚定由 CHECK_K_MODEL 承担（改「##…模板」标题字面须同步该正则）
         names = [h for h in re.findall(r'^##\s+(.*?)\s*$', block, re.M)]
         break
     return names or None
@@ -1556,11 +1566,9 @@ def _audit_rows(sec):
         s = ln.strip()
         if not s.startswith('|'):
             continue
-        core = s[1:] if s.startswith('|') else s      # 单剥首竖线（strip 全剥首尾多根竖线，致空边格行格数位移——117 修）
-        core = core[:-1] if core.endswith('|') else core   # 尾竖线同理单剥
-        cells = [c.strip() for c in _CELL_SPLIT.split(core)]
-        if all(re.fullmatch(r':?-{2,}:?', c) for c in cells if c):
-            continue        # 分隔行（| --- | --- |）
+        cells = _cells(s)          # 119：复用 _cells（单剥边格＋认转义竖线）——三处两规归一（原 117 手写单剥两行删）
+        if any(c.strip() for c in cells) and all(re.fullmatch(r':?-{2,}:?', c) for c in cells if c):
+            continue        # 分隔行（| --- | --- |）；全空行是数据行不是分隔行（119：须有非空格才可能是分隔行）
         rows.append(cells)
     return rows
 
@@ -1621,9 +1629,7 @@ def _change_position_probe(text, root, seen, cands):
         s = raw.strip()
         if not s.startswith('|'):
             continue
-        core = s[1:] if s.startswith('|') else s      # 单剥首竖线（strip 全剥首尾多根竖线，致空边格行格数位移——117 修）
-        core = core[:-1] if core.endswith('|') else core   # 尾竖线同理单剥
-        cells = [c.strip() for c in _CELL_SPLIT.split(core)]
+        cells = _cells(s)          # 119：复用 _cells（单剥边格＋认转义竖线）——三处两规归一（原 117 手写单剥两行删）
         if all(re.fullmatch(r':?-{2,}:?', c) for c in cells if c):
             continue
         for cell in cells:
@@ -1674,14 +1680,7 @@ def check_derived_pos(text):
             continue
         in_fence = None
         for raw in sec.split('\n'):
-            _fm = FENCE_BLOCK.match(raw)
-            if _fm:
-                _mark = _fm.group(1)[0]
-                if in_fence is None:
-                    in_fence = _mark
-                elif in_fence == _mark:
-                    in_fence = None
-                continue
+            in_fence = _fence_toggle(in_fence, raw)   # 119：长度配对
             if in_fence:
                 continue
             for m in CHANGE_POS.finditer(raw):
@@ -1831,7 +1830,9 @@ def verify_report(spec, root):
     1) 改动文件比对——规格改 动清单节内的路径声明集 ↔ `git status` 实际改动集（双向差集；非阻断提示）；
     2) 过程产物两项——`CHANGELOG` 条目（含规格号）与归档件（`docs/specs/archive/` 内），缺任一即阻断。
     **早期的清单式表结构检查已整块删除**（`collab-log` 与登记表机制已废，见 `施工机制` §三／§七——现不建任何平行清单）；
-    `--verify` 不进 `check.sh` 提交前自动检查（提交前自动检查运行点在制规格尚未归档，过程产物检查必然不符）。"""
+    `--verify` 不进 `check.sh` 提交前自动检查（提交前自动检查运行点在制规格尚未归档，过程产物检查必然不符）。
+    **出口滥用面（119 登记）**：「无则写明」凭规格单方声明放行——谎称「无」而实有用户可感知变更时工具不核，
+    由审查位兜（成稿审查须核该声明属实）。"""
     path = os.path.abspath(spec)
     name = os.path.basename(path)
     rel = os.path.relpath(path, root).replace('\\', '/')
@@ -1868,6 +1869,9 @@ def verify_report(spec, root):
                     if re.match(r'^\s*[-*+]\s', l) and spec_no in l]
     if hits:
         print(f'· CHANGELOG 条目: 命中 {len(hits)} 条（规格号 {spec_no}）')
+    elif '无——内部治理批不落 CHANGELOG' in text:
+        # 119：模板断言 3 的「无则写明」出口（117 立）——规格明文载「无」时不阻断，与施工机制 §五 对齐。
+        print('· CHANGELOG 条目：无——规格载明「无——内部治理批不落 CHANGELOG」（117 出口，119 对齐本工具）')
     else:
         print(f'x 核验不符: CHANGELOG.md 无规格号 {spec_no} 的条目行')
         blocking = True
@@ -1922,15 +1926,107 @@ def reconcile_report(specs, root):
     return 0
 
 
+
+
+def _selftest(root):
+    """--selftest（119 立项·方案 A，作者拍板）：把 116–119 四批手工造过的测试样例固定为件内常量，
+    逐个喂给检查 A／I／L／M／静默门并核对预期输出——「改完守卫一键对答案」。零新文件、零依赖、
+    不写盘（目标件只用仓内实存件，只读）。返回退出码：全过 0，任一不过 1。"""
+    NL = chr(10)
+    B = chr(96)
+    def _spec(body_section1, assert_line):
+        return NL.join(['> 模式：标准', '', '## 一、现状位置（现场核过）', ''] + body_section1 +
+                       ['', '## 二、改动清单', '',
+                        '| 文件｜位置 | 改动 | 可自定程度 |', '| --- | --- | --- |',
+                        '| ' + B + 'AGENTS.md' + B + ' §四｜「补一段说明」 | [A] |',
+                        '', '## 三、验收断言', '', '1. ' + assert_line, ''])
+    row_quote_lacks = '｜「补一段说明」'
+    cases = []
+    def case(name, fn):
+        cases.append((name, fn))
+    # 1. 检查 L：行号形态上报
+    case('L-行号形态', lambda: any('检查 L' in c for c in
+        check_derived_pos(NL.join(['> 模式：标准', '', '## 一、现状位置（现场核过）', '',
+                                   '- ' + B + 'AGENTS.md:9999' + B + '｜「x」', '']))))
+    # 2. 检查 I：行号 0 非法坐标
+    case('I-行号0非法坐标', lambda: any('非法坐标' in c for c in
+        check_anchor(NL.join(['> 模式：标准', '', '## 一、现状位置（现场核过）', '',
+                              '- ' + B + 'AGENTS.md:0' + B + '｜「x」', '']), root)[0]))
+    # 3. 围栏长度配对：四反引号栏内三反引号行不闭合、栏后位置仍被检
+    def _fence_case():
+        txt = NL.join(['> 模式：标准', '', '## 一、现状位置（现场核过）', '',
+                       B * 4 + ' python', '- ' + B + 'AGENTS.md:9999' + B + ' 栏内', '',
+                       B * 3 + ' 伪装闭合', '', B * 4, '',
+                       '- ' + B + 'AGENTS.md:9998' + B + ' 栏后', ''])
+        joined = chr(10).join(check_anchor(txt, root)[0])
+        return ('9998' in joined) and ('9999' not in joined)
+    case('围栏-长度配对', _fence_case)
+    # 4. A：零目标达成静默（token 不在件、行不含、期望 0 → 无「未提及」行）
+    case('A-零目标达成静默', lambda: not any('未提及' in c for c in
+        check_swallow(_spec([], B + 'grep -c "静默样例零XYZ" AGENTS.md' + B + ' → 期望 0。'), root)[0]))
+    # 5. A：存在目标达成静默（token 在件、行含、期望 ≥1 → 无「自我匹配」行）
+    def _exists_case():
+        txt = NL.join(['> 模式：标准', '', '## 二、改动清单', '',
+                       '| 文件｜位置 | 改动 | 可自定程度 |', '| --- | --- | --- |',
+                       '| ' + B + 'AGENTS.md' + B + ' §四｜「补 AGENTS 一词说明」 | [A] |',
+                       '', '## 三、验收断言', '',
+                       '1. ' + B + 'grep -c "AGENTS" AGENTS.md' + B + ' → 期望 ≥1。', ''])
+        return not any('自我匹配' in c for c in check_swallow(txt, root)[0])
+    case('A-存在目标达成静默', _exists_case)
+    # 6. A：应为零而现存（期望 0 而件内仍现值 >0 → 单列候选）
+    case('A-应为零而现存', lambda: any('应为零而现存' in c for c in
+        check_swallow(_spec([], B + 'grep -c "AGENTS" AGENTS.md' + B + ' → 期望 0。'), root)[0]))
+    # 7. A：上限形态明示（期望 ≤3 → 明示行，不静默）
+    case('A-上限形态', lambda: any('上限形态' in c for c in
+        check_swallow(_spec([], B + 'grep -c "AGENTS" AGENTS.md' + B + ' → 期望 ≤3。'), root)[0]))
+    # 8. A：零命中待复核（期望 ≥1 而现值 0 → 待复核行）
+    case('A-零命中待复核', lambda: any('零命中待复核' in c for c in
+        check_swallow(_spec([], B + 'grep -c "静默样例壹XYZ" AGENTS.md' + B + ' → 期望 ≥1。'), root)[0]))
+    # 9. M：留痕表占位（{判定} 形态 → 候选）
+    def _m_case():
+        txt = NL.join(['## 四、规格自审（五条·留痕表）', '',
+                       '| 项 | 核法与命令 | 实测输出摘要 | 判定 |', '| --- | --- | --- | --- |',
+                       '| 1 | 命令 | 摘要 | {判定} |', ''])
+        return len(check_audit(txt)) >= 1
+    case('M-留痕表占位', _m_case)
+    # 10. patch_file：npx 文案含「形态检查未」（119 P0 不回退）
+    def _pf_case():
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'patch_file.py'),
+                      encoding='utf-8') as fh:
+                return '形态检查未生效：npx 不可用' in fh.read()
+        except OSError:
+            return False
+    case('patch-npx文案', _pf_case)
+    ok = 0
+    for name, fn in cases:
+        try:
+            good = bool(fn())
+        except Exception as exc:                     # 自测自身异常＝该样例不过，不裸崩
+            print('x ' + name + '：异常 ' + repr(exc)[:80])
+            continue
+        print(('  通过 ' if good else 'x 不过 ') + name)
+        ok += 1 if good else 0
+    print('测试样例 ' + str(ok) + '／总 ' + str(len(cases)) + ' 通过')
+    return 0 if ok == len(cases) else 1
+
+
 if __name__ == '__main__':
     args = sys.argv[1:]
-    static_only = '--static' in args
     verify_only = '--verify' in args
     reconcile_only = '--reconcile' in args
-    if sum((static_only, verify_only, reconcile_only)) > 1:
-        print('x --static／--verify／--reconcile 互斥，请择一（参数错误）', file=sys.stderr)
+    selftest_only = '--selftest' in args
+    flags = ('--static', '--verify', '--reconcile', '--selftest')
+    if sum(('--static' in args, verify_only, reconcile_only, selftest_only)) > 1:
+        print('x --static／--verify／--reconcile／--selftest 互斥，请择一（参数错误）', file=sys.stderr)
         sys.exit(2)
-    specs = [a for a in args if a not in ('--static', '--verify', '--reconcile')]
+    if selftest_only:
+        _stdout_utf8()
+        extra = [a for a in args if a != '--selftest']
+        if extra:
+            print('提示：--selftest 不吃位置参数（忽略 ' + '、'.join(extra) + '）')
+        sys.exit(_selftest(os.getcwd()))
+    specs = [a for a in args if a not in flags]
     if not specs:
         # 零位置参数＝无在制规格（提交时规格已在验收后归档，属预期常态）：明示跳过、退出 0
         _stdout_utf8()

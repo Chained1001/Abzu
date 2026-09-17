@@ -53,6 +53,7 @@ echo "[2] skill 格式校验（本地断言：主文件结构／frontmatter／�
 # 输出形态：仅段标题行以 `[2] ` 起首，其余行按既有体例（`x ` 起首＝失败／两空格缩进＝信息）；
 # 跳过不静默——未落 skill 主文件时打原因与「手动路径」行（理由同 [0] 段）。
 export LC_ALL=C.UTF-8
+if locale -a 2>/dev/null | grep -qx 'C.UTF-8'; then echo "  locale 探测：C.UTF-8 可用（长度按字符计）"; else echo "  提示：本机 locale 无 C.UTF-8——长度判定可能按字节计（119 探测回显）"; fi
 skill_n=0
 skill_bad=0
 for _d in skills/*/; do
@@ -129,9 +130,10 @@ echo "[3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出�
 # 输出体例沿用：段标题行以 [N] 起首、x 起首＝失败、两空格缩进＝信息。
 # 判为失败接线：工具判为失败（退出 1）与参数／环境错（退出 2）一并接到 fail。
 if [ ! -f scripts/check_content.py ]; then
-  echo "  内容轨检查器尚未建立，跳过"
-  echo '手动路径：新建 scripts/check_content.py 后本段自动接入（命名与位置见 docs/standards/文字与命名标准.md §1）'
-  seg_note_rt[3]="[3] 工具未建"
+  echo "x 内容轨检查器缺失（已实现态守卫被删？）——本段判为失败（119：工具已实现，缺失不再宽容跳过）"
+  echo '手动路径：恢复 scripts/check_content.py（git 历史有正本）后重跑'
+  fail=1
+  seg_note_rt[3]="[3] 工具缺失"
 elif [ -z "$PY" ]; then
   echo "x 未找到 Python（探测链 python3 → python → py 均不可用）——本段需要 Python 3"
   fail=1
@@ -162,14 +164,17 @@ echo "[5] 脚本语法（node --check 逐域 .js／ast.parse scripts/*.py／bash
 # **仅当三类目标件全空时**才明示跳过并登记 seg_note_rt[5]（有 `.py`／`.sh` 即不跳过）。
 # 判为失败接线：语法错与前置缺失均接到 fail。
 seg_js=0
+NODE_OK=0
+command -v node >/dev/null 2>&1 && NODE_OK=1   # 119：一次探测——缺失即整段一次提示，不逐文件刷屏
 for _f in skills/*/scripts/*.js; do
   [ -f "$_f" ] || continue
   seg_js=$((seg_js + 1))
-  if command -v node >/dev/null 2>&1; then
+  if [ "$NODE_OK" -eq 1 ]; then
     node --check "$_f" || { echo "x 语法错：$_f（node --check 未通过）"; fail=1; }
   else
-    echo "x 未找到 node（本段需要 Node.js 跑 node --check）：$_f"
+    echo "x 未找到 node（本段需要 Node.js 跑 node --check）——跳过全部 .js 目标件"
     fail=1
+    break
   fi
 done
 [ "$seg_js" -gt 0 ] || echo "  skills/ 下暂无 .js 目标件（本段不探 Node）"
