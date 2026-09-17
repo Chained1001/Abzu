@@ -55,7 +55,7 @@ MAINT_MARK = '维护出处'
 CHANGELOG = 'CHANGELOG.md'
 SKILL_LINE_MAX = 500          # `skill资产标准` §9：`SKILL.md` 硬上限（超限＝判为失败）
 REF_LINE_MAX = 300            # `skill资产标准` §9：单 reference <300 行（≥300＝判为失败）
-ENTRY_CHAR_MAX = 400          # `施工机制` §三：`CHANGELOG` 条目 ≤400 字符（超限＝判为失败）
+ENTRY_CHAR_MAX = 400          # `施工机制` §五：`CHANGELOG` 条目 ≤400 字符（超限＝判为失败）
 TOC_LINE_MIN = 100            # `文字与命名标准` §10 第 3 条：超 100 行文件头部放节目录
 SPECS_PREFIX = 'docs/specs/'  # 规格与归档件不适用 TOC 存在性
 

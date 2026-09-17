@@ -1644,30 +1644,36 @@ def check_reconcile(text, root):
         bw = len(touch_check)
         cands.append('· 核对③ 触检查脚本而无「需同步更新的文件核对」（旧称需同步更新的文件核对）表: ' + '、'.join(touch_check[:3])
                      + (f' 等 {len(touch_check)} 件' if len(touch_check) > 3 else ''))
-    # 流程判定核对·流程（2026-09-17 立，机制成本研究 T2）：按 §二 清单**实算流程**并与头注「路径判定」行比对。
-    # 判定标准（`施工机制` §二）：`小改` ＝ 件数 ≤3 ∧ 不触检查脚本（`scripts/check*.py`／`check.sh`）∧
-    # 不动 `skills/` 或 `docs/product/` ∧ 不触规范面（`docs/standards/**`、`AGENTS.md`）；其余＝主线。
-    # **头注自述只作声明、不作依据**（「自述豁免失守」的机械化写入位置）。
+    # 模式判定核对（2026-09-17 立；同日随三模式重设计）：按清单**实算模式**并与头注「模式」行比对。
+    # 判定标准（`施工机制` §二）：简单 ＝ 件数 ≤3 ∧ 不触规则面（`AGENTS.md`／`docs/standards/**`）
+    # ∧ 不触检查脚本（`scripts/check*.py`／`check.sh`）；标准 ＝ 其余（件数 4–10 ∨ 触规则面 ∨ 触检查脚本）；
+    # 全量 ＝ 件数 ＞10。**头注自述只作声明、不作依据**（「自述豁免失守」的机械化写入位置）。
     n_t = len(targets)
     touch_check = any(re.match(r'scripts/check[^/]*\.(py|sh)$', x) for x in targets)
-    touch_soft = any(x.startswith('skills/') or x.startswith('docs/product/') for x in targets)
     touch_rule = any(x == 'AGENTS.md' or x.startswith('docs/standards/') for x in targets)
-    computed = '小改' if (n_t <= 3 and not touch_check and not touch_soft and not touch_rule) else '主线'
+    if n_t <= 3 and not touch_check and not touch_rule:
+        computed = '简单'
+    elif n_t > 10:
+        computed = '全量'
+    else:
+        computed = '标准'
     headzone2 = text.split('\n## ', 1)[0]
-    pline2 = next((l for l in headzone2.split('\n') if '路径判定' in l), '')
+    pline2 = next((l for l in headzone2.split('\n') if '模式' in l), '')
     g4 = 0
     if not pline2:
         g4 = 1
-        cands.append('· 流程判定核对 流程未写（检查 E）：头注缺「路径判定」行——流程不可核，照主线执行')
+        cands.append('· 模式判定核对 模式未写（检查 E）：头注缺「模式」行——模式不可核，照标准模式执行')
     else:
-        declared = '小改' if ('小改' in pline2 and '主线' not in pline2) else '主线'
-        if declared != computed:
+        declared = next((m for m in ('简单', '标准', '全量') if m in pline2), '')
+        if not declared:
             g4 = 1
-            cands.append(f'· 流程判定核对 流程与清单不符（检查 E）：头注自称「{declared}」而清单实算「{computed}」'
-                         f'（件数 {n_t}｜触检查脚本 {int(touch_check)}｜动 skills 或产品契约 {int(touch_soft)}'
-                         f'｜触规范面 {int(touch_rule)}）')
+            cands.append('· 模式判定核对 取值不可判（检查 E）：头注「模式」行未写简单／标准／全量之一')
+        elif declared != computed:
+            g4 = 1
+            cands.append(f'· 模式判定核对 与清单不符（检查 E）：头注自称「{declared}」而清单实算「{computed}」'
+                         f'（件数 {n_t}｜触检查脚本 {int(touch_check)}｜触规则面 {int(touch_rule)}）')
     summary = (f'· 核对① 汇总: 改动行 {len(rows)} 行｜可解析 {len(targets)} 件｜'
-               f'判一适用 {applicable} 件｜判二缺 {len(missing)} 件｜同步更新文件核对未表 {bw} 件｜流程判定核对不符 {g4} 件｜'
+               f'判一适用 {applicable} 件｜判二缺 {len(missing)} 件｜同步更新文件核对未表 {bw} 件｜模式判定核对不符 {g4} 件｜'
                f'跳过：无禁改文件句 {no_ban}｜无补集式断言 {no_exc}')
     return cands, [summary]
 
