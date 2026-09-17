@@ -11,7 +11,7 @@
   ⑥ 热路径字数预算（见 `HOT_BUDGET`）⑦ 用词（禁用清单见 `docs/standards/文字与命名标准.md` §6；
   守卫逐行读该件界标段）。
 
-  **加粗密度不实现**——阈值未立法且仓内零**适用**目标件（见 `docs/specs/守卫缺口清单.md` G1 与 `文字与命名标准` §13）。
+  **加粗密度不实现**——阈值未立法且仓内零**适用**目标件（见 `文字与命名标准` §13）。
 用法与参数：`python scripts/check_content.py [--static]`
   · `--static` 与**无参数同义**（保留该写法只因 `[4]` 段既有调用惯例）；两者均**扫全仓**——本工具
     **无「本批改动面」概念**，七项检查一律扫全仓。
@@ -269,7 +269,7 @@ def _check_changelog():
 def _check_maint(gov_names, files):
     """⑤ 「维护出处」标注（候选）：skill 资产行内出现「见／按／引／依照／据 ＋ 反引号治理件名」形态而该行
     **无标注**者（判据真源＝`文字与命名标准` §4「运行时资产引用治理文档」；写法与正例同节 §5 表末行）。
-    **候选类**：判据含近似（无标注的等价写法会漏报——`守卫缺口清单` G23）。"""
+    **候选类**：判据含近似（无标注的等价写法会漏报——本检查器自身注释）。"""
     cands = []
     for path in files:
         if not path.startswith('skills/') or not path.endswith('.md'):
@@ -293,8 +293,6 @@ def _check_maint(gov_names, files):
 HOT_BUDGET = (
     ('AGENTS.md', 8000, '宪法入口'),
     ('docs/specs/施工机制.md', 13000, '协作真源热路径（冻结线，目标 ≤12000）'),
-    ('docs/specs/施工机制-附录.md', 16000, '冷路径附录（按需读；2026-09-17 重构并入规格写作细则后由 13000 上调）'),
-    ('docs/specs/守卫缺口清单.md', 12000, '冷件（触守卫时读）'),
     ('docs/standards/', 15000, '标准件（逐件）'),
 )
 
@@ -457,7 +455,7 @@ def main(argv=None):
     gov_n = len([f for f in files if f.endswith('.md') and not f.startswith('skills/')])
     asset_n = len([f for f in files if f.endswith('.md') and f.startswith('skills/')])
     print(_info(f'扫描 {gov_n + asset_n} 件 Markdown（治理文档 {gov_n}／skill 资产 {asset_n}）；'
-                f'加粗密度未实现（见 守卫缺口清单 G1）'))
+                f'加粗密度未实现（阈值未立法）'))
     for c, r in results:
         for line in c + r:
             print(line)
