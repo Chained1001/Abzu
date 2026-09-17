@@ -62,7 +62,7 @@
   4. **进程替换 `<(...)` 不可靠**：Git Bash 下 fd 路径可能被拼坏——用临时文件或 `tee` 替代。
   5. **Python 调用**：本机用 `python`（不是 `python3`）；中文输出前 `export PYTHONIOENCODING=utf-8`；路径一律正斜杠。
   6. **内联脚本包 heredoc**：`python -c "…"` 里的 `>` 会被 shell 当重定向、建出垃圾文件——多用 `<<'EOF'` 写法。
-  7. **多层转义**：写文件／生成补丁脚本不经 bash heredoc 内嵌反斜杠转义——JSON→shell→Python 两层会把 `\n`／`\u0000` 塌成真实换行／NUL 字节（两起实测）；改用专用写文件工具或 `chr()` 构造，写入前语法预检。
+  7. **写文件用专用工具**：文件修改一律专用写文件工具（`Edit`／`Write`／`scripts/patch_file.py`）——**bash heredoc 包多行 Python 的补丁脚本禁用**（119 实测单批 6 次锚定失败循环；JSON→shell→Python 多层会把 `\n`／`\u0000` 塌成真实换行／NUL 字节，历批三起）；只读计数可用单行 `python -c`；写入后语法预检。
 
 ## 四、不做清单（以本节为准）
 
