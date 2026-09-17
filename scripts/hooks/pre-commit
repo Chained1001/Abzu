@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-# git 提交门禁：提交前自动跑一键检查，红了即拦截。
+# git 提交前自动检查：提交时跑一键检查，红了即拦截。
 # 启用（一次性，每个克隆各做一次）：git config core.hooksPath scripts/hooks
 exec bash "$(git rev-parse --show-toplevel)/scripts/check.sh"

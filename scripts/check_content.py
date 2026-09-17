@@ -155,10 +155,13 @@ def _span_ranges(line):
 def _check_refs(gov, assets):
     """① 引用闭合（候选）：① 治理文档的相对 Markdown 链接目标须实存
     ② skill 资产内的 `references/`／`assets/`／`scripts/` 路径引用须实存（基准＝skill 根）。
-    **候选类**：存量债面宽（`施工机制` §四 分档）。① 的链接扫描**跳过行内代码跨度与
+    **扫描面**：治理文档**排除 `docs/specs/archive/**`**（与 `文字与命名标准` §7「归档不得改写」一致）。
+    **候选类**：存量债面宽。① 的链接扫描**跳过行内代码跨度与
     围栏块**（跨度内与围栏内的示例串不是链接；判定标准见 `_span_ranges()`／`FENCE_LINE`）。"""
     cands = []
     for path in gov:
+        if path.startswith('docs/specs/archive/'):
+            continue             # 归档只读（`文字与命名标准` §7）——扫描面排除，候选才可能被清空
         in_fence = None          # 围栏标记字符（None＝不在围栏内）；开合按同一标记字符配对
         for i, line in enumerate(_read(os.path.join(ROOT, path)).split('\n'), 1):
             fm = FENCE_LINE.match(line)
@@ -253,10 +256,12 @@ def _check_lines(files):
 
 def _check_changelog():
     """④ `CHANGELOG` 条目限长（**可判为失败**）：列 0 起首的 `- ` 条目行长 ≤400 字符
-    （阈值见`施工机制` §三；计算方式＝整行字符数，含列表标记）。"""
+    （阈值见 `施工机制` §五；计算方式＝整行字符数，含列表标记）。
+    缺件时**不静默**（体例同 [0]／[2]／[3] 段的跳过）：打原因行 ＋ 手动路径行。"""
     path = os.path.join(ROOT, CHANGELOG)
     if not os.path.isfile(path):
-        return [], []
+        return [_cand(f'{CHANGELOG} 不存在，本检查跳过（原因：件缺失）'),
+                _cand(f'手动路径：确认 {CHANGELOG} 在仓库根（`ls {CHANGELOG}`）')], []
     reds = []
     for i, line in enumerate(_read(path).split('\n'), 1):
         if not line.startswith('- '):
@@ -288,11 +293,11 @@ def _check_maint(gov_names, files):
 # 体量直接乘上批内实例数（109 实测：单批 5 个实例、开工说明点名面上限 ≈ 10.7 万字符/实例）。
 # 阈值＝(仓根相对路径, 上限字符, 说明)；目录前缀以 `/` 结尾表**逐件判**。
 # 依据＝`AGENTS.md` §四「doc-budget 字数预算」的解冻词「单文件 >2 万字符」——`施工机制` 2026-09-17
-# 曾实测 23,883 字符、条件成立；**同日冷热分离后降至 11,988**，故上限线随之收紧至 13,000（只许缩不许涨）。
+# 曾实测 23,883 字符、条件成立（**史话**：同日冷热分离后降至 11,988），故上限线收紧至 13,000（只许缩不许涨）。
 # **候选、恒不判为失败**（`AGENTS.md` §五.2）：预算用于防回涨，不用于拦截正确改动。
 HOT_BUDGET = (
     ('AGENTS.md', 8000, '宪法入口'),
-    ('docs/specs/施工机制.md', 13000, '协作规则主件（上限线，目标 ≤12000）'),
+    ('docs/specs/施工机制.md', 13000, '协作规则主件（上限线；现件约 7.1K，留余量防回涨）'),
     ('docs/standards/', 15000, '标准件（逐件）'),
 )
 
@@ -414,7 +419,7 @@ def _check_words(files):
         top = '、'.join('%s×%d→%s' % (o, n, w) for o, n, w in found[:4])
         more = '' if len(found) <= 4 else '（另 %d 词）' % (len(found) - 4)
         cands.append(_cand('用词待改: %s —— %d 处：%s%s' % (path, n_file, top, more)))
-    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处——存量分批收尾（见 %s §7）'
+    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处——存量已清零，命中即新引入（见 %s §7）'
                        % (len(bans), hit_files, hits_total, WORD_SRC)))
     return cands, []
 
@@ -448,7 +453,6 @@ def main(argv=None):
         print('x 取不到件清单（`git ls-files` 失败）——本工具须在 git 仓库内运行', file=sys.stderr)
         return 2
 
-    gov = [f for f in files if f.endswith('.md') and not f.startswith('skills/')]
     results = _checks(files)
     cands = [l for c, _ in results for l in c]
     reds = [l for _, r in results for l in r]

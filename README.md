@@ -8,15 +8,19 @@
 npx skills add Chained1001/Abzu -y
 ```
 
+装后须**重载宿主窗口**——`/` 菜单在窗口激活时取一次命令快照，同窗口内新装的 skill 不会中途补入。
+
 ## 使用
 
 只认**标准技能名显式调用**（自然语言提及不触发）：
 
 ```text
-/abzu-outline     大纲：立项、设定、全书总纲
-/abzu-volume      卷纲：单卷规划与收卷判断
-/abzu-write       正文：章纲与章节撰写
+/abzu-outline     大纲：立项、设定、全书总纲     [已建（阶段一）]
+/abzu-volume      卷纲：单卷规划与收卷判断       [未建]
+/abzu-write       正文：章纲与章节撰写           [未建]
 ```
+
+未建域敲入命令时如实告知「该域尚未建设」，不模拟、不产出占位内容。建设状态以[架构设计](docs/product/架构设计.md) §一 为准。
 
 ## 文档索引
 
@@ -24,6 +28,7 @@ npx skills add Chained1001/Abzu -y
 - 开发入口与路由：[AGENTS.md](AGENTS.md)
 - 标准：[docs/standards/](docs/standards/)
 - 施工机制与规格：[docs/specs/](docs/specs/)
+- 沿革（版本变更记录）：[CHANGELOG.md](CHANGELOG.md)
 
 ## 许可
 

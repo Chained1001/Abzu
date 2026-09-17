@@ -8,8 +8,7 @@
 打印**实际命中行及其行号**，命中 0 时另打印**最接近的一行**供取真值）② **形态检查**（`.md` 目标件：
 对**待写入全文**的临时副本跑 `markdownlint-cli2`，不过即中止——检查关在写盘**之前**）③ 统一写盘（全过才写；
 不过＝**零写盘**）④ 回读核验（新文本在位，且 `--set` 时锚串不再在该行出现；批内同槽位被后条重写时，
-前条记录改判该槽位的**终态**——其自身产出被后条消费，不可能仍在位）。事故记录 #12／#18／#20 的
-机制化写入位置；②段的事故出身见 `_shape_gate()` docstring。
+前条记录改判该槽位的**终态**——其自身产出被后条消费，不可能仍在位）。机制化写入位置；②段的事故出身见 `_shape_gate()` docstring。
 
 用法与参数：`python scripts/patch_file.py [--at 锚片段] (--set|--append|--insert-before) 新文本 目标件`
   · `--at <锚片段>`：**行内片段**（非整行）——含该片段的行即锚行；该片段在目标件内**须唯一命中**。
@@ -19,7 +18,7 @@
   · `--batch <edits.json>`：批量，JSON 形如 `[{"path":…,"at":…,"set"|"append"|"insert-before":…}, …]`；
     **同件多编辑按逐条应用后的文本判唯一性**（前条的结果是后条的匹配面），全部通过才写盘；**同件多编辑须以同一路径写法给出**——不同写法指向同一物理件（大小写 alias／8.3 短名／符号链接）即**参数错**（退出 2、零写盘）。
   · **目标文件以位置参数传入（末位）**；批量模式下不给位置参数（路径写在 JSON 内）。
-  · 新文本**尾随一个 `\\n` 不表意**（书写习惯，去掉一次）：`--insert-before "行\\n\\n"`＝插「行 ＋ 一张空行」。
+  · **尾随换行按模式分**：`--append`／`--insert-before` 剥去**一个**尾随 `\n`（书写习惯、不表意）——`--insert-before "行\n\n"`＝插「行 ＋ 一张空行」；`--set` **不剥**（它是行内片段替换，换行按目标件行尾逐行落地）。
   · `--at` 为空串＝**参数错（退出 2）**。
   · `--no-lint`：跳过形态检查（`.md` 目标件的写盘前 lint）——默认不跳。
   · **坑一：`--set` 只换锚片段**——锚片段未含到行尾时，行尾残文会留在原处（表现为表行多出单元格、句子被截半）。**新文本必须包含从锚片段到行尾的全部内容。**
@@ -176,8 +175,11 @@ def _load(path):
     """读目标件（`newline=''` 不作换行翻译）→ 文档态：行列表 ＋ 该件行尾 ＋ 回读记录表。"""
     if not os.path.isfile(path):
         raise Fail([f'目标件不存在: {path}'])
-    with open(path, 'r', encoding='utf-8', newline='') as f:
-        raw = f.read()
+    try:
+        with open(path, 'r', encoding='utf-8', newline='') as f:
+            raw = f.read()
+    except UnicodeDecodeError:
+        raise Fail([f'目标件非 UTF-8 可解码（本工具只处理 UTF-8 无 BOM 文本）: {path}'])
     if raw.startswith('\ufeff'):
         raise Fail([f'目标件带 BOM（本工具只写 UTF-8 无 BOM，拒绝静默改写其编码形态）: {path}'])
     lines = _split_lines(raw)
@@ -259,8 +261,11 @@ def _readback(doc, path, text):
     ② 逐条确认记录的槽位内容与 `--set` 新文本在位 ③ `--set` 时锚串不再在该行出现。两处放宽（同为
     记录项、非静默）：· 新文本自身含锚串时该子项不适用（「锚串不再出现」与其字面自相矛盾）；
     · `superseded`（批内同槽位被后条重写）记录改判槽位终态、免锚串子项（见 `_apply()`）。"""
-    with open(path, 'r', encoding='utf-8', newline='') as f:
-        raw = f.read()
+    try:
+        with open(path, 'r', encoding='utf-8', newline='') as f:
+            raw = f.read()
+    except UnicodeDecodeError:
+        raise Fail([f'目标件非 UTF-8 可解码（本工具只处理 UTF-8 无 BOM 文本）: {path}'])
     if raw != text:
         raise Fail([f'回读不符：{path} 重新读入的内容与写盘内容不一致（行尾或编码被翻译？）'])
     lines = _split_lines(raw)
@@ -280,7 +285,7 @@ def _readback(doc, path, text):
 
 
 def _shape_gate(path, text, no_lint):
-    """四段式第四段之**前置检查关**（在 `_write()` 之前跑，故「不过＝零写盘」这条铁律不被破坏）。
+    """四段式**第二段**（形态检查）之**前置检查关**（在 `_write()` 之前跑，故「不过＝零写盘」这条铁律不被破坏）。
 
     目标件为 `.md` 时：把**待写入全文**落同目录临时 `.md` 副本 → 对其跑 `markdownlint-cli2` →
     不过即 `Fail`（本次全部编辑未写盘）；临时副本成功与失败路径**均删**。非 `.md` 目标件直接返回 None。

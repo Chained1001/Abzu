@@ -8,7 +8,7 @@
 # [2] skill 格式校验（本地断言：主文件结构／frontmatter／目录形态）
 # [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注／**每批必读件字数预算**／**用词**（候选；§8 产品领域词豁免））（**加粗密度不实现**——阈值未立法）——scripts/check_content.py；分档＝可判为失败：行数与条目限长，余项候选只呈报（`施工机制` §四）
 # [4] 规格静态自检（检查 A–E、H–J 八类；各项判定标准见 scripts/check_spec.py 模块 docstring；本段恒不判为失败，静态发现只呈报）——scripts/check_spec.py --static；非阻断（候选类只呈报）
-# [5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）
+# [5] 脚本语法（node --check 逐域 .js／ast.parse `scripts/*.py`／bash -n 各 .sh）
 # 段序区止于恰为「set -u」的行——_seg_summary 以该行为扫描终止哨兵；改此行须同步改其终止判定标准
 set -u
 fail=0
@@ -140,7 +140,7 @@ if [ -z "$PY" ]; then echo "x 未找到 Python（探测链 python3 → python �
 elif ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)'; then echo "x $PY 非 Python 3（实测 $("$PY" -V 2>&1)）——本段需要 Python 3"; fail=1
 else
   # 在制规格枚举计算方式：docs/specs/[0-9][0-9][0-9]-*.md——显式排除非规格件 docs/specs/施工机制.md
-  # （其 §八 模板内嵌本节标题，扫之即假发现源）
+  # （其 §九 模板内嵌本节标题，扫之即假发现源）
   spec_files=()
   for f in docs/specs/[0-9][0-9][0-9]-*.md; do
     [ -e "$f" ] || continue
@@ -151,7 +151,7 @@ else
   "$PY" scripts/check_spec.py --static ${spec_files[@]+"${spec_files[@]}"} || fail=1
 fi
 
-echo "[5] 脚本语法（node --check 逐域 .js／ast.parse 仓级 .py／bash -n 各 .sh）..."
+echo "[5] 脚本语法（node --check 逐域 .js／ast.parse scripts/*.py／bash -n 各 .sh）..."
 # 三类目标件逐类跑：`skills/*/scripts/*.js`（node --check）／`scripts/*.py`（ast.parse——**不用
 # `py_compile`**：后者落 `__pycache__`，守卫不得有写盘副作用）／各 `.sh`（`bash -n`，含
 # `scripts/hooks/pre-commit`）。**零 `.js` 目标件**——**不探 Node**、只打一行信息；
@@ -169,6 +169,8 @@ for _f in skills/*/scripts/*.js; do
   fi
 done
 [ "$seg_js" -gt 0 ] || echo "  skills/ 下暂无 .js 目标件（本段不探 Node）"
+# 扫描面：`scripts/*.py`——`skills/{skill 名}/scripts/*.py` **不在本段面内**（`文字与命名标准` §1 表允许其落位；
+# 扩面须同批同步本处 glob 与下方三类的零目标件判定）
 seg_py=0
 for _f in scripts/*.py; do
   [ -f "$_f" ] || continue
