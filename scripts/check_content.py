@@ -362,6 +362,21 @@ def _ban_list():
     return sorted(out, key=lambda kv: -len(kv[0]))
 
 
+def _ok_words():
+    """读 §8 可用项目词的**产品领域词**（唯一出处同 WORD_SRC）：取「产品领域词：」起、至句号止，
+    按 ／ 切分并剥掉（…）括注——如「标尺（参考标尺）」取「标尺」。读不到返回空表（该段是本件
+    固定条文，缺失属文件损坏——此时豁免面为空、只多报候选，方向安全）。"""
+    try:
+        text = _read(os.path.join(ROOT, WORD_SRC))
+    except OSError:
+        return []
+    m = re.search(r'产品领域词：([^。]+)', text)
+    if not m:
+        return []
+    seg = re.sub(r'（[^）]*）', '', m.group(1))
+    return [w.strip() for w in seg.split('／') if w.strip()]
+
+
 def _check_words(files):
     """⑦ 用词（**候选，恒不置红**；判据真源＝`docs/standards/文字与命名标准.md` §6 的界标段，守卫逐行读该段）。
     逐件报「用词待改」一行（含命中词与次数，最多 4 词），末行报清单词数与命中件／处数。
@@ -372,7 +387,8 @@ def _check_words(files):
     （每次运行的实测值由末行报出，不在此写死）。"""
     bans = _ban_list()
     if bans is None:
-        return [_cand('用词检查未生效：读不到 ' + WORD_SRC + ' 的禁用清单段（格式见该件 §一.2）')], []
+        return [_cand('用词检查未生效：读不到 ' + WORD_SRC + ' 的禁用清单段（格式见该件 §6）')], []
+    ok_words = _ok_words()
     cands = []
     hit_files = 0
     hits_total = 0
@@ -382,6 +398,8 @@ def _check_words(files):
         if path.startswith(WORD_SKIP_PREFIX) or WORD_BATCH_SPEC.match(path):
             continue
         masked = _read(os.path.join(ROOT, path))
+        for w in ok_words:   # §8 产品领域词豁免（产品专名先遮盖再计数——如 标尺／底盘／处方／定格）
+            masked = masked.replace(w, '\u0000' * len(w))
         found = []
         for old, new in bans:
             n = masked.count(old)
