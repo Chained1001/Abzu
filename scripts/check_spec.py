@@ -63,7 +63,7 @@
   展开符判据／子进程 env）改 readonly()／_git_readonly()／unauditable()／GIT_READONLY_OPTS／MUTATING／
   INJECT_ENV_***。
 事故出身：见 `docs/specs/archive/065-2026-09-12-规格静态自检器搬回.md`（事故四型：020–025 六发断言自噬——
-  断言吞自家 [A] 文本／对象错／计数错／恒真假绿；2026-09-07 作者裁定守卫化）；本工具由旧仓
+  断言吞自家 [A] 文本／对象错／计数错／恒真假绿；2026-09-07 作者裁定守卫化）；本工具由早期版本
   `scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
   `grep -c "TOKEN" FILE` 载体）。
 退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G／H／I／J 十类无论报出多少条发现，一律只呈报、
@@ -1947,7 +1947,7 @@ def verify_report(spec, root):
     （只读子命令），不执行规格内任何命令、不写任何文件。
     1) 改动面比对——规格改 动清单节内的路径声明集 ↔ `git status` 实际改动集（双向差集；非阻断提示）；
     2) 过程产物两项——`CHANGELOG` 条目（含规格号）与归档件（`docs/specs/archive/` 内），缺任一即阻断。
-    **旧仓的台账式表结构检查已整块删除**（`collab-log` 与登记表机制已废，见 `施工机制` §三／§七——现不建任何平行台账）；
+    **早期的台账式表结构检查已整块删除**（`collab-log` 与登记表机制已废，见 `施工机制` §三／§七——现不建任何平行台账）；
     `--verify` 不进 `check.sh` 门禁（门禁运行点在制规格尚未归档，过程产物检查必然不符）。"""
     path = os.path.abspath(spec)
     name = os.path.basename(path)
