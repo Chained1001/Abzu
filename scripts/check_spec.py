@@ -1,8 +1,8 @@
-"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出十类规格缺陷）。
+"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出十一类规格缺陷）。
 
 事故出身与历次裁定：见 `CHANGELOG.md` 对应条目与 `docs/specs/archive/` 各批规格。行内不写批号——事故与沿革记 `CHANGELOG` 与 git 历史，指认归档规格用全路径。
 
-用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格与磁盘）——十类：
+用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格与磁盘）——十一类：
 
 - **检查 A** 断言自我匹配预警：断言 token 被自家 `[A]`／`[B]` 行的目标文本吞掉；另有「零命中待复核」「零命中核对未判」「计算方式不可判」三种明示行。
 - **检查 B** 计数实跑重算：规格内「整件尺寸」声称与实测的差。
@@ -10,12 +10,13 @@
 - **检查 D** 规格写作机械检查四项：嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接。
 - **检查 E** 三方核对（改动文件 ↔ 禁改文件 ↔ 断言排除集）＋需同步更新的文件核对＋模式判定核对——按改动清单实算简单／标准／全量并与头注比对（**声明高于实算＝作者升档、合法不报；低于实算才报**）。
 - **检查 H** 逐条确认表汇总核对（§七 汇总行 ↔ 表体状态列）＋仍待项找不到对应核对。
-- **检查 I** 位置对源核对：§一 现状位置 ↔ 目标件实况；另有 §二 改动清单**位置格**腿（格内 `路径:行号` 的越界与空行）。
+- **检查 I** 位置对源核对：§一 现状位置 ↔ 目标件实况（**双读**：旧形态按 `路径:行号` 核行号与引文；新形态按「文件 ＋ 引文」核引文在该件内是否出现）；另有 §二 改动清单**位置格**腿（格内 `路径:行号` 的越界与空行）。
 - **检查 J** 审查记录核对（§九 审查记录节 ↔ 发现的问题各档之和）＋开放项清单归到哪条规则核对＋§九 成本字段核对。
 - **检查 K** 规格模板节名 ↔ **有模板对应**的工具正则（防「模板改了工具没跟上」的静默失效；其余四个 `*_SECTION` 入白名单）。
 - **检查 M** §四 规格自审**留痕表**核对：节在则核表形态、表头含「项」与「判定」、**每格非空非占位**（§四 节缺失→静默；**无汇总行**）。
+- **检查 L** §一／§二 正文里的**派生坐标**（`文件:行号`）——位置该写「文件 ＋ 节或函数 ＋ 唯一字符串」，行号是派生坐标、会被本批自身的改动作废（**只扫这两节**：§三 断言可执行、§九 引述外部发现；**无汇总行**）。
 
-十类一律非阻断（`AGENTS.md` §五.2 候选永不拦截）。
+十一类一律非阻断（`AGENTS.md` §五.2 候选永不拦截）。
 
 用法与参数：`python scripts/check_spec.py --static|--verify|--reconcile <规格路径> [更多规格路径...]`
 
@@ -26,13 +27,13 @@
 
 依赖与前置：Python 3 标准库（os／re／sys）；零外部依赖，不联网、不装依赖、不跑 LLM。**本工具不写任何文件**（只读规格与磁盘）；语法自检用 `ast.parse`，不用 `py_compile`（后者会留缓存产物）。目标件读取统一按 UTF-8 解码并对不可解码字节容错（`errors='replace'`）。
 
-维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()／CHANGE_POS／_change_position_probe()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；检查 M 改 check_audit()／AUDIT_SECTION／AUDIT_HEADERS；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
+维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()／CHANGE_POS／_change_position_probe()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；检查 M 改 check_audit()／AUDIT_SECTION／AUDIT_HEADERS；检查 L 改 check_derived_pos()（复用 CHANGE_POS 与 ANCHOR_SECTION／CHANGE_SECTION）；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
 
-退出契约（**须带限定词**）：**静态发现恒 0**——十类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的**过程产物缺失**或**git 不可用**（改动面未核）均可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
+退出契约（**须带限定词**）：**静态发现恒 0**——十一类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的**过程产物缺失**或**git 不可用**（改动面未核）均可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
 
 载体形态说明：① 断言载体两种形态都认——`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`（token 取引号内、目标取末参）；② 改动清单为**表格**形态，列角色按表头别名定位（路径列＝表头含「文件」或「新产品文档」；改动列＝表头含「改动」），无别名可识别者整表跳过并明示；③ 检查 B 用**对象计算方式**判定标准（仅当数字之前的紧邻文本显式指向整件尺寸、或与 `wc -l` 类命令同段时才判）；④ 检查 C 的逐字判定标准只对**含引号块**的 `[A]` 行生效，且单元格内有**方向标记**时只核**最后一个标记之后**的引号块。
 
-呈报守恒：末尾三种结果判定标准计入十类全部输出（含 B 的计数行、**E／H／I／J／K／M 的候选行**与 §二 位置格候选行；**E／H／I／J／K 的汇总行不计入**——检查 M 无汇总行），「· 无发现」只在十类全空时打印。
+呈报守恒：末尾三种结果判定标准计入十一类全部输出（含 B 的计数行、**E／H／I／J／K／L／M 的候选行**与 §二 位置格候选行；**E／H／I／J／K 的汇总行不计入**——检查 L／M 无汇总行），「· 无发现」只在十一类全空时打印。
 
 已知限制（债跟主题走——不再另立缺口清单）：
   ① 检查 B（计数重算）在归档语料上误报偏高；若长期无真阳性，评估删除。
@@ -47,6 +48,8 @@
   ⑩ 检查 K 是**单向核**——只核「模板有节名而工具不认」；模板**新增**节名而工具正则本就宽泛时不报。
   ⑪ 检查 M 只核留痕表「非空非占位」，**不核格内是否属实**（填假值仍会通过，由审查位独立实跑逮）；也不核「表行数 ↔ 标题条数」（须解析中文数字，且该形态无事故出身）。
   ⑫ 检查 I 的 §二 腿**只判越界与空行**，不核「行号所指处是否真是那句现状」（§二 现状侧多为描述性散文，逐字核成片误报）。
+  ⑬ **检查 I 的射程与静默面**（产物审查 P2-④／P2-⑥）：新增新腿并放宽 `ANCHOR_FILEONLY` 后，**存量旧形态规格的检查 I 结果变了**（115 由 6 引用／0 异常 → 19／13、114 由 6／0 → 12／1、113 由 4／1 → 64／6）——多是 `.py`／`.sh` 件此前建不起上下文、现在能核。静默面三类：引文 <6 字零核；`###` 级标题下的「现状位置」不命中 `ANCHOR_SECTION`（判据是 `^## `）；路径不实存只计引用不报。**`ANCHOR_FILELINE` 与 `ANCHOR_FILEONLY` 的扩展名白名单同批放宽**（原都写死 `.md`，`.py`／`.sh` 件的旧形态位置此前一律不核）——放宽后 114 那类「单行打包三处位置」的行才建得起上下文（此前被我的新明示支误报）。
+  ⑭ 检查 L 只扫 §一／§二；**存量规格候选量大**——判据是「新写的不许有」，不是要清存量。**两种口径**：§一 表记的是**出现次数**（113 实测 62），检查 L 报的是**去重后的 token 数**（113→16／115→11／111→5／112→16）——同一 `文件:行号` 在一节里出现多次只报一次。**漏报形态已知四类**：行号前置（`259：路径`）、路径含空格或 `~`、扩展名不在白名单者、**同行已给件名而行号裸写 `:N`**（后者的兜底是检查 I 的 `ANCHOR_BARELINE` 支）。
 """
 import os
 import re
@@ -72,10 +75,11 @@ NUCLEAR_SECTION = re.compile(r'^##[^#\n]*(?:本批核销|本批逐条确认).*$'
 NUCLEAR_STATES = ('已履行', '作废', '本批处置', '仍待', '待作者')
 NUCLEAR_TALLY = re.compile(
     r'已履行\s*(\d+)｜作废\s*(\d+)｜本批处置\s*(\d+)｜仍待\s*(\d+)｜待作者\s*(\d+)\s*＝\s*(\d+)')
-# 检查 I（2026-09-16 加）——§一「现状位置」节 文件:行号 ↔ 目标件实况。引文归一化见 _anchor_norm()。
+# 检查 I（2026-09-16 加）——§一「现状位置」节 ↔ 目标件实况。**双读**（116）：`路径:行号` 形态核行号；
+# 新形态「文件 ＋ 引文」核引文是否在该件内出现。引文归一化见 _anchor_norm()。
 ANCHOR_SECTION = re.compile(r'^##[^#\n]*(?:现状锚点|现状位置).*$', re.M)
-ANCHOR_FILELINE = re.compile(r'`([^`:\s]+\.md):(\d+)`')
-ANCHOR_FILEONLY = re.compile(r'`([^`:\s]+\.md)`')
+ANCHOR_FILELINE = re.compile(r'`([^`:\s]+\.(?:md|py|sh|js|jsonc|json)):(\d+)`')   # 同 FILEONLY：扩展名不再写死 .md（116）
+ANCHOR_FILEONLY = re.compile(r'`([^`:\s]+\.(?:md|py|sh|js|jsonc|json))`')   # 新形态下 .py／.sh 亦须能建文件上下文（116）
 ANCHOR_BARELINE = re.compile(r'`:(\d+)`')
 ANCHOR_QUOTE = re.compile(r'「([^」]{6,200})」')
 BAN_PREFIX = re.compile(r'(?<![\w./\-])[\w.\-]+(?:/[\w.\-]+)*/(?![\w.\-])')
@@ -1016,6 +1020,37 @@ def _anchor_cut(lst, n=15):
     return lst[:n] + [f'· 检查 I 另有 {len(lst) - n} 条（截断显示）']
 
 
+def _quote_probe(path, quotes, root, seen, cands):
+    """检查 I 的**新形态**腿（116 加）：位置不写行号时，「现文」**引文**是否在该件内出现。
+
+    判定标准：出现即通过（**不判唯一**——描述性引文可能多处同现，判唯一会成片误报）；未出现即报
+    「引文未在目标件出现」。引文按 `…` 分段核（同 `_anchor_probe` 的省略号分段）；不足 6 字者跳过
+    （过短易伪命中，同 `_anchor_probe`）。路径不实存者静默跳过（示例串不产噪声）。
+    事故出身：模板改新形态后，行号探针（`ANCHOR_FILELINE`／`ANCHOR_BARELINE`）一次也不触发——
+    不加这一支，本腿在新形态下**静默空转**，等于把一个既有守卫废掉。「删符号未查消费链」族。"""
+    full = os.path.normpath(os.path.join(root, path))
+    if not os.path.isfile(full):
+        return
+    try:
+        with open(full, encoding='utf-8', errors='replace') as f:
+            norm_lines = [_anchor_norm(x) for x in f.read().split('\n')]
+    except OSError:
+        return
+    for q in quotes:
+        nq = _anchor_norm(q)
+        if len(nq) < 6:
+            continue
+        parts = [p for p in nq.split('…') if len(p) >= 6] or [nq]
+        key = (path, 'new', q)
+        if key in seen:
+            continue
+        if not any(all(p in x for p in parts) for x in norm_lines):
+            seen.add(key)
+            cands.append(f'· 检查 I 引文未在目标件出现（新形态）: {path}｜「{q[:24]}」'
+                         f'（位置不写行号时引文即唯一可核面；**若目标件已被本批或后续批改动，'
+                         f'属预期陈旧、非缺陷**）')
+
+
 def check_anchor(text, root):
     """检查 I（2026-09-16 加）：§一「现状位置」节的 文件:行号 引用 ↔ 目标件实况核对。
     返回 **(候选行列表, 汇总行列表)**——计算方式同 E／H：候选并入 `extra`（非阻断、恒不判为失败），
@@ -1056,10 +1091,27 @@ def check_anchor(text, root):
             mo = ANCHOR_FILEONLY.search(raw)
             if mo:
                 ctx = mo.group(1)
-        if ctx:
-            for mb in ANCHOR_BARELINE.finditer(raw):
+        bare = list(ANCHOR_BARELINE.finditer(raw))
+        if ctx and bare:
+            for mb in bare:
                 refs += 1
                 _anchor_probe(ctx, int(mb.group(1)), quotes, root, seen, cands)
+        elif quotes and not ctx and raw.strip().startswith('-') and '｜' in raw:
+            # 只对**位置条目**（以 `-` 起首且含位置分隔符 `｜`）生效——§一 里的解释性文字也含「」，
+            # 一概报会成片误报（本批自身实测 2 条假阳）。
+            # **静默面**（产物审查 P1-①）：位置只有引文、没有可解析的文件上下文（路径未写进
+            # 反引号跨度）⇒ **无从核，不得静默通过**——否则「静默空转」换个形态又回来了。
+            refs += 1
+            if ('nofile', quotes[0]) not in seen:
+                seen.add(('nofile', quotes[0]))
+                cands.append(f'· 检查 I 位置无文件上下文: 「{quotes[0][:24]}」无从核——'
+                             f'路径须写进反引号跨度（`文件`；`ANCHOR_FILEONLY` 未命中）')
+        elif ctx and quotes and not ANCHOR_FILELINE.search(raw):
+            # **新形态**（116）：位置不写行号 ⇒ 行号探针无对象。此时引文即唯一可核面——
+            # 核「现文」引文是否在该件内出现。**不加这一支，新形态下本腿静默空转＝废掉既有守卫**
+            # （「删符号未查消费链」族）。旧形态（带行号）走上一支，两形态并存＝双读。
+            refs += 1
+            _quote_probe(ctx, quotes, root, seen, cands)
     i_cands = list(cands)                                          # §一 腿候选（截断前）
     p2_cands = []                                                  # §二 腿候选（另存，见下的分腿截断）
     refs += _change_position_probe(text, root, seen, p2_cands)     # §二 位置格腿（2026-09-17 加）
@@ -1101,7 +1153,7 @@ LEDGER_FILES = ('docs/specs/施工机制.md', 'AGENTS.md')
 LEDGER_DIRS = ('docs/standards',)
 # 成本字段判定标准（§九；F14）：改按「节」判后不再需要审查位词表；两字段名与占位值。
 COST_FIELDS = ('工具往返数', '周期时长')
-COST_PLACEHOLDER = ('待汇总', '待填', '待补', '待定', 'TODO', 'TBD')
+COST_PLACEHOLDER = ('待汇总', '待填', '待回填', '待补', '待定', 'TODO', 'TBD')
 # 清单全集全文的进程内缓存（同一进程内多规格共享，避免逐件重复读盘）。
 _LEDGER_CACHE = {}
 
@@ -1457,7 +1509,7 @@ _MODE_RANK = ('简单', '标准', '全量')
 
 
 # 检查 M（2026-09-17 立）：§四 规格自审**留痕表**核对——把「自审五条」从散文承诺改为逐行留痕，
-# 机器核「每格非空非占位」，即「核过」这件事必须留下可重跑的证据。**无汇总行**（同 A／B／C／D）。
+# 机器核「每格非空非占位」，即「核过」这件事必须留下可重跑的证据。**无汇总行**（同 A／B／C／D／L）。
 AUDIT_SECTION = re.compile(r'^##[^#\n]*规格自审.*$', re.M)
 # 表头须含的两列（缺即报——防「表在但列不对」）。
 AUDIT_HEADERS = ('项', '判定')
@@ -1516,6 +1568,8 @@ def check_audit(text):
 # **只按格解析**——路径与行号须在**同一格内相邻**（故本正则不带行首锚，逐格 finditer）；
 # 实测「跨行继承路径上下文」的写法在本仓语料上成片假阳（098→338 条），故**不继承**。
 CHANGE_POS = re.compile(r'`?([\w./\-]+\.(?:md|py|sh|js|jsonc|json))`?[:：](\d+)')
+# 检查 L 专用：围栏行识别放宽（info-string 允许空格与数字，如 ```` ``` python ````）。
+FENCE_LOOSE = re.compile(r'^\s*(```|~~~).*$')   # `.` 默认不跨行，故无须 [^换行] 字符类
 
 
 def _change_position_probe(text, root, seen, cands):
@@ -1559,12 +1613,65 @@ def _change_position_probe(text, root, seen, cands):
     return refs
 
 
+def check_derived_pos(text):
+    """检查 L（2026-09-17 立）：§一／§二 正文里的**派生坐标**（`文件:行号`）→ 候选。
+
+    判据出处：`施工机制` §九「位置形态」——位置一律写「文件 ＋ 节或函数 ＋ 唯一字符串」，**不写行号**。
+    行号是**派生坐标**：规格按定义要改目标件，行号会在改动落地后失效（实测：某规格 §一 写完 17 处行号，
+    其中数处被**同一批自己**的插入动作推空）。
+
+    **只扫 §一 与 §二**：§三 断言可执行（写了行号一跑即红，自纠错）；§九 引述外部发现的行号是事实，
+    不该报。命中模式**复用 `CHANGE_POS`**（不在本处另抄一份正则——抄即两处），节定位**复用
+    `ANCHOR_SECTION`／`CHANGE_SECTION`**。逐处去重、15 条截断；**无汇总行**（同 A／B／C／D ／M，故只入
+    候选面枚举）。候选非阻断、恒不判为失败。
+
+    **能力边界**（见模块「已知限制」⑭）：漏报形态已知四类——行号前置（`259：路径`）、路径含空格或
+    `~`、扩展名不在白名单者、**同行已给件名而行号裸写 `:N`**（兜底是检查 I 的 `ANCHOR_BARELINE` 支）。**存量规格候选量大**（113 实测 62 处）：判据是「新写的不许有」，不是要清存量。"""
+    cands = []
+    seen = set()
+    for rx in (ANCHOR_SECTION, CHANGE_SECTION):
+        sec = _section(text, rx)
+        if not sec:
+            continue
+        in_fence = None
+        for raw in sec.split('\n'):
+            _fm = FENCE_BLOCK.match(raw)
+            if _fm:
+                _mark = _fm.group(1)[0]
+                if in_fence is None:
+                    in_fence = _mark
+                elif in_fence == _mark:
+                    in_fence = None
+                continue
+            # 围栏行识别另取宽松形态（`FENCE_BLOCK` 的 info-string 只认纯字母；```` ``` python ````
+            # 这类带空格的写法会让围栏内行号被误报——产物审查 P2-⑤ 实测 1 条）。
+            if FENCE_LOOSE.match(raw):
+                _mk = FENCE_LOOSE.match(raw).group(1)[0]
+                if in_fence is None:
+                    in_fence = _mk
+                elif in_fence == _mk:
+                    in_fence = None
+                continue
+            if in_fence:
+                continue
+            for m in CHANGE_POS.finditer(raw):
+                tok = m.group(0)
+                if tok in seen:
+                    continue
+                seen.add(tok)
+                cands.append(f'· 检查 L 派生坐标（行号）: {tok} —— 位置须写'
+                             f'「文件 ＋ 节或函数 ＋ 唯一字符串」（行号会被本批自身的改动作废）')
+    if len(cands) > 15:
+        cands = cands[:15] + [f'· 检查 L 另有 {len(cands) - 15} 条（截断显示）']
+    return cands
+
+
 def static_report(specs, root):
     """静态检查阶段编排：打印 == 静态自检 == 与逐项结果。
-    **返回值恒为 False**：静态发现（A／B／C／D／E／H／I／J／K／M 十类）一律只呈报、不置退出码（源件对
+    **返回值恒为 False**：静态发现（A／B／C／D／E／H／I／J／K／L／M 十一类）一律只呈报、不置退出码（源件对
     「计数不符」置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
-    末尾三种结果判定标准**须计入 A／B／C／D／E／H／I／J／K／M 十类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行、
-    F8 的格数不符行、**J 的审查记录核对**候选行、**M 的留痕表**候选行；**E／H／I／J／K 的汇总行不计入**——其角色同明示行）：「· 无发现」只在十类
+    末尾三种结果判定标准**须计入 A／B／C／D／E／H／I／J／K／L／M 十一类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行、
+    F8 的格数不符行、**J 的审查记录核对**候选行、**M 的留痕表**候选行；**E／H／I／J／K 的汇总行不计入**——其角色同明示行）：「· 无发现」只在十一类
     全空时打印——漏计 B 即假绿（产物审查 P0-2：B 单源时「计数不符」与「无发现」同屏）。
     空跑明示：A 在「提取 N＞0 而命中 0」时打印明示行（并抑制「· 无发现」，两者不同屏）；B 在无可判定
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
@@ -1573,7 +1680,7 @@ def static_report(specs, root):
     k_lines, _k_reds = check_template_names(root)   # 检查 K：全局一次（不逐件）
     for _l in k_lines:
         print(_l)
-    extra = list(k_lines)   # 检查 C／D／E／H／I／J／K／M 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
+    extra = list(k_lines)   # 检查 C／D／E／H／I／J／K／L／M 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1605,15 +1712,18 @@ def static_report(specs, root):
         # 检查 M（2026-09-17 立）：**只有候选、无汇总行**，故只并入 `extra`；无 §四 规格自审节时
         # 返回空表，该件对该项完全静默（不误报的判定标准落在字面上）。
         m_lines = check_audit(text)
+        # 检查 L（2026-09-17 立）：**只有候选、无汇总行**，故只并入 `extra`；无 §一／§二 节时返回空表。
+        l_lines = check_derived_pos(text)
         swallow += a_lines
-        extra += c_lines + d_lines + e_lines + h_lines + i_lines + j_lines + m_lines
+        extra += c_lines + d_lines + e_lines + h_lines + i_lines + j_lines + m_lines + l_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
         b_judged += judged
         b_cand += cand
         for line in (a_lines + c_lines + d_lines + count_lines + e_lines + e_summary
-                      + h_lines + h_summary + i_lines + i_summary + j_lines + j_summary + m_lines):
+                      + h_lines + h_summary + i_lines + i_summary + j_lines + j_summary
+                      + m_lines + l_lines):
             print(line)
         # 格数校验（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行——**件名与行号在此补**
         # （该函数只入参 text、无件名上下文，且 5 处调用点的签名与既有行为不得变更）；行号按行原文在
@@ -1752,7 +1862,7 @@ def _git_changed(root):
 
 
 def _declared_paths(text):
-    """**声明改动文件**＝§二 文件级改动清单各行「文件:位置」列里抽出的件级路径（两模式共用同一计算方式：
+    """**声明改动文件**＝§二 文件级改动清单各行的**位置列**（表头含「文件」者；现形态「文件｜位置」）里抽出的件级路径（两模式共用同一计算方式：
     `--reconcile` 的清单外判定与 `--verify` 第 1 项；**不取正文里的一切路径**——正文提及≠声明改动，
     取宽会把「声明但未动」刷成噪声，2026-09-17 T5 自审修）。"""
     return {m.rstrip('.,;:，。；：') for r in _change_rows(text)[0]
