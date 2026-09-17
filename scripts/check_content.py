@@ -11,28 +11,27 @@
   ⑥ 每批必读件字数预算（见 `HOT_BUDGET`）⑦ 用词（禁用清单见 `docs/standards/文字与命名标准.md` §6；
   守卫逐行读该件界标段）。
 
-  **加粗密度不实现**——阈值未立法且仓内零**适用**目标件（见 `文字与命名标准` §13）。
+  **加粗密度不设守卫**——阈值已立（`文字与命名标准` §13.8 行数 ÷ 3 保底）且仓内零**适用**目标件。
 用法与参数：`python scripts/check_content.py [--static]`
-  · `--static` 与**无参数同义**（保留该写法只因 `[4]` 段既有调用惯例）；两者均**扫全仓**——本工具
+  · `--static` 与**无参数同义**（保留该写法只因 `[3]` 段既有调用惯例）；两者均**扫全仓**——本工具
     **无「本批改动文件」概念**，七项检查一律扫全仓。
-    仍为全仓 `docs/`＋根 `*.md`（含归档、排本批在制规格）。
+    实况＝仓内全部 `.md`（`docs/` 全树＋根 `*.md`＋`skills/` 资产，含归档；排 §三表所列忽略件）。
   · 参数非法（含未知选项）＝用法说明 ＋ 退出 `2`。
   · 输出体例（沿用 `check.sh` 段输出规范）：候选行＝`·` ＋ 空格起首；判为失败行＝`x` ＋ 空格起首；
     信息行＝两空格缩进。
   · 退出码：`0` 无判为失败项（**候选不影响退出码**）／`1` 有判为失败项／`2` 参数或环境错。
   · **分档**：可判为失败＝③④（阈值无歧义、现状全绿）；候选只呈报＝①②⑤⑥⑦（存量债面宽、判定标准含近似）。
-依赖与前置：Python 3 标准库（argparse／os／re／subprocess／sys），零外部依赖；不联网、不跑 LLM。
+依赖与前置：Python 3 标准库（argparse／io／os／re／subprocess／sys），零外部依赖；不联网、不跑 LLM。
   前置＝git 仓库内（件清单取 `git ls-files -z` ＋ `--others --exclude-standard`，覆盖未跟踪但未忽略者；
   `-z` 亦回避 `core.quotepath` 对中文路径的引号化）。
-只读不写盘**任何**文件：不跑 git 写命令、不跑目标件内任何命令；语法自检用 `ast.parse` 而**非**
-  `py_compile`（后者会落 `__pycache__`——守卫不得有写盘副作用）。读文件一律显式 `encoding='utf-8'`。
+只读不写盘**任何**文件：不跑 git 写命令、不跑目标件内任何命令。读文件一律显式 `encoding='utf-8'`。
 维护入口：新增检查在 `_checks()` 挂新 `_check_*`（返回 `(候选行, 判为失败行)`）；三体例改 `_cand()`／
   `_red()`／`_info()`；件清单改 `_repo_files()`；行数计算方式改 `_lines()`；每批必读件字数预算改 `_check_budget()`／`HOT_BUDGET`；⑦ 用词改 `_check_words()`／`_ban_list()`／`WORD_SRC`；TOC 判定标准改 `_toc_state()`；
   ⑤ 的形态正则改 `GOV_MENTION`；① 链接扫描的跨度／围栏跳过判定标准改 `_span_ranges()`／`FENCE_LINE`；
 
 已知限制（债跟主题走——不再另立缺口清单）：
   ① `skills/{skill 名}/scripts/*.py` 不在扫描面内（本工具只扫 `.md`）。
-  ② 加粗密度不实现（阈值未立法；见 `文字与命名标准` §13 第 8 条与 §三 表）。
+  ② 加粗密度不设守卫（阈值已立：`文字与命名标准` §13 第 8 条行数 ÷ 3 保底；§三 表已同步）。
   ③ ⑤「维护出处」标注的判定标准含正则近似：无标注的等价写法（如裸文件名字符串）会漏报。
 """
 import argparse
@@ -51,7 +50,7 @@ TOC_ITEM = re.compile(r'^[-*+]\s+(.*?)\s*$', re.M)
 MD_LINK = re.compile(r'''\[[^\]\n]*\]\(([^)\s]+?)(?:\s+(?:"[^"\n]*"|'[^'\n]*'))?\)''')
 # 围栏块开合行判定（101 批 F21）：整行仅由 ``` 或 ~~~ 构成（可带语言名）——围栏内的行不参与 ①；
 # 开合按标记字符配对（形态照 check_spec 的 FENCE_BLOCK，不跨件 import）
-FENCE_LINE = re.compile(r'^\s*(```|~~~)[a-zA-Z]*\s*$')
+FENCE_LINE = re.compile(r'^\s*(```|~~~).*$')   # 117 围栏统一：info-string 不限（c++／json5／四反引号栏此前不识）
 # skill 资产内的路径引用（skill 根相对；`文字与命名标准` §4 表：禁裸文件名、用根相对路径文字）
 ASSET_REF = re.compile(r'`((?:references|assets|scripts)/[A-Za-z0-9._/\-]+)`')
 # ⑤ 的形态：「见／按／引／依照／据 ＋ 可选空格与左括号 ＋ 反引号治理件名」
@@ -289,15 +288,15 @@ def _check_maint(gov_names, files):
                 continue
             for name in GOV_MENTION.findall(line):
                 token = name.strip()
-                if token in gov_names or token + '.md' in gov_names:
+                if token in gov_names:
                     cands.append(_cand(f'引用治理文档无「{MAINT_MARK}」标注: {path}:{i} → {token}'))
     return cands, []
 
 
 # ⑥ 每批必读件字数预算（2026-09-17 机制成本研究加）：每批必读件被**每个 subagent 实例**读入，
-# 体量直接乘上批内实例数（109 实测：单批 5 个实例、开工说明点名面上限 ≈ 10.7 万字符/实例）。
+# 体量直接乘上批内实例数（历史单批实测：单批 5 个实例、开工说明点名面上限 ≈ 10.7 万字符/实例）。
 # 阈值＝(仓根相对路径, 上限字符, 说明)；目录前缀以 `/` 结尾表**逐件判**。
-# 依据＝`AGENTS.md` §四「doc-budget 字数预算」的解冻词「单文件 >2 万字符」——`施工机制` 2026-09-17
+# 依据＝CHANGELOG 解冻记录（doc-budget，2026-09-17）——`施工机制` 2026-09-17
 # 曾实测 23,883 字符、条件成立（**史话**：同日冷热分离后降至 11,988），故上限线收紧至 13,000（只许缩不许涨）。
 # **候选、恒不判为失败**（`AGENTS.md` §五.2）：预算用于防回涨，不用于拦截正确改动。
 HOT_BUDGET = (
@@ -408,13 +407,16 @@ def _check_words(files):
         masked = _read(os.path.join(ROOT, path))
         for w in ok_words:   # §8 产品领域词豁免（产品专名先遮盖再计数——如 标尺／底盘／处方／定格）
             masked = masked.replace(w, '\u0000' * len(w))
+        # 大小写折叠（117 第 14 项）：英文禁用词大写形态此前漏报——计数与遮盖都走小写缓冲
+        # （lower() 对中文零影响、长度不变；报文仍显示清单原词）。
+        low = masked.lower()
         found = []
         for old, new in bans:
-            n = masked.count(old)
+            n = low.count(old.lower())
             if not n:
                 continue
             found.append((old, n, new))
-            masked = masked.replace(old, '\u0000' * len(old))   # 长词优先：已计处不再重复计
+            low = low.replace(old.lower(), '\u0000' * len(old))   # 长词优先：已计处不再重复计（117 产物审查 P0：old_l 未定义，真命中即崩——仓内零命中曾掩住）
         if not found:
             continue
         hit_files += 1
@@ -464,7 +466,7 @@ def main(argv=None):
     gov_n = len([f for f in files if f.endswith('.md') and not f.startswith('skills/')])
     asset_n = len([f for f in files if f.endswith('.md') and f.startswith('skills/')])
     print(_info(f'扫描 {gov_n + asset_n} 件 Markdown（治理文档 {gov_n}／skill 资产 {asset_n}）；'
-                f'加粗密度未实现（阈值未立法）'))
+                f'加粗密度未设守卫（阈值已立：§13.8 行数 ÷ 3 保底）'))
     for c, r in results:
         for line in c + r:
             print(line)

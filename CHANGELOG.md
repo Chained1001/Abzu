@@ -69,6 +69,8 @@
 
 ### Changed
 
+- 不做清单解冻并销项：**doc-budget 字数预算**（每批必读件字数预算）——`check.sh` [3] 段与 `scripts/check_content.py` 的 `_check_budget()` 已实现并常跑，冻结条件自破；作者裁定随批 117 （`docs/specs/117-2026-09-17-审计修复与脚本瘦身批.md`）规格确认作出，AGENTS §四 不做清单同步删项。
+
 - 修订工具形态闸修复（轻路径）：`patch_file.py` 的形态闸补显式 `encoding`——原 `subprocess.run(text=True)` 在 Windows 默认 GBK 解码 markdownlint 的 UTF-8 输出，崩在取 `returncode` 前，致闸恒判未过、明细被吞。修后正例放行、反例被拦并给明细、零写盘。核验：`check.sh` 全绿。
 - 归档件授权更正（2026-09-16）：`docs/specs/archive/099-…md:244` 的 §七 汇总行由「仍待 8｜＝22」更正为「**仍待 7｜＝21**」（表体实 21 行）——由新立的**检查 H**（§七 汇总 ↔ 表体逐格对账）查出，**经作者授权**，属「归档件只读」的明文例外（同 `archive/071` 链接修正先例）。核验：`check_spec.py --static` 对该件报「检查 H 不符 0 项」。
 - 修订工具加形态闸（轻路径，无规格）：`scripts/patch_file.py` 三段式 → **四段式**（新增第②段**形态闸**：`.md` 目标件对**待写入全文**跑 `markdownlint-cli2`，不过即中止——闸在写盘**之前**，「不过＝零写盘」不被破坏；`--no-lint` 逃逸；`npx` 不可用或该件被 ignore 排除时**明示提示**而非静默通过）。事故出身：规划方对 `.md` 落盘三次同型踩 MD038。核验：正例通过、反例被拦且零写盘。

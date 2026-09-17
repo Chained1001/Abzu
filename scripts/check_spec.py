@@ -27,9 +27,9 @@
 
 依赖与前置：Python 3 标准库（os／re／sys）；零外部依赖，不联网、不装依赖、不跑 LLM。**本工具不写任何文件**（只读规格与磁盘）；语法自检用 `ast.parse`，不用 `py_compile`（后者会留缓存产物）。目标件读取统一按 UTF-8 解码并对不可解码字节容错（`errors='replace'`）。
 
-维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()／CHANGE_POS／_change_position_probe()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；检查 M 改 check_audit()／AUDIT_SECTION／AUDIT_HEADERS；检查 L 改 check_derived_pos()（复用 CHANGE_POS 与 ANCHOR_SECTION／CHANGE_SECTION）；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
+维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()／CHANGE_POS／_change_position_probe()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；检查 K 改 check_template_names()／CHECK_K_*；检查 M 改 check_audit()／AUDIT_SECTION／AUDIT_HEADERS；检查 L 改 check_derived_pos()（复用 CHANGE_POS 与 ANCHOR_SECTION／CHANGE_SECTION）；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
 
-退出契约（**须带限定词**）：**静态发现恒 0**——十一类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的**过程产物缺失**或**git 不可用**（改动面未核）均可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
+退出契约（**须带限定词**）：**静态发现恒 0**——十一类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的**过程产物缺失**或**git 不可用**（改动面未核）均可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；`--reconcile` 的 **git 调用失败 → 退出 2**（改动面对账无从做起——117 补列）；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
 
 载体形态说明：① 断言载体两种形态都认——`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`（token 取引号内、目标取末参）；② 改动清单为**表格**形态，列角色按表头别名定位（路径列＝表头含「文件」或「新产品文档」；改动列＝表头含「改动」），无别名可识别者整表跳过并明示；③ 检查 B 用**对象计算方式**判定标准（仅当数字之前的紧邻文本显式指向整件尺寸、或与 `wc -l` 类命令同段时才判）；④ 检查 C 的逐字判定标准只对**含引号块**的 `[A]` 行生效，且单元格内有**方向标记**时只核**最后一个标记之后**的引号块。
 
@@ -41,7 +41,7 @@
   ③ `--verify`／`--reconcile` 未进 `check.sh`（是否纳入提交前自动检查另议）。
   ④ git 不可用时，`--verify` 已改为 stderr 明示 ＋ 置退出 1（残留：声明面不可核，仍需人工过）。
   ⑤ 相对路径按 cwd 归一：非仓根 cwd 调用时「本件」排除会失配。
-  ⑥ 每条规格都全量读 `docs/specs`（O(N×1.9MB)）——文件数增长后需加缓存或收窄扫描面。
+  ⑥ 读盘规模：`--static` 3 规格实测 0.10 秒／81 次开文件（`_out_of_scope`／`_ledger` 缓存生效）——现规模无瓶颈；在制规格逾 20 件再评估缓存（117 降级改写）。
   ⑦ 各 `*_SECTION` 正则**硬编码节名**——换项目复用机架时须逐条改代码（本条为已知限制，非预立法）。
   ⑧ `skills/{skill 名}/scripts/*.py` 不在任何检查面内（`check.sh [5]` 与 `check_content` 皆不扫）。
   ⑨ 检查 I 的「引文未在目标件出现」不区分**预期陈旧**（目标件已被后续批改动）与真异常（现已在文案内提示，但仍需人判）。
@@ -101,7 +101,7 @@ ASSERT_CMD = re.compile(
 )
 # 路径样 token 判定标准：形如 [\w./-]+\.(md|js|sh|py|json|jsonc) 的裸串，且作为仓根相对路径存在于磁盘
 # （不以「含 /」为必要条件——否则 AGENTS.md／README.md／CHANGELOG.md 等根级文件永不被命中）
-PATH_TOKEN = re.compile(r'[\w./-]+\.(?:jsonc|json|md|js|sh|py)(?![\w])|scripts/hooks/[\w.-]+')
+PATH_TOKEN = re.compile(r'[\w./-]+\.(?:jsonc|json|md|js|sh|py)(?![\w])|scripts/hooks/[\w.-]+|\.gitignore')   # 117：无扩展名件仅收 .gitignore（本仓唯一无扩展名改动件——收窄添加，不泛化到一切点文件）
 # 计数声称：N 容错千分位逗号；量词覆盖「字符」与「行」＋「处」（072 按类扩，对象计算方式限死为**加粗标记
 # 计数**，见 _whole_size()）；「条」／「项」／「个」不扩（对象随文件类型而异，计算方式不唯一，
 # 见 G2——已拆入脚本注释）
@@ -130,7 +130,7 @@ QUOTE_BLOCK = re.compile(r'「([^「」\n]*)」|『([^『』\n]*)』')
 # 检查 C 的**方向标记**（§二 C 行 ③，产物审查 P0-1）：单元格内出现这些标记时，逐字核对面＝
 # **最后一个标记之后**的引号块（标记之前的是「现文」，改后已被移除，核之必误报）
 DIR_MARKS = ('→', '改述为', '改为', '改作', '替换为', '换为')
-FENCE_BLOCK = re.compile(r'^\s*(```|~~~)[a-zA-Z]*\s*$')
+FENCE_BLOCK = re.compile(r'^\s*(```|~~~).*$')   # 117 围栏统一：info-string 不限（原只认纯字母，「``` python」开栏不识、闭合栏误当开栏而漏检其后内容）；与检查 L 旧宽松形态合一，此即唯一围栏判定
 # 围栏双认：开／合围栏同认三反引号与 `~~~`（本常量服务检查 D 的围栏感知）。
 # **开合须按标记字符配对**（组 1＝标记，`check_writing()` 与 `check_anchor()` 按它开合）：写成
 # `(?:```|~~~)` 这类两个独立分支即出错——「``` 块内一行孤立 `~~~`」会提前翻转围栏态，令其后
@@ -352,7 +352,10 @@ def _assert_refs(text):
     for m in ASSERT_CMD.finditer(_section(text, SECTION)):
         if not _assert_ok(m):
             continue
-        args = m.group('args').strip().split('|')[0].split()
+        # 117：断言命令写在代码跨度内时，args 会被「收尾反引号＋→ 期望 N。」一起吞到行尾，
+        # 末参解析成「0。」——先在反引号处截断（裸命令形态无反引号，行为不变）。
+        raw_args = m.group('args').split('`')[0]
+        args = raw_args.strip().split('|')[0].split()
         if not args:
             continue
         # token 反转义（083）：规格表格／围栏内的 markdown 转义（`` \` ``／`\[`／`\]`）进入命令原文，不还原则永不命中（081 断言 12／082 断言 4 两例）；**不**反转义 `\.`／`\|`——grep BRE 中二者反转义会改语义（`\|`＝OR 操作符，裸 `|` 才是字面；`\.`＝字面点，裸 `.` 是任意符）；`\[`／`\]` 反转义前后均为字面，故安全
@@ -439,7 +442,7 @@ def _out_of_scope_hit(piece, root, spec=None):
 
 def check_swallow(text, root):
     """检查 A：断言自我匹配预警（只呈报，不影响退出码）。返回 (输出行列表, 提取断言数, 命中条数)。
-    **hit 门**＝「该断言的目标件出现在某条 [A]／[B] 行」（表格形态判定标准；源件的「改动清单节内有 `###`
+    **hit 门**＝「该断言的目标件出现在某条改动行」（117 前为 [A]／[B] 行——旧批格式，现行规格无此标记致命中恒 0；
     子节声明目标路径」在本仓真规格上 `###` 计数恒 0 → 恒空跑，故改此判定标准）：[A]／[B] 行的目标文本＝
     该行引号块内容优先、缺则取「改动」单元格全文（见 _row_target_text()）——**`[B]` 行的「目标文本内」含
     改动说明文字，故近似预测为上限**；n＝目标文本内 token 出现次数，cur＝目标件当前含 token 的行数。
@@ -475,8 +478,10 @@ def check_swallow(text, root):
     n == 0 的两种情形均不锁定单义（(cur, n) 二元分辨不出「哨兵型保留／[A]／[B] 项目标文本漏写」与
     「归零型已达成」）：cur > 0 者计入一行中性汇总；cur == 0 者打中性行。预测行（cur + n 加法预测）
     只在 cur > 0 且 n > 0 时输出：cur == 0 时不存在既有命中可被替换吞掉，加法预测无对象。"""
-    a_rows = [r for r in _change_rows(text)[0]
-              if '[A]' in r['freedom'] or '[B]' in r['freedom']]
+    # 117：hit 门由「[A]／[B] 行」放宽为**全部改动行**——现行规格改动清单无 [A]／[B] 标记（旧批
+    # 格式），门不过 ⇒ 提取 N 命中恒 0、断言自检空转（115/116/117 实测）；门的本意＝「目标件须是
+    # 本规格改的件」，全部改动行同涵此意，[A]／[B] 行是其子集。
+    a_rows = _change_rows(text)[0]
     refs = _assert_refs(text)
     # 零命中待复核的行位置数据不在 _assert_refs() 的既有返回面内（不动其返回语义）：本函数内以
     # ASSERT_CMD 复扫取行号——过滤判定标准与 _assert_refs() 同源，两份列表逐项对齐。
@@ -486,7 +491,7 @@ def check_swallow(text, root):
     for m in ASSERT_CMD.finditer(sec):
         if not _assert_ok(m):
             continue
-        args = m.group('args').strip().split('|')[0].split()
+        args = m.group('args').split('`')[0].strip().split('|')[0].split()   # 117：同 _assert_refs 反引号截断
         if not args:
             continue
         located.append(sec.count('\n', 0, m.start()) + 1)
@@ -546,7 +551,7 @@ def check_swallow(text, root):
                 neutral += 1
             else:
                 lines.append(f'· 目标文本未提及且现行为 0: {token} @ {target}'
-                             f'（可能是 [A]／[B] 项目标文本漏写，也可能是归零型已达成）')
+                             f'（可能是改动行目标文本漏写，也可能是归零型已达成）')
         elif cur > 0:
             lines.append(f'· 自我匹配预警: {token} @ {target} —— 现行 {cur}｜目标文本内 {n}'
                          f'｜近似预测 {cur + n}（未计删除，须人工核对到位期望）')
@@ -906,7 +911,7 @@ def check_nuclear(text, root):
             continue
         head = cells[0].strip()
         st = cells[2].replace('*', '').strip()
-        if head.startswith('来源') or set(st) <= set('-: '):
+        if head.startswith('来源') or (st and set(st) <= set('-: ')):
             continue                      # 表头行与分隔行
         hit = next((k for k in NUCLEAR_STATES if k in st), None)
         if hit is None:
@@ -921,7 +926,7 @@ def check_nuclear(text, root):
     for cells in rows:
         head = cells[0].strip()
         st = cells[2].replace('*', '').strip()
-        if head.startswith('来源') or set(st) <= set('-: '):
+        if head.startswith('来源') or (st and set(st) <= set('-: ')):
             continue
         if not any(k in st for k in ('仍待', '待作者')):
             continue
@@ -985,10 +990,16 @@ def _anchor_probe(path, ln, quotes, root, seen, cands):
     key = (path, ln)
     with open(full, encoding='utf-8', errors='replace') as f:
         lines = f.read().split('\n')
-    if ln > len(lines):
+    n_real = len(lines) - (1 if lines and lines[-1] == '' else 0)   # 物理行数（末尾换行不计空行——117 与 wc -l 对齐）
+    if ln <= 0:
         if key not in seen:
             seen.add(key)
-            cands.append(f'· 检查 I 位置行号超出文件: {path}:{ln}（该件实有 {len(lines)} 行）')
+            cands.append(f'· 检查 I 行号 0 非法坐标: {path}:{ln}（行号从 1 起；0 此前落到末行——117 立守卫）')
+        return
+    if ln > n_real:
+        if key not in seen:
+            seen.add(key)
+            cands.append(f'· 检查 I 位置行号超出文件: {path}:{ln}（该件实有 {n_real} 行）')
         return
     if not lines[ln - 1].strip() and key not in seen:
         seen.add(key)
@@ -1409,8 +1420,8 @@ def check_reconcile(text, root):
         missing = [x for x in targets
                    if not any(x == e or x.startswith(e + '/') for e in excludes)]
         if missing:
-            cands.append(f'· 核对① 断言排除集缺 {len(missing)} 件: ' + '、'.join(missing))
-    # 汇总行四项计数（078 批 F1 计算方式收尾）：改动行＝该件改动清单**表体行数** M（非路径 token 数——
+            cands.append(f'· 核对② 断言排除集缺 {len(missing)} 件: ' + '、'.join(missing))
+    # 汇总行计数（078 批 F1 计算方式收尾；后增同步更新／模式判定／跳过二子项，现八字段）：改动行＝该件改动清单**表体行数** M（非路径 token 数——
     # 实测 33 行而可解析仅 3 件）；可解析＝C 的件数 N；判一适用＝**命中禁改文件前缀**的件数 K
     # （无论是否豁免；**出候选**的件数不另计——即本判「禁改文件未豁免」候选行的条数）；
     # 判二缺＝断言排除集**缺项**件数 P（旧字段 `判二命中` 之值，**只改名不改值**，不得读作「已覆盖」）。
@@ -1423,7 +1434,7 @@ def check_reconcile(text, root):
     # 直到在制规格全部归档（`文字与命名标准` §7 双读窗口）。
     if touch_check and not any(k in text for k in ('回写面对账', '需同步更新的文件核对')):
         bw = len(touch_check)
-        cands.append('· 核对③ 触检查脚本而无「需同步更新的文件核对」（旧称需同步更新的文件核对）表: ' + '、'.join(touch_check[:3])
+        cands.append('· 核对③ 触检查脚本而无「需同步更新的文件核对」表: ' + '、'.join(touch_check[:3])
                      + (f' 等 {len(touch_check)} 件' if len(touch_check) > 3 else ''))
     # 模式判定核对（2026-09-17 立；同日随三模式重设计）：按清单**实算模式**并与头注「模式」行比对。
     # 同日**单向化**：档位序见 `_MODE_RANK`——声明高于实算＝作者升档、不报；低于实算才报。
@@ -1463,8 +1474,9 @@ def check_reconcile(text, root):
 
 
 # 检查 K（2026-09-17 立）：规格模板节名 ↔ **有模板对应**的工具正则——防「模板改了工具没跟上」的静默失效。
-# 只核三个有模板对应的正则；其余四个（BAN／NUCLEAR／ARCHIVE_RECORD／OPEN）**白名单**：模板无对应节，
-# 属规格道可选节，不核（初稿核全部七个，而模板只有四节，必不命中——成稿审查 P0）。
+# 核四个有模板对应的正则（SECTION／CHANGE_SECTION／ANCHOR_SECTION／AUDIT_SECTION——115 增
+# AUDIT_SECTION 后由三变四）；其余四个（BAN／NUCLEAR／ARCHIVE_RECORD／OPEN）**白名单**：模板无
+# 对应节，属规格道可选节，不核（初稿核全部七个，而模板只有四节，必不命中——成稿审查 P0）。
 CHECK_K_SPEC = 'docs/specs/施工机制.md'
 CHECK_K_MODEL = re.compile(r'^##[^#\n]*模板.*$', re.M)
 CHECK_K_WHITELIST = ('BAN_SECTION', 'NUCLEAR_SECTION', 'ARCHIVE_RECORD_SECTION', 'OPEN_SECTION')
@@ -1475,10 +1487,11 @@ def _template_section_names(root):
     path = os.path.join(root, CHECK_K_SPEC)
     if not os.path.isfile(path):
         return None
-    m = CHECK_K_MODEL.search(_read_target(path))
+    src = _read_target(path)          # 117：单读复用（原同件连读两次）
+    m = CHECK_K_MODEL.search(src)
     if not m:
         return None
-    text = _read_target(path)[m.end():]
+    text = src[m.end():]
     # 只取 §九 的**第一个围栏块**（＝规格模板）——模板内的 `## 一、…` 节名就在块内，
     # 故**不得**「截到下一个 H2」（那会把模板正文截掉，实测得 None）
     names = []
@@ -1490,17 +1503,17 @@ def _template_section_names(root):
 
 def check_template_names(root):
     """检查 K：**直读** `施工机制` §九 模板原文取节名（不抄进工具——抄即比对自指），核
-    `SECTION`／`CHANGE_SECTION`／`ANCHOR_SECTION` 三个正则是否仍命中。不命中即出候选。"""
+    `SECTION`／`CHANGE_SECTION`／`ANCHOR_SECTION`／`AUDIT_SECTION` 四个正则是否仍命中。不命中即出候选。"""
     names = _template_section_names(root)
     if names is None:
-        return [f'· 检查 K 跳过：读不到 {CHECK_K_SPEC} 的模板节（节名无从核）'], []
+        return [f'· 检查 K 跳过：读不到 {CHECK_K_SPEC} 的模板节（节名无从核）']
     cands = []
     for label, rx in (('SECTION', SECTION), ('CHANGE_SECTION', CHANGE_SECTION),
                       ('ANCHOR_SECTION', ANCHOR_SECTION), ('AUDIT_SECTION', AUDIT_SECTION)):
         if not any(rx.search('## ' + n) for n in names):   # 正则判据是整行（`^## `），故补前缀再测
             cands.append(f'· 检查 K 模板节名无对应正则: {label} 不命中模板任何节名——'
                          f'模板改了而工具没跟上？（白名单：' + '／'.join(CHECK_K_WHITELIST) + '）')
-    return cands, []
+    return cands
 
 
 # 三模式档位序（模式判定核对「单向化」用，2026-09-17）：声明**高于**实算＝作者升档、合法不报；
@@ -1522,7 +1535,9 @@ def _audit_rows(sec):
         s = ln.strip()
         if not s.startswith('|'):
             continue
-        cells = [c.strip() for c in _CELL_SPLIT.split(s.strip('|'))]
+        core = s[1:] if s.startswith('|') else s      # 单剥首竖线（strip 全剥首尾多根竖线，致空边格行格数位移——117 修）
+        core = core[:-1] if core.endswith('|') else core   # 尾竖线同理单剥
+        cells = [c.strip() for c in _CELL_SPLIT.split(core)]
         if all(re.fullmatch(r':?-{2,}:?', c) for c in cells if c):
             continue        # 分隔行（| --- | --- |）
         rows.append(cells)
@@ -1568,8 +1583,6 @@ def check_audit(text):
 # **只按格解析**——路径与行号须在**同一格内相邻**（故本正则不带行首锚，逐格 finditer）；
 # 实测「跨行继承路径上下文」的写法在本仓语料上成片假阳（098→338 条），故**不继承**。
 CHANGE_POS = re.compile(r'`?([\w./\-]+\.(?:md|py|sh|js|jsonc|json))`?[:：](\d+)')
-# 检查 L 专用：围栏行识别放宽（info-string 允许空格与数字，如 ```` ``` python ````）。
-FENCE_LOOSE = re.compile(r'^\s*(```|~~~).*$')   # `.` 默认不跨行，故无须 [^换行] 字符类
 
 
 def _change_position_probe(text, root, seen, cands):
@@ -1587,7 +1600,9 @@ def _change_position_probe(text, root, seen, cands):
         s = raw.strip()
         if not s.startswith('|'):
             continue
-        cells = [c.strip() for c in _CELL_SPLIT.split(s.strip('|'))]
+        core = s[1:] if s.startswith('|') else s      # 单剥首竖线（strip 全剥首尾多根竖线，致空边格行格数位移——117 修）
+        core = core[:-1] if core.endswith('|') else core   # 尾竖线同理单剥
+        cells = [c.strip() for c in _CELL_SPLIT.split(core)]
         if all(re.fullmatch(r':?-{2,}:?', c) for c in cells if c):
             continue
         for cell in cells:
@@ -1606,8 +1621,11 @@ def _change_position_probe(text, root, seen, cands):
                         lines = f.read().split('\n')
                 except OSError:
                     continue
-                if ln > len(lines):
-                    cands.append(f'· 检查 I §二 位置行号超出文件: {path}:{ln}（该件实有 {len(lines)} 行）')
+                n_real = len(lines) - (1 if lines and lines[-1] == '' else 0)   # 物理行数（117 与 wc -l 对齐）
+                if ln <= 0:
+                    cands.append(f'· 检查 I §二 行号 0 非法坐标: {path}:{ln}（行号从 1 起——117 立守卫）')
+                elif ln > n_real:
+                    cands.append(f'· 检查 I §二 位置行号超出文件: {path}:{ln}（该件实有 {n_real} 行）')
                 elif not lines[ln - 1].strip():
                     cands.append(f'· 检查 I §二 位置指向空行: {path}:{ln}')
     return refs
@@ -1643,15 +1661,6 @@ def check_derived_pos(text):
                 elif in_fence == _mark:
                     in_fence = None
                 continue
-            # 围栏行识别另取宽松形态（`FENCE_BLOCK` 的 info-string 只认纯字母；```` ``` python ````
-            # 这类带空格的写法会让围栏内行号被误报——产物审查 P2-⑤ 实测 1 条）。
-            if FENCE_LOOSE.match(raw):
-                _mk = FENCE_LOOSE.match(raw).group(1)[0]
-                if in_fence is None:
-                    in_fence = _mk
-                elif in_fence == _mk:
-                    in_fence = None
-                continue
             if in_fence:
                 continue
             for m in CHANGE_POS.finditer(raw):
@@ -1677,7 +1686,7 @@ def static_report(specs, root):
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    k_lines, _k_reds = check_template_names(root)   # 检查 K：全局一次（不逐件）
+    k_lines = check_template_names(root)   # 检查 K：全局一次（不逐件；117 起单返回——原第二返回值恒空）
     for _l in k_lines:
         print(_l)
     extra = list(k_lines)   # 检查 C／D／E／H／I／J／K／L／M 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）

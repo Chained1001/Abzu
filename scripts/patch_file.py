@@ -27,7 +27,7 @@
 编码与行尾（硬要求）：读写一律 `newline=''`（不作换行翻译）、**保持目标件原有行尾**（新插入行沿用该件
   行尾）、UTF-8 无 BOM（目标件已带 BOM 即拒绝改动——不静默改写其编码形态）。
 输出：逐处「`文件:行` 改前 → 改后」＋ 汇总（`N 处／M 件`）；错误行 `x` 起首、明细行两空格缩进。
-退出码：0 全成功／2 参数错或校验失败（四段式任一段不过即中止，**不半写**）。
+退出码：0 全成功／2 参数错或校验失败（四段式任一段不过即中止，**不半写**）／2 环境·IO 异常（117 收编——原为裸 traceback 退 1；多件批已落盘部分不回滚，本工具无跨文件事务）。
 依赖与前置：Python 3 标准库（argparse／json／os／re／shutil／subprocess／sys），**零外部依赖**；不联网、
   不跑 LLM。**形态检查以 `npx` 为环境前提**（本仓 `运行环境标准` §一 已列；不可用则明示跳过、不置败）。
   **只读写命令行点名的目标件**：写盘经**同目录临时件 ＋ 整体替换**（异常路径删除临时件）；形态检查另落
@@ -41,6 +41,7 @@
 """
 import argparse
 import json
+import fnmatch
 import os
 import re
 import shutil
@@ -287,6 +288,28 @@ def _readback(doc, path, text):
         raise Fail([f'回读核验未过（新文本未在位）: {path}'] + bad)
 
 
+def _lint_ignores(path):
+    """117：从目标件**最近祖先目录**的 `.markdownlint-cli2.jsonc` 读 ignore 串（零依赖 JSONC 近似——只取
+    "ignores" 数组内的引号串，负向串 `!…` 跳过；读不到返回 (None, [])＝无从自判、照旧走 lint）。"""
+    d = os.path.dirname(os.path.abspath(path))
+    while True:
+        cfg = os.path.join(d, '.markdownlint-cli2.jsonc')
+        if os.path.isfile(cfg):
+            try:
+                with open(cfg, encoding='utf-8') as fh:
+                    src = fh.read()
+            except OSError:
+                return None, []
+            m = re.search(r'"ignores"\s*:\s*\[(.*?)\]', src, re.S)
+            if not m:
+                return d, []
+            return d, [s for s in re.findall(r'"([^"]+)"', m.group(1)) if not s.startswith('!')]
+        nd = os.path.dirname(d)
+        if nd == d:
+            return None, []
+        d = nd
+
+
 def _shape_gate(path, text, no_lint):
     """四段式**第二段**（形态检查）之**前置检查关**（在 `_write()` 之前跑，故「不过＝零写盘」这条铁律不被破坏）。
 
@@ -301,6 +324,17 @@ def _shape_gate(path, text, no_lint):
     凡经本工具写入文件的 `.md`，形态违例在写盘前即被拦。"""
     if no_lint or not path.lower().endswith('.md'):
         return None
+    # 117：**写临时件之前**自判排除面——审计实测：目标在 `.tmp/` 等 ignore 面内时 lint 回显
+    # 「Linting: 1 file」＋0 issues（下方「0 files」守卫不触发），违例照写、汇总称「全部通过」＝假报告。
+    # 自判命中即**如实回「未覆盖」**（写盘合法、禁的是假「通过」）；fnmatch 的 `*` 可跨 `/`，与
+    # `dir/**` 形 ignore 语义相容。
+    cfg_dir, globs = _lint_ignores(path)
+    if cfg_dir is not None:
+        rel = os.path.relpath(os.path.abspath(path), cfg_dir).replace(os.sep, '/')
+        for g in globs:
+            if fnmatch.fnmatch(rel, g):
+                return (f'形态检查未覆盖（lint 排除面）：{path} 命中 ignore 串 {g}'
+                        '——该件**未经形态检查**写入（如实记录，非「通过」）')
     npx = shutil.which('npx')       # Windows 上为 npx.cmd——须用解析后的全路径（CreateProcess 不查 PATHEXT）
     if npx is None:
         return 'npx 不可用——形态检查跳过（.md 目标件未跑 lint）'
@@ -423,6 +457,8 @@ def main(argv):
         edits = parse_edits(args)
     except Fail as e:
         return _fail(e)
+    except OSError as e:   # 117：IO 异常原为裸 traceback 退 1（头注未列）——收编为 Fail、退 2；
+        return _fail(Fail([f'环境/IO 异常：{e}——按失败处理（退出 2）；已落盘部分不回滚（本工具无跨文件事务）']))
     docs, idents, shown = {}, {}, []
     try:
         for target, at, mode, text in edits:
@@ -449,11 +485,16 @@ def main(argv):
             _readback(docs[key], docs[key]['path'], text)
     except Fail as e:
         return _fail(e)
+    except OSError as e:   # 117：IO 异常原为裸 traceback 退 1（头注未列）——收编为 Fail、退 2；
+        return _fail(Fail([f'环境/IO 异常：{e}——按失败处理（退出 2）；已落盘部分不回滚（本工具无跨文件事务）']))
     for line in shown:
         print(line)
     for note in notes:
         print(f'  {note}')
-    print(f'· 汇总：{len(edits)} 处／{len(docs)} 件——全部通过（四段式：校验 → 形态检查 → 写盘 → 回读核验）')
+    if any('形态检查未' in n for n in notes):
+        print(f'· 汇总：{len(edits)} 处／{len(docs)} 件——写盘完成；**形态检查未全覆盖**（见上提示行）')
+    else:
+        print(f'· 汇总：{len(edits)} 处／{len(docs)} 件——全部通过（四段式：校验 → 形态检查 → 写盘 → 回读核验）')
     return 0
 
 
