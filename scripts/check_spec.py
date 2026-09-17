@@ -1,153 +1,48 @@
-"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出十类规格缺陷）。
+"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出八类规格缺陷）。
 
 事故出身与历次裁定：见 `CHANGELOG.md` 对应条目与 `docs/specs/archive/` 各批规格。行内不写批号——事故与沿革记 `CHANGELOG` 与 git 历史，指认归档规格用全路径。
 
-用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格、磁盘与允许清单内的只读 git 子命令）——检查 A 断言
-自我匹配预警（断言 token 被自家 [A]／[B] 行的目标文本吞掉，呈报预测值与规格「到位」列的差；另有「零命中
-待复核」——期望 ≥N（N≥1）而当前命中 0 时呈报，与「零命中核对未判」——期望子句多值、取数无法与
-命令对齐时呈报同名候选行，与「计算方式不可判」——token 含 BRE 真正特殊的正则元字符（含 `^` 剥锚后仍含者），
-字面计算方式测不出「现行」值、故不出「目标文本未提及且现行为 0」出口而改出明示行时呈报）、检查 B 计数实跑
-重算（规格内「整件尺寸」声称与实测的差）、检查 C [A] 项**目标文本**的逐字落实核对（比对取「目标件原文 ∪ 去加粗视图」并集——加粗归一**两侧对称**，未命中者的文案另可追加「疑现状侧引文」**成因诊断**括注：该串亦见于改动文件外件时标出、措辞取「成因待判」）、检查 D 规格写作
-机械检查四项（嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接）／检查 E 三方核对（改动文件 ↔ 禁改文件 ↔ 断言排除集）／检查 F 禁改文件禁词核对（禁改文件「不得把 … 搬进／写入 skill 资产」述谓句内的顿号词组 ↔ 改动清单各行的**目标侧引号块**；词面判定标准与 E 判一的目录前缀判定标准互补不重叠）／检查 G 可自定程度分布核对（头注「可自定程度分布」↔ 改动清单可自定程度列；两侧均为可数结构，不一致即出候选）／检查 H 逐条确认表汇总核对（§七 汇总行 ↔ 表体状态列）／**仍待项找不到对应核对**（§七 仍待／待作者行的条目位置 ↔ 清单全集全文）／检查 I 位置对源核对（§一 现状位置 ↔ 目标件实况）／检查 J 审查记录核对（§九 审查记录节 ↔ 节内 发现的问题 共 N 的各流程之和；判定标准改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_FINDINGS／RECORD_PLACEHOLDER／RECORD_TIER）／**开放项清单归到哪条规则核对**（§八 开放项条目位置 ↔ 清单全集全文）／**§九 成本字段核对**（§九 审查记录节须有**任一行**同时带「工具往返数」与「周期时长」且两值非占位）——十类一律
-非阻断。无 `--static` 时的默认跑法另含动态阶段：从规格「验收断言」节提取命令断言（行内反引号与围栏
-整行命令），依**执行面允许清单**只读执行，三种结果呈报（可审计／不可审计／未跑成）——不做通过/失败判定
-（规格断言多系施工后状态，本工具取的是当前树起点，供规划方对照规格内声称的起点／预验结论）。
-**执行面允许清单（修后实况）**：可执行族仅 `e?grep`／`fgrep`／`wc`／`head`／`tail`／`ls`／`cat`
-与 git 的 `diff`／`status`／`log`／`show`／`grep`（git 族另按「子命令 ＋ 参数允许清单」判，见
-`GIT_READONLY_OPTS`）；`find`／`sed` **在提取面、不在执行面**（仍被提取，仍以「跳过（非只读允许清单
-形态）」呈报——二者参数面含写盘与命令执行）。计算方式＝**宁可漏审不可误执行**。
-**不可审计类（六类，枚举的唯一写入位置＝本节；判定标准实现见 `unauditable()`，正则族 `^(python3?|py)\\b`
-——② 另接 `.*\\s-c`、③ 另接 `\\s*$`）**：
-① shell 解释器／包执行器族（`bash`／`sh`／`node`／`npx`）；② 解释器任意代码入口（`python3 -c`／
-`python -c`／`py -c`，`-c` 后不要求空白）；③ 裸解释器（`python3`／`python`／`py` 单命令）；④ 展开符
-`$` 与反引号——**不论引号内外**一律判不可审计（引号内不是壳层保护）；⑤ 引号**外** shell 元字符
-（`|`／`;`／`&`／`<`／`>`）；⑥ `sed` 非 `-n`（`sed` 已移出执行面，本项只作提前呈报）。
-**子进程与宿主语义**：两处子进程（动态阶段 `report()`／核验模式 `_git_changes()`）经
-`shell=True` 调用，宿主语义为「POSIX→`/bin/sh`、Windows→`cmd.exe`」（本机为后者，动态阶段历批实证
-可用）；`$`／反引号／引号外元字符一律判不可审计后，两宿主的**可达命令面已是同一批简单 argv 形态**、
-差异面已关闭——故不改调用方式（显式 `executable='bash'` 须另解「bash 在哪」，Windows 下
-`shutil.which('bash')` 未必命中且可能是 WSL 语义）。解冻触发＝作者要求守卫行为跨宿主可复现时。
-用法与参数：`python scripts/check_spec.py [--static|--verify] <规格路径> [更多规格路径...]`
-  · `--static`：只跑静态检查（`check.sh` [4] 段的调用形态）；**零位置参数时打印「无在制规格，跳过」
-    并退出 0**（提交时在制规格通常为 0，明示跳过属预期常态）。
-  · `--verify`：核验比对（改动文件声明集 ↔ `git status`、过程产物两项）；与 `--static` 互斥；
-    **不进 `check.sh` 提交前自动检查**（提交前自动检查运行点在制规格尚未归档，过程产物检查必然不符）。
-  · 两者都不给：先跑动态阶段，再跑静态阶段。
-依赖与前置：Python 3 标准库（re／subprocess／sys／os），零外部依赖；不联网、不装依赖、不跑 LLM。
-  **本工具不写任何文件**（只读规格、磁盘与允许清单内的只读 git 子命令；**两处 git 子进程**——动态阶段
-  `report()` 与核验模式 `_git_changes()`——统一经 `_child_env()` 置 `GIT_OPTIONAL_LOCKS=0` 并剔除 git
-  注入变量，消掉 `git status`／`diff` 刷新 `.git/` 下 index 的默认写盘副作用）；语法自检用 `ast.parse`，
-  不用 `py_compile`（后者会留缓存产物）。子进程输出与目标件读取统一按 UTF-8 解码并对不可解码字节容错
-  （`errors='replace'`；中文 Windows 本地编码为 GBK）。
-维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理（含 token 反转义）改 _assert_refs()；检查 A 判定标准改 check_swallow()（**候选待办**：`_row_target_text()` 的反转义计算方式未统一——若规格表格与断言命令两处转义写法不一致会失配，触发＝出现实例时同计算方式补反转义；**token 形态三分支**（`^` 剥锚按行首／BRE 元字符不可判／字面计数）的谓词改 `bre_meta`／`literal_token`——**不得复用 `literal_token` 作「不可判」谓词**，见该函数 docstring）；检查 B 的
-  对象计算方式词表与判定标准改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 判定标准、表头别名与方向标记
-  改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS 常量；检查 C 的成因诊断
-   （未命中目标件的引号块 ↔ 改动文件外件集＝`docs/specs/**/*.md` **减本件**）改 _out_of_scope_texts()／
-   _out_of_scope_hit()／_rel_key／_OUT_SCOPE_CACHE；检查 D 改
-  check_writing()；新增检查 E 的判定标准改 check_reconcile()／BAN_SECTION／BAN_PREFIX／（**同步更新文件核对「需同步更新的文件核对」表存在性**：本批触 `scripts/check*.py`／`check.sh` 时，规格须含该表——2026-09-17 机制成本研究加）／（**流程判定核对·流程**：按 §二 清单实算「小改／主线」并与头注「路径判定」行比对，**自述只作声明不作依据**——2026-09-17 T2 加）
-  BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；新增检查 F 的判定标准改
-  check_ban_words()／_ban_words()／BAN_WORD_CLAUSE／BAN_WORD_RUN（**顶层第六类「检查 F」**——
-  与规格正文内的子判定标准标签 `（F1）`／`（F2）` **不同族**：后者是某条改动的可自定程度子项，勿混读）；
-  新增检查 G 的判定标准改 check_freedom()／FREEDOM_HEAD／FREEDOM_COUNT／FREEDOM_MIXED／FREEDOM_TOTAL；
-  新增检查 H 的判定标准改 check_nuclear()／NUCLEAR_SECTION／NUCLEAR_STATES／NUCLEAR_TALLY；
-  **仍待项找不到对应**（检查 H 扩）与**开放项清单归到哪条规则**（检查 J 扩）两判定标准改 _item_anchors()／_ledger_text()／
-  OPEN_SECTION／OPEN_ITEM／OPEN_TICK／OPEN_NUM／BATCH_TOKEN／LEDGER_FILES／LEDGER_DIRS；（**核验第 1 步机械化** `--reconcile` 与件级声明面改 `reconcile_report()`／`_declared_paths()`——2026-09-17 T5 加）
-  §九 的**成本字段**判定标准（检查 J 扩）改 _cost_field_cands()／_cost_placeholder()／
-  COST_FIELDS／COST_PLACEHOLDER；
-  新增检查 I 的判定标准改 check_anchor()／ANCHOR_SECTION／ANCHOR_FILELINE／ANCHOR_FILEONLY／
-  ANCHOR_BARELINE／ANCHOR_QUOTE／_anchor_probe()／_anchor_norm()；
-  格数校验（F8）改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH／_cell_mismatch_reset()；
-  阶段编排、呈报前缀、空跑明示与
-  末尾三种结果判定标准改 static_report()；核验比对改
-  verify_report()；模式分派与退出契约改 __main__；**动态阶段的执行面（族门／git 子命令参数允许清单／
-  展开符判定标准／子进程 env）改 readonly()／_git_readonly()／unauditable()／GIT_READONLY_OPTS／MUTATING／
-  INJECT_ENV_***。
-事故出身：见 `docs/specs/archive/065-2026-09-12-规格静态自检器搬回.md`（事故四型：020–025 六发断言自我匹配——
-  断言吞自家 [A] 文本／对象错／计数错／恒真假绿；2026-09-07 作者裁定守卫化）；本工具由早期版本
-  `scripts/check_spec_assertions.py` 移植重建为本仓形态（表格改动清单、
-  `grep -c "TOKEN" FILE` 载体）。
-退出契约（**须带限定词**）：**静态发现恒 0**——检查 A／B／C／D／E／F／G／H／I／J 十类无论报出多少条发现，一律只呈报、
-  不影响退出码（`AGENTS.md` §五.2 候选永不拦截）。区分：`--verify` 模式的**过程产物缺失**可置退出 1
-  （该模式不进 `check.sh` 提交前自动检查）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。
-  呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类（故源件的 `x 计数不符` 改为
-  `· 计数不符`）。
-载体形态说明：① 断言载体**两种形态都认**——`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`
-  （token 取引号内、目标取末参）；② 改动清单为**表格**形态，列角色按**表头别名**定位（路径列＝表头含
-  「文件」或「新产品文档」；可自定程度列＝表头含「可自定程度」、无则取末列；改动列＝表头含「改动」），无别名可
-  识别者整表跳过并明示；③ 检查 B 用**对象计算方式**判定标准（仅当该数字之前的紧邻文本显式指向整件尺寸、或与
-  `wc -l` 类命令同段时才判，其余降为候选只计数不呈报；量词为「处」者计算方式另定，见 `_whole_size()`：
-  仅当**整个紧邻段**含「加粗」且数字前紧邻文本不以「加」／「增」收尾时判为整件计算方式，实测值取加粗标记
-  出现次数）；④ 检查 C 的逐字判定标准只对**含引号块**的 `[A]` 行
-  生效，且单元格内有**方向标记**（`→`／`改述为`／`改为`／`改作`／`替换为`／`换为`）时只核**最后一个标记
-  之后**的引号块（标记之前是「现文」＝改后已移除的旧文，核之必误报）；标记之后无引号块者该行不核、
-  降为候选呈报（见 DIR_MARKS／_target_blocks()）。
-呈报守恒：末尾三种结果判定标准计入 A／B／C／D／E／F／G／H／I／J 十类全部输出（含 B 的计数行与 **E／F／G／H／I／J** 的候选行；**E／F／G／H／I／J 的汇总行
-  不计入**），「· 无发现」只在十类全空时打印。
+用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格与磁盘）——八类：
+
+- **检查 A** 断言自我匹配预警：断言 token 被自家 `[A]`／`[B]` 行的目标文本吞掉；另有「零命中待复核」「零命中核对未判」「计算方式不可判」三种明示行。
+- **检查 B** 计数实跑重算：规格内「整件尺寸」声称与实测的差。
+- **检查 C** `[A]` 项目标文本的逐字落实核对：比对取「目标件原文 ∪ 去加粗视图」并集，未命中者追加「疑现状侧引文」成因诊断。
+- **检查 D** 规格写作机械检查四项：嵌套反引号／代码跨度边缘空格／加粗引导行紧跟列表／规格内可解析相对链接。
+- **检查 E** 三方核对（改动文件 ↔ 禁改文件 ↔ 断言排除集）＋需同步更新的文件核对＋模式判定核对——按改动清单实算简单／标准／全量并与头注比对，**自述只作声明不作依据**。
+- **检查 H** 逐条确认表汇总核对（§七 汇总行 ↔ 表体状态列）＋仍待项找不到对应核对。
+- **检查 I** 位置对源核对：§一 现状位置 ↔ 目标件实况。
+- **检查 J** 审查记录核对（§九 审查记录节 ↔ 发现的问题各档之和）＋开放项清单归到哪条规则核对＋§九 成本字段核对。
+
+八类一律非阻断（`AGENTS.md` §五.2 候选永不拦截）。
+
+用法与参数：`python scripts/check_spec.py --static|--verify|--reconcile <规格路径> [更多规格路径...]`
+
+  · `--static`：只跑静态检查（`check.sh` [4] 段的调用形态）；**零位置参数时打印「无在制规格，跳过」并退出 0**（提交时在制规格通常为 0，属预期常态）。
+  · `--verify`：核验比对（改动文件声明集 ↔ 实盘改动、过程产物两项）；**不进 `check.sh`**。
+  · `--reconcile`：实盘改动 ↔ 规格声明面（核验第 1 步的件级机械化）。
+  · 三者互斥；都不给时按 `--static` 跑。
+
+依赖与前置：Python 3 标准库（os／re／sys）；零外部依赖，不联网、不装依赖、不跑 LLM。**本工具不写任何文件**（只读规格与磁盘）；语法自检用 `ast.parse`，不用 `py_compile`（后者会留缓存产物）。目标件读取统一按 UTF-8 解码并对不可解码字节容错（`errors='replace'`）。
+
+维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
+
+退出契约（**须带限定词**）：**静态发现恒 0**——八类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的过程产物缺失可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
+
+载体形态说明：① 断言载体两种形态都认——`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`（token 取引号内、目标取末参）；② 改动清单为**表格**形态，列角色按表头别名定位（路径列＝表头含「文件」或「新产品文档」；改动列＝表头含「改动」），无别名可识别者整表跳过并明示；③ 检查 B 用**对象计算方式**判定标准（仅当数字之前的紧邻文本显式指向整件尺寸、或与 `wc -l` 类命令同段时才判）；④ 检查 C 的逐字判定标准只对**含引号块**的 `[A]` 行生效，且单元格内有**方向标记**时只核**最后一个标记之后**的引号块。
+
+呈报守恒：末尾三种结果判定标准计入八类全部输出（含 B 的计数行与 **E／H／I／J** 的候选行；**E／H／I／J 的汇总行不计入**），「· 无发现」只在八类全空时打印。
 """
 import os
 import re
 import subprocess
 import sys
 
-ALLOWED = re.compile(
-    r'^(grep|egrep|fgrep|wc|head|tail|ls|find|sed|cat|git|bash|sh|node|python|py|npx)\b'
-)
-MUTATING = re.compile(
-    r'(^|\s)(rm|rmdir|mv|cp|mkdir|touch|chmod)(\s|$)'
-    r'|git\s+(add|commit|push|pull|reset|checkout|merge|rebase|stash|mv|clean|tag)\b'
-    r'|>>|npx\s+-y\b|py_compile'
-    # 纵深防御（075 批 F1 ③）：git 系的写盘选项与 find／sed 的写型参数——find／sed 已移出可执行面
-    # （见 readonly()），此处仍显式记名，防将来允许清单误放；`--output` 与 find 的写型谓词成稿审查实证过
-    r'|git\s+[^\n]*\s--output([=\s]|$)'
-    r'|(^|\s)(-delete|-exec|-execdir|-fprint|-fprint0|-fprintf|-fls|-ok|-okdir)(\s|$)'
-    r'|sed\s+[^\n]*-i(\s|$|[.;&|])'
-)
-# git 族可执行参数允许清单（075 批 F1 ①）：**子命令 ＋ 参数允许清单**——以 `-` 起首的实参（剥去外层引号后）
-# 须落在该子命令的允许集内，否则判非只读。不用禁止清单枚举：禁止清单天然不完备（成稿审查实证四条通路
-# 被放行并执行——`git grep -O` 走 pager 执行任意命令、`--textconv`、`git diff --ext-diff`、
-# `git diff --output=FILE` 写盘 14202B）。形态：exact＝逐字命中集；prefix＝带值形态的前缀集
-# （`-U<n>`／`--pretty=<fmt>`／`--untracked-files=<mode>`／`-u<mode>`）；**`-e`／`--regexp` 已移出
-# `grep` 允许集**（取值型选项会把紧随的「`--`」当成它的**值**吃掉、其后实参仍按选项解析，
-# 故 `git grep -F -e -- -O <pager> f` 原会被放行并重开 pager 面）：**允许集内已无取值型选项，故 `--`
-# 必为真分隔符**，`_git_readonly()` 遇 `--` 即跳出、其后实参一律放行。
-_GIT_DIFF_LIKE = (('-p', '--stat', '--numstat', '--shortstat', '--name-only', '--name-status',
-                   '--word-diff', '--no-index', '--oneline', '--no-color'),
-                  ('-U', '--pretty='))
-GIT_READONLY_OPTS = {
-    'grep': (('-F', '-c', '-n', '-i', '-w', '-l', '-L', '-E', '-G', '-P',
-              '--fixed-strings', '--count', '--line-number', '--ignore-case', '--word-regexp',
-              '--files-with-matches', '--files-without-match', '--extended-regexp',
-              '--basic-regexp', '--perl-regexp'), ()),
-    'diff': _GIT_DIFF_LIKE,
-    'log': _GIT_DIFF_LIKE,
-    'show': _GIT_DIFF_LIKE,
-    'status': (('-s', '-b', '--porcelain', '--short', '--branch', '--ignored', '--no-color'),
-               ('-u', '--untracked-files=')),
-}
-# 子进程 env 收严的剔除面（075 批 F1 ④）：前三项拉起外部程序，后七项经窄域复核实证可注入 git 配置
-# （仅置 `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=diff.external GIT_CONFIG_VALUE_0=…` 即拉起外部程序）；
-# 带序号的 `GIT_CONFIG_KEY_<n>`／`GIT_CONFIG_VALUE_<n>` 按前缀剔除。
-INJECT_ENV_EXACT = ('GIT_EXTERNAL_DIFF', 'GIT_PAGER', 'PAGER', 'GIT_CONFIG_COUNT',
-                    'GIT_CONFIG_PARAMETERS', 'GIT_CONFIG_GLOBAL', 'GIT_CONFIG_SYSTEM',
-                    'GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE')
-INJECT_ENV_PREFIX = ('GIT_CONFIG_KEY_', 'GIT_CONFIG_VALUE_')
-
-
-def _child_env():
-    """子进程 env 收严（075 批 F1 ④）：置 `GIT_OPTIONAL_LOCKS=0`（消掉 `git status`／`diff` 刷新
-    `.git/` 下 index 的默认写盘副作用）并剔除 git 注入面（`INJECT_ENV_*`——后七项可注入
-    `diff.external` 之类的配置从而拉起外部程序）。**两处 git 子进程共用**：动态阶段 `report()` 与
-    核验模式 `_git_changes()`（后者同样跑 `git status`，不收严则「本工具不写任何文件」在核验模式下不成立）。"""
-    env = {k: v for k, v in os.environ.items()
-           if k not in INJECT_ENV_EXACT and not k.startswith(INJECT_ENV_PREFIX)}
-    env['GIT_OPTIONAL_LOCKS'] = '0'
-    return env
 
 # 断言节定位：**只认节名、不带位次**（位次随批次变，三／四均有）；节名容「验收断言」与旧称「验收标准」
 SECTION = re.compile(r'^##[^#\n]*验收(?:标准|断言).*$', re.M)
 # 静态检查阶段的节定位与识别计算方式（--static；只读，不执行规格内任何命令）
 # 改动清单节：容错「首轮落地改动清单」等变体（061／065 实测变体）
-CHANGE_SECTION = re.compile(r'^##[^#\n]*(?:首轮)?(?:落地)?文件级改动清单.*$', re.M)
+CHANGE_SECTION = re.compile(r'^##[^#\n]*(?:首轮)?(?:落地)?(?:文件级)?改动清单.*$', re.M)
 # 检查 E（三方核对：改动文件 ↔ 禁改文件 ↔ 断言排除集）的取集常量——
 # 检索面 S＝`## …禁止事项…` 的**节全文**（`_section()` 取到下一个行首 `##` 止）。**不限 `- 禁止`
 # 起首行**：豁免句常写在标题不含「禁止」的兄弟条目里，只取 `- 禁止` 行会漏读并产误报。
@@ -178,17 +73,6 @@ BAN_CLAUSE_SPLIT = re.compile(r'[；，、：]')
 # 判二的 E 取集：验收断言节内 `':!<path>'` 形态（本仓补集式命令的既有写法，不猜其它写法）；
 # 归一化（去首尾空白与尾随斜杠）与「E 为空即跳过」见 check_reconcile()。
 EXCLUDE_TOKEN = re.compile(r"':!([^']+)'")
-# 检查 F（禁改文件禁词 ↔ 改动清单目标文本的词面命中）的取集常量——
-# 述谓句形态：禁改文件节内「不得把 … 搬进 skill 资产」／「不得把 … 写入 skill 资产」；**无该类句即禁词表为空**
-# （此时本检查完全静默——不打汇总行、不打空跑明示、输出不含「禁改文件词」字样）。
-# 取 `.{0,200}?` 限长非贪婪：防跨句吞并（句干只到述谓动词为止）。
-BAN_WORD_CLAUSE = re.compile(r'不得把(.{0,200}?)(?:搬进|写入)\s*skill\s*资产')
-# 反引号包裹的 token（路径／命令）在抽词前整体抹去：路径出现在目标文本里属**正当引用**，
-# 不是「搬进禁语」——不抹去会把 `scripts/check.sh` 这类路径词当禁词报（088 成稿审查 F-02 根因）。
-BAN_WORD_TICK = re.compile(r'`[^`\n]*`')
-# 词组成员＝中文连串（顿号分隔组的成员）。**只认紧邻顿号者**：句干里的分类语（如「…）类的设计语言」）
-# 与修饰语不紧邻顿号，不入表——过宽即噪声（判定标准收窄）。
-BAN_WORD_RUN = re.compile(r'[\u4e00-\u9fff]+')
 # 断言载体两形态：`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`
 # （token 取引号内、目标取末参；选项顺序容错）
 ASSERT_CMD = re.compile(
@@ -213,16 +97,13 @@ WHOLE_CLAIM = re.compile(r'共[\s\d,]*$')
 # `wc -l` 类命令：与尺寸声称同段（同行）时，视为整件计算方式（命令自身不可解析为路径，故按行检测）
 WC_CMD = re.compile(r'\bwc\b[^\n]{0,40}?\s-[A-Za-z]*l')
 INLINE_CODE = re.compile(r'`([^`\n]+)`')
-# 行首内容判定标准（动态阶段）：行内命令名只在「剥去列表标记／复选框后居于行首」时才视为断言抽取对象，
-# 散文句中提及的命令名不抽取（形态：`- [ ] `cmd``／`1. `cmd``／裸行首跨度）
-LINE_LEAD = re.compile(r'^\s*(?:[-*+]\s+(?:\[[ xX]\]\s*)?|\d+[.)]\s+|\[[ xX]\]\s*)*')
 # 检查 A／C 共用的表格形态判定标准：改动清单为 Markdown 表格，列角色按表头别名定位
 TABLE_ROW = re.compile(r'^\s*\|.*\|\s*$')
 TABLE_SEP = re.compile(r'^\s*\|[\s:|\-]+\|\s*$')
 # 表格单元格切分（093 批 F7）：分隔符＝**未转义**竖线——负向后视排除 `\|`（转义竖线是单元格内容）
 _CELL_SPLIT = re.compile(r'(?<!\\)\|')
 HDR_PATH_ALIASES = ('文件', '新产品文档')
-HDR_FREEDOM_ALIAS = '可自定程度'
+HDR_FREEDOM_ALIAS = ('可自定程度', '自由度')
 HDR_CHANGE_ALIAS = '改动'
 # 引号块：逐字目标文本的载体（「…」／『…』）——检查 A 的目标文本与检查 C 的核对串都取自它
 QUOTE_BLOCK = re.compile(r'「([^「」\n]*)」|『([^『』\n]*)』')
@@ -230,11 +111,10 @@ QUOTE_BLOCK = re.compile(r'「([^「」\n]*)」|『([^『』\n]*)』')
 # **最后一个标记之后**的引号块（标记之前的是「现文」，改后已被移除，核之必误报）
 DIR_MARKS = ('→', '改述为', '改为', '改作', '替换为', '换为')
 FENCE_BLOCK = re.compile(r'^\s*(```|~~~)[a-zA-Z]*\s*$')
-# 围栏双认（077 批 F2）：开／合围栏同认三反引号与 `~~~`——本常量（检查 D 的围栏感知）与
-# `extract()` 内的 fenced 块模式（动态阶段的命令提取）**两处须同计算方式**；只改一处即留漏面。
-# **开合须按标记字符配对**（组 1＝标记，`check_writing()` 按它开合）：写成 `(?:```|~~~)` 这类两个
-# 独立分支即出错——「``` 块内一行孤立 `~~~`」会提前翻转围栏态，令其后（配对未复原时直到文件末）
-# 的检查 D 预警全部失效、`extract()` 静默丢弃该块内命令（077 批曾引入的假阴性，产物审查 P1-2）。
+# 围栏双认：开／合围栏同认三反引号与 `~~~`（本常量服务检查 D 的围栏感知）。
+# **开合须按标记字符配对**（组 1＝标记，`check_writing()` 与 `check_anchor()` 按它开合）：写成
+# `(?:```|~~~)` 这类两个独立分支即出错——「``` 块内一行孤立 `~~~`」会提前翻转围栏态，令其后
+# （配对未复原时直到文件末）的检查预警全部失效（曾引入的假阴性，产物审查 P1-2）。
 # 检查 D：① ② 的 CommonMark 定界规则、③ 加粗引导行＋列表标记起首、④ 规格内可解析相对链接
 BACKTICK_RUN = re.compile(r'`+')
 BOLD_LEAD = re.compile(r'^\s*\*\*[^*\n]+\*\*\s*[：:]\s*$')
@@ -251,197 +131,10 @@ NEVER_ARCHIVED = ('collab-log.md',)
 # 静态检查的扫描面排除项：`施工机制.md` **不是规格**，其 §八 模板内嵌本节标题（扫之即假发现源）；
 # `check.sh` [4] 段的枚举计算方式已排除，此处再兜一道（工具被直接喂入时亦跳过并明示）
 NEVER_SCANNED = ('施工机制.md',)
-# 检查 G（093 批 F22）：规格头注「可自定程度分布」的五种可数结构 ＋ 表头行的定位词。
-# 头注形态（各批实测）：`[A]×15 [B]×6 ＋ **混合×2**（…），共 **23 行**`／`[A]×4 [B]×8（F1／…）`
-FREEDOM_HEAD = re.compile(r'(?:自由度|可自定程度)分布')
-FREEDOM_COUNT = re.compile(r'\[([ABC])\]\s*[×xX*]\s*(\d+)')
-FREEDOM_MIXED = re.compile(r'混合\s*[×xX*]\s*(\d+)')
-FREEDOM_TOTAL = re.compile(r'共\s*\**\s*(\d+)\s*\**\s*行')
-
-
-def extract(text):
-    m = SECTION.search(text)
-    if not m:
-        return []
-    section = text[m.end():]
-    nxt = re.search(r'^##\s', section, re.M)
-    if nxt:
-        section = section[:nxt.start()]
-    cmds = []
-    seen = set()
-    # 行内抽取只认「行首跨度」（剥去列表标记／复选框后以该跨度起首）——散文句中提及的命令名不抽取
-    for line in section.splitlines():
-        m = re.match(r'`([^`\n]+)`', LINE_LEAD.sub('', line))
-        if not m:
-            continue
-        c = m.group(1).strip()
-        if ALLOWED.match(c) and c not in seen:
-            cmds.append(('行内', c))
-            seen.add(c)
-    # 围栏块：开合按**同一标记字符**配对（反向引用闭合，组 1＝标记、组 2＝块内容）——写成
-    # `(?:```|~~~)` 两个独立分支即出错：「``` 块内一行孤立 `~~~`」会把块从中截断，
-    # 该块内的命令断言被静默丢弃（077 批 F2；产物审查 P1-2 测试样例实证）
-    for _marker, block in re.findall(r'(```|~~~)[a-zA-Z]*\n(.*?)\1', section, re.S):
-        for line in block.splitlines():
-            c = line.strip()
-            if (c and ALLOWED.match(c) and not c.startswith('#')
-                    and c not in seen):
-                cmds.append(('围栏', c))
-                seen.add(c)
-    return cmds
-
-
-def _outside_quotes(c):
-    """返回整行中「引号之外」的区间（单／双引号内的区间一概剔除）——引号内的元字符不计，
-    否则 `git grep -F -c -- "a|b" file` 这类合法且安全的固定串断言会被误判为不可审计而漏审
-    （本仓规格的断言 token 常含 `|`）。不做转义处理（够用即可）。
-    **只供「引号内惰性」的元字符使用**（`|`／`;`／`&`／`<`／`>`）：壳层在引号内**仍会展开**的 `$` 与
-    反引号由 `unauditable()` 直接查整条命令原文、**不经本函数**——「引号内」对二者不是壳层保护
-    （075 批 F1 ② 的安全核心；写成「引号外才查」即等于没修）。"""
-    out, quote = [], None
-    for ch in c:
-        if quote:
-            if ch == quote:
-                quote = None
-            continue
-        if ch in ('"', "'"):
-            quote = ch
-            continue
-        out.append(ch)
-    return ''.join(out)
-
-
-def unauditable(c):
-    """不可审计判定标准（顺序在放行判定标准之前）：命中返回判定标准说明（含命中的元字符，便于判因），否则 None。
-    1 shell 解释器／包执行器整族；2 解释器任意代码入口（`-c` 后不要求空白，`-c"x"` 一并拦下）；
-    3 裸解释器；4 **展开符 `$` 与反引号——不论引号内外一律拦**（「引号内」对二者不是壳层保护：
-    `"$(cmd)"` 与引号内反引号都会被壳层展开；判定标准施于**整条命令原文**，不经 `_outside_quotes()`）；
-    5 引号**外**的 shell 元字符 `|`／`;`／`&`／`<`／`>`（引号内确惰性，保持现计算方式——一律拦会把本仓
-    规格里含 `|` 与括号的既有断言 token 全部降为「不可审计」而丢覆盖）；
-    6 sed 非 -n（既有行为保留；`sed` 已移出执行面，故本项只作提前呈报，见 `readonly()`）。"""
-    m = re.match(r'^(bash|sh|node|npx)\b', c)
-    if m:
-        return f'shell 解释器／包执行器 {m.group(1)}'
-    if re.match(r'^(python3?|py)\b.*\s-c', c):
-        return '解释器任意代码入口（-c）'
-    if re.match(r'^(python3?|py)\s*$', c):
-        return '裸解释器'
-    if '$' in c:
-        return '展开符 $（引号内外一律不可审计）'
-    if '`' in c:
-        return '展开符 `（引号内外一律不可审计）'
-    outside = _outside_quotes(c)
-    for ch in ('|', ';', '&', '<', '>'):
-        if ch in outside:
-            return f'引号外 shell 元字符 {ch}'
-    if c.startswith('sed') and ' -n' not in c:
-        return 'sed 非 -n'
-    return None
-
-
-def _git_readonly(c):
-    """git 族：**子命令 ＋ 参数允许清单**（075 批 F1 ①）。返回 False＝非只读（含未知子命令、
-    集外选项、聚合短选项如 `-sb` 或 `-nO`——逐字匹配天然拒之，宁可漏审不可误执行）。
-    每个以 `-` 起首的实参（**剥去外层引号后**判——`git diff "--output=F"` 经壳层剥离引号后即为选项，
-    不剥即漏）须落在该子命令的允许集内；遇 `--` 即跳出循环——**`--` 之后一律放行**（其后的实参按通用
-    语义是路径／模式，不是选项）。**不变量**：允许集内已无取值型选项（`-e`／`--regexp` 已移出
-    F3 ①），故 `--` 必为真分隔符；若将来往允许集里加回任何**消耗实参**的选项，此「跳出」即失效（该
-    选项会把 `--` 当值吃掉、其后实参仍按选项解析），届时须同步收严本判定标准。"""
-    parts = c.split()
-    if len(parts) < 2:
-        return False
-    spec_opts = GIT_READONLY_OPTS.get(parts[1])
-    if spec_opts is None:
-        return False
-    exact, prefix = spec_opts
-    for a in parts[2:]:
-        t = a.lstrip('"\'')
-        if t == '--':
-            break
-        if not t.startswith('-'):
-            continue
-        if t in exact or any(t.startswith(p) for p in prefix):
-            continue
-        return False
-    return True
-
-
-def readonly(c):
-    """只读判定标准＝**执行面允许清单**（075 批 F1 ①）。放行面＝参数面确定无副作用的族：
-    `e?grep`／`fgrep`／`wc`／`head`／`tail`／`ls`／`cat` ＋ git 的 `diff`／`status`／`log`／`show`／`grep`
-    （git 族按「子命令 ＋ 参数允许清单」判，见 `_git_readonly()`／`GIT_READONLY_OPTS`）。
-    **`find`／`sed` 不在执行面**：二者参数面含写盘与命令执行（`find` 的 `-delete`／`-exec`／`-fprint*`；
-    `sed` 的脚本命令 `w`／`W`／`r`／`e` 与 `-i`），禁止清单枚举天然不完备（成稿审查实证四通路）——二者
-    仍在**提取面**，由本函数判否后以「跳过（非只读允许清单形态）」呈报。`MUTATING` 先行拦一道（纵深防御），
-    随后是族门与 git 参数门。"""
-    if MUTATING.search(c):
-        return False
-    if re.match(r'^(e?grep|fgrep|wc|head|tail|ls|cat)\b', c):
-        return True
-    if c.startswith('git'):
-        return _git_readonly(c)
-    # 不可达死码（保留以明示任意代码入口）：`python -c` 形态已被 unauditable() 判定标准 2 先行拦下
-    if c.startswith(('python', 'py')) and ' -c ' in c:
-        return True
-    return False
-
-
-def _emit(line):
-    """打印一行；编码侧保底做法——stdout 若非 UTF-8（中文 Windows 默认 GBK）则 UnicodeEncodeError，
-    降级 ASCII 重打。返回 False 表示发生了编码崩溃（归入崩溃桶）。"""
-    try:
-        print(line)
-        return True
-    except UnicodeEncodeError:
-        print(line.encode('ascii', 'backslashreplace').decode('ascii'))
-        return False
-
-
-def report(spec):
-    text = open(spec, encoding='utf-8').read()
-    cmds = extract(text)
-    if not cmds:
-        print('未提取到命令断言（无验收节或无允许清单命令）')
-        return
-    ran = skipped = crashes = 0
-    env = _child_env()      # 子进程 env 收严（F1 ④）：置 GIT_OPTIONAL_LOCKS=0 ＋ 剔除 git 注入面
-    for i, (src, c) in enumerate(cmds, 1):
-        reason = unauditable(c)
-        if reason:
-            _emit(f'[{i}] {src} SKIP（不可审计形态：{reason}）: {c}')
-            skipped += 1
-            continue
-        if not readonly(c):
-            _emit(f'[{i}] {src} SKIP（非只读允许清单形态）: {c}')
-            skipped += 1
-            continue
-        try:
-            r = subprocess.run(c, shell=True, capture_output=True,
-                               encoding='utf-8', errors='replace', timeout=120,
-                               env=env,
-                               cwd=os.path.dirname(os.path.dirname(
-                                   os.path.abspath(__file__))))
-            if r.stdout is None or r.stderr is None:
-                raise UnicodeError('解码侧未取到输出（stdout/stderr 为 None）')
-            out = ((r.stdout or '') + (r.stderr or '')).strip().splitlines()
-            head = ' ⏎ '.join(out[:3]) if out else '(无输出)'
-            note = '（命令不可用）' if r.returncode in (126, 127) else ''
-            if not _emit(f'[{i}] {src} exit={r.returncode}{note}: {c}\n    {head[:200]}'):
-                raise UnicodeError('打印时编码失败（已降级 ASCII）')
-            ran += 1
-        except subprocess.TimeoutExpired:
-            _emit(f'[{i}] {src} CRASH（未跑成）: {c}')
-            crashes += 1
-        except Exception:
-            _emit(f'[{i}] {src} CRASH（未跑成）: {c}')
-            crashes += 1
-    print(f'== 共 {len(cmds)} 条：执行 {ran}｜跳过 {skipped}｜崩溃 {crashes} ==')
-    if crashes:
-        print('! 有断言未跑成——预验证据不完整')
 
 
 def repo_root():
-    """静态阶段的路径解析基准：脚本所在仓库根（循 report() 的 __file__ 推导做法）；定位失败返回 None。"""
+    """静态阶段的路径解析基准：脚本所在仓库根（循本件 __file__ 推导）；定位失败返回 None。"""
     try:
         here = os.path.abspath(__file__)
     except NameError:
@@ -517,7 +210,8 @@ def _change_rows(text):
     """解析「文件级改动清单」节内的**表格**，返回 (行列表, 跳过表数)。
     行＝{'path','change','freedom','raw'}（各自为单元格文本，缺列时为空串）。列角色按**表头别名**定位：
     路径列＝表头含「文件」或「新产品文档」者（早期规格的路径列在第 1 列且表头为「新产品文档」）；可自定程度列＝
-    表头含「可自定程度」者（无则取末列——见 `施工机制` §二 方案三要素）；改动列＝表头含「改动」者（无则取
+    表头含「可自定程度」或旧称「自由度」者（**双读**——本字段供检查 A／C 判 `[A]`／`[B]` 行用；
+    无该列时取末列）；改动列＝表头含「改动」者（无则取
     整行原文）。**无任何别名可识别的表整表跳过并计数**（由调用方明示），不猜列角色。
     **格数校验**（093 批 F8）：表体行的格数与表头不符者（疑似转义竖线或列数错）记入模块级
     `_CELL_MISMATCH`（**认不出也不静默**的第二道防线；件名与行号由调用方补，见该常量处的说明）。"""
@@ -528,7 +222,7 @@ def _change_rows(text):
         path_i = next((i for i, c in enumerate(header)
                        if any(a in c for a in HDR_PATH_ALIASES)), None)
         free_i = next((i for i, c in enumerate(header)
-                       if HDR_FREEDOM_ALIAS in c), None)
+                       if any(a in c for a in HDR_FREEDOM_ALIAS)), None)
         change_i = next((i for i, c in enumerate(header)
                          if HDR_CHANGE_ALIAS in c), None)
         if path_i is None and free_i is None:
@@ -1148,7 +842,7 @@ def check_writing(text, spec, root):
 
 def check_nuclear(text, root):
     """检查 H（2026-09-16 加）：规格 §七「本批逐条确认」表的**汇总行 ↔ 表体状态列**逐格核对。
-    返回 **(候选行列表, 汇总行列表)**——计算方式同检查 E／F／G：候选行由调用方并入末尾三种结果判定标准、汇总行只进
+    返回 **(候选行列表, 汇总行列表)**——计算方式同检查 E：候选行由调用方并入末尾三种结果判定标准、汇总行只进
     逐件打印串（**不计入**）；**候选非阻断、恒不判为失败**。
 
     **判定标准**：两侧都是**可数结构**。表体侧＝该节表格每行「状态」列内的档词（五档：已履行／作废／本批处置／
@@ -1299,7 +993,7 @@ def _anchor_probe(path, ln, quotes, root, seen, cands):
 
 def check_anchor(text, root):
     """检查 I（2026-09-16 加）：§一「现状位置」节的 文件:行号 引用 ↔ 目标件实况核对。
-    返回 **(候选行列表, 汇总行列表)**——计算方式同 E／F／G／H：候选并入 `extra`（非阻断、恒不判为失败），
+    返回 **(候选行列表, 汇总行列表)**——计算方式同 E／H：候选并入 `extra`（非阻断、恒不判为失败），
     汇总行只打印。
 
     **只扫 §一**：该节按定义只述**现状**（现行原文），引文可与磁盘逐字比对；§二 F 行引述
@@ -1316,10 +1010,15 @@ def check_anchor(text, root):
     if not sec:
         return [], []
     cands, seen, refs = [], set(), 0
-    in_fence = False
+    in_fence = None     # 当前围栏标记字符（None＝不在围栏内）；开合按**同一标记字符**配对
     for raw in sec.split('\n'):
-        if FENCE_BLOCK.match(raw):
-            in_fence = not in_fence
+        _fm = FENCE_BLOCK.match(raw)
+        if _fm:
+            _mark = _fm.group(1)[0]
+            if in_fence is None:
+                in_fence = _mark
+            elif in_fence == _mark:
+                in_fence = None
             continue
         if in_fence:
             continue
@@ -1490,7 +1189,7 @@ def _cost_field_cands(sec):
 
 def check_archive_record(text, root):
     """检查 J（2026-09-16 加）：在制规格的「审查记录」节**存在性**与 发现的问题 条目**N 核对**。
-    返回 **(候选行列表, 汇总行列表)**——计算方式同 E／F／G／H／I：候选行由调用方并入 `extra`（⇒ 计入末尾
+    返回 **(候选行列表, 汇总行列表)**——计算方式同 E／H／I：候选行由调用方并入 `extra`（⇒ 计入末尾
     三种结果 `发现的问题`）、汇总行只进逐件打印串（**不计入**）；**候选非阻断、恒不判为失败**。
 
     **判定标准**：节定位＝「标题行以两个井号起、正文含『审查记录』」的节（`ARCHIVE_RECORD_SECTION`）；
@@ -1678,135 +1377,18 @@ def check_reconcile(text, root):
     return cands, [summary]
 
 
-def _ban_words(ban):
-    """检查 F 的禁词表：禁改文件节内「不得把 … 搬进／写入 skill 资产」述谓句中的**顿号分隔中文词组**各成员。
-    三步取法：① 抹去反引号包裹的 token（路径／命令，BAN_WORD_TICK）；② 在句干内取中文连串；
-    ③ 只留**紧邻顿号**者（顿号分隔组的成员判定标准——分类语与修饰语不紧邻顿号，不入表）。
-    无该类句返回空表（调用方据此**完全静默**）。"""
-    words = []
-    for m in BAN_WORD_CLAUSE.finditer(BAN_WORD_TICK.sub(' ', ban)):
-        span = m.group(1)
-        runs = [(r.start(), r.end(), r.group(0)) for r in BAN_WORD_RUN.finditer(span)]
-        for i, (s, e, w) in enumerate(runs):
-            before = span[runs[i - 1][1]:s] if i else span[:s]
-            after = span[e:runs[i + 1][0]] if i + 1 < len(runs) else span[e:]
-            if ('、' in before or '、' in after) and w not in words:
-                words.append(w)
-    return words
-
-
-def check_ban_words(text, root):
-    """检查 F：禁改文件禁词 ↔ 改动清单**目标侧引号块**的词面命中（候选非阻断）。
-    返回 **(候选行列表, 汇总行列表)**——计算方式同检查 E（`check_reconcile()`）：候选行由调用方并入末尾
-    三种结果判定标准，汇总行只进逐件打印串、**不计入**。
-
-    **判定标准**：禁词表 W＝`BAN_SECTION` 节内的顿号分隔中文词组（`_ban_words()`）；核对面＝§二 改动清单
-    各行的**目标侧引号块**（`_target_blocks()`——**不读整行**：位置列含路径，读整行必误报）。
-    命中即呈报候选行「禁改文件词 {w} 出现在改动行 {N}」（N＝清单表体行的 1 起序）。
-    **分工**：与检查 E 的判一（按**目录前缀**判禁改文件未豁免）互补不重叠——本条按**词面**，判的是
-    「该词被搬进目标文本」，非「该件落在禁改目录下」。
-    **本检查＝顶层第六类「检查 F」**，与规格正文内的子判定标准标签 `（F1）`／`（F2）` **不同族**（后者是
-    某条改动的可自定程度子项），勿混读。
-    **静默条件（硬）**：W ＝ ∅ ⇒ **完全不输出**（不打汇总行、不打空跑明示，屏面不含「禁改文件词」字样
-    ——不误报的判定标准落在字面上，多打一行即假红）。
-    返回值恒为候选／汇总行：静态发现一律只呈报、不影响退出码（`root` 只作仓根基准，本检查不读写磁盘
-    ——核对面取自规格文本本身）。"""
-    ban = _section(text, BAN_SECTION)
-    words = _ban_words(ban) if ban.strip() else []
-    if not words:
-        return [], []
-    rows, _skipped = _change_rows(text)
-    checked = 0
-    cands = []
-    for i, row in enumerate(rows, 1):
-        blocks, _no_block = _target_blocks(row['change'])
-        if not blocks:
-            continue    # 无目标侧引号块的行不进核对面（读整行必误报，见头注「判定标准」）
-        checked += 1
-        blob = '\n'.join(blocks)
-        for w in words:
-            if w in blob:
-                cands.append(f'· 检查 F 禁改文件词 {w} 出现在改动行 {i}')
-    summary = (f'· 检查 F 汇总: 禁改文件词 {len(words)} 个｜核对改动行 {checked} 行｜'
-               f'命中 {len(cands)} 条')
-    return cands, [summary]
-
-
-def check_freedom(text, root):
-    """检查 G（093 批 F22）：规格头注「可自定程度分布」↔ §二 改动清单**可自定程度列**的逐行统计。
-    返回 **(候选行列表, 汇总行列表)**——计算方式同检查 E／F：候选行由调用方并入末尾三种结果判定标准、汇总行只进
-    逐件打印串（**不计入**）；**候选非阻断、恒不判为失败**（`AGENTS.md` §五.2），退出契约不受影响。
-
-    **判定标准**：两侧都是**可数结构**。头注侧＝`FREEDOM_HEAD` 所在行内的 `[A]×n`／`[B]×m`／`混合×k`／`[C]×c`／
-    `共 N 行` 五种结构（`FREEDOM_*` 常量；`共 N 行` 与清单**表体行数**比对，缺写者标 `未写` 并**只比
-    已给出的项**）；清单侧＝§二 各表体行可自定程度单元格内 `[A]`／`[B]`／`[C]` 的**并存**情形——含 `[A]` 与 `[B]` 者计入
-    「混合」，只含 `[A]`／只含 `[B]` 者计入该侧；只含 `[C]`（不含 `[A]`／`[B]`）者计入**清单侧** `[C]` 计数并与头注声明值比对；**同时**含 `[A]`／`[B]` 者按下方分支序只计前者、不进 `[C]` 计数；三者皆无者只进总行数。
-    **混合×k 缺写＝按 0 比**：只声明 `[A]×n [B]×m` 而清单内实有 `[A]／[B]` 并存行者即出候选——该族
-    缺陷本仓第五次复发才机械化（原 G22（已拆））。
-    **（「路径判定流程」判定标准已于 2026-09-17 下线**——其所守的「快」行经机制成本研究实测 0/14 批使用后退役，
-    见 `施工机制` §二；`FREEDOM_PATH` 常量与汇总行「判定流程」格同批撤除。**）**
-    **静默条件（硬）**：头注无「可自定程度分布」行 ⇒ **完全不输出**（连汇总行都不打——防误报的判定标准落在
-    字面上）；有改动清单节而**一行表体行都解析不出**者仍出候选（两侧无法核对，属真不自洽）。
-    本检查不读写磁盘（核对面取自规格文本本身，`root` 只作签名一致）。"""
-    head = next((l for l in text.split('\n') if FREEDOM_HEAD.search(l)), '')
-    rows, _skipped = _change_rows(text)
-    c_a = c_b = c_mixed = c_c = 0
-    for row in rows:
-        cell = row['freedom'] or ''
-        has_a, has_b, has_c = '[A]' in cell, '[B]' in cell, '[C]' in cell
-        if has_a and has_b:
-            c_mixed += 1
-        elif has_a:
-            c_a += 1
-        elif has_b:
-            c_b += 1
-        elif has_c:
-            c_c += 1
-    cands = []
-    if not head:
-        return cands, []
-    declared = {k: int(v) for k, v in FREEDOM_COUNT.findall(head)}
-    m_mixed = FREEDOM_MIXED.search(head)
-    m_total = FREEDOM_TOTAL.search(head)
-    d_mixed = int(m_mixed.group(1)) if m_mixed else None
-    d_total = int(m_total.group(1)) if m_total else None
-
-    def fmt(a, b, k, c, t):
-        return f'[A]×{a} [B]×{b} 混合×{k} [C]×{c} 共 {t} 行'
-
-    def show(v):
-        return v if v is not None else '未写'
-
-    head_s = fmt(declared.get('A', '未写'), declared.get('B', '未写'), show(d_mixed),
-                 declared.get('C', '未写'), show(d_total))
-    list_s = fmt(c_a, c_b, c_mixed, c_c, len(rows))
-    diffs = []
-    for name, d, c in (('[A]', declared.get('A'), c_a), ('[B]', declared.get('B'), c_b),
-                       ('混合', d_mixed if d_mixed is not None else 0, c_mixed),
-                       ('[C]', declared.get('C'), c_c),
-                       ('共 N 行', d_total, len(rows))):
-        if d is not None and d != c:
-            diffs.append(f'{name} 头注 {d} ≠ 清单 {c}')
-    if diffs:
-        cands.append(f'· 检查 G 头注「可自定程度分布」与改动清单不符: 头注 {head_s}；清单 {list_s}'
-                     f'（' + '；'.join(diffs) + '）')
-    summary = (f'· 检查 G 汇总: 头注 {head_s}｜清单 {list_s}｜'
-               f'不符 {len(diffs)} 项')
-    return cands, [summary]
-
-
 def static_report(specs, root):
     """静态检查阶段编排：打印 == 静态自检 == 与逐项结果。
-    **返回值恒为 False**：静态发现（A／B／C／D／E／F／G／H／I／J 十类）一律只呈报、不置退出码（差异⑤：源件对
+    **返回值恒为 False**：静态发现（A／B／C／D／E／H／I／J 八类）一律只呈报、不置退出码（源件对
     「计数不符」置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
-    末尾三种结果判定标准**须计入 A／B／C／D／E／F／G／H／I／J 十类全部输出**（含 B 的计数行、C 的候选行与 E／F／G 的
-    候选行、F8 的格数不符行、**J 的审查记录核对**候选行；**E／F／G／H／I／J 的汇总行不计入**——其角色同明示行）：「· 无发现」只在十类
+    末尾三种结果判定标准**须计入 A／B／C／D／E／H／I／J 八类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行、
+    F8 的格数不符行、**J 的审查记录核对**候选行；**E／H／I／J 的汇总行不计入**——其角色同明示行）：「· 无发现」只在八类
     全空时打印——漏计 B 即假绿（产物审查 P0-2：B 单源时「计数不符」与「无发现」同屏）。
     空跑明示：A 在「提取 N＞0 而命中 0」时打印明示行（并抑制「· 无发现」，两者不同屏）；B 在无可判定
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    extra = []      # 检查 C／D／E／F／G／H／I／J 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
+    extra = []      # 检查 C／D／E／H／I／J 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1816,7 +1398,7 @@ def static_report(specs, root):
             continue
         if len(specs) > 1:
             print(f'-- {spec}')
-        with open(spec, encoding='utf-8') as f:
+        with open(spec, encoding='utf-8', errors='replace') as f:
             text = f.read()
         _cell_mismatch_reset()    # 格数校验暂存（093 批 F8）：逐件起始处清空，不沿用上一件残留
         a_lines, extracted, hits = check_swallow(text, root)
@@ -1826,13 +1408,7 @@ def static_report(specs, root):
         # 检查 E（077 批 F1）：两列表分岔——候选行并入 `extra`（⇒ 计入末尾三种结果 `发现的问题`），
         # 汇总行只进下方的逐件打印串（**不计入**——漏计则三种结果少计，多计则计数行多于屏上明细）。
         e_lines, e_summary = check_reconcile(text, root)
-        # 检查 F（089 批 F8）：计算方式同 E（候选并入 `extra`、汇总只打印）；禁词表为空时**两表皆空**，
-        # 该件在屏上完全静默（不打汇总、不打空跑明示）——这是「不误报」判定标准的写入位置。
-        f_lines, f_summary = check_ban_words(text, root)
-        # 检查 G（093 批 F22）：计算方式同 E／F（候选并入 `extra`、汇总只打印）；头注无「可自定程度分布」行时
-        # **两表皆空**，该件在屏上完全静默（不误报的判定标准落在字面上）。
-        g_lines, g_summary = check_freedom(text, root)
-        # 检查 H（2026-09-16 加）：计算方式同 E／F／G（候选并入 `extra`、汇总只打印）；无 §七 逐条确认节、
+        # 检查 H：计算方式同 E（候选并入 `extra`、汇总只打印）；无 §七 逐条确认节、
         # 或节内数不出状态列时**两表皆空**，该件对该项完全静默（不误报的判定标准落在字面上）。
         h_lines, h_summary = check_nuclear(text, root)
         # 检查 I（2026-09-16 加）：计算方式同 H（候选并入 `extra`、汇总只打印）；无 §一 现状位置节时
@@ -1842,15 +1418,14 @@ def static_report(specs, root):
         # 两表皆空，该件对该项完全静默（不误报的判定标准落在字面上）。
         j_lines, j_summary = check_archive_record(text, root)
         swallow += a_lines
-        extra += c_lines + d_lines + e_lines + f_lines + g_lines + h_lines + i_lines + j_lines
+        extra += c_lines + d_lines + e_lines + h_lines + i_lines + j_lines
         counts += count_lines
         a_extract += extracted
         a_hit += hits
         b_judged += judged
         b_cand += cand
         for line in (a_lines + c_lines + d_lines + count_lines + e_lines + e_summary
-                      + f_lines + f_summary + g_lines + g_summary + h_lines + h_summary
-                      + i_lines + i_summary + j_lines + j_summary):
+                      + h_lines + h_summary + i_lines + i_summary + j_lines + j_summary):
             print(line)
         # 格数校验（093 批 F8）：`_change_rows()` 判出的「格数与表头不符」行——**件名与行号在此补**
         # （该函数只入参 text、无件名上下文，且 5 处调用点的签名与既有行为不得变更）；行号按行原文在
@@ -1922,31 +1497,6 @@ def _stdout_utf8():
         pass
 
 
-def _git_changes(root):
-    """`git status --porcelain` 的实际改动集（只读子命令）；返回 [(状态码, 正斜杠相对路径)]，
-    重命名形态「旧 -> 新」取新路径。以 `-c core.quotepath=false` 调用：默认 quotepath 会把含
-    非 ASCII 的路径按 C 风格转义并加引号（本仓规格文件名含中文），不关掉则路径无法归一比对。
-    子进程 env 同 `report()` 收严（见 `_child_env()`，F1 ④——`git status` 默认会刷新 `.git/` 下 index）。"""
-    r = subprocess.run('git -c core.quotepath=false status --porcelain', shell=True,
-                       capture_output=True, encoding='utf-8', errors='replace',
-                       env=_child_env(),
-                       cwd=root)
-    changes = []
-    for line in (r.stdout or '').splitlines():
-        if len(line) < 4:
-            continue
-        path = line[3:]
-        if ' -> ' in path:
-            path = path.split(' -> ')[-1]
-        changes.append((line[:2].strip(), path.strip().strip('"').replace('\\', '/')))
-    return changes
-
-
-def _archive_equiv(p):
-    """归档移动等价（--verify 豁免①）：docs/specs/*.md ↔ docs/specs/archive/*.md 视为同一文件。"""
-    return p.replace('docs/specs/archive/', 'docs/specs/')
-
-
 def verify_report(spec, root):
     """核验比对模式（--verify）：两项比对，返回 True 表示有阻断项。只读规格、磁盘与 git status
     （只读子命令），不执行规格内任何命令、不写任何文件。
@@ -1957,7 +1507,7 @@ def verify_report(spec, root):
     path = os.path.abspath(spec)
     name = os.path.basename(path)
     rel = os.path.relpath(path, root).replace('\\', '/')
-    with open(path, encoding='utf-8') as f:
+    with open(path, encoding='utf-8', errors='replace') as f:
         text = f.read()
     m = re.match(r'(\d{3})', name)
     spec_no = m.group(1) if m else name
@@ -1981,7 +1531,7 @@ def verify_report(spec, root):
     cl_path = os.path.join(root, 'CHANGELOG.md')
     hits = []
     if os.path.isfile(cl_path):
-        with open(cl_path, encoding='utf-8') as f:
+        with open(cl_path, encoding='utf-8', errors='replace') as f:
             # 条目行判定标准与内容轨的限长守卫统一：列表符起首
             hits = [l for l in f.read().splitlines()
                     if re.match(r'^\s*[-*+]\s', l) and spec_no in l]
@@ -2078,9 +1628,6 @@ if __name__ == '__main__':
                 print(f'-- {spec}')
             blocking = verify_report(spec, root) or blocking
         sys.exit(1 if blocking else 0)
-    if not static_only:
-        for spec in specs:
-            report(spec)
     root = repo_root()
     if root is None:
         print('x 无法定位仓库根（静态检查路径解析基准不可用）', file=sys.stderr)
