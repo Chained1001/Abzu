@@ -55,13 +55,14 @@
 - 一键检查（提交前必跑）：`bash scripts/check.sh`
 - 提交前自动检查启用（一次性）：`git config core.hooksPath scripts/hooks`（改 `.git/config`，须你确认——红线 1）
 - Markdown 体检：`npx markdownlint-cli2 "**/*.md"`
-- Windows（Git Bash）速查——跑命令前先过这六行，**细节与完整清单见[运行环境标准](docs/standards/运行环境标准.md) §2**：
+- Windows（Git Bash）速查——跑命令前先过这七行，**细节与完整清单见[运行环境标准](docs/standards/运行环境标准.md) §2**：
   1. **中文＝字节陷阱**：`wc -c` 算字节（中文 UTF-8＝3 字节/字）；要字符数用 `python -c "print(len(open('f',encoding='utf-8').read()))"`。
   2. **`grep -c` 算行不算次**：要出现次数用 `grep -o 'X' f | wc -l`；两值不等。
   3. **管道吞退出码**：`cmd | tail` 后 `$?` 是 `tail` 的——必须接管道时取 `PIPESTATUS[0]`。
   4. **进程替换 `<(...)` 不可靠**：Git Bash 下 fd 路径可能被拼坏——用临时文件或 `tee` 替代。
   5. **Python 调用**：本机用 `python`（不是 `python3`）；中文输出前 `export PYTHONIOENCODING=utf-8`；路径一律正斜杠。
   6. **内联脚本包 heredoc**：`python -c "…"` 里的 `>` 会被 shell 当重定向、建出垃圾文件——多用 `<<'EOF'` 写法。
+  7. **多层转义**：写文件／生成补丁脚本不经 bash heredoc 内嵌反斜杠转义——JSON→shell→Python 两层会把 `\n`／`\u0000` 塌成真实换行／NUL 字节（两起实测）；改用专用写文件工具或 `chr()` 构造，写入前语法预检。
 
 ## 四、不做清单（以本节为准）
 

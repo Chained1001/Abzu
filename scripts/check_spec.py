@@ -50,6 +50,7 @@
   ⑫ 检查 I 的 §二 腿**只判越界与空行**，不核「行号所指处是否真是那句现状」（§二 现状侧多为描述性散文，逐字核成片误报）。
   ⑬ **检查 I 的射程与静默面**（产物审查 P2-④／P2-⑥）：新增新腿并放宽 `ANCHOR_FILEONLY` 后，**存量旧形态规格的检查 I 结果变了**（115 由 6 引用／0 异常 → 19／13、114 由 6／0 → 12／1、113 由 4／1 → 64／6）——多是 `.py`／`.sh` 件此前建不起上下文、现在能核。静默面三类：引文 <6 字零核；`###` 级标题下的「现状位置」不命中 `ANCHOR_SECTION`（判据是 `^## `）；路径不实存只计引用不报。**`ANCHOR_FILELINE` 与 `ANCHOR_FILEONLY` 的扩展名白名单同批放宽**（原都写死 `.md`，`.py`／`.sh` 件的旧形态位置此前一律不核）——放宽后 114 那类「单行打包三处位置」的行才建得起上下文（此前被我的新明示支误报）。
   ⑭ 检查 L 只扫 §一／§二；**存量规格候选量大**——判据是「新写的不许有」，不是要清存量。**两种口径**：§一 表记的是**出现次数**（113 实测 62），检查 L 报的是**去重后的 token 数**（113→16／115→11／111→5／112→16）——同一 `文件:行号` 在一节里出现多次只报一次。**漏报形态已知四类**：行号前置（`259：路径`）、路径含空格或 `~`、扩展名不在白名单者、**同行已给件名而行号裸写 `:N`**（后者的兜底是检查 I 的 `ANCHOR_BARELINE` 支）。
+  ⑮ 检查 A 的**归档件手动扫描面**：hit 门放宽（117）后手动跑 `--static` 于归档规格会出 A 类预警——118 达成态静默后实测：全仓门禁两可态实体 17→0、`archive/115` 实体 7→1（余 1 为多值不采信形态——「M|M 的留痕表」）；门禁（check.sh [4]）只扫在制规格、不扫归档件，手动扫描属人工裁量面。
 """
 import os
 import re
@@ -477,7 +478,12 @@ def check_swallow(text, root):
     均须计入 static_report() 的末尾三种结果判定标准（发现的问题）。
     n == 0 的两种情形均不锁定单义（(cur, n) 二元分辨不出「哨兵型保留／[A]／[B] 项目标文本漏写」与
     「归零型已达成」）：cur > 0 者计入一行中性汇总；cur == 0 者打中性行。预测行（cur + n 加法预测）
-    只在 cur > 0 且 n > 0 时输出：cur == 0 时不存在既有命中可被替换吞掉，加法预测无对象。"""
+    只在 cur > 0 且 n > 0 时输出：cur == 0 时不存在既有命中可被替换吞掉，加法预测无对象。
+    **达成态静默（118）**：探测与 F2 共用 `_expect_probe()`（窗口定位首个期望子句＋五步取数）——
+    ① 期望 0 且现值 0（零目标已达成）→ 不打「未提及」行；② 期望 ≥1 且现值 ≥1（存在目标已达成）→
+    不打「自我匹配预警」；③ 期望 ≥1 且现值 0 且字面且目标件实存 → 不打「未提及」行（F2 待复核更锐，
+    exists 门：目标件不存在时该行是路径写错的唯一信号）；④ 分配型／多值／无期望＝不采信，行为与
+    118 前逐字节同。中性计数不动（哨兵/归零同形是 109 明载取舍）。"""
     # 117：hit 门由「[A]／[B] 行」放宽为**全部改动行**——现行规格改动清单无 [A]／[B] 标记（旧批
     # 格式），门不过 ⇒ 提取 N 命中恒 0、断言自检空转（115/116/117 实测）；门的本意＝「目标件须是
     # 本规格改的件」，全部改动行同涵此意，[A]／[B] 行是其子集。
@@ -508,6 +514,28 @@ def check_swallow(text, root):
     # 真正特殊**的字符：`. * [ \ ^ $` 与反斜杠形态 `\(`／`\)`／`\{`／`\}`／`\|`／`\+`／`\?`——裸 `( ) + ? { }`
     # 与**裸竖线 `|`** 在 BRE 里是字面（`|` 尤须收窄：`^| G42 |` 剥锚后归字面计数分支，不得出「计算方式不可判」）。
     bre_meta = re.compile(r'[.*\[\\^$]|\\[(){}|+?]')
+    def _expect_probe(line_no):
+        """窗口内定位首个「期望」子句并按五步取数（118 提取——F2 与**达成态静默**共用同一解析，消双解析
+        漂移；`i`＝当前断言在 refs 中的 0 基序号，闭包取值，调用发生在同一迭代内）。返回 (exp, undecided)：
+        exp＝采信的期望值或 None；undecided＝⑤ 类多值 nums 或 None。五步语义与 109 立法原文逐条同。"""
+        for w in sec_lines[line_no - 1:line_no + 4]:
+            mm = expect_re.search(w)
+            if not mm:
+                continue
+            tail = w[mm.start():]
+            cuts = [j for j in (tail.find(s) for s in expect_stops) if j != -1]
+            if cuts:
+                tail = tail[:min(cuts)]
+            nums = [int(x) for x in re.findall(r'\d+', tail)]
+            if len(nums) == len(refs):
+                return nums[i], None            # ② K＝M：按序配对（每数字各对一条命令）
+            if distrib_re.search(w) or '各命令' in w or '分别' in w:
+                return None, None               # ③ 分配型句不判
+            if len(set(nums)) == 1:
+                return nums[0], None            # ④ K≠M 且全同：取该值
+            return None, nums                   # ⑤ K≠M 且不全同：未判
+        return None, None
+
     lines = []
     neutral = 0
     hits = 0
@@ -543,18 +571,30 @@ def check_swallow(text, root):
             continue
         hits += 1
         n = sum(_row_target_text(r).count(token) for r in hit)
+        # 达成态静默（118）：探测与 F2 同源（_expect_probe）——① 期望 0 且现值 0＝零目标已达成；② 期望 ≥1
+        # 且现值 ≥1＝存在目标已达成；③ 期望 ≥1 且现值 0 且字面且目标件实存＝F2 待复核将报（免双报；exists
+        # 门——目标件不存在时「未提及」行是路径写错的唯一信号，不得压）。分配型／多值／无期望＝不采信，
+        # 行为与修前逐字节同。中性计数不动（哨兵/归零同形是 109 明载的设计取舍）。
+        _exp, _und = _expect_probe(line_no)
         if not countable:
             lines.append(f'· 计算方式不可判（token 含正则元字符，现行计数未测）: {token} @ {target}')
         elif n == 0:
             if cur > 0:
                 # 哨兵型 token（到位＝现状，目标文本本不必提及）与归零型已达成同形：计入中性汇总，不单义锁定
                 neutral += 1
+            elif _exp == 0:
+                pass                            # ① 零目标已达成——静默
+            elif _exp is not None and _exp >= 1 and exists and literal_token.match(norm):
+                pass                            # ③ F2 待复核将报——免双报
             else:
                 lines.append(f'· 目标文本未提及且现行为 0: {token} @ {target}'
                              f'（可能是改动行目标文本漏写，也可能是归零型已达成）')
         elif cur > 0:
-            lines.append(f'· 自我匹配预警: {token} @ {target} —— 现行 {cur}｜目标文本内 {n}'
-                         f'｜近似预测 {cur + n}（未计删除，须人工核对到位期望）')
+            if _exp is not None and _exp >= 1:
+                pass                            # ② 存在目标已达成——静默
+            else:
+                lines.append(f'· 自我匹配预警: {token} @ {target} —— 现行 {cur}｜目标文本内 {n}'
+                             f'｜近似预测 {cur + n}（未计删除，须人工核对到位期望）')
         # 零命中待复核（F2）：窗口＝命令所在行起（含本行）其后 4 行；只在 hit 门通过、目标件实存、
         # 且**归一后**的 token 属字面集（无正则元字符——否则 cur 恒 0 必误报）时判
         if exists and cur == 0 and literal_token.match(norm):
@@ -562,26 +602,7 @@ def check_swallow(text, root):
             # 按 docstring 的五步先后取数（顺序即计算方式）：① 取有序数字列表 nums；② K＝M 按命令序号（0 基）
             # 配对取值——每数字各对一条命令，不要求全同、不看分配型；③ K≠M 且分配型句 → 不判；
             # ④ K≠M 且数字全同 → 取该值；⑤ 其余 → 产「未判」候选行（不再静默）
-            exp = None
-            undecided = None
-            for w in sec_lines[line_no - 1:line_no + 4]:
-                mm = expect_re.search(w)
-                if not mm:
-                    continue
-                tail = w[mm.start():]
-                cuts = [j for j in (tail.find(s) for s in expect_stops) if j != -1]
-                if cuts:
-                    tail = tail[:min(cuts)]
-                nums = [int(x) for x in re.findall(r'\d+', tail)]
-                if len(nums) == len(refs):
-                    exp = nums[i]       # ② K＝M：按序配对（i 与 refs 序号对齐，从 0 起）
-                elif (distrib_re.search(w) or '各命令' in w or '分别' in w):
-                    pass                # ③ 分配型句不判——先于「全同取值」，既有误报不得复活
-                elif len(set(nums)) == 1:
-                    exp = nums[0]       # ④ K≠M 且全同：取该值
-                else:
-                    undecided = nums    # ⑤ K≠M 且不全同：产未判候选行（不再静默）
-                break
+            exp, undecided = _expect_probe(line_no)   # 118：五步取数提为共用小函数（与静默探测同源）
             if undecided is not None:
                 lines.append(f'· 零命中核对未判（期望子句多值 {undecided}，'
                              f'与命令无法对齐）: {token} @ {target}')
@@ -1778,7 +1799,7 @@ def static_report(specs, root):
         _cls = [('自我匹配预警', warn), ('零命中待复核', zero), ('零命中核对未判', undecided),
                 ('计算方式不可判', uncountable), ('中性/哨兵', sentinel)]
         # T5-3（2026-09-17）：分类计数**追加在既有汇总行末**（不新增行、不截断明细，零风险降噪）
-        _tail = '｜分类：' + '｜'.join(f'{k} {len(v)}' for k, v in _cls if v) if 发现的问题 else ''
+        _tail = ('｜分类：' + '｜'.join(f'{k} {len(v)}' for k, v in _cls if v)) if (发现的问题 and any(v for _, v in _cls)) else ''   # 118：A 全静默时分类可全空——空尾不再打印
         print(f'· 有预警 {len(发现的问题)} 条'
               f'（非阻断，请人工核对预测与到位期望）{_tail}')
     elif a_extract and not a_hit:
