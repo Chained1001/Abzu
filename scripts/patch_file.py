@@ -2,15 +2,15 @@
 
 事故出身与历次裁定：见 `CHANGELOG.md` 对应条目与 `docs/specs/archive/` 各批规格（091 批：089–090
 三次同型中止——089 内该汇总串命中 2 行、090 两次「凭记忆写的匹配键」count=0；中止信息只有计数，
-须再猜一轮才能取到真值）。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判据的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
+须再猜一轮才能取到真值）。行内出现的批次号分三种——**状态型**（书写时一律状态无关）／**判定标准的事故出处**（provenance，保留原文）／**运行时措辞／示例串**（**不得按批次叙事改写**）。
 
-用途：对仓内文本做**锚点由磁盘校验**的定点修订——三种定点用法（行内片段替换／锚行后追加／锚行前插）
+用途：对仓内文本做**匹配文本由磁盘校验**的定点修订——三种定点用法（行内片段替换／锚行后追加／锚行前插）
 ＋ 一种批量用法（JSON）。**四段式**为硬要求：① 全量校验（锚片段须唯一命中；命中 0 或 >1 一律中止，
-打印**实际命中行及其行号**，命中 0 时另打印**最接近的一行**供取真值）② **形态闸**（`.md` 目标件：
-对**待写入全文**的临时副本跑 `markdownlint-cli2`，不过即中止——闸在写盘**之前**）③ 统一写盘（全过才写；
+打印**实际命中行及其行号**，命中 0 时另打印**最接近的一行**供取真值）② **形态检查**（`.md` 目标件：
+对**待写入全文**的临时副本跑 `markdownlint-cli2`，不过即中止——检查关在写盘**之前**）③ 统一写盘（全过才写；
 不过＝**零写盘**）④ 回读核验（新文本在位，且 `--set` 时锚串不再在该行出现；批内同槽位被后条重写时，
-前条记录改判该槽位的**终态**——其自身产出被后条消费，不可能仍在位）。反模式 #12／#18／#20 的
-机制化落点；②段的事故出身见 `_shape_gate()` docstring。
+前条记录改判该槽位的**终态**——其自身产出被后条消费，不可能仍在位）。事故记录 #12／#18／#20 的
+机制化写入位置；②段的事故出身见 `_shape_gate()` docstring。
 
 用法与参数：`python scripts/patch_file.py [--at 锚片段] (--set|--append|--insert-before) 新文本 目标件`
   · `--at <锚片段>`：**行内片段**（非整行）——含该片段的行即锚行；该片段在目标件内**须唯一命中**。
@@ -18,11 +18,11 @@
   · `--append <新文本>`：在**锚行之后**插入（新文本可含换行，按 `\\n` 切分后逐行插入）。
   · `--insert-before <新文本>`：在**锚行之前**前插（同上）。
   · `--batch <edits.json>`：批量，JSON 形如 `[{"path":…,"at":…,"set"|"append"|"insert-before":…}, …]`；
-    **同件多编辑按逐条应用后的文本判唯一性**（前条的结果是后条的锚点面），全部通过才写盘；**同件多编辑须以同一路径写法给出**——不同写法指向同一物理件（大小写 alias／8.3 短名／符号链接）即**参数错**（退出 2、零写盘）。
+    **同件多编辑按逐条应用后的文本判唯一性**（前条的结果是后条的匹配面），全部通过才写盘；**同件多编辑须以同一路径写法给出**——不同写法指向同一物理件（大小写 alias／8.3 短名／符号链接）即**参数错**（退出 2、零写盘）。
   · **目标文件以位置参数传入（末位）**；批量模式下不给位置参数（路径写在 JSON 内）。
   · 新文本**尾随一个 `\\n` 不表意**（书写习惯，去掉一次）：`--insert-before "行\\n\\n"`＝插「行 ＋ 一张空行」。
   · `--at` 为空串＝**参数错（退出 2）**。
-  · `--no-lint`：跳过形态闸（`.md` 目标件的写盘前 lint）——默认不跳。
+  · `--no-lint`：跳过形态检查（`.md` 目标件的写盘前 lint）——默认不跳。
   · **坑一：`--set` 只换锚片段**——锚片段未含到行尾时，行尾残文会留在原处（表现为表行多出单元格、句子被截半）。**新文本必须包含从锚片段到行尾的全部内容。**
   · **坑二：`--insert-before` 与锚行黏连**——锚行有残余行尾时新文本末行会与它连成一行；插行前先确认锚行无残尾。
   · **坑三：回读明细只打印前 120 字符**——真分歧点可能落在截断之外；核验须**再读一次目标件原文**，不得只看回读输出。
@@ -31,12 +31,12 @@
 输出：逐处「`文件:行` 改前 → 改后」＋ 汇总（`N 处／M 件`）；错误行 `x` 起首、明细行两空格缩进。
 退出码：0 全成功／2 参数错或校验失败（四段式任一段不过即中止，**不半写**）。
 依赖与前置：Python 3 标准库（argparse／json／os／re／shutil／subprocess／sys），**零外部依赖**；不联网、
-  不跑 LLM。**形态闸以 `npx` 为环境前提**（本仓 `运行环境标准` §一 已列；不可用则明示跳过、不置败）。
-  **只读写命令行点名的目标件**：写盘经**同目录临时件 ＋ 整体替换**（异常路径删除临时件）；形态闸另落
+  不跑 LLM。**形态检查以 `npx` 为环境前提**（本仓 `运行环境标准` §一 已列；不可用则明示跳过、不置败）。
+  **只读写命令行点名的目标件**：写盘经**同目录临时件 ＋ 整体替换**（异常路径删除临时件）；形态检查另落
   一个同目录 `.shapecheck.md` 临时副本（成功与失败路径均删）；不读规格、不跑 git、不写其它文件。
-维护入口：新增用法扩 `_apply()` 与 `build_parser()`；命中判据与「最接近的一行」改 `_hits()`／`_nearest()`；
-  写盘与回读改 `_write()`／`_readback()`；**形态闸改 `_shape_gate()`**（其 `subprocess.run` **须显式 `encoding='utf-8', errors='replace'`**——缺此项则闸自崩、恒判未过，2026-09-16 实测）；行尾与切行改 `_split_lines()`／
-  `_eol()`／`_split_text()`；批量解析改 `_load_batch()`；`--batch` 同件 alias 判据改 `_ident()`。
+维护入口：新增用法扩 `_apply()` 与 `build_parser()`；命中判定标准与「最接近的一行」改 `_hits()`／`_nearest()`；
+  写盘与回读改 `_write()`／`_readback()`；**形态检查改 `_shape_gate()`**（其 `subprocess.run` **须显式 `encoding='utf-8', errors='replace'`**——缺此项则检查关自崩、恒判未过，2026-09-16 实测）；行尾与切行改 `_split_lines()`／
+  `_eol()`／`_split_text()`；批量解析改 `_load_batch()`；`--batch` 同件 alias 判定标准改 `_ident()`。
 """
 import argparse
 import json
@@ -66,7 +66,7 @@ def _stdout_utf8():
 
 def _split_lines(raw):
     """整件文本 → [(行内容, 行尾串), …]（行尾串含末行的空串）。**逐行各存自己的行尾**：
-    文件混用行尾时不改写既有行——「保持目标件原有行尾」的落点（不按行尾切分整件即无从保证）。"""
+    文件混用行尾时不改写既有行——「保持目标件原有行尾」的写入位置（不按行尾切分整件即无从保证）。"""
     parts = re.split(r'(\r\n|\n|\r)', raw)
     lines = []
     i = 0
@@ -87,7 +87,7 @@ def _eol(lines):
 
 
 def _norm_text(text):
-    """新文本的换行归一（`\\r\\n`／`\\r` → `\\n`）；写盘时再按目标件行尾落盘。"""
+    """新文本的换行归一（`\\r\\n`／`\\r` → `\\n`）；写盘时再按目标件行尾写入。"""
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
 
@@ -109,7 +109,7 @@ def _disp(s, limit=60):
 
 def _hits(lines, at):
     """锚片段的行内命中：返回 ([(行号 1 起, 行内容), …], 片段出现次数总和)。
-    计数口径＝**片段出现次数**（同一行内出现两处即 2 处、被 >1 分支拒）——行级与片段级同判：
+    计数计算方式＝**片段出现次数**（同一行内出现两处即 2 处、被 >1 分支拒）——行级与片段级同判：
     故 `--set` 的替换面对**恒为单处**（`str.replace` 与单处替换等价），无「同行多处」形态。"""
     hits, n = [], 0
     for i, (content, _term) in enumerate(lines, 1):
@@ -122,7 +122,7 @@ def _hits(lines, at):
 
 def _sim(a, b):
     """廉价相似度（零依赖、O(len)）：最长公共前缀 ＋ 最长公共后缀 ＋ 字符多重集交集长度。
-    不用 `difflib`（不在标准库白名单内的既用集合）；不对全件做编辑距离（大件上过重）。"""
+    不用 `difflib`（不在标准库允许清单内的既用集合）；不对全件做编辑距离（大件上过重）。"""
     n = min(len(a), len(b))
     pre = 0
     while pre < n and a[pre] == b[pre]:
@@ -143,7 +143,7 @@ def _sim(a, b):
 
 def _nearest(lines, at):
     """命中 0 时供取真值：取相似度最高的一行（并列取行号在前者）；空件返回 None。
-    返回 (行号, 行内容)——行内容**原样**打印（判据须据全量取证，不截断）。"""
+    返回 (行号, 行内容)——行内容**原样**打印（判定标准须据全量取证，不截断）。"""
     best = None
     for i, (content, _term) in enumerate(lines, 1):
         score = _sim(at, content)
@@ -240,7 +240,7 @@ def _apply(doc, path, at, mode, text):
 
 def _write(doc, path):
     """四段式第三段：统一写盘（全量校验已过）——同目录临时件 ＋ 整体替换；异常路径删临时件。
-    返回写入的整件文本（回读段据此比对）。"""
+    返同步更新入的整件文本（回读段据此比对）。"""
     text = ''.join(content + term for content, term in doc['lines'])
     tmp = os.path.join(os.path.dirname(os.path.abspath(path)),
                        '.' + os.path.basename(path) + '.patch-tmp')
@@ -281,7 +281,7 @@ def _readback(doc, path, text):
 
 
 def _shape_gate(path, text, no_lint):
-    """四段式第四段之**前置闸**（在 `_write()` 之前跑，故「不过＝零写盘」这条铁律不被破坏）。
+    """四段式第四段之**前置检查关**（在 `_write()` 之前跑，故「不过＝零写盘」这条铁律不被破坏）。
 
     目标件为 `.md` 时：把**待写入全文**落同目录临时 `.md` 副本 → 对其跑 `markdownlint-cli2` →
     不过即 `Fail`（本次全部编辑未写盘）；临时副本成功与失败路径**均删**。非 `.md` 目标件直接返回 None。
@@ -289,14 +289,14 @@ def _shape_gate(path, text, no_lint):
     逃逸与降级：`--no-lint` 显式跳过；`npx` 不可用＝**明示跳过并回一行提示**（环境前提缺失不静默、
     亦不置败——本仓以 npx 为环境前提，非本工具可比判者）。
 
-    事故出身（本闸的由来）：2026-09-16 规划方对 `.md` 的落盘**三次同型**踩「代码跨度边缘空格」（MD038），
-    每次都因「写完隔若干步才跑门禁」而检测过晚；本闸把「写完即跑」由**纪律**改为**走律自带**——
-    凡经本工具落盘的 `.md`，形态违例在写盘前即被拦。"""
+    事故出身（本检查关的由来）：2026-09-16 规划方对 `.md` 的写入文件**三次同型**踩「代码跨度边缘空格」（MD038），
+    每次都因「写完隔若干步才跑提交前自动检查」而检测过晚；本检查关把「写完即跑」由**纪律**改为**走律自带**——
+    凡经本工具写入文件的 `.md`，形态违例在写盘前即被拦。"""
     if no_lint or not path.lower().endswith('.md'):
         return None
     npx = shutil.which('npx')       # Windows 上为 npx.cmd——须用解析后的全路径（CreateProcess 不查 PATHEXT）
     if npx is None:
-        return 'npx 不可用——形态闸跳过（.md 目标件未跑 lint）'
+        return 'npx 不可用——形态检查跳过（.md 目标件未跑 lint）'
     tmp = os.path.join(os.path.dirname(os.path.abspath(path)),
                        os.path.basename(path) + '.shapecheck.md')
     try:
@@ -304,25 +304,25 @@ def _shape_gate(path, text, no_lint):
             f.write(text)
         try:
             # 显式 encoding：Windows 默认 GBK 解码 markdownlint 的 UTF-8 输出会在 _readerthread 抛
-            # UnicodeDecodeError（本仓 2026-09-16 实测：闸自崩于取 returncode 之前，遂**恒判未过**、
-            # 对任何待写入文本都拦）；口径同 check_spec.py 的 `_read_target()`／`report()`。
+            # UnicodeDecodeError（本仓 2026-09-16 实测：检查关自崩于取 returncode 之前，遂**恒判未过**、
+            # 对任何待写入文本都拦）；计算方式同 check_spec.py 的 `_read_target()`／`report()`。
             r = subprocess.run([npx, 'markdownlint-cli2', tmp], capture_output=True,
                                encoding='utf-8', errors='replace')
-        except Exception as e:                  # 闸自身异常不得裸崩（收口为 Fail、零写盘）
-            raise Fail([f'形态闸未能执行（{path}）：{e}——**本次全部编辑未写盘**',
-                        '  （确需跳过形态闸：加 --no-lint）'])
+        except Exception as e:                  # 检查关自身异常不得裸崩（收尾为 Fail、零写盘）
+            raise Fail([f'形态检查未能执行（{path}）：{e}——**本次全部编辑未写盘**',
+                        '  （确需跳过形态检查：加 --no-lint）'])
         if r.returncode != 0:
             blob = (r.stdout or '') + (r.stderr or '')      # 明细走 stderr、汇总走 stdout
             detail = [ln for ln in blob.splitlines()
                       if ' error ' in ln or ' warning ' in ln][:8]
-            raise Fail([f'形态闸未过（{path}）：markdownlint 报错——**本次全部编辑未写盘**']
+            raise Fail([f'形态检查未过（{path}）：markdownlint 报错——**本次全部编辑未写盘**']
                        + ['  ' + d for d in detail]
-                       + ['  （确需跳过形态闸：加 --no-lint）'])
+                       + ['  （确需跳过形态检查：加 --no-lint）'])
         # 自查「到底检了几个文件」——`markdownlint-cli2` 的 ignore 规则会**静默**把目标排除
         # （如 `.tmp/**`）：此时输出 `Linting: 0 files`、退出码 0，**看着像通过而实际零检测**。
-        # 据实回一行提示（不静默、亦不置败——被判据排除者本工具无从检查）。
+        # 据实回一行提示（不静默、亦不置败——被判定标准排除者本工具无从检查）。
         if re.search(r'Linting:\s*0 files', r.stdout or ''):
-            return (f'形态闸未生效：{path} 被 lint 的 ignore 规则排除（输出注「Linting: 0 files」）'
+            return (f'形态检查未生效：{path} 被 lint 的 ignore 规则排除（输出注「Linting: 0 files」）'
                     '——该件**未经形态检查**')
         return None
     finally:
@@ -382,7 +382,7 @@ def parse_edits(args):
 
 
 def _fail(e):
-    """失败收口：首行 `x` 起首、明细行按两空格缩进原样打印；返回退出码 2。"""
+    """失败收尾：首行 `x` 起首、明细行按两空格缩进原样打印；返回退出码 2。"""
     msgs = e.args[0]
     print(f'x {msgs[0]}', file=sys.stderr)
     for m in msgs[1:]:
@@ -391,11 +391,11 @@ def _fail(e):
 
 
 def build_parser():
-    """命令行形态（`--help` 可用；缺／多参数由 argparse 或 parse_edits() 以退出 2 收口）。"""
+    """命令行形态（`--help` 可用；缺／多参数由 argparse 或 parse_edits() 以退出 2 收尾）。"""
     p = argparse.ArgumentParser(
         prog='patch_file.py',
-        description='修订工具：锚点由磁盘校验的定点文本修订'
-                    '（四段式：全量校验 → 形态闸 → 统一写盘 → 回读核验）。',
+        description='修订工具：匹配文本由磁盘校验的定点文本修订'
+                    '（四段式：全量校验 → 形态检查 → 统一写盘 → 回读核验）。',
         epilog='用法示例：python scripts/patch_file.py --at "锚片段" --set "新文本" 目标件.md'
                '（批量：--batch edits.json）')
     p.add_argument('--at', metavar='锚片段', help='行内片段（非整行）；须在目标件内唯一命中')
@@ -404,7 +404,7 @@ def build_parser():
     p.add_argument('--insert-before', metavar='新文本', help='在锚行之前前插新行')
     p.add_argument('--batch', metavar='edits.json', help='批量编辑（JSON 数组，见模块头注）')
     p.add_argument('--no-lint', action='store_true',
-                   help='跳过形态闸（.md 目标件的写盘前 markdownlint；默认不跳）')
+                   help='跳过形态检查（.md 目标件的写盘前 markdownlint；默认不跳）')
     p.add_argument('target', nargs='?', metavar='目标文件', help='目标文件（末位位置参数）')
     return p
 
@@ -431,7 +431,7 @@ def main(argv):
                 docs[key]['path'] = target      # 显示沿用调用者给的路径
             shown.append(_apply(docs[key], target, at, mode, text))
         notes = []
-        for key in docs:                      # ④ 形态闸（写盘前）：不过＝零写盘
+        for key in docs:                      # ④ 形态检查（写盘前）：不过＝零写盘
             note = _shape_gate(docs[key]['path'],
                                ''.join(c + t for c, t in docs[key]['lines']),
                                args.no_lint)
@@ -446,7 +446,7 @@ def main(argv):
         print(line)
     for note in notes:
         print(f'  {note}')
-    print(f'· 汇总：{len(edits)} 处／{len(docs)} 件——全部通过（四段式：校验 → 形态闸 → 写盘 → 回读核验）')
+    print(f'· 汇总：{len(edits)} 处／{len(docs)} 件——全部通过（四段式：校验 → 形态检查 → 写盘 → 回读核验）')
     return 0
 
 
