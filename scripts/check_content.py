@@ -29,6 +29,11 @@
 维护入口：新增检查在 `_checks()` 挂新 `_check_*`（返回 `(候选行, 判为失败行)`）；三体例改 `_cand()`／
   `_red()`／`_info()`；件清单改 `_repo_files()`；行数计算方式改 `_lines()`；每批必读件字数预算改 `_check_budget()`／`HOT_BUDGET`；⑦ 用词改 `_check_words()`／`_ban_list()`／`WORD_SRC`；TOC 判定标准改 `_toc_state()`；
   ⑤ 的形态正则改 `GOV_MENTION`；① 链接扫描的跨度／围栏跳过判定标准改 `_span_ranges()`／`FENCE_LINE`；
+
+已知限制（债跟主题走——不再另立缺口清单）：
+  ① `skills/{skill 名}/scripts/*.py` 不在扫描面内（本工具只扫 `.md`）。
+  ② 加粗密度不实现（阈值未立法；见 `文字与命名标准` §13 第 8 条与 §三 表）。
+  ③ ⑤「维护出处」标注的判定标准含正则近似：无标注的等价写法（如裸文件名字符串）会漏报。
 """
 import argparse
 import io

@@ -7,9 +7,13 @@
 # [1] Markdown 体检（markdownlint）
 # [2] skill 格式校验（本地断言：主文件结构／frontmatter／目录形态）
 # [3] 内容轨（引用闭合／TOC／行数与条目限长／「维护出处」标注／**每批必读件字数预算**／**用词**（候选；§8 产品领域词豁免））（**加粗密度不实现**——阈值未立法）——scripts/check_content.py；分档＝可判为失败：行数与条目限长，余项候选只呈报（`施工机制` §四）
-# [4] 规格静态自检（检查 A–E、H–J 八类；各项判定标准见 scripts/check_spec.py 模块 docstring；本段恒不判为失败，静态发现只呈报）——scripts/check_spec.py --static；非阻断（候选类只呈报）
+# [4] 规格静态自检（检查 A–E、H–K 九类；各项判定标准见 scripts/check_spec.py 模块 docstring；本段恒不判为失败，静态发现只呈报）——scripts/check_spec.py --static；非阻断（候选类只呈报）
 # [5] 脚本语法（node --check 逐域 .js／ast.parse `scripts/*.py`／bash -n 各 .sh）
 # 段序区止于恰为「set -u」的行——_seg_summary 以该行为扫描终止哨兵；改此行须同步改其终止判定标准
+#
+# 已知限制（债跟主题走——不再另立缺口清单）：
+#   ① `skills/{skill 名}/scripts/*.py` 不在 [5] 段扫描面内（该落位由 `文字与命名标准` §1 表允许）。
+#   ② 收尾汇总的段计数对头注段行（`# [N] `）的形态破坏无容错——某行被误改即该段静默少计。
 set -u
 fail=0
 seg_note_rt=()              # 运行时跳过登记（段号→括注）：末尾收尾汇总按实况拼（见 _seg_summary）

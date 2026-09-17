@@ -35,6 +35,9 @@
 维护入口：新增用法扩 `_apply()` 与 `build_parser()`；命中判定标准与「最接近的一行」改 `_hits()`／`_nearest()`；
   写盘与回读改 `_write()`／`_readback()`；**形态检查改 `_shape_gate()`**（其 `subprocess.run` **须显式 `encoding='utf-8', errors='replace'`**——缺此项则检查关自崩、恒判未过，2026-09-16 实测）；行尾与切行改 `_split_lines()`／
   `_eol()`／`_split_text()`；批量解析改 `_load_batch()`；`--batch` 同件 alias 判定标准改 `_ident()`。
+
+已知限制（债跟主题走——不再另立缺口清单）：
+  ① 临时件落**目标件同目录**（`.patch-tmp`／`.shapecheck.md`），未走 `.tmp/`；正常路径会删，但**信号中断**（如 Ctrl-C）时无保底清理。
 """
 import argparse
 import json

@@ -1,8 +1,8 @@
-"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出八类规格缺陷）。
+"""规格静态自检器（开发工具，按需运行；供规划方在规格送审前机械检出九类规格缺陷）。
 
 事故出身与历次裁定：见 `CHANGELOG.md` 对应条目与 `docs/specs/archive/` 各批规格。行内不写批号——事故与沿革记 `CHANGELOG` 与 git 历史，指认归档规格用全路径。
 
-用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格与磁盘）——八类：
+用途：对照模板核对格做**静态**检查（不执行规格内任何命令，只读规格与磁盘）——九类：
 
 - **检查 A** 断言自我匹配预警：断言 token 被自家 `[A]`／`[B]` 行的目标文本吞掉；另有「零命中待复核」「零命中核对未判」「计算方式不可判」三种明示行。
 - **检查 B** 计数实跑重算：规格内「整件尺寸」声称与实测的差。
@@ -12,8 +12,9 @@
 - **检查 H** 逐条确认表汇总核对（§七 汇总行 ↔ 表体状态列）＋仍待项找不到对应核对。
 - **检查 I** 位置对源核对：§一 现状位置 ↔ 目标件实况。
 - **检查 J** 审查记录核对（§九 审查记录节 ↔ 发现的问题各档之和）＋开放项清单归到哪条规则核对＋§九 成本字段核对。
+- **检查 K** 规格模板节名 ↔ **有模板对应**的工具正则（防「模板改了工具没跟上」的静默失效；其余四个 `*_SECTION` 入白名单）。
 
-八类一律非阻断（`AGENTS.md` §五.2 候选永不拦截）。
+九类一律非阻断（`AGENTS.md` §五.2 候选永不拦截）。
 
 用法与参数：`python scripts/check_spec.py --static|--verify|--reconcile <规格路径> [更多规格路径...]`
 
@@ -26,11 +27,23 @@
 
 维护入口：新增断言载体形态扩 ASSERT_CMD 与 _assert_ok()；token 提取与后处理改 _assert_refs()；检查 A 改 check_swallow()；检查 B 改 check_counts()／_whole_size()／WHOLE_MARKS；检查 C 改 check_pairs()／_change_rows()／_target_blocks()／HDR_* 与 DIR_MARKS，其成因诊断改 _out_of_scope_texts()／_out_of_scope_hit()／_rel_key；检查 D 改 check_writing()；检查 E 改 check_reconcile()／BAN_SECTION／BAN_PREFIX／BAN_EXCUSE_MARKS／BAN_LANDING／BAN_CLAUSE_SPLIT／EXCLUDE_TOKEN；检查 H 改 check_nuclear()／NUCLEAR_*，仍待项与开放项两条改 _item_anchors()／_ledger_text()／OPEN_*／LEDGER_*；检查 I 改 check_anchor()／ANCHOR_*／_anchor_probe()／_anchor_norm()；检查 J 改 check_archive_record()／ARCHIVE_RECORD_SECTION／RECORD_*／_cost_field_cands()／COST_FIELDS；格数校验改 _cells()／_CELL_SPLIT／_change_rows()／_CELL_MISMATCH；阶段编排改 static_report()；核验比对改 verify_report()；模式分派与退出契约改 __main__。
 
-退出契约（**须带限定词**）：**静态发现恒 0**——八类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的过程产物缺失可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
+退出契约（**须带限定词**）：**静态发现恒 0**——九类无论报出多少条发现，一律只呈报、不影响退出码。区分：`--verify` 的**过程产物缺失**或**git 不可用**（改动面未核）均可置退出 1（该模式不进 `check.sh`）；**参数错误／文件不存在 → 退出 2**；零位置参数 → 明示跳过 ＋ 退出 0。呈报前缀约定：非阻断发现一律 `·` 起首；`x` 起首只留给参数错误类。
 
 载体形态说明：① 断言载体两种形态都认——`git grep -F -c -- "TOKEN" FILE` 与 `grep -c "TOKEN" FILE`（token 取引号内、目标取末参）；② 改动清单为**表格**形态，列角色按表头别名定位（路径列＝表头含「文件」或「新产品文档」；改动列＝表头含「改动」），无别名可识别者整表跳过并明示；③ 检查 B 用**对象计算方式**判定标准（仅当数字之前的紧邻文本显式指向整件尺寸、或与 `wc -l` 类命令同段时才判）；④ 检查 C 的逐字判定标准只对**含引号块**的 `[A]` 行生效，且单元格内有**方向标记**时只核**最后一个标记之后**的引号块。
 
-呈报守恒：末尾三种结果判定标准计入八类全部输出（含 B 的计数行与 **E／H／I／J** 的候选行；**E／H／I／J 的汇总行不计入**），「· 无发现」只在八类全空时打印。
+呈报守恒：末尾三种结果判定标准计入九类全部输出（含 B 的计数行与 **E／H／I／J／K** 的候选行；**E／H／I／J／K 的汇总行不计入**），「· 无发现」只在九类全空时打印。
+
+已知限制（债跟主题走——不再另立缺口清单）：
+  ① 检查 B（计数重算）在归档语料上误报偏高；若长期无真阳性，评估删除。
+  ② 检查 D 的 ①②③ 与 `check.sh [1]` 段 markdownlint 默认集重复（仅 ④ 为独有面）。
+  ③ `--verify`／`--reconcile` 未进 `check.sh`（是否纳入提交前自动检查另议）。
+  ④ git 不可用时，`--verify` 已改为 stderr 明示 ＋ 置退出 1（残留：声明面不可核，仍需人工过）。
+  ⑤ 相对路径按 cwd 归一：非仓根 cwd 调用时「本件」排除会失配。
+  ⑥ 每条规格都全量读 `docs/specs`（O(N×1.9MB)）——文件数增长后需加缓存或收窄扫描面。
+  ⑦ 各 `*_SECTION` 正则**硬编码节名**——换项目复用机架时须逐条改代码（本条为已知限制，非预立法）。
+  ⑧ `skills/{skill 名}/scripts/*.py` 不在任何检查面内（`check.sh [5]` 与 `check_content` 皆不扫）。
+  ⑨ 检查 I 的「引文未在目标件出现」不区分**预期陈旧**（目标件已被后续批改动）与真异常（现已在文案内提示，但仍需人判）。
+  ⑩ 检查 K 是**单向核**——只核「模板有节名而工具不认」；模板**新增**节名而工具正则本就宽泛时不报。
 """
 import os
 import re
@@ -988,7 +1001,8 @@ def _anchor_probe(path, ln, quotes, root, seen, cands):
         if hit is not None:
             cands.append(f'· 检查 I 位置不符: {path}:{ln} 的引文实际在第 {hit} 行——「{q[:24]}」')
         else:
-            cands.append(f'· 检查 I 引文未在目标件出现: {path}:{ln}——「{q[:24]}」（§一 应只述现状）')
+            cands.append(f'· 检查 I 引文未在目标件出现: {path}:{ln}——「{q[:24]}」'
+                         f'（§一 应只述现状；**若目标件已被本批或后续批改动，属预期陈旧、非缺陷**）')
 
 
 def check_anchor(text, root):
@@ -1347,7 +1361,7 @@ def check_reconcile(text, root):
     # 判定标准（`施工机制` §二）：简单 ＝ 件数 ≤3 ∧ 不触规则面（`AGENTS.md`／`docs/standards/**`）
     # ∧ 不触检查脚本（`scripts/check*.py`／`check.sh`）；标准 ＝ 其余（件数 4–10 ∨ 触规则面 ∨ 触检查脚本）；
     # 全量 ＝ 件数 ＞10。**头注自述只作声明、不作依据**（「自述豁免失守」的机械化写入位置）。
-    n_t = len(targets)
+    n_t = len(rows)      # 件数＝改动清单**条目数**（`施工机制` §二 定义：每行一项）——非去重文件数
     touch_check = any(re.match(r'scripts/check[^/]*\.(py|sh)$', x) for x in targets)
     touch_rule = any(x == 'AGENTS.md' or x.startswith('docs/standards/') for x in targets)
     if n_t <= 3 and not touch_check and not touch_rule:
@@ -1377,18 +1391,62 @@ def check_reconcile(text, root):
     return cands, [summary]
 
 
+# 检查 K（2026-09-17 立）：规格模板节名 ↔ **有模板对应**的工具正则——防「模板改了工具没跟上」的静默失效。
+# 只核三个有模板对应的正则；其余四个（BAN／NUCLEAR／ARCHIVE_RECORD／OPEN）**白名单**：模板无对应节，
+# 属规格道可选节，不核（初稿核全部七个，而模板只有四节，必不命中——成稿审查 P0）。
+CHECK_K_SPEC = 'docs/specs/施工机制.md'
+CHECK_K_MODEL = re.compile(r'^##[^#\n]*模板.*$', re.M)
+CHECK_K_WHITELIST = ('BAN_SECTION', 'NUCLEAR_SECTION', 'ARCHIVE_RECORD_SECTION', 'OPEN_SECTION')
+
+
+def _template_section_names(root):
+    """从 `施工机制` §九 的规格模板围栏块里取节名（`## ` 起首行）。读不到返回 None（调用方明示跳过）。"""
+    path = os.path.join(root, CHECK_K_SPEC)
+    if not os.path.isfile(path):
+        return None
+    m = CHECK_K_MODEL.search(_read_target(path))
+    if not m:
+        return None
+    text = _read_target(path)[m.end():]
+    # 只取 §九 的**第一个围栏块**（＝规格模板）——模板内的 `## 一、…` 节名就在块内，
+    # 故**不得**「截到下一个 H2」（那会把模板正文截掉，实测得 None）
+    names = []
+    for _mark, block in re.findall(r'(```|~~~)[a-zA-Z]*\n(.*?)\1', text, re.S):
+        names = [h for h in re.findall(r'^##\s+(.*?)\s*$', block, re.M)]
+        break
+    return names or None
+
+
+def check_template_names(root):
+    """检查 K：**直读** `施工机制` §九 模板原文取节名（不抄进工具——抄即比对自指），核
+    `SECTION`／`CHANGE_SECTION`／`ANCHOR_SECTION` 三个正则是否仍命中。不命中即出候选。"""
+    names = _template_section_names(root)
+    if names is None:
+        return [f'· 检查 K 跳过：读不到 {CHECK_K_SPEC} 的模板节（节名无从核）'], []
+    cands = []
+    for label, rx in (('SECTION', SECTION), ('CHANGE_SECTION', CHANGE_SECTION),
+                      ('ANCHOR_SECTION', ANCHOR_SECTION)):
+        if not any(rx.search('## ' + n) for n in names):   # 正则判据是整行（`^## `），故补前缀再测
+            cands.append(f'· 检查 K 模板节名无对应正则: {label} 不命中模板任何节名——'
+                         f'模板改了而工具没跟上？（白名单：' + '／'.join(CHECK_K_WHITELIST) + '）')
+    return cands, []
+
+
 def static_report(specs, root):
     """静态检查阶段编排：打印 == 静态自检 == 与逐项结果。
-    **返回值恒为 False**：静态发现（A／B／C／D／E／H／I／J 八类）一律只呈报、不置退出码（源件对
+    **返回值恒为 False**：静态发现（A／B／C／D／E／H／I／J／K 九类）一律只呈报、不置退出码（源件对
     「计数不符」置 1，本仓改为恒 0——`AGENTS.md` §五.2 候选永不拦截）。
-    末尾三种结果判定标准**须计入 A／B／C／D／E／H／I／J 八类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行、
-    F8 的格数不符行、**J 的审查记录核对**候选行；**E／H／I／J 的汇总行不计入**——其角色同明示行）：「· 无发现」只在八类
+    末尾三种结果判定标准**须计入 A／B／C／D／E／H／I／J／K 九类全部输出**（含 B 的计数行、C 的候选行与 E 的候选行、
+    F8 的格数不符行、**J 的审查记录核对**候选行；**E／H／I／J／K 的汇总行不计入**——其角色同明示行）：「· 无发现」只在九类
     全空时打印——漏计 B 即假绿（产物审查 P0-2：B 单源时「计数不符」与「无发现」同屏）。
     空跑明示：A 在「提取 N＞0 而命中 0」时打印明示行（并抑制「· 无发现」，两者不同屏）；B 在无可判定
     声称时打印明示行；C 在存在「有核对面但路径未解析」的行时打印计数行。"""
     print('== 静态自检 ==')
     swallow = []
-    extra = []      # 检查 C／D／E／H／I／J 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
+    k_lines, _k_reds = check_template_names(root)   # 检查 K：全局一次（不逐件）
+    for _l in k_lines:
+        print(_l)
+    extra = list(k_lines)   # 检查 C／D／E／H／I／J／K 候选与 F8 格数不符输出（非阻断；末尾三种结果判定标准须计入，不得被「无发现」掩盖）
     counts = []     # 检查 B 的计数输出（同上：P0-2 修复前漏计，导致 B 单源时与「· 无发现」同屏）
     a_extract = a_hit = 0
     b_judged = b_cand = 0
@@ -1515,7 +1573,10 @@ def verify_report(spec, root):
 
     # 1) 改动文件比对（非阻断提示）
     # 2026-09-17 T5：与 `--reconcile` 共用同一实现（单一出处；原为两处各写一遍）
-    changed = _git_changed(root) or []
+    changed = _git_changed(root)
+    if changed is None:
+        print('x 改动面未核：git 不可用（本模式结论不可信）', file=sys.stderr)
+        return True     # 环境缺失＝阻塞（与「空改动」区分：后者会给出「清单外 0 件」的假安心）
     declared = _declared_paths(text)
     actual = {p for p in changed if p != rel}   # 豁免②：待验规格自身恒在改动集内
     print('· 改动文件比对（声明集 ↔ 实际改动集；非阻断提示）')
@@ -1608,7 +1669,10 @@ if __name__ == '__main__':
     missing = [a for a in specs if not os.path.isfile(a)]
     if missing:
         for a in missing:
-            print(f'x 文件不存在: {a}', file=sys.stderr)
+            if os.path.isdir(a):
+                print(f'x 是目录不是文件: {a}（规格须是单个 .md 文件）', file=sys.stderr)
+            else:
+                print(f'x 文件不存在: {a}', file=sys.stderr)
         sys.exit(2)
     _stdout_utf8()
     if reconcile_only:
