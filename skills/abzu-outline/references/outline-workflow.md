@@ -32,7 +32,7 @@ Abzu 大纲域——把作者的初步想法压成一页可执行的创作约束
 | `references/outline-stage-spec.md` | 大纲生成：流程概述＋1.0–1.3 细则与逐字话术 | 开新书确认后一次读入 | 内容源——`大纲域设计-规格与资料步` §一；链接改写——`命名标准` §5 |
 | `references/outline-emotion-words.md` | 统一情绪词表与取值规则（基调映射基准） | 1.1 基调映射前（按需） | `大纲域设计-规格与资料步`（随迁） |
 | `assets/outline-basic-spec-template.md` | 基本规格模板（①–④节＋约束的填空与枚举）；字段必填性／生产来源随括注与 stage-spec 各步承载 | 1.0 建空模板、1.2 核对（按需） | 内容源同 stage-spec |
-| `创作进度.md`（产物，作者书目录） | 阶段值＋产物状态表——格式的唯一出处＝stage-spec 1.0 第 1 小步 | 入口判定与各步落行时读写 | 内容源同 stage-spec |
+| `创作进度.md`（产物，作者书目录） | 阶段值＋产物状态表——格式的单一出处＝stage-spec 1.0 第 1 小步 | 入口判定与各步落行时读写 | 内容源同 stage-spec |
 | `基本规格.md`（产物，作者书目录） | 基本规格本体——按 `assets/outline-basic-spec-template.md` 模板正文生成 | 1.0–1.3 各步读写 | 内容源同 stage-spec |
 | `scripts/check_basic_spec.py` | 基本规格机械核验（八项，只读零依赖） | 1.2 跑（只跑不读源码） | 内容源同 stage-spec（八项承其核验要求） |
 | `references/outline-workflow.md`（本件） | 域级事务：路由／中断／副作用／总表 | 中断或交接时（按需） | 本域新建 |
