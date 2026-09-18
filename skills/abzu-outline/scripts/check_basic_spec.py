@@ -7,8 +7,8 @@
 
 核验项（只核机器可判定的形态与完备，语义判定〔三边联动〕归执行模型）：
   1 节齐——①基础参数／②基调风格／③参考偏好／④参考标尺／约束 五节齐
-  2 ①必填无空——题材／平台／读者定位／体量／作者绝对不写五项已填（比较想写可空不核）
-  3 主味——基调已填且 2-4 词（按「、」切词；补充句可空不核）
+  2 ①必填无空——题材／平台／读者定位／体量／作者绝对不写五项已填
+  3 基调——已填且 2-6 词（按「、」切词；补充句可空不核）
   4 参考——主参考恰一本已填；辅参考 0-3 本已填
   5 标尺占位——④保留「占位——2.3 实测回填」未误填
   6 核验结论——约束节「本次核验结论」行已写且非占位
@@ -20,8 +20,8 @@ import io
 import re
 import sys
 
-ALLOWED_LABELS_1 = {'题材', '平台', '读者定位', '体量', '作者绝对不写', '比较想写'}
-ALLOWED_LABELS_2 = {'基调', '底色交织'}
+ALLOWED_LABELS_1 = {'题材', '平台', '读者定位', '体量', '作者绝对不写'}
+ALLOWED_LABELS_2 = {'基调'}
 ALLOWED_LABELS_3 = {'主参考', '辅参考'}
 REQUIRED_1 = ['题材', '平台', '读者定位', '体量', '作者绝对不写']
 PLACEHOLDER = '{'
@@ -110,7 +110,7 @@ def main(argv):
     empty = [l for l, v in b1 if l in REQUIRED_1 and (not v or PLACEHOLDER in v)]
     absent = [l for l in REQUIRED_1 if l not in labels1]
     if not empty and not absent:
-        ok('必填五项全填（比较想写可空不计）')
+        ok('必填五项全填')
     else:
         why = []
         if absent:
@@ -119,16 +119,16 @@ def main(argv):
             why.append('未填 ' + '、'.join(empty))
         bad('必填无空', '；'.join(why))
 
-    # 3 主味 2-4 词
+    # 3 基调 2-6 词
     tone = next((v for l, v in b2 if l == '基调'), None)
     if tone and PLACEHOLDER not in tone:
         words = [w for w in re.split(r'[、，,]', tone) if w.strip()]
-        if 2 <= len(words) <= 4:
-            ok('主味 %d 词（2-4 合格）' % len(words))
+        if 2 <= len(words) <= 6:
+            ok('基调 %d 词（2-6 合格）' % len(words))
         else:
-            bad('主味', '现在是 %d 词——须 2-4 词（词序即主次）' % len(words))
+            bad('基调', '现在是 %d 词——须 2-6 词（词序即主次）' % len(words))
     else:
-        bad('主味', '基调未填或仍是占位')
+        bad('基调', '基调未填或仍是占位')
 
     # 4 参考
     mains = [v for l, v in b3 if l == '主参考' and v and PLACEHOLDER not in v]
