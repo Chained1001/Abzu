@@ -1,11 +1,11 @@
 # outline-basic-spec-template（基本规格产物模板）
 
-> 消费点：1.0 照「模板正文」原样建空模板；1.2 以「模板正文」为核对清单；填好的样子见 `assets/outline-basic-spec-example.md`；默认值推导规则在 `references/outline-stage-spec.md` 1.1 ③。
+> 消费点：1.0 照「模板正文」原样建空模板；1.2 以「模板正文」为核对清单；各字段的填法与推导法在 `references/outline-stage-spec.md` 各步的具体步骤里。
 > 产物纪律：按模板正文逐段逐字段产出，**不得增模板外行**（状态行由「创作进度.md」承载）；**括注一律原样保留**——括注是对字段的长期说明，不是待拆的脚手架；字段必填性随括注（可空／可选）与核验脚本承载；生产来源见 `references/outline-stage-spec.md` 各步。
 
 ## 模板正文
 
-（采集两段式与逐字引导话术见 `references/outline-stage-spec.md` 1.1⑥；填空位写作 `{____}`、枚举位写作 `{A/B}`、业务变量用中文、枚举一律开放集。）
+（采集与逐字引导话术见 `references/outline-stage-spec.md` 1.1 的具体步骤；填空位写作 `{____}`、枚举位写作 `{A/B}`、业务变量用中文、枚举一律开放集。）
 
 ### ①基础参数
 

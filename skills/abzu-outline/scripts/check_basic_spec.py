@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""check_basic_spec（基本规格落盘核验·机械件）
+"""check_basic_spec（基本规格核验·机械件）
 
 用法：python check_basic_spec.py <基本规格.md 的路径>
 只读不写、零依赖、不联网。逐项打印 ✓／✗，末行汇总「核验 N／总 M 项过」；
@@ -14,8 +14,7 @@
   6 核验结论——约束节「本次核验结论」行已写且非占位
   7 无模板外行——①②③的行标签都在模板允许集内（防自创字段）
   8 题材干净——题材值不含 ／ 或 、 等分隔符（复合格须归到一个类目）
-形态依据：assets/outline-basic-spec-template.md（模板正文）与
-assets/outline-basic-spec-example.md（成品样张）。
+形态依据：assets/outline-basic-spec-template.md（模板正文）。
 """
 import io
 import re
