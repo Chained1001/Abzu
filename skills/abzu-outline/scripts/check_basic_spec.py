@@ -13,6 +13,7 @@
   5 标尺占位——④保留「占位——2.3 实测回填」未误填
   6 核验结论——约束节「本次核验结论」行已写且非占位
   7 无模板外行——①②③的行标签都在模板允许集内（防自创字段）
+  8 题材干净——题材值不含 ／ 或 、 等分隔符（复合格须归到一个类目）
 形态依据：assets/outline-basic-spec-template.md（模板正文）与
 assets/outline-basic-spec-example.md（成品样张）。
 """
@@ -166,6 +167,15 @@ def main(argv):
         ok('无模板外行（①②③行标签都在模板集内）')
     else:
         bad('无模板外行', '出现模板没有的行：' + '、'.join(outside))
+
+    # 8 题材干净（不含分隔符——复合格须归到一个类目；下游按它定设定框架）
+    subj = next((v for l, v in b1 if l == '题材'), '')
+    if not subj or PLACEHOLDER in subj:
+        bad('题材干净', '题材未填或仍是占位')
+    elif re.search(r'[／/、，,]|或', subj):
+        bad('题材干净', '题材「%s」含分隔符——须归到**一个**类目（如「东方奇幻」这种词组可以）' % subj)
+    else:
+        ok('题材干净（一个词组，无分隔符）')
 
     for good, name in results:
         print(('✓ ' if good else '✗ ') + name)
