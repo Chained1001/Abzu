@@ -1,22 +1,36 @@
 # -*- coding: utf-8 -*-
 """check_reference_pack（采风资料核验·机械件）
 
-用法：python check_reference_pack.py <档案.md 或 资料/ 目录> [模板.md 路径]
-只读不写、零依赖、不联网。逐份逐项打印 ✓／✗，末行汇总「档案核验：M／N 份过」；
-全部过退出 0，任一不过退出 1，参数或文件读不到退出 2。
-模板路径缺省＝本脚本同域上一级的 assets/outline-reference-archive-template.md。
+用法：python check_reference_pack.py <产物.md 或 资料/ 目录> [档案模板路径]
+只读不写、零依赖、不联网。按产物首行自动分面：`# 参考作品档案：` 走档案面、
+`# 参考标尺` 走标尺面（其余首行报「认不出形态」）。逐份逐项打印 ✓／✗，末行汇总
+「档案核验：M／N 份过」；全部过退出 0，任一不过退出 1，参数或文件读不到退出 2。
+档案模板路径缺省＝本脚本同域上一级的 assets/outline-reference-archive-template.md；
+标尺模板路径＝同域上一级的 assets/outline-reference-ruler-template.md（写死，不收参数）。
 
-核验项（只核机器可判定的形态与完备；内容真假归 2.2 作者审）：
+档案面核验项（只核机器可判定的形态与完备；内容真假归 2.2 作者审）：
   1 首行形态——首行是「# 参考作品档案：{非空名}」
-  2 十三节齐且序对——产物 ### 标题与模板 ### 标题逐字一致（含顺序；另报 ## 级误用）
+  2 十三节齐且序对——产物 ### 标题与档案模板 ### 标题逐字一致（含顺序；另报 ## 级误用）
   3 核心五节非空——基本信息／内核定标／主线结构／人物档案／来源标注各有内容行
   4 无花括号——产物不出现 { }（占位符残留）
   5 无反引号——产物不出现 `（模板旧占位符教出的坏习惯）
-  6 无提示词回显——模板花括号内的提示词串不得在产物出现（报至多 3 处行号）
+  6 无提示词回显——档案模板花括号内的提示词串不得在产物出现（报至多 3 处行号）
   7 状态合法——基本信息「状态」∈ 采集中／档完
   8 来源两栏非空——来源标注「LLM 记忆」「联网核实」两行都在且非空
-形态依据：assets/outline-reference-archive-template.md（提示词提取与节名都从该件现读，
-改模板即改本脚本判定面，无须同步改码）。
+
+标尺面核验项（2.3 落成即核、2.4 进审前用；判定面随标尺模板与 stage2 2.3 现读）：
+  1 首行形态——首行是「# 参考标尺」
+  2 节齐且序对——产物 ### 标题与标尺模板 ### 标题逐字一致
+  3 十二组齐——①至⑫组名＋派生体量都在（照标尺模板组名）
+  4 每组三件——每组块内含强度词（锚定实测／多源统计／推演）且含「来源」
+  5 无花括号
+  6 无反引号
+  7 无提示词回显——标尺模板花括号内的提示词串不得在产物出现
+  8 合成结论已写——合成结论节非空且含「强度分布」
+  9 喂料对照表在——喂料对照节含「主线支线比例」与「取数法」
+形态依据：assets/outline-reference-archive-template.md 与
+assets/outline-reference-ruler-template.md（节名与提示词都从模板现读，
+改模板即改本脚本判定面，无须同步改码；喂料对照表本体住 stage2 2.3，产物照抄）。
 """
 import io
 import os
@@ -41,6 +55,12 @@ def _default_template():
     here = os.path.dirname(os.path.abspath(__file__))
     return os.path.normpath(os.path.join(here, '..', 'assets',
                                          'outline-reference-archive-template.md'))
+
+
+def _ruler_template():
+    here = os.path.dirname(os.path.abspath(__file__))
+    return os.path.normpath(os.path.join(here, '..', 'assets',
+                                         'outline-reference-ruler-template.md'))
 
 
 def _read(path):
@@ -76,6 +96,173 @@ def _template_facts(tpl):
     # 去重且保持顺序；超短或无标点的（如「一句话」「哪些字段」）已滤除，避免误伤正文
     seen = set()
     return heads, [b for b in bans if not (b in seen or seen.add(b))]
+
+
+GROUP_RE = re.compile(r'^-\s*((?:[①②③④⑤⑥⑦⑧⑨⑩⑪⑫])[^：:\s]*|派生体量)')
+STRENGTH_WORDS = ('锚定实测', '多源统计', '推演')
+
+
+def _ruler_facts(tpl):
+    """从标尺模板现读判定面：(节名列表, 组名列表, 禁现提示词串列表)。"""
+    heads = [name for name, _ in _sections(tpl)]
+    groups = []
+    for line in tpl.split('\n'):
+        m = GROUP_RE.match(line.strip())
+        if m:
+            groups.append(m.group(1))
+    _, bans = _template_facts(tpl)
+    return heads, groups, bans
+
+
+def _group_blocks(text):
+    """把产物正文切成组块：[(组名, 该组起止行文本)]——组行起到下一组行/节标题止。"""
+    blocks = []
+    cur_name, cur_lines = None, []
+    for line in text.split('\n'):
+        s = line.strip()
+        m = GROUP_RE.match(s)
+        if m:
+            if cur_name is not None:
+                blocks.append((cur_name, '\n'.join(cur_lines)))
+            cur_name, cur_lines = m.group(1), [s]
+        elif s.startswith('###'):
+            if cur_name is not None:
+                blocks.append((cur_name, '\n'.join(cur_lines)))
+            cur_name, cur_lines = None, []
+        elif cur_name is not None:
+            cur_lines.append(s)
+    if cur_name is not None:
+        blocks.append((cur_name, '\n'.join(cur_lines)))
+    return blocks
+
+
+def _check_ruler(text, want_heads, groups, bans):
+    """标尺面逐项核验 → (通过数, 总项数)。逐行打印 ✓／✗。"""
+    results = []
+
+    def ok(msg):
+        results.append(True)
+        print('  ✓ ' + msg)
+
+    def bad(msg):
+        results.append(False)
+        print('  ✗ ' + msg)
+
+    lines = text.split('\n')
+    body = [l for l in lines if l.strip()]
+    secs = _sections(text)
+    sec_names = [n for n, _ in secs]
+    sec_map = dict(secs)
+
+    # 1 首行形态
+    if body and body[0].strip() == '# 参考标尺':
+        ok('首行形态（# 参考标尺）')
+    else:
+        bad('首行形态——现在是「%s」，须是「# 参考标尺」' % (body[0].strip()[:30] if body else ''))
+
+    # 2 节齐且序对（喂料对照节住 stage2、只进产物不进模板——预期序＝模板节序在
+    #   「基本信息」后插入一个「喂料对照」前缀匹配位）
+    expect = list(want_heads)
+    base_idx = next((i for i, h in enumerate(expect) if h.startswith('基本信息')), None)
+    if base_idx is not None:
+        expect.insert(base_idx + 1, '喂料对照')
+
+    def _head_match(got, want):
+        return got == want or (want == '喂料对照' and got.startswith('喂料对照'))
+
+    if len(sec_names) == len(expect) and all(
+            _head_match(g, w) for g, w in zip(sec_names, expect)):
+        ok('%d 节齐且序对（含产物侧喂料对照节）' % len(expect))
+    else:
+        why = []
+        gi, wi = 0, 0
+        while wi < len(expect) or gi < len(sec_names):
+            if wi < len(expect) and gi < len(sec_names) \
+                    and _head_match(sec_names[gi], expect[wi]):
+                gi += 1
+                wi += 1
+                continue
+            if wi < len(expect) and gi < len(sec_names) \
+                    and expect[wi] == '喂料对照' and gi > (base_idx or 0):
+                why.append('缺节 喂料对照（产物须照抄 stage2 的表）')
+                wi += 1
+                continue
+            if gi < len(sec_names) and sec_names[gi] not in expect:
+                why.append('多节 ' + sec_names[gi])
+                gi += 1
+                continue
+            if wi < len(expect):
+                why.append('缺节 ' + expect[wi])
+                wi += 1
+                continue
+            gi += 1
+        bad('节齐且序对——' + '；'.join(why))
+
+    # 3 十二组齐
+    blocks = dict(_group_blocks(text))
+    missing_g = [g for g in groups if g not in blocks]
+    if missing_g:
+        bad('十二组齐——缺组：' + '、'.join(missing_g))
+    else:
+        ok('十二组齐（%d 组＋派生体量都在）' % (len(groups) - 1))
+
+    # 4 每组三件（强度词＋来源）
+    incomplete = []
+    for g in groups:
+        blk = blocks.get(g, '')
+        has_strength = any(w in blk for w in STRENGTH_WORDS)
+        if not has_strength or '来源' not in blk:
+            incomplete.append(g)
+    if incomplete:
+        bad('每组三件——缺强度或来源：' + '、'.join(incomplete))
+    else:
+        ok('每组三件（强度＋来源）全')
+
+    # 5 无花括号
+    n_brace = text.count('{') + text.count('}')
+    if n_brace:
+        bad('无花括号——出现 { } 共 %d 个（占位符残留）' % n_brace)
+    else:
+        ok('无花括号')
+
+    # 6 无反引号
+    n_tick = text.count('`')
+    if n_tick:
+        bad('无反引号——出现 ` 共 %d 个' % n_tick)
+    else:
+        ok('无反引号')
+
+    # 7 无提示词回显
+    hits = []
+    for b in bans:
+        for i, line in enumerate(lines, 1):
+            if b in line:
+                hits.append((i, b))
+                break
+    if hits:
+        shown = '；'.join('第 %d 行「%s…」' % (i, b[:24]) for i, b in hits[:3])
+        bad('无提示词回显——%d 处：%s' % (len(hits), shown))
+    else:
+        ok('无提示词回显（%d 条模板提示词均未出现）' % len(bans))
+
+    # 8 合成结论已写
+    concl = sec_map.get([n for n in sec_names if n.startswith('合成结论')][0], []) \
+        if any(n.startswith('合成结论') for n in sec_names) else []
+    joined = '\n'.join(concl)
+    if joined and '强度分布' in joined:
+        ok('合成结论已写（含强度分布）')
+    else:
+        bad('合成结论已写——合成结论节为空或缺「强度分布」行')
+
+    # 9 喂料对照表在
+    feed = '\n'.join(sec_map.get(
+        next((n for n in sec_names if n.startswith('喂料对照')), ''), []))
+    if '主线支线比例' in feed and '取数法' in feed:
+        ok('喂料对照表在（含主线支线比例行与取数法列）')
+    else:
+        bad('喂料对照表在——喂料对照节缺表（须照抄 stage2 2.3 的喂料对照表）')
+
+    return sum(1 for g in results if g), len(results)
 
 
 def _check_one(name, text, want_heads, bans):
@@ -233,11 +420,29 @@ def main(argv):
         print('✗ 模板里读不到 ### 节：%s' % tpl_path)
         return 2
 
+    try:
+        rtpl = _read(_ruler_template())
+    except OSError as e:
+        print('✗ 读不到标尺模板：%s（%s）' % (_ruler_template(), e))
+        return 2
+    r_heads, r_groups, r_bans = _ruler_facts(rtpl)
+    if not r_heads or not r_groups:
+        print('✗ 标尺模板里读不到节或组：%s' % _ruler_template())
+        return 2
+
     passed_files = 0
     for p in paths:
         print('◆ %s' % os.path.basename(p))
         text = _read(p)
-        got, total = _check_one(os.path.basename(p), text, want_heads, bans)
+        first = next((l.strip() for l in text.split('\n') if l.strip()), '')
+        if first.startswith('# 参考作品档案：'):
+            got, total = _check_one(os.path.basename(p), text, want_heads, bans)
+        elif first == '# 参考标尺':
+            got, total = _check_ruler(text, r_heads, r_groups, r_bans)
+        else:
+            print('  ✗ 认不出产物形态——首行须是「# 参考作品档案：…」或「# 参考标尺」，'
+                  '现在是「%s」' % first[:30])
+            got, total = 0, 1
         print('  核验 %d／总 %d 项过' % (got, total))
         if got == total:
             passed_files += 1
