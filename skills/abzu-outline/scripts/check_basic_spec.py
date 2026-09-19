@@ -9,7 +9,7 @@
   1 节齐——基础参数／基调风格／参考偏好／约束 四节齐
   2 基础参数必填无空——题材／平台／读者定位／体量／作者绝对不写五项已填
   3 基调——已填且 2-6 词（按「、」切词；补充句可空不核）
-  4 参考——主参考恰一本已填；辅参考 0-3 本已填
+  4 参考——主要参考恰一本已填；次要参考 0-3 本已填
   5 核验结论——约束节「本次核验结论」行已写且非占位
   6 无模板外行——基础参数／基调风格／参考偏好三节的行标签都在模板允许集内（防自创字段）
   7 题材干净——题材值不含 ／ 或 、 等分隔符（复合格须归到一个类目）
@@ -21,7 +21,7 @@ import sys
 
 ALLOWED_LABELS_1 = {'题材', '平台', '读者定位', '体量', '作者绝对不写'}
 ALLOWED_LABELS_2 = {'基调'}
-ALLOWED_LABELS_3 = {'主参考', '辅参考'}
+ALLOWED_LABELS_3 = {'主要参考', '次要参考'}
 REQUIRED_1 = ['题材', '平台', '读者定位', '体量', '作者绝对不写']
 PLACEHOLDER = '{'
 
@@ -130,12 +130,12 @@ def main(argv):
         bad('基调', '基调未填或仍是占位')
 
     # 4 参考
-    mains = [v for l, v in b3 if l == '主参考' and v and PLACEHOLDER not in v]
-    aux = [v for l, v in b3 if l == '辅参考' and v and PLACEHOLDER not in v]
+    mains = [v for l, v in b3 if l == '主要参考' and v and PLACEHOLDER not in v]
+    aux = [v for l, v in b3 if l == '次要参考' and v and PLACEHOLDER not in v]
     if len(mains) == 1 and len(aux) <= 3:
-        ok('主参考一本、辅参考 %d 本（0-3 合格）' % len(aux))
+        ok('主要参考一本、次要参考 %d 本（0-3 合格）' % len(aux))
     else:
-        bad('参考', '主参考现在 %d 本（须恰一本）、辅参考 %d 本（须 0-3 本）' % (len(mains), len(aux)))
+        bad('参考', '主要参考现在 %d 本（须恰一本）、次要参考 %d 本（须 0-3 本）' % (len(mains), len(aux)))
 
     # 5 核验结论
     concl = [x for x in text.split('\n') if x.strip().startswith('- 本次核验结论')]
