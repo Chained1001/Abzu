@@ -4,7 +4,7 @@ description: Abzu 套件的大纲域——把作者的初步想法压成一页�
 license: MIT
 disable-model-invocation: true
 metadata:
-  version: "0.4.0"
+  version: "0.4.9"
 ---
 
 # Abzu · 大纲域（abzu-outline）
