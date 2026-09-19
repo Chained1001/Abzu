@@ -30,16 +30,17 @@ Abzu 大纲域——把作者的初步想法压成一页可执行的创作约束
 | --- | --- | --- | --- |
 | `SKILL.md`（skill 主文件） | 入口判定、建设状态行、首问、交互原则 | 触发即载（宿主自动） | 换模型重试前提——`测试与验收标准` §3；交互原则——`触发与交互标准` §2／§3；**建设状态行随各阶段批更新**（每建成一个阶段改 SKILL.md 该行） |
 | `references/outline-stage1.md` | 大纲生成：流程概述＋1.0–1.3 细则与逐字话术 | 开新书确认后一次读入 | 内容源——`大纲域设计-规格与资料步` §一；链接改写——`命名标准` §5 |
-| `references/outline-emotion-words.md` | 统一情绪词表与取值规则（基调映射基准） | 1.1 基调映射前（按需） | `大纲域设计-规格与资料步`（随迁） |
+| `references/outline-stage2.md` | 采风检索：流程概述＋2.0–2.4 细则与逐字话术 | 1.3 确认进 Stage 2 后一次读入 | 内容源——`大纲域设计-规格与资料步` §二；实测修订随批记 git |
+| `references/outline-emotion-words.md` | 统一情绪词表与取值规则（基调映射基准） | 1.1 基调映射前、2.3 ⑥组映射时（按需） | `大纲域设计-规格与资料步`（随迁） |
 | `assets/outline-basic-spec-template.md` | 基本规格模板（三节＋约束的填空与枚举）；字段必填性／生产来源随括注与 stage-spec 各步承载 | 1.0 建空模板、1.2 核对（按需） | 内容源同 stage-spec |
-| `assets/outline-reference-archive-template.md` | 参考作品**采风检索档**模板（2.2 主辅共用，当前**唯一路线**——13 节约 24 字段＋一页结论提炼层） | 2.2 建成后消费（暂无运行时消费方） | 内容源——`大纲域设计-规格与资料步` §二 2.2；字段设计借鉴 analyze-hit-novel（ciel-oliver，GitHub） |
-| `assets/outline-reference-teardown-template.md` | 主参考**拆书档**模板——**已搁置**：Stage 2 先建采风检索单路线；拆书路线启用时复活本件（含锚定数据节供标尺直接取数） | 搁置中（不建、不消费） | 拆法与字段设计——analyze-hit-novel（ciel-oliver，GitHub） |
-| `assets/outline-reference-ruler-template.md` | 参考标尺模板（2.3 合成：十二组，每格范围值＋依据强度＋来源；体量分档；含 2.4 核验结论写入位，跨阶段资产） | 2.3 建成后消费（暂无运行时消费方） | 内容源——`大纲域设计-规格与资料步` §二 2.3 |
+| `assets/outline-reference-archive-template.md` | 参考作品**采风检索档**模板（主辅参考共用，当前**唯一路线**——13 节约 24 字段＋一页结论提炼层） | 2.1 派发 agent 时由 agent 读并填写；`check_reference_pack.py` 判定面从本件现读 | 内容源——`大纲域设计-规格与资料步` §二 2.2；字段设计借鉴 analyze-hit-novel（ciel-oliver，GitHub）；占位符与产物纪律 2026-09-19 重构 |
+| `assets/outline-reference-teardown-template.md` | 主参考**拆书档**模板——**已搁置**：Stage 2 先建采风检索单路线；拆书路线启用时复活本件（含锚定数据节供参考标尺直接取数） | 搁置中（不建、不消费） | 拆法与字段设计——analyze-hit-novel（ciel-oliver，GitHub） |
+| `assets/outline-reference-ruler-template.md` | 参考标尺模板（2.3 合成：十二组〔范围组＋视角组〕＋喂料对照节＋依据强度与来源；含「合成结论」节供 2.4 读出，跨阶段资产） | 2.3 合成时填；3.5 量级查／草稿定案／评委对表消费（各阶段建成前仅指向） | 内容源——`大纲域设计-规格与资料步` §二 2.3；喂料对照与取数总则——stage2 2.3 |
 | `创作进度.md`（产物，作者书目录） | 阶段值＋产物状态表——格式的单一出处＝stage-spec 1.0 第 1 小步 | 入口判定与各步落行时读写 | 内容源同 stage-spec |
 | `基本规格.md`（产物，作者书目录） | 基本规格本体——按 `assets/outline-basic-spec-template.md` 模板正文生成 | 1.0–1.3 各步读写 | 内容源同 stage-spec |
 | `scripts/check_basic_spec.py` | 基本规格机械核验（七项，只读零依赖） | 1.2 跑（只跑不读源码） | 内容源同 stage-spec（七项承其核验要求） |
 | `scripts/check_reference_pack.py` | 参考档案机械核验（八项，只读零依赖） | 2.1 完成判定／2.2 第 1 小步跑（只跑不读源码） | 判定面随模板现读——改模板即改断言，无须同步改码 |
 | `scripts/`（五个 .mjs：check-deps／cdp-proxy／browser-discovery／find-url／match-site） | 联网取数三层调度的第三层（CDP 浏览器直取）——前置检查、CDP 代理、浏览器发现、书签/历史搜索、站点匹配 | 2.1 第三层取数时跑 `check-deps.mjs` 启动 | 需要 Node.js 22+（用原生 WebSocket） |
 | `references/cdp-api.md` | CDP Proxy 的 HTTP API 用法（/navigate、/eval、/click、/screenshot 等） | 2.1 第三层取数时按需读 | 同上 |
-| `references/web-scraper.md` | 联网采风检索 agent 的行为规则（三层调度＋站点允许清单＋采法纪律＋输出契约）——**分发源**：入口判定第 0 步从此复制到项目 `.claude/agents/web-scraper.md` | 入口判定部署时读；2.1 派发 agent 时由 Claude Code 从 `.claude/agents/` 加载 | 跨域共享（大纲／卷纲／正文均可用） |
+| `references/web-scraper.md` | 联网采风检索 agent 的行为规则（三层调度＋站点允许清单＋采法纪律＋输出契约）——**分发源**：入口判定第 0 步向项目 `.claude/agents/web-scraper.md` 部署，副本与分发源不一致即覆盖 | 入口判定部署时读；2.1 派发 agent 时由 Claude Code 从 `.claude/agents/` 加载 | 跨域共享（大纲／卷纲／正文均可用） |
 | `references/outline-workflow.md`（本件） | 域级事务：路由／中断／副作用／总表 | 中断或交接时（按需） | 本域新建 |

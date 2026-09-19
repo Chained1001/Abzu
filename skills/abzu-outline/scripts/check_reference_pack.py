@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""check_reference_pack（参考资料包核验·机械件）
+"""check_reference_pack（采风资料核验·机械件）
 
 用法：python check_reference_pack.py <档案.md 或 资料/ 目录> [模板.md 路径]
 只读不写、零依赖、不联网。逐份逐项打印 ✓／✗，末行汇总「档案核验：M／N 份过」；
