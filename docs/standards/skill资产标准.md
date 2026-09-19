@@ -114,6 +114,15 @@ metadata:
 
 **产物模板（`assets/{域}-{产物名}-template.md`）**：①定位注记（产物是什么／何时创建／生产者／消费方）②字段定义表（字段／说明／生产来源 Stage／必填性）③默认值与完整填写示例 ④模板正文（`{____}` 填空与 `{A/B}` 枚举）。**三要素**：字段定义、示例行、约束三件必须在，缺任一件即不合格。
 
+**Agent（`.claude/agents/{名称}.md`）**：跨域共享的 subagent 行为定义——放**仓库根** `.claude/agents/`，随 `npx skills add` 分发，Claude Code 重启后自动发现。格式＝YAML frontmatter＋系统提示：
+
+- **frontmatter 四字段**：`name`（kebab-case 标识名，stage-spec 按此引用）；`description`（一句话：干什么、何时被派）；`model`（跑哪个模型——控制成本）；`allowed-tools`（工具允许清单——最小权限）。
+- **正文五槽位**：（1）身份（这个 agent 是干什么的、被谁派）；（2）行为规则（分几层、什么条件走哪条路）；（3）工具清单（能用哪些脚本/命令、怎么调）；（4）纪律（什么不许做、边界在哪）；（5）输出契约（产出什么格式、回报什么信息）。
+- **skill 引用 agent**：stage-spec 具体步骤里写 agent 名（如「派一个 `web-scraper` agent」）＋派发时指定的四件事（①模板 ②输出文件 ③预算 ④回报格式）——**行为规则不进 stage-spec**（单一出处：agent 文件）。
+- **路径引用规则**：agent 文件内**不写死 skill 目录路径**（开发仓路径与安装后路径不同）——skill 侧资源（脚本、文档）的路径由**派发任务书给出**，agent 照用。
+- **安装/升级**：`npx skills add Chained1001/Abzu -a claude-code -y`（装与升级同一条命令），装完**重启 Claude Code**（进程级；技能列表在进程启动时加载，新开窗口不刷新——实测定案）。安装/升级操作在**命令行跑，不在 Claude Code 会话内跑**。
+- **实例**：`.claude/agents/web-scraper.md`（联网采风——三层调度＋站点允许清单＋CDP 浏览器直取）。
+
 ### 11. 指令形式匹配失效类型（实证）
 
 | 失效类型 | 正确形式 | 禁忌 |
