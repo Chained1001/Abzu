@@ -6,14 +6,13 @@
 全过退出 0，任一不过退出 1，文件读不到退出 2。
 
 核验项（只核机器可判定的形态与完备）：
-  1 节齐——基础参数／基调风格／参考偏好／参考标尺／约束 五节齐
+  1 节齐——基础参数／基调风格／参考偏好／约束 四节齐
   2 基础参数必填无空——题材／平台／读者定位／体量／作者绝对不写五项已填
   3 基调——已填且 2-6 词（按「、」切词；补充句可空不核）
   4 参考——主参考恰一本已填；辅参考 0-3 本已填
-  5 标尺占位——④保留「占位——2.3 实测回填」未误填
-  6 核验结论——约束节「本次核验结论」行已写且非占位
-  7 无模板外行——基础参数／基调风格／参考偏好三节的行标签都在模板允许集内（防自创字段）
-  8 题材干净——题材值不含 ／ 或 、 等分隔符（复合格须归到一个类目）
+  5 核验结论——约束节「本次核验结论」行已写且非占位
+  6 无模板外行——基础参数／基调风格／参考偏好三节的行标签都在模板允许集内（防自创字段）
+  7 题材干净——题材值不含 ／ 或 、 等分隔符（复合格须归到一个类目）
 形态依据：assets/outline-basic-spec-template.md（模板正文）。
 """
 import io
@@ -88,11 +87,11 @@ def main(argv):
         results.append((False, name + '——' + why))
 
     # 1 节齐
-    want = ['基础参数', '基调风格', '参考偏好', '参考标尺']
+    want = ['基础参数', '基调风格', '参考偏好']
     missing_sec = [s for s in want if s not in secs]
     has_constraint = any(k.startswith('约束') for k in secs)
     if not missing_sec and has_constraint:
-        ok('四节＋约束齐')
+        ok('三节＋约束齐')
     else:
         why = []
         if missing_sec:
@@ -138,14 +137,7 @@ def main(argv):
     else:
         bad('参考', '主参考现在 %d 本（须恰一本）、辅参考 %d 本（须 0-3 本）' % (len(mains), len(aux)))
 
-    # 5 标尺占位
-    sec4 = secs.get('参考标尺', [])
-    if any('占位——2.3 实测回填' in x for x in sec4):
-        ok('标尺占位保留（归 2.3 实测回填）')
-    else:
-        bad('标尺占位', '参考标尺节找不到「占位——2.3 实测回填」——占位被误填或误删')
-
-    # 6 核验结论
+    # 5 核验结论
     concl = [x for x in text.split('\n') if x.strip().startswith('- 本次核验结论')]
     if concl:
         m = re.search(r'`([^`]*)`', concl[-1])
@@ -157,7 +149,7 @@ def main(argv):
     else:
         bad('核验结论', '约束节缺「本次核验结论」行')
 
-    # 7 无模板外行（①②③行标签都在允许集）
+    # 6 无模板外行（前三节行标签都在允许集）
     outside = sorted(
         (labels1 | {l for l, _ in b2} | {l for l, _ in b3})
         - ALLOWED_LABELS_1 - ALLOWED_LABELS_2 - ALLOWED_LABELS_3)
@@ -166,7 +158,7 @@ def main(argv):
     else:
         bad('无模板外行', '出现模板没有的行：' + '、'.join(outside))
 
-    # 8 题材干净（不含分隔符——复合格须归到一个类目；下游按它定设定框架）
+    # 7 题材干净（不含分隔符——复合格须归到一个类目；下游按它定设定框架）
     subj = next((v for l, v in b1 if l == '题材'), '')
     if not subj or PLACEHOLDER in subj:
         bad('题材干净', '题材未填或仍是占位')

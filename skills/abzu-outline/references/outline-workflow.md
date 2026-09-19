@@ -31,8 +31,11 @@ Abzu 大纲域——把作者的初步想法压成一页可执行的创作约束
 | `SKILL.md`（skill 主文件） | 入口判定、建设状态行、首问、交互原则 | 触发即载（宿主自动） | 换模型重试前提——`测试与验收标准` §3；交互原则——`触发与交互标准` §2／§3；**建设状态行随各阶段批更新**（每建成一个阶段改 SKILL.md 该行） |
 | `references/outline-stage-spec.md` | 大纲生成：流程概述＋1.0–1.3 细则与逐字话术 | 开新书确认后一次读入 | 内容源——`大纲域设计-规格与资料步` §一；链接改写——`命名标准` §5 |
 | `references/outline-emotion-words.md` | 统一情绪词表与取值规则（基调映射基准） | 1.1 基调映射前（按需） | `大纲域设计-规格与资料步`（随迁） |
-| `assets/outline-basic-spec-template.md` | 基本规格模板（四节＋约束的填空与枚举）；字段必填性／生产来源随括注与 stage-spec 各步承载 | 1.0 建空模板、1.2 核对（按需） | 内容源同 stage-spec |
+| `assets/outline-basic-spec-template.md` | 基本规格模板（三节＋约束的填空与枚举）；字段必填性／生产来源随括注与 stage-spec 各步承载 | 1.0 建空模板、1.2 核对（按需） | 内容源同 stage-spec |
+| `assets/outline-reference-archive-template.md` | 参考作品**采风档**模板（2.2 主辅共用：辅参考必走；主参考无全文时也走）——13 节约 24 字段＋一页结论提炼层 | 2.2 建成后消费（暂无运行时消费方） | 内容源——`大纲域设计-规格与资料步` §二 2.2；字段设计借鉴 analyze-hit-novel（ciel-oliver，GitHub） |
+| `assets/outline-reference-teardown-template.md` | 主参考**拆书档**模板（仅主参考且作者自备全书文本时用；含锚定数据节供标尺直接取数） | 2.2 建成后消费（暂无运行时消费方） | 拆法与字段设计——analyze-hit-novel（ciel-oliver，GitHub） |
+| `assets/outline-reference-ruler-template.md` | 参考标尺模板（2.3 合成：十二组，每格范围值＋依据强度＋来源；体量分档；含 2.4 核验结论写入位，跨阶段资产） | 2.3 建成后消费（暂无运行时消费方） | 内容源——`大纲域设计-规格与资料步` §二 2.3 |
 | `创作进度.md`（产物，作者书目录） | 阶段值＋产物状态表——格式的单一出处＝stage-spec 1.0 第 1 小步 | 入口判定与各步落行时读写 | 内容源同 stage-spec |
 | `基本规格.md`（产物，作者书目录） | 基本规格本体——按 `assets/outline-basic-spec-template.md` 模板正文生成 | 1.0–1.3 各步读写 | 内容源同 stage-spec |
-| `scripts/check_basic_spec.py` | 基本规格机械核验（八项，只读零依赖） | 1.2 跑（只跑不读源码） | 内容源同 stage-spec（八项承其核验要求） |
+| `scripts/check_basic_spec.py` | 基本规格机械核验（七项，只读零依赖） | 1.2 跑（只跑不读源码） | 内容源同 stage-spec（七项承其核验要求） |
 | `references/outline-workflow.md`（本件） | 域级事务：路由／中断／副作用／总表 | 中断或交接时（按需） | 本域新建 |
