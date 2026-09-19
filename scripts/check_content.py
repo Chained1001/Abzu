@@ -433,7 +433,8 @@ def _check_words(files):
         cands.append(_cand('用词待改: %s —— %d 处：%s%s' % (path, n_file, top, more)))
     tail = ('——存量已清零，命中即新引入' if hits_total == 0
                 else '——存量尚有 %d 处：清单迁移未完或新引入' % hits_total)   # 119：命中>0 不再自称已清零
-    cands.append(_cand('用词扫描：清单 %d 词｜命中 %d 件／%d 处%s（见 %s §7）'
+    # 末行是扫描总结（信息行，不占候选数——零命中时曾把「候选 1 条」虚报成有待办）
+    cands.append(_info('用词扫描：清单 %d 词｜命中 %d 件／%d 处%s（见 %s §7）'
     % (len(bans), hit_files, hits_total, tail, WORD_SRC)))
     return cands, []
 
@@ -468,7 +469,8 @@ def main(argv=None):
         return 2
 
     results = _checks(files)
-    cands = [l for c, _ in results for l in c]
+    # 候选＝`· ` 前缀行（`_cand` 体例）；信息行（`_info`，两空格前缀）只打印不计数
+    cands = [l for c, _ in results for l in c if l.startswith('· ')]
     reds = [l for _, r in results for l in r]
     gov_n = len([f for f in files if f.endswith('.md') and not f.startswith('skills/')])
     asset_n = len([f for f in files if f.endswith('.md') and f.startswith('skills/')])
