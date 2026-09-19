@@ -38,6 +38,7 @@ Abzu 大纲域——把作者的初步想法压成一页可执行的创作约束
 | `创作进度.md`（产物，作者书目录） | 阶段值＋产物状态表——格式的单一出处＝stage-spec 1.0 第 1 小步 | 入口判定与各步落行时读写 | 内容源同 stage-spec |
 | `基本规格.md`（产物，作者书目录） | 基本规格本体——按 `assets/outline-basic-spec-template.md` 模板正文生成 | 1.0–1.3 各步读写 | 内容源同 stage-spec |
 | `scripts/check_basic_spec.py` | 基本规格机械核验（七项，只读零依赖） | 1.2 跑（只跑不读源码） | 内容源同 stage-spec（七项承其核验要求） |
+| `scripts/check_reference_pack.py` | 参考档案机械核验（八项，只读零依赖） | 2.1 完成判定／2.2 第 1 小步跑（只跑不读源码） | 判定面随模板现读——改模板即改断言，无须同步改码 |
 | `scripts/`（五个 .mjs：check-deps／cdp-proxy／browser-discovery／find-url／match-site） | 联网取数三层调度的第三层（CDP 浏览器直取）——前置检查、CDP 代理、浏览器发现、书签/历史搜索、站点匹配 | 2.1 第三层取数时跑 `check-deps.mjs` 启动 | 需要 Node.js 22+（用原生 WebSocket） |
 | `references/cdp-api.md` | CDP Proxy 的 HTTP API 用法（/navigate、/eval、/click、/screenshot 等） | 2.1 第三层取数时按需读 | 同上 |
 | `references/web-scraper.md` | 联网采风检索 agent 的行为规则（三层调度＋站点允许清单＋采法纪律＋输出契约）——**分发源**：入口判定第 0 步从此复制到项目 `.claude/agents/web-scraper.md` | 入口判定部署时读；2.1 派发 agent 时由 Claude Code 从 `.claude/agents/` 加载 | 跨域共享（大纲／卷纲／正文均可用） |
