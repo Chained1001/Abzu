@@ -71,18 +71,34 @@ describe('材料包切片与规模不变量', () => {
     expect(manifest1!.段.find((s) => s.段 === '近期正文衔接')!.完整性).toBe('空')
   })
 
-  it('2 章书与 200 章书材料包合计字数比值 ≤ 1.5(A7)', () => {
-    const small = mkDir('webnovel-scale2-')
-    makeFixtureBook(small, 2)
-    expect(assembleMaterials(small, { 卷: 1, 章: 2, 章名: '章2' }).ok).toBe(true)
-    const smallTotal = readManifest(small, { 卷: 1, 章名: '章2' })!.合计字数
-
+  it('同书高章位材料包合计字数不随章数增长(A7——规模不变量本体)', () => {
     const big = mkDir('webnovel-scale200b-')
     makeFixtureBook(big, 200)
     expect(assembleMaterials(big, KEY51).ok).toBe(true)
-    const bigTotal = readManifest(big, { 卷: KEY51.卷, 章名: KEY51.章名 })!.合计字数
+    const t51 = readManifest(big, { 卷: KEY51.卷, 章名: KEY51.章名 })!.合计字数
+    expect(assembleMaterials(big, { 卷: 4, 章: 151, 章名: '章151' }).ok).toBe(true)
+    const t151 = readManifest(big, { 卷: 4, 章名: '章151' })!.合计字数
 
-    expect(bigTotal / smallTotal).toBeLessThanOrEqual(1.5)
+    // 各段预算封顶后,同书章 51 与章 151 的材料包体量应几乎相同;修复前世界书事实随章线性增长会使该比值发散
+    expect(t151 / t51).toBeLessThanOrEqual(1.1)
+    expect(t151 / t51).toBeGreaterThanOrEqual(0.9)
+  })
+
+  it('世界书事实切片:历史事实只保留最近 30 条并显式省略标注,未来事实仍被剔除(A8)', () => {
+    const root = mkDir('webnovel-scale-wb-')
+    makeFixtureBook(root, 200)
+    expect(assembleMaterials(root, { 卷: 4, 章: 151, 章名: '章151' }).ok).toBe(true)
+    const dir = paths.材料包目录(4, '章151')
+    const file = fs.readdirSync(path.join(root, dir)).find((f) => f.includes('人物、关系'))!
+    const body = fs.readFileSync(path.join(root, dir, file), 'utf-8')
+
+    expect(body).toContain('### 事实@第0151章') // 最近历史事实保留
+    expect(body).toContain('### 事实@第0122章') // 第 30 条边界
+    expect(body).not.toContain('### 事实@第0121章') // 第 31 条起被省略
+    expect(body).not.toContain('### 事实@第0001章') // 最早事实不进切片
+    expect(body).not.toContain('### 事实@第0200章') // 未来事实仍被剔除
+    expect(body).toContain('已省略 121 条') // 省略显式标注(第 1-121 章事实)
+    expect(body).toContain('主角，随身带着半枚来历不明的铜符') // 条目基座原样保留
   })
 
   it('超原段上限的段不再截断:正文逐字保留、完整性非截断、清单无原始字数', () => {

@@ -22,7 +22,7 @@ function outlineBody(chapter: number): string {
     '### 故事线与承诺分配', '推进主线承诺：查明异响的来源；同时维持商队支线的既有节奏，不新增支线。', '',
     '### 信息边界', '只披露主角所见所闻；异响的真实来源本章不揭示，守军部署只写表象。', '',
     '### 情绪与节奏目标', '前段平缓铺陈市集，中段盘问渐紧，末段以异响收束留钩。', '',
-    '### 前置条件核对结果', '已核对来源与窗口，前置设定均非留白；守门老兵人设已就绪。', '',
+    '### 前置条件核对结果', '已核对来源与窗口，前置设定均非留白；守门老兵与主角人设已就绪（世界书/人物档案/主角.md）。', '',
     '## 细纲段', '', '### 单元 1', '',
     '- 目标: 开场', '- 人物: 主角', '- 时空: 城门口', '- 行动/冲突: 盘问与发现', '- 信息披露: 异常线索', '- 状态变化: 从平静到警觉', '',
     '### 单元 2', '',
@@ -58,6 +58,7 @@ export function makeFixtureBook(root: string, chapters: number, opts?: { readonl
     线索: ['# 线索'],
   }
   const timeline: string[] = ['# 时间线']
+  const 主角事实: string[] = []
   const volumes = new Set<number>()
   for (let i = 1; i <= chapters; i += 1) {
     const 卷 = Math.floor((i - 1) / perVolume) + 1
@@ -91,6 +92,11 @@ export function makeFixtureBook(root: string, chapters: number, opts?: { readonl
       const hit = n === 1 && i % 50 === 0
       timeline.push(`\n## ${hit ? '城门异响' : `事件-${i}-${n}`}\n事件：${hit ? '城门口的异响' : `第${i}章事件${n}`}\n章号：第${pad4(i)}章\n### 正文\n${hit ? '城门口的异响被主角察觉。' : `第${i}章事件${n}的记录。`}\n`)
     }
+    // 每章沉淀一条世界书事实(sink 输出形态)——世界书条目随章线性变长,切片按预算截断
+    主角事实.push(`### 事实@第${pad4(i)}章`, `来源：定稿`, `第${i}章：主角在城门盘问中积累了新的城防见闻与守军番号线索。`, '')
+  }
+  if (主角事实.length > 0) {
+    fs.appendFileSync(path.join(root, '世界书', '人物档案', '主角.md'), `\n${主角事实.join('\n')}`)
   }
   for (const [kind, lines] of Object.entries(ledger)) {
     fs.mkdirSync(path.dirname(path.join(root, paths.账本(kind as '故事线'))), { recursive: true })

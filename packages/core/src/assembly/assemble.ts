@@ -1,6 +1,7 @@
 /**
  * 写作备料(格式规格 §9.2 / 插件规格 §5):从真源切片组装十段材料包,不发明散文。
- * 各段是切片不是全文:体量不随书增长(PRD §10.2 规模不变量 1),由固定条数承担,不设段上限、不截断。
+ * 各段是切片不是全文:单条内容逐字保留;时间线/世界书事实/文风按固定条数取最近 N 条,
+ * 世界书历史事实省略处显式标注指回真源——体量不随书增长(PRD §10.2 规模不变量 1)。
  */
 
 import * as fs from 'node:fs'
@@ -132,20 +133,52 @@ function sliceFile(bookRoot: string, rel: string): { text: string; missing: bool
   return { text, missing: false }
 }
 
-/** Remove explicitly dated future facts from a worldbook slice. */
-function sliceWorldbookFacts(text: string, chapterLimit: number): string {
-  const lines = text.replace(/\r\n/g, '\n').split('\n')
-  const out: string[] = []
-  let skip = false
-  for (const line of lines) {
-    const heading = /^###\s+事实@第\s*(\d{1,4})\s*章\s*$/.exec(line.trim())
-    if (heading !== null) {
-      skip = Number(heading[1]) > chapterLimit
-      if (!skip) out.push(line)
+const FACT_HEAD_RE = /^###\s+事实@第\s*(\d{1,4})\s*章$/
+const HEAD_1_3_RE = /^#{1,3}\s+/
+type 世界书块 = { kind: '事实'; 章: number; lines: string[] } | { kind: '正文'; lines: string[] }
+
+/** 按行切块:事实块从其标题行起至下一个一二三级标题前;其余(含各级标题与其正文)为正文块。 */
+function segmentWorldbook(lines: string[]): 世界书块[] {
+  const segs: 世界书块[] = []
+  let i = 0
+  while (i < lines.length) {
+    const fact = FACT_HEAD_RE.exec(lines[i]!.trim())
+    const boundary = (line: string): boolean => FACT_HEAD_RE.test(line.trim()) || HEAD_1_3_RE.test(line.trim())
+    if (fact) {
+      const seg: 世界书块 = { kind: '事实', 章: Number(fact[1]), lines: [lines[i]!] }
+      i += 1
+      while (i < lines.length && !boundary(lines[i]!)) { seg.lines.push(lines[i]!); i += 1 }
+      segs.push(seg)
       continue
     }
-    if (/^#{2,3}\s+/.test(line.trim()) && !/^###\s+事实@/.test(line.trim())) skip = false
-    if (!skip) out.push(line)
+    const seg: 世界书块 = { kind: '正文', lines: [lines[i]!] }
+    i += 1
+    while (i < lines.length && !boundary(lines[i]!)) { seg.lines.push(lines[i]!); i += 1 }
+    segs.push(seg)
+  }
+  return segs
+}
+
+/**
+ * 世界书切片:剔除晚于本章的未来事实块后,历史事实块按文档序只保留最近 N 条;
+ * 省略处显式标注条数与区间并指回真源,基座与其余分节原样保留。
+ */
+function sliceWorldbookFacts(text: string, chapterLimit: number): string {
+  const segs = segmentWorldbook(text.replace(/\r\n/g, '\n').split('\n'))
+  const kept = segs.filter((s): s is Extract<世界书块, { kind: '事实' }> => s.kind === '事实' && s.章 <= chapterLimit)
+  const drop = kept.length - 材料预算.世界书事实最近条数
+  const dropped = new Set(drop > 0 ? kept.slice(0, drop) : [])
+  const out: string[] = []
+  for (const seg of segs) {
+    if (seg.kind === '事实') {
+      if (seg.章 > chapterLimit || dropped.has(seg)) continue
+      if (drop > 0 && seg === kept[drop]) {
+        out.push(`（更早的事实已省略 ${drop} 条：第${kept[0]!.章}章—第${kept[drop - 1]!.章}章；完整历史见本条目真源）`)
+      }
+      out.push(...seg.lines)
+      continue
+    }
+    out.push(...seg.lines)
   }
   return out.join('\n').trim()
 }
