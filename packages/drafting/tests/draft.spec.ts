@@ -6,6 +6,7 @@ import {
   assembleMaterials,
   confirmOutline,
   deriveChapterFacts,
+  parseDocument,
   scanChapter,
   seedMinDesign,
   writeCandidate,
@@ -119,5 +120,26 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(draft).toContain('## 草稿候选事实补充说明')
     expect(draft).toContain('这段是正文的一部分。')
     expect(draft).not.toMatch(/^- 这段是正文的一部分。$/m)
+  })
+
+  it('Windows 大写扩展名草稿参与稿号与版本链,与 core 扫描同口径(POSIX 不认)', () => {
+    const root = mkBook()
+    const first = writeDraft(root, { ...key, body: '第一稿正文。' })
+    expect(first.ok).toBe(true)
+    const dir = path.join(root, '草稿区/草稿/卷01-开篇任务')
+    fs.renameSync(path.join(dir, '稿1.md'), path.join(dir, '稿1.MD'))
+    const second = writeDraft(root, { ...key, body: '第二稿正文。' })
+    expect(second.ok).toBe(true)
+    if (process.platform !== 'win32') {
+      expect(second.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿1.md')
+      expect(fs.readdirSync(dir).sort()).toEqual(['稿1.MD', '稿1.md'])
+      expect(scanChapter(root, key).有草稿).toBe(true)
+      return
+    }
+    expect(second.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿2.md')
+    expect(fs.readdirSync(dir).sort()).toEqual(['稿1.MD', '稿2.md'])
+    const doc = parseDocument(fs.readFileSync(path.join(root, second.relPath), 'utf-8'))
+    expect(doc.ok && doc.data.fields['版本']).toBe(2)
+    expect(scanChapter(root, key).有草稿).toBe(true)
   })
 })

@@ -9,7 +9,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { entryChapterNo, queryLedger } from '../ledger'
 import { parseDocument } from '../repo/frontmatter'
-import { pad, paths } from '../repo/paths'
+import { isMarkdownFileName, pad, paths } from '../repo/paths'
 
 export type VolumeSummaryCandidate =
   | {
@@ -71,12 +71,12 @@ export function computeVolumeSummaryCandidate(bookRoot: string, 卷: number): Vo
   const 定稿目录 = path.join(bookRoot, `定稿/卷${卷NN}`)
   let files: string[] = []
   try {
-    files = fs.readdirSync(定稿目录).filter((f) => /^\d{4}-.+\.md$/.test(f)).sort()
+    files = fs.readdirSync(定稿目录).filter((f) => isMarkdownFileName(f) && /^\d{4}-.+\.md$/i.test(f)).sort()
   } catch {
     files = []
   }
   const chapters = files
-    .map((f) => /(\d{4})-(.+)\.md$/.exec(f))
+    .map((f) => /(\d{4})-(.+)\.md$/i.exec(f))
     .filter((m): m is RegExpExecArray => m !== null)
     .map((m) => ({ 章: Number(m[1]), 章名: m[2]! }))
   if (chapters.length === 0) {

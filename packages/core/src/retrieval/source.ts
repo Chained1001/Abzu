@@ -6,6 +6,7 @@ import { authorDocumentPath, validateAuthorRelativePath } from '../revise/docume
 import { canonicalizePath, stripDevicePrefix } from '../gate/canonical'
 import { parseDocument } from '../repo/frontmatter'
 import { splitCandidateFacts } from '../repo/drafts'
+import { isMarkdownFileName } from '../repo/paths'
 import { TRANSACTION_DIR } from '../repo/lock'
 import { SearchError, type SearchChunk, type SearchDocument, type SearchIssue, type SearchSnapshot } from './types'
 
@@ -116,8 +117,8 @@ export async function scanFinalized(root: string, signal?: AbortSignal): Promise
         if (entry.isDirectory() && /^卷\d+$/.test(entry.name)) await walk(rel)
         continue
       }
-      const key = /^定稿\/卷(\d+)\/(\d{4,})-(.+)\.md$/.exec(rel)
-      if (!key || !entry.isFile()) continue
+      const key = /^定稿\/卷(\d+)\/(\d{4,})-(.+)\.md$/i.exec(rel)
+      if (!key || !entry.isFile() || !isMarkdownFileName(rel)) continue
       if (![Number(key[1]), Number(key[2])].every(value => Number.isSafeInteger(value) && value > 0)) {
         issue(rel, 'invalid-document', '定稿卷号或章号不是有效正整数'); continue
       }

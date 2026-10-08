@@ -9,9 +9,8 @@ import { parseDocument } from '../repo/frontmatter'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { isWindowEntryReady } from './states'
 import { draftHashOf, parseReviewRecord, reviewInputFingerprintOf, reviewRecordHashOf, 处置状态列表, type ReviewRecord } from '../evidence/record'
-import { chapterNo } from '../repo/paths'
+import { chapterNo, isMarkdownFileName } from '../repo/paths'
 import { materialReviewIdentity } from '../assembly/read'
-import { isDraftMarkdownFile } from '../repo/drafts'
 import { chapterLengthIdentity, readChapterLength } from '../design/chapter-length'
 
 export interface ChapterKey {
@@ -48,13 +47,14 @@ export interface ChapterFacts {
   readonly 裁决: '已批准' | '已退回' | null
   /** 定稿章文件在(行 11)。 */
   readonly 已定稿: boolean
-  /** 叠加标记:细纲/草稿需复核(格式规格 §8 叠加标记)。 */
+  /** 叠加标记:「细纲」需复核、审核证据对当前稿过期须重审(格式规格 §8 叠加标记)。 */
   readonly 需复核标记: readonly string[]
 }
 
 function readText(root: string, rel: string): string | null {
   try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
+    // readFileSync(utf-8) 保留 BOM,而材料清单/裁决等机器态 JSON 解析不容忍——扫描读取边界统一剥首部 BOM,与 parseDocument 口径一致
+    return fs.readFileSync(path.join(root, rel), 'utf-8').replace(/^\uFEFF/, '')
   } catch {
     return null
   }
@@ -63,10 +63,10 @@ function readText(root: string, rel: string): string | null {
 /** 近期窗口条目行式:`- <名称> 〔状态〕`(parseWindow 与重建保留行判定共用同一正则)。 */
 const WINDOW_ENTRY_LINE = /^\s*-\s+(.+?)\s*[〔(]\s*(.+?)\s*[〕)]\s*$/
 
-/** 近期窗口解析:`- <名称> 〔状态〕` 行式(作者可读且可解析)。 */
+/** 近期窗口解析:`- <名称> 〔状态〕` 行式(作者可读且可解析);入口剥首部 BOM,首条目不因外部编辑器静默丢失。 */
 export function parseWindow(text: string): ReadonlyArray<{ name: string; state: string }> {
   const out: Array<{ name: string; state: string }> = []
-  for (const line of text.split('\n')) {
+  for (const line of text.replace(/^\uFEFF/, '').split('\n')) {
     const m = WINDOW_ENTRY_LINE.exec(line)
     if (m) out.push({ name: m[1]!, state: m[2]! })
   }
@@ -120,7 +120,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   let 唯一待审稿 = false
   let 唯一待审稿正文: string | null = null
   if (fs.existsSync(草稿目录) && fs.statSync(草稿目录).isDirectory()) {
-    const drafts = fs.readdirSync(草稿目录).filter(isDraftMarkdownFile)
+    const drafts = fs.readdirSync(草稿目录).filter(isMarkdownFileName)
     有草稿 = drafts.length > 0
     const 待审 = drafts.filter((f) => {
       const doc = parseDocument(fs.readFileSync(path.join(草稿目录, f), 'utf-8'))
@@ -183,10 +183,10 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
 
   const 已定稿 = readText(root, `定稿/卷${卷NN}/${chapterNo(章)}-${章名}.md`) !== null
 
+  // 「草稿需复核」的写侧落盘通道已退役(impact),草稿侧不再枚举;活来源只有细纲状态与审核证据过期
   const 需复核标记: string[] = []
-  for (const [label, text] of [['细纲', 确认文 ?? 候选文], ['草稿', null as string | null]] as const) {
-    if (text !== null && stateOf(text) === '需复核') 需复核标记.push(label)
-  }
+  const 细纲文 = 确认文 ?? 候选文
+  if (细纲文 !== null && stateOf(细纲文) === '需复核') 需复核标记.push('细纲')
   if (审核证据过期) 需复核标记.push('审核证据对当前稿过期→须重审')
 
   return { key, 窗口就绪, 候选细纲, 确认细纲, 材料包状态, 有草稿, 唯一待审稿, 有审核记录, 审核完成, 待定稿包完整, 裁决, 已定稿, 需复核标记, 审核证据过期,
@@ -208,8 +208,8 @@ export function listChapters(root: string): ReadonlyArray<ChapterKey> {
 
   // 卷规划近期窗口(近期窗口条目);已消费/已失效条目是历史记录,不再是可进入的章(拍板:窗口失效过滤)
   walk(path.join(root, '大纲/卷规划'), (p) => {
-    const m = /卷规划[\\/]卷(\d+)[\\/]近期窗口\.md$/.exec(p)
-    if (m) {
+    const m = /卷规划[\\/]卷(\d+)[\\/]近期窗口\.md$/i.exec(p)
+    if (m !== null && isMarkdownFileName(p)) {
       const 卷 = Number(m[1])
       try {
         const text = fs.readFileSync(p, 'utf-8')
@@ -223,12 +223,12 @@ export function listChapters(root: string): ReadonlyArray<ChapterKey> {
 
   // 真源区:确认细纲与定稿章(文件名即编号;[\\/] 兼容两种分隔符)
   walk(path.join(root, '大纲/卷规划'), (p) => {
-    const m = /卷规划[\\/]卷(\d+)[\\/]章细纲[\\/](\d+)-(.+)\.md$/.exec(p)
-    if (m) add({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
+    const m = /卷规划[\\/]卷(\d+)[\\/]章细纲[\\/](\d+)-(.+)\.md$/i.exec(p)
+    if (m !== null && isMarkdownFileName(p)) add({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
   })
   walk(path.join(root, '定稿'), (p) => {
-    const m = /定稿[\\/]卷(\d+)[\\/](\d+)-(.+)\.md$/.exec(p)
-    if (m) add({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
+    const m = /定稿[\\/]卷(\d+)[\\/](\d+)-(.+)\.md$/i.exec(p)
+    if (m !== null && isMarkdownFileName(p)) add({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
   })
 
   // 草稿区:目录名/文件名形如 卷NN-章名(章号未知,以 0 占位);机器态 JSON（审核记录等）不是章键
@@ -237,8 +237,8 @@ export function listChapters(root: string): ReadonlyArray<ChapterKey> {
     let entries: fs.Dirent[]
     try { entries = fs.readdirSync(abs, { withFileTypes: true }) } catch { continue }
     for (const entry of entries) {
-      if (!entry.isDirectory() && !entry.name.endsWith('.md')) continue
-      const m = /^卷(\d+)-(.+?)(?:\.md)?$/.exec(entry.name)
+      if (!entry.isDirectory() && !isMarkdownFileName(entry.name)) continue
+      const m = /^卷(\d+)-(.+?)(?:\.md)?$/i.exec(entry.name)
       if (m) add({ 卷: Number(m[1]), 章: 0, 章名: m[2]! })
     }
   }

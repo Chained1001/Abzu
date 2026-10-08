@@ -6,6 +6,8 @@ import {
   CN_NUMERAL,
   LEDGER_NAMES,
   MEMORY_KINDS,
+  filenameCase,
+  isMarkdownFileName,
   type MemoryKind,
   type LedgerName,
   paths,
@@ -364,12 +366,12 @@ export function queryMemory(
   const dir = path.join(bookRoot, '本书记忆')
   let names: string[] = []
   try {
-    names = fs.readdirSync(dir).filter((n) => n.endsWith('.md') && n !== '索引.md').sort()
+    names = fs.readdirSync(dir).filter((n) => isMarkdownFileName(n) && filenameCase(n) !== '索引.md').sort()
   } catch {
     names = []
   }
   for (const name of names) {
-    const source = paths.本书记忆条目(name.replace(/\.md$/, ''))
+    const source = paths.本书记忆条目(name.replace(/\.md$/i, ''))
     const result = read(bookRoot, source, '本书记忆文件')
     if (!result.ok) continue
     const doc = parseDocumentFs(result.text)
@@ -383,7 +385,7 @@ export function queryMemory(
       files.push(source)
       collected.push({
         类: 类 as MemoryKind,
-        名称: typeof doc.fields['名称'] === 'string' ? doc.fields['名称'] : name.replace(/\.md$/, ''),
+        名称: typeof doc.fields['名称'] === 'string' ? doc.fields['名称'] : name.replace(/\.md$/i, ''),
         字段: fields,
         正文: doc.body,
         来源文件: source,
@@ -392,7 +394,7 @@ export function queryMemory(
       continue
     }
     // 旧格式候选:文件名即类名
-    const base = name.replace(/\.md$/, '')
+    const base = name.replace(/\.md$/i, '')
     if (!(MEMORY_KINDS as readonly string[]).includes(base)) continue
     const parsed = parseEntries(result.text, base as MemoryKind, source)
     if (!Array.isArray(parsed)) {

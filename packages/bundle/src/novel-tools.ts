@@ -859,6 +859,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
         schema: {
           type: 'object',
           properties: {
+            ...DESIGN_COMMIT_FIELDS,
             ok: { type: 'boolean', description: '是否成功' },
             relPath: { type: 'string', description: '确认细纲真源相对路径' },
             message: { type: 'string', description: '结果说明' },
@@ -887,10 +888,12 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
             provenance: provenanceOf(sessionContext, [paths.确认细纲(卷, 章, 章名), ...batch]),
           })
           if (!commit.ok) {
-            return { ok: false, reason: `细纲已确认落位但提交失败（已落盘但未提交，重跑本工具即可补提交）：${commit.reason}` }
+            return { ok: false, commitState: 'failed', retryable: true, reason: `细纲已确认落位但提交失败（已落盘但未提交，重跑本工具即可补提交）：${commit.reason}` }
           }
           return {
             ok: true,
+            commitState: commit.noChanges === true ? 'unchanged' : 'committed',
+            retryable: false,
             relPath: paths.确认细纲(卷, 章, 章名),
             message: commit.noChanges === true
               ? `细纲《${章名}》此前已确认（幂等重放，无改动未产生新提交）`
@@ -1892,6 +1895,33 @@ ${摘要现文}`,
             渲染: { type: 'string', description: '书级进度卡渲染文本' },
             未决偏离: { type: 'array', description: '未经作者处置的偏离项' },
             待核对: { type: 'array', description: '章级计划待核对（可选；按章号关联同章事实供核对，同章任一事件不等于内容兑现）' },
+            疑似占位待核对: {
+              type: 'array',
+              description: '疑似模板占位的计划项（可选；计划时间线仍是种子模板时整批转入待核对，不落未决偏离）',
+              items: {
+                type: 'object',
+                properties: {
+                  名称: { type: 'string' },
+                  来源: { type: 'string' },
+                  状态: { type: 'string' },
+                  计划区段: { type: 'string' },
+                },
+              },
+            },
+            内容问题: {
+              type: 'array',
+              description: '设计工件内容问题清单',
+              items: {
+                type: 'object',
+                properties: {
+                  路径: { type: 'string' },
+                  分部: { type: 'string' },
+                  问题: { type: 'string', enum: ['缺少内容', '缺少分部', '状态冲突', '状态无效', '疑似模板占位'] },
+                  阶段: { type: 'string', enum: ['灵感阶段', '作品定调', '世界构建', '故事骨架', '分卷布局', '当前卷规划', '开写就绪'] },
+                },
+                required: ['路径', '分部', '问题', '阶段'],
+              },
+            },
             卷: { type: 'number', description: '当前卷号' },
             规划卷: { type: 'number', description: '规划目标卷（可选；当前卷已证完成且无已确认窗口条目时给出）' },
             reason: { type: 'string', description: '失败原因' },
@@ -1922,7 +1952,7 @@ ${摘要现文}`,
           for (const p of docPaths) {
             if (history[p] === undefined) history[p] = lastCommitOf(book.bookRoot, p)
           }
-          // 未决偏离 = 对账偏离项 − 作者层已处置条目（按本书标签筛,拍板 4）
+          // 未决偏离 = 对账偏离项 − 作者层已处置条目（按本书标签筛,拍板 4）;短名按 dispositionMentions 的边界规则匹配,防子串误扣
           let 未决偏离: string[] = []
           let 待核对: { 名称: string; 章号: number; 本章事实: string[] }[] = []
           let 疑似占位待核对: { 名称: string; 来源: string }[] = []
@@ -1934,7 +1964,7 @@ ${摘要现文}`,
             const 处置文本 = ws === undefined ? [] : listAuthorMemory(ws)
               .filter((e) => e.类 === '决策' && e.标签.some((t) => t === 书名 || t === String(args['bookId'] ?? '')))
               .map((e) => `${e.名称} ${e.描述} ${e.正文}`)
-            未决偏离 = 偏离.filter((名) => !处置文本.some((text) => text.includes(名)))
+            未决偏离 = 偏离.filter((名) => !处置文本.some((text) => dispositionMentions(text, 名)))
             // 章级待核对单独计数呈报(任务21, B1):不进未决偏离;非空时不得呈报无偏离
             待核对 = recon.report.章级待核对.map((p) => ({ 名称: p.计划项.名称, 章号: p.章号, 本章事实: p.本章事实.map((f) => f.名称) }))
             疑似占位待核对 = [...(recon.report.疑似占位待核对 ?? [])]
@@ -2059,4 +2089,27 @@ function finishDesignCommit(
     provenance: provenanceOf(sessionContext, [...writtenPaths, ...batch]),
   })
   return designCommitResult(commit, defaultSummary, args, sessionContext)
+}
+
+const HAN_CHAR = /[\u4e00-\u9fff]/
+
+/** 单字符是否为汉字(空串＝字符串边界,不算汉字)。 */
+function isHan(ch: string): boolean {
+  return ch !== '' && HAN_CHAR.test(ch)
+}
+
+/**
+ * 偏离名是否被作者处置文本提及(拍板 4 启发式):长名(≥4 字)足够特异,子串即算;
+ * 短名(<4 字)要求至少一处出现两侧均临非汉字(行首尾/空白/标点/引号/字段拼接边界)。
+ * CJK 无词边界,「出发」混在无关决策正文的「出发点」内部时不得误判已处置,否则进度卡静默少报;
+ * 真实处置记录按惯例以标点或引号界定偏离名(如 名称「偏离处置-出发」/正文「偏离项『出发』处置」),不受影响。
+ */
+function dispositionMentions(text: string, 名: string): boolean {
+  if (名.length >= 4) return text.includes(名)
+  for (let i = text.indexOf(名); i !== -1; i = text.indexOf(名, i + 1)) {
+    const before = i === 0 ? '' : text.charAt(i - 1)
+    const after = i + 名.length >= text.length ? '' : text.charAt(i + 名.length)
+    if (!isHan(before) && !isHan(after)) return true
+  }
+  return false
 }

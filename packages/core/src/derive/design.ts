@@ -5,7 +5,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument } from '../repo/frontmatter'
-import { CN_NUMERAL, pad, paths } from '../repo/paths'
+import { CN_NUMERAL, isMarkdownFileName, pad, paths } from '../repo/paths'
 import { parseWindow } from './scan'
 import { isWindowEntryReady } from './states'
 import { hasDesignContent, parseDesignContent } from '../design/content'
@@ -148,7 +148,7 @@ export function scanDesign(root: string, 卷 = 1): DesignFacts {
     let hasContent = false
     let names: string[] = []
     try { names = fs.readdirSync(dir) } catch { /* Missing module is already a false fact. */ }
-    for (const name of names.filter(name => name.endsWith('.md'))) {
+    for (const name of names.filter(isMarkdownFileName)) {
       const relative = `世界书/${module}/${name}`
       const doc = parseDocument(readText(root, relative) ?? '')
       if (!doc.ok || doc.data.fields['状态'] !== '已确认') continue
@@ -333,12 +333,16 @@ function allLabeledConfirmed(entries: ReadonlyArray<{ name: string; state: strin
   return required.every((name) => entries.some((e) => e.name === name && e.state === '已确认'))
 }
 
-function moduleHasConfirmedEntry(root: string, 模块: string): boolean {
+/**
+ * 模块是否含已确认条目(单一实现,scanDesign 与 design/worldbook.checkWorldbookMinComplete 共用):
+ * 世界书/模块 下任一 Markdown(按宿主大小写策略判定)frontmatter 解析成功且 状态=已确认 即真。
+ */
+export function moduleHasConfirmedEntry(root: string, 模块: string): boolean {
   const dir = path.join(root, '世界书', 模块)
   let names: string[]
   try { names = fs.readdirSync(dir) } catch { return false }
   return names.some((name) => {
-    if (!name.endsWith('.md')) return false
+    if (!isMarkdownFileName(name)) return false
     const text = readText(root, path.posix.join('世界书', 模块, name).replace(/\\/g, '/'))
     if (text === null) return false
     const r = parseDocument(text)

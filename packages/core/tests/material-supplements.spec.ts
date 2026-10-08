@@ -11,6 +11,8 @@ import { makeFixtureBook } from './helpers/fixture-book'
 import { loadDraftContext } from '../../drafting/src/context'
 import { computeReview, registerCheck, registerDefaultChecks, resetChecks } from '../../review/src/index'
 import * as rename from '../src/repo/rename'
+import { materialReviewIdentity } from '../src/assembly/read'
+import { materialHash } from '../src/assembly/source'
 
 const roots: string[] = []
 const key = { 卷: 1, 章: 3, 章名: '章3' }
@@ -173,6 +175,30 @@ describe('持久补料与实际消费（15B）', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(f.dir, '材料清单.json'), 'utf8'))
     expect(manifest.段).toHaveLength(13)
     expect(result.合计字数).toBe(manifest.段.reduce((sum: number, item: { 字数: number }) => sum + item.字数, 0))
+  })
+
+  it('清单原文由调用方透传：扫描读盘后作者改盘，身份仍与判定同源', () => {
+    const f = fixture()
+    f.save()
+    const manifestPath = path.join(f.dir, '材料清单.json')
+    const scanText = fs.readFileSync(manifestPath, 'utf8')
+    // 模拟扫描读盘与身份计算之间作者改动清单:二次读盘会把「legacy 判定」与「身份」拆成两个版本
+    fs.writeFileSync(manifestPath, scanText.replace('"schemaVersion"', '"作者中途改动": 1, "schemaVersion"'))
+    const identity = materialReviewIdentity(f.root, key, scanText)
+    expect(identity.问题).toEqual([])
+    expect(identity.标识).not.toContain('作者中途改动')
+  })
+
+  it('带 BOM 的材料清单照常读入：身份与哈希按剥除口径，不误报清单无效', () => {
+    const f = fixture()
+    f.save()
+    const manifestPath = path.join(f.dir, '材料清单.json')
+    const clean = fs.readFileSync(manifestPath, 'utf8')
+    fs.writeFileSync(manifestPath, '\uFEFF' + clean)
+    const loaded = loadMaterialPackage(f.root, key)
+    expect(loaded.问题).toEqual([])
+    expect(loaded.清单).toBe(clean)
+    expect(loaded.清单哈希).toBe(materialHash(clean))
   })
 
   it('清单最后落盘失败时，已更新附件和基础材料一起回滚', () => {

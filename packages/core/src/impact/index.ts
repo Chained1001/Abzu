@@ -12,6 +12,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument } from '../repo/frontmatter'
 import { parseSourceRef } from '../repo/sourceRef'
+import { isMarkdownFileName } from '../repo/paths'
 
 /**
  * 节点键:规范化后的仓内相对路径(拍板 D2)。branded 防未规范化路径混入当键。
@@ -212,7 +213,7 @@ function walkMarkdown(root: string, dir = root): string[] {
     if (entry.name === '.git' || entry.name === 'node_modules') continue
     const abs = path.join(dir, entry.name)
     if (entry.isDirectory()) out.push(...walkMarkdown(root, abs))
-    else if (entry.isFile() && entry.name.endsWith('.md')) out.push(path.relative(root, abs).replace(/\\/g, '/'))
+    else if (entry.isFile() && isMarkdownFileName(entry.name)) out.push(path.relative(root, abs).replace(/\\/g, '/'))
   }
   return out
 }

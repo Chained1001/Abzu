@@ -10,7 +10,7 @@ import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { checkGitHealth } from './health'
 import { formatCommitMessage } from './message'
 import { checkCommitPath } from './paths'
-import { assertSegment } from '../repo/paths'
+import { assertSegment, isMarkdownFileName } from '../repo/paths'
 import { planSettlement, type SettlementApproval } from '../settlement'
 import { commitWithIsolatedIndex, runGit } from './git'
 import {
@@ -217,7 +217,7 @@ function chapterNumberConflict(bookRoot: string, targets: readonly string[]): st
       } catch {
         continue
       }
-      const 撞号 = 章文件.find((name) => name.startsWith(`${章号}-`) && name.endsWith('.md'))
+      const 撞号 = 章文件.find((name) => name.startsWith(`${章号}-`) && isMarkdownFileName(name))
       if (撞号 !== undefined) {
         return `章号全书连续,${章号} 已被 定稿/${其他卷}/${撞号} 占用(格式规格 §2.2)`
       }

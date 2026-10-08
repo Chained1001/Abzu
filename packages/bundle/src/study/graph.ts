@@ -1,4 +1,4 @@
-import { entryChapterNo, LEDGER_NAMES, parseDocument, parseLedgerHistory } from '@webnovel/core'
+import { entryChapterNo, filenameCase, isMarkdownFileName, LEDGER_NAMES, parseDocument, parseLedgerHistory } from '@webnovel/core'
 import type { TreeEntry } from './types'
 import type { StoryGraph, StoryGraphEdge, StoryGraphRecord } from './graph-types'
 
@@ -47,15 +47,15 @@ export function readStoryGraph(source: GraphSource): StoryGraph {
     for (const entry of entries) {
       if (entry.error) { warnings.push({ path: entry.ref.path, message: entry.error }); continue }
       if (entry.directory) { scan(entry.ref.path, depth + 1); continue }
-      if (!entry.name.endsWith('.md') || entry.name === '模块声明.md') continue
+      if (!isMarkdownFileName(entry.name) || filenameCase(entry.name) === '模块声明.md') continue
       try {
         const parsed = parseDocument(source.read(entry.ref.path))
         if (!parsed.ok) { warnings.push({ path: entry.ref.path, message: '文档字段无法解析' }); continue }
         const { fields, body } = parsed.data
-        const label = text(fields['名称']) || entry.name.replace(/\.md$/, '')
+        const label = text(fields['名称']) || entry.name.replace(/\.md$/i, '')
         const record = fromFields('world:' + entry.ref.path, label, kindOf(entry.ref.path), entry.ref.path, 1, fields, body)
         records.push(record)
-        for (const name of [label, entry.name, entry.ref.path, entry.ref.path.replace(/\.md$/, ''), ...terms(fields['别名'])]) alias(name, record.id)
+        for (const name of [label, entry.name, entry.ref.path, entry.ref.path.replace(/\.md$/i, ''), ...terms(fields['别名'])]) alias(name, record.id)
         const pair = terms(fields['关系双方']).length ? terms(fields['关系双方']) : [text(fields['主体']), text(fields['客体'])].filter(Boolean)
         links.push({ record, targets: pair.length ? pair : [...terms(fields['关联人物']), ...wiki(body)], pair: pair.length === 2,
           relation: text(fields['关系']) || text(fields['关系类型']) || (record.kind === '关系' ? label : undefined) })

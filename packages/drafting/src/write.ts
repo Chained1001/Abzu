@@ -11,7 +11,9 @@ import {
   composeBody,
   demoteOtherPendingDrafts,
   extractVersionFields,
+  filenameCase,
   initialVersion,
+  isMarkdownFileName,
   parseDocument,
   paths,
   scanChapter,
@@ -67,11 +69,11 @@ function draftDir(key: Pick<ChapterKey, '卷' | '章名'>): string {
 function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string[] {
   const abs = path.join(bookRoot, draftDir(key))
   if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
-  return fs.readdirSync(abs).filter((f) => f.endsWith('.md')).sort((a, b) => a.localeCompare(b, 'zh'))
+  return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh'))
 }
 
 function parseDraftNo(file: string): number {
-  const m = /^稿(\d+)\.md$/.exec(file)
+  const m = /^稿(\d+)\.md$/.exec(filenameCase(file))
   return m ? Number(m[1]) : 0
 }
 
@@ -124,7 +126,7 @@ function selectDraftLocked(
 ): { readonly ok: boolean; readonly reason?: string } {
   assertSegment(input.章名, '章名')
   const dir = draftDir(input)
-  const target = input.file.endsWith('.md') ? input.file : `${input.file}.md`
+  const target = isMarkdownFileName(input.file) ? input.file : `${input.file}.md`
   const files = listDraftFiles(bookRoot, input)
   if (!files.includes(target)) return { ok: false, reason: `草稿不存在:${target}` }
   for (const file of files) {

@@ -29,6 +29,8 @@ export function readMaterialFile(base: string, relative: string): { text: string
     if (after.size !== opened.size || after.mtimeMs !== opened.mtimeMs || after.ctimeMs !== opened.ctimeMs
       || current.dev !== opened.dev || current.ino !== opened.ino || current.nlink !== 1) throw new Error(`材料读取时已变化：${relative}`)
     if (bytes.includes(0)) throw new Error(`材料不是UTF-8文本：${relative}`)
+    // ignoreBOM:true 按编码规范是把 BOM 保留在解码文本里(而非剥除)——此处有意为之:文本忠实原始字节,
+    // 哈希(原始字节)与补充附件字数校验都依赖同一口径;BOM 的剥除归解析边界(parseDocument/清单读入)
     return { text: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes), hash: materialHash(bytes) }
   } finally { fs.closeSync(fd) }
 }

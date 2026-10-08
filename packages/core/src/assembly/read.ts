@@ -74,7 +74,8 @@ export function readMaterialManifestText(root: string, dir: string): string | nu
 }
 
 /** Shared by drafting, recovery and review; never discovers unregistered supplement files. */
-export function loadMaterialPackage(bookRoot: string, key: { 卷: number; 章: number; 章名: string }): LoadedMaterialPackage {
+// manifestText:调用方已读到的清单原文——传入则不再读盘(扫描侧借此消除同一扫描内的清单双读窗口);缺省由本函数自行读盘
+export function loadMaterialPackage(bookRoot: string, key: { 卷: number; 章: number; 章名: string }, manifestText?: string | null): LoadedMaterialPackage {
   const root = canonicalizePath(bookRoot)
   const dir = paths.材料包目录(key.卷, key.章名)
   const 段: Record<string, string> = {}
@@ -84,8 +85,10 @@ export function loadMaterialPackage(bookRoot: string, key: { 卷: number; 章: n
   let parsed: ParsedMaterialManifest | undefined
   let extended = false
   try {
-    清单 = readMaterialManifestText(root, dir)
+    清单 = manifestText !== undefined ? manifestText : readMaterialManifestText(root, dir)
     if (清单 !== null) {
+      // 磁盘读取保留 BOM(文本忠实字节),机器态 JSON 解析不容忍——清单在此统一剥首部 BOM,与 parseDocument 口径一致
+      清单 = 清单.replace(/^\uFEFF/, '')
       extended = /"补充协议"|"类型"\s*:\s*"补充"/.test(清单)
       parsed = parseMaterialManifest(清单)
     }
@@ -140,6 +143,7 @@ export function materialReviewIdentity(bookRoot: string, key: { 卷: number; 章
     && !(Array.isArray(parsed.data['段']) && parsed.data['段'].some(row => row && typeof row === 'object' && row['类型'] === '补充'))) {
     return { 标识: manifest, 问题: [] as readonly string[] }
   }
-  const loaded = loadMaterialPackage(bookRoot, key)
+  // 清单原文由调用方给定,直接透传——同一扫描内 legacy 判定与身份同源,不再二次读盘
+  const loaded = loadMaterialPackage(bookRoot, key, manifest)
   return { 标识: loaded.审读材料标识, 问题: loaded.问题 }
 }

@@ -4,9 +4,9 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { 世界书最小模块 } from '../derive/design'
+import { 世界书最小模块, moduleHasConfirmedEntry } from '../derive/design'
 import { writeFileAtomic, type FileOp } from '../repo/atomic'
-import { parseDocument, serializeDocument } from '../repo/frontmatter'
+import { serializeDocument } from '../repo/frontmatter'
 import { assertSegment } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
 
@@ -93,20 +93,4 @@ export function checkWorldbookMinComplete(bookRoot: string):
     if (!moduleHasConfirmedEntry(bookRoot, 名)) gaps.push(`模块无已确认条目:${名}`)
   }
   return gaps.length === 0 ? { ok: true } : { ok: false, gaps }
-}
-
-function moduleHasConfirmedEntry(root: string, 模块: string): boolean {
-  const dir = path.join(root, '世界书', 模块)
-  let names: string[]
-  try { names = fs.readdirSync(dir) } catch { return false }
-  return names.some((name) => {
-    if (!name.endsWith('.md')) return false
-    try {
-      const text = fs.readFileSync(path.join(dir, name), 'utf-8')
-      const r = parseDocument(text)
-      return r.ok && r.data.fields['状态'] === '已确认'
-    } catch {
-      return false
-    }
-  })
 }

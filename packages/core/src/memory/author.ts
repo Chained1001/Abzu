@@ -7,7 +7,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
-import { assertSegment } from '../repo/paths'
+import { assertSegment, filenameCase, isMarkdownFileName } from '../repo/paths'
 
 export const 作者记忆相对目录 = '书房/作者记忆'
 export const 作者记忆类别 = ['文风', '决策', '对话', '灵感'] as const
@@ -89,7 +89,7 @@ export function listAuthorMemory(workspaceRoot: string): readonly AuthorMemoryEn
     return []
   }
   const out: AuthorMemoryEntry[] = []
-  for (const name of names.filter((n) => n.endsWith('.md') && n !== '索引.md').sort()) {
+  for (const name of names.filter((n) => isMarkdownFileName(n) && filenameCase(n) !== '索引.md').sort()) {
     let doc: ReturnType<typeof parseDocument>
     try {
       doc = parseDocument(fs.readFileSync(path.join(dir, name), 'utf-8'))
@@ -98,7 +98,7 @@ export function listAuthorMemory(workspaceRoot: string): readonly AuthorMemoryEn
     }
     if (!doc.ok) continue
     out.push({
-      名称: typeof doc.data.fields['名称'] === 'string' ? doc.data.fields['名称'] : name.replace(/\.md$/, ''),
+      名称: typeof doc.data.fields['名称'] === 'string' ? doc.data.fields['名称'] : name.replace(/\.md$/i, ''),
       描述: typeof doc.data.fields['描述'] === 'string' ? doc.data.fields['描述'] : '',
       类: typeof doc.data.fields['类'] === 'string' ? doc.data.fields['类'] : '',
       标签: Array.isArray(doc.data.fields['标签']) ? (doc.data.fields['标签'] as unknown[]).map(String) : [],
@@ -124,7 +124,7 @@ function rebuildIndex(dir: string): string {
   } catch {
     names = []
   }
-  for (const name of names.filter((n) => n.endsWith('.md') && n !== '索引.md').sort()) {
+  for (const name of names.filter((n) => isMarkdownFileName(n) && filenameCase(n) !== '索引.md').sort()) {
     let doc: ReturnType<typeof parseDocument>
     try {
       doc = parseDocument(fs.readFileSync(path.join(dir, name), 'utf-8'))
@@ -132,7 +132,7 @@ function rebuildIndex(dir: string): string {
       continue
     }
     if (!doc.ok) continue
-    const 标题 = typeof doc.data.fields['名称'] === 'string' ? doc.data.fields['名称'] : name.replace(/\.md$/, '')
+    const 标题 = typeof doc.data.fields['名称'] === 'string' ? doc.data.fields['名称'] : name.replace(/\.md$/i, '')
     const 钩子 = typeof doc.data.fields['描述'] === 'string' ? doc.data.fields['描述'] : ''
     lines.push(`- [${标题}](${name}) — ${钩子}`)
   }

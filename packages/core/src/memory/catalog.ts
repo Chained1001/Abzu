@@ -8,7 +8,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument } from '../repo/frontmatter'
-import { MEMORY_KINDS } from '../repo/paths'
+import { filenameCase, isMarkdownFileName, MEMORY_KINDS } from '../repo/paths'
 import { 作者记忆相对目录 } from './author'
 import { canonicalizePath } from '../gate/canonical'
 
@@ -74,7 +74,7 @@ function scanDir(root: string, relDir: string, owner: MemoryCatalogOwner): ScanR
     if (code !== 'ENOENT') problems.push(`读取目录失败：${relDir}（${err instanceof Error ? err.message : String(err)}）`)
     return { entries, problems, indexed: undefined, indexExists: false }
   }
-  const files = names.filter((n) => n.endsWith('.md') && n !== '索引.md').sort()
+  const files = names.filter((n) => isMarkdownFileName(n) && filenameCase(n) !== '索引.md').sort()
   for (const name of files) {
     const rel = `${relDir}/${name}`
     let text: string
@@ -90,7 +90,7 @@ function scanDir(root: string, relDir: string, owner: MemoryCatalogOwner): ScanR
       continue
     }
     const fields = doc.data.fields
-    const base = name.replace(/\.md$/, '')
+    const base = name.replace(/\.md$/i, '')
     const 类 = typeof fields['类'] === 'string' ? fields['类'] : undefined
     if (owner === '本书' && 类 === undefined && (MEMORY_KINDS as readonly string[]).includes(base)) {
       entries.push({ 名称: base, 类: base, 全文位置: rel, 格式: '旧' })

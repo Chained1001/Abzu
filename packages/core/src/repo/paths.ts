@@ -47,6 +47,16 @@ export function chapterNo(n: number): string {
   return String(n).padStart(4, '0')
 }
 
+/** 宿主文件名大小写策略:Windows 不区分(统一转小写比较),其余平台保持原样。 */
+export function filenameCase(value: string): string {
+  return process.platform === 'win32' ? value.toLowerCase() : value
+}
+
+/** Markdown 扩展名判定(全仓单源):按宿主大小写策略比较,Windows 下 稿1.MD 亦是 Markdown,Unix 上不是。 */
+export function isMarkdownFileName(name: string): boolean {
+  return filenameCase(name).endsWith('.md')
+}
+
 /** Windows 保留名(不带扩展名视角)。 */
 const RESERVED = new Set([
   'CON', 'PRN', 'AUX', 'NUL',

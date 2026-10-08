@@ -8,7 +8,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { writeBatchAtomic, writeFileAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
-import { assertSegment, MEMORY_KINDS, paths, type MemoryKind } from '../repo/paths'
+import { assertSegment, filenameCase, isMarkdownFileName, MEMORY_KINDS, paths, type MemoryKind } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
 
 export interface BookMemoryInput {
@@ -65,7 +65,7 @@ export function listBookMemoryEntries(bookRoot: string): readonly BookMemoryEntr
     return []
   }
   const out: BookMemoryEntryView[] = []
-  for (const name of names.filter((n) => n.endsWith('.md') && n !== '索引.md').sort()) {
+  for (const name of names.filter((n) => isMarkdownFileName(n) && filenameCase(n) !== '索引.md').sort()) {
     let docResult: ReturnType<typeof parseDocument>
     try {
       docResult = parseDocument(fs.readFileSync(path.join(dir, name), 'utf-8'))
@@ -78,11 +78,11 @@ export function listBookMemoryEntries(bookRoot: string): readonly BookMemoryEntr
     if (typeof 类 !== 'string') continue
     out.push({
       类: 类 as MemoryKind,
-      名称: typeof fields['名称'] === 'string' ? fields['名称'] : name.replace(/\.md$/, ''),
+      名称: typeof fields['名称'] === 'string' ? fields['名称'] : name.replace(/\.md$/i, ''),
       ...(typeof fields['描述'] === 'string' ? { 描述: fields['描述'] } : {}),
       状态: typeof fields['状态'] === 'string' ? fields['状态'] : '',
       来源: typeof fields['来源'] === 'string' ? fields['来源'] : '',
-      relPath: paths.本书记忆条目(name.replace(/\.md$/, '')),
+      relPath: paths.本书记忆条目(name.replace(/\.md$/i, '')),
       正文: docResult.data.body,
     })
   }

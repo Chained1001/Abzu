@@ -23,7 +23,9 @@ const FM_CLOSE = '---'
 
 /** 解析「---\n…\n---\n正文」结构;无 frontmatter 时返回空字段集(合法)。 */
 export function parseDocument(text: string): ReadResult<Frontmatter> {
-  const normalized = text.replace(/\r\n/g, '\n')
+  // 外部编辑器(记事本类)常在文件首部存 UTF-8 BOM(\uFEFF),而 readFileSync(utf-8) 不剥除:
+  // 不剥则首行不是「---」,整个文件被当正文,状态/角色等字段静默丢失——故在解析入口剥首部 BOM
+  const normalized = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n')
   if (!normalized.startsWith(FM_OPEN + '\n')) {
     return { ok: true, data: { fields: {}, body: normalized } }
   }

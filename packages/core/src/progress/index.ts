@@ -9,7 +9,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { writeFileAtomic } from '../repo/atomic'
 import { parseDocument } from '../repo/frontmatter'
-import { pad, paths } from '../repo/paths'
+import { isMarkdownFileName, pad, paths } from '../repo/paths'
 import { canonicalizeChapterKeys, listChapters, parseWindow, scanChapter, type ChapterKey } from '../derive/scan'
 import { deriveChapterFacts } from '../derive/derive'
 import { parseLabeledStates, parseVolumeAllocations, 契约六部, 故事骨架九部, 分卷布局八部 } from '../derive/design'
@@ -171,7 +171,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
   const 各模块: WorldbookModuleDetail[] = 模块目录.map((m) => {
     let names: string[] = []
     try {
-      names = fs.readdirSync(path.join(bookRoot, '世界书', m)).filter((n) => n.endsWith('.md'))
+      names = fs.readdirSync(path.join(bookRoot, '世界书', m)).filter(isMarkdownFileName)
     } catch {
       names = []
     }
@@ -183,7 +183,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
       if (!r.ok || r.data.fields['状态'] !== '已确认') continue
       已确认数++
       // 只剩标题行(写入器缺省正文是 `# 名称`)即无正文
-      if (!hasDesignContent(r.data.body)) 无正文.push(n.replace(/\.md$/, ''))
+      if (!hasDesignContent(r.data.body)) 无正文.push(n.replace(/\.md$/i, ''))
     }
     return { 名称: m, 条目数: names.length, 已确认数, ...(无正文.length === 0 ? {} : { 无正文 }) }
   })
@@ -191,8 +191,8 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
   // 章进度:定稿目录扫描 + 活跃章(第一个未定稿章)。
   const 已定稿: { 卷: number; 章: number; 章名: string }[] = []
   walkFiles(path.join(bookRoot, '定稿'), (abs) => {
-    const m = /定稿[\\/]卷(\d+)[\\/](\d+)-(.+)\.md$/.exec(abs)
-    if (m) 已定稿.push({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
+    const m = /定稿[\\/]卷(\d+)[\\/](\d+)-(.+)\.md$/i.exec(abs)
+    if (m !== null && isMarkdownFileName(abs)) 已定稿.push({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
   })
   已定稿.sort((a, b) => a.卷 - b.卷 || a.章 - b.章)
   const 定稿集合 = new Set(已定稿.map((c) => `${c.卷}/${c.章}/${c.章名}`))
@@ -427,14 +427,14 @@ export function selectCurrentVolume(bookRoot: string): CurrentVolumeSelection {
     const hasWindow = windowText !== null && parseWindow(windowText).length > 0
     let hasOutlineFiles = false
     try {
-      hasOutlineFiles = fs.readdirSync(path.join(bookRoot, `大纲/卷规划/${name}/章细纲`)).some((f) => f.endsWith('.md'))
+      hasOutlineFiles = fs.readdirSync(path.join(bookRoot, `大纲/卷规划/${name}/章细纲`)).some(isMarkdownFileName)
     } catch { /* 无细纲目录 */ }
     if (hasOutline || hasTimeline || hasWindow || hasOutlineFiles) 准备卷.add(v)
   }
   try {
     for (const f of fs.readdirSync(path.join(bookRoot, '草稿区/章细纲'))) {
-      const m = /^卷(\d+)-(.+)\.md$/.exec(f)
-      if (m !== null) 准备卷.add(Number(m[1]))
+      const m = /^卷(\d+)-(.+)\.md$/i.exec(f)
+      if (m !== null && isMarkdownFileName(f)) 准备卷.add(Number(m[1]))
     }
   } catch { /* 无候选目录 */ }
   const 窗口就绪 = (v: number): boolean => {
@@ -500,8 +500,8 @@ export function activeChapterLine(bookRoot: string):
     细纲 = []
   }
   for (const name of 细纲) {
-    const m = /^(\d+)-(.+)\.md$/.exec(name)
-    if (m) keys.push({ 卷: 当前卷, 章: Number(m[1]), 章名: m[2]! })
+    const m = /^(\d+)-(.+)\.md$/i.exec(name)
+    if (m !== null && isMarkdownFileName(name)) keys.push({ 卷: 当前卷, 章: Number(m[1]), 章名: m[2]! })
   }
   for (const c of 已定稿.filter((c) => c.卷 === 当前卷)) {
     keys.push({ 卷: 当前卷, 章: c.章, 章名: '' })

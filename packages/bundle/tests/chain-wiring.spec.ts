@@ -121,15 +121,18 @@ describe('运行链路接线(工具面验收)', () => {
       bookId, 卷: 1, 章: 1, 章名: '开篇任务', 批次文件: ['大纲/分卷布局.md'],
     })
     expect(confirmed.ok).toBe(true)
+    // 与同族设计侧确认工具一致:输出带 DESIGN_COMMIT_FIELDS(提交成功=committed,不可重试)
+    expect(confirmed).toMatchObject({ commitState: 'committed', retryable: false })
     const subject = git(bookRoot, ['log', '-1', '--pretty=%s', '--', '大纲/卷规划/卷01/章细纲/0001-开篇任务.md']).stdout?.trim()
     expect(subject).toBe('design(ch0001): 确认细纲·开篇任务')
     const names = git(bookRoot, ['-c', 'core.quotepath=false', 'show', '--name-only', '--pretty=format:', 'HEAD']).stdout?.split('\n').map((l) => l.trim())
     expect(names).toContain('大纲/分卷布局.md')
     expect(Number(count())).toBe(Number(candidateCount) + 1)
 
-    // 幂等重放:候选已删、真源已落位 → 补提交通道跑一次,无改动无新提交
+    // 幂等重放:候选已删、真源已落位 → 补提交通道跑一次,无改动无新提交;unchanged 非失败、不可重试
     const replay = await call('novel_confirm_outline', { bookId, 卷: 1, 章: 1, 章名: '开篇任务' })
     expect(replay.ok).toBe(true)
+    expect(replay).toMatchObject({ commitState: 'unchanged', retryable: false })
     expect(String(replay.message)).toMatch(/幂等重放|无改动/)
     expect(count()).toBe(String(Number(candidateCount) + 1))
     expect(fs.existsSync(path.join(bookRoot, '草稿区/章细纲/卷01-开篇任务.md'))).toBe(false)
@@ -262,6 +265,35 @@ describe('运行链路接线(工具面验收)', () => {
     const rendered = String(progress1.渲染)
     expect(rendered).toContain('【书级进度卡】')
     expect(rendered).toContain('未绑定章')
+  })
+
+  it('进度卡未决偏离:短名只认边界命中(防「出发」误中「出发点」),真实裁决界定短名仍扣减', async () => {
+    const ws = mkWs()
+    const { call } = makeTools(ws)
+    const { bookId } = await makeBook(ws, call)
+    const bookRoot = path.join(ws, '链路书')
+    // 自定计划:短名「出发」与长名「夜探渡口」均未兑现 → 都应呈报为未决偏离
+    fs.writeFileSync(path.join(bookRoot, paths.计划时间线(1)), '# 计划时间线\n## 窗口覆盖\n- 出发\n- 夜探渡口\n## 窗口外锚点\n- 〔留白〕\n', 'utf8')
+
+    // 反例:无关决策正文只把「出发」裹在「出发点」一词内部 → 不得误扣,进度卡不静默少报
+    await call('novel_record_memory', {
+      bookId, 名称: '主角动机-讨论', 描述: '记录主角动机讨论', 类: '决策',
+      标签: ['链路书'], 来源: '对谈', 正文: '主角的出发点是复仇，先在市集收集消息。',
+    })
+    const p1 = await call('novel_get_book_progress', { bookId }) as { ok: boolean; 未决偏离: string[] }
+    expect(p1.ok).toBe(true)
+    expect(p1.未决偏离).toContain('出发')
+    expect(p1.未决偏离).toContain('夜探渡口')
+
+    // 正例:真实裁决文本按惯例以标点/引号界定短名 → 扣减;长名「夜探渡口」不受影响仍呈报
+    await call('novel_record_memory', {
+      bookId, 名称: '偏离处置-出发', 描述: '作者裁决:「出发」并入下一章', 类: '决策',
+      标签: ['链路书'], 来源: '对谈', 正文: '偏离项「出发」处置:接受,并入第 3 章,不改出发点设定。',
+    })
+    const p2 = await call('novel_get_book_progress', { bookId }) as { ok: boolean; 未决偏离: string[] }
+    expect(p2.ok).toBe(true)
+    expect(p2.未决偏离).not.toContain('出发')
+    expect(p2.未决偏离).toContain('夜探渡口')
   })
 
   it('任务21:卷摘要确认(design:/版本协议)＋进度卡待核对/规划卷＋设计检查规划卷', async () => {

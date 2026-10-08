@@ -10,6 +10,7 @@ import {
   ensureModulesDeclared,
   ingestNote,
   planTimelineBody,
+  scanDesignDetail,
   seedMinDesign,
   writeContract,
   writeEntry,
@@ -97,6 +98,34 @@ describe('世界书最小模块', () => {
       来源: '对谈共创',
     })
     expect(checkWorldbookMinComplete(root)).toEqual({ ok: true })
+  })
+
+  it('Windows 大写扩展名条目计入已确认,checkWorldbookMinComplete 与 scanDesign 同一口径(POSIX 不认)', () => {
+    const root = mkRoot()
+    ensureModulesDeclared(root)
+    writeEntry(root, '人物档案', '主角', {
+      类型: '人物',
+      性质: '计划',
+      状态: '已确认',
+      来源: '对谈共创',
+    })
+    writeEntry(root, '世界规则', '基础规则', {
+      类型: '规则',
+      性质: '计划',
+      状态: '已确认',
+      来源: '对谈共创',
+    })
+    fs.renameSync(path.join(root, '世界书/人物档案/主角.md'), path.join(root, '世界书/人物档案/主角.MD'))
+
+    if (process.platform !== 'win32') {
+      expect(checkWorldbookMinComplete(root)).toEqual({ ok: false, gaps: ['模块无已确认条目:人物档案'] })
+      expect(scanDesign(root).世界书最小模块足够).toBe(false)
+      return
+    }
+    expect(checkWorldbookMinComplete(root)).toEqual({ ok: true })
+    expect(scanDesign(root).世界书最小模块足够).toBe(true)
+    const 人物档案 = scanDesignDetail(root).世界书.各模块.find((m) => m.名称 === '人物档案')
+    expect(人物档案).toMatchObject({ 条目数: 1, 已确认数: 1 })
   })
 })
 

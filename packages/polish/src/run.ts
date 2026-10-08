@@ -11,7 +11,9 @@ import {
   composeBody,
   demoteOtherPendingDrafts,
   extractVersionFields,
+  filenameCase,
   initialVersion,
+  isMarkdownFileName,
   nextDraftFileName,
   parseDocument,
   paths,
@@ -53,11 +55,11 @@ function readText(root: string, rel: string): string | null {
 function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string[] {
   const abs = path.join(bookRoot, paths.草稿目录(key.卷, key.章名))
   if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
-  return fs.readdirSync(abs).filter((f) => f.endsWith('.md')).sort((a, b) => a.localeCompare(b, 'zh'))
+  return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh'))
 }
 
 function parseDraftNo(file: string): number {
-  const m = /^稿(\d+)\.md$/.exec(file)
+  const m = /^稿(\d+)\.md$/.exec(filenameCase(file))
   return m ? Number(m[1]) : 0
 }
 

@@ -11,7 +11,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { canonicalizePath, isInsidePath } from '../gate/canonical'
 import { parseDocument } from '../repo/frontmatter'
-import { chapterNo, pad, validateSegment } from '../repo/paths'
+import { chapterNo, isMarkdownFileName, pad, validateSegment } from '../repo/paths'
 import { extractVersionFields } from '../provenance'
 import { materialHash, readMaterialFile } from '../assembly/source'
 
@@ -55,7 +55,7 @@ export interface ExportTargetReport {
   readonly 冲突: readonly string[]
 }
 
-const FINALIZED_RE = /^定稿\/卷(\d+)\/(\d{4,})-(.+)\.md$/
+const FINALIZED_RE = /^定稿\/卷(\d+)\/(\d{4,})-(.+)\.md$/i
 
 function walkFinalized(root: string, gaps: string[]): string[] {
   const out: string[] = []
@@ -78,7 +78,7 @@ function walkFinalized(root: string, gaps: string[]): string[] {
         walk(childAbs, childRel)
         continue
       }
-      if (entry.isFile() && FINALIZED_RE.test(childRel)) out.push(childRel)
+      if (entry.isFile() && isMarkdownFileName(childRel) && FINALIZED_RE.test(childRel)) out.push(childRel)
     }
   }
   walk(path.join(root, '定稿'), '定稿')

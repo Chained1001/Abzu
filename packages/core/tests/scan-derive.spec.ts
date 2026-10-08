@@ -95,6 +95,18 @@ describe('扫描器→推导端到端(真实文件树)', () => {
     expect(r.叠加标记).toContain('细纲')
   })
 
+  it('BOM:外部编辑器保存的窗口/候选细纲/材料清单/待审稿字段不静默丢失', () => {
+    const root = mkBook()
+    put(root, '大纲/卷规划/卷01/近期窗口.md', '\uFEFF# 近期窗口\n\n- 初见 〔已确认〕\n- 铺垫 〔暂定〕\n')
+    expect(scanChapter(root, key).窗口就绪).toBe(true)
+    put(root, '草稿区/章细纲/卷01-初见.md', '\uFEFF' + md({ 状态: '候选' }))
+    expect(scanChapter(root, key).候选细纲).toBe(true)
+    put(root, '草稿区/材料包/卷01-初见/材料清单.json', '\uFEFF' + JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
+    expect(scanChapter(root, key).材料包状态).toBe('段齐备')
+    put(root, '草稿区/草稿/卷01-初见/稿1.md', '\uFEFF' + md({ 角色: '待审稿' }, '第一章正文'))
+    expect(scanChapter(root, key).唯一待审稿).toBe(true)
+  })
+
   it('B4 落地:审核记录解析失败视为「有记录未完成」而非无记录', () => {
     const root = mkBook()
     put(root, '草稿区/草稿/卷01-初见/稿1.md', md({ 角色: '待审稿' }))

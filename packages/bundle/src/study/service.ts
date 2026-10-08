@@ -4,7 +4,7 @@ import { diffLines } from 'diff'
 import {
   AuthorDocumentError, authorDocumentPath, authorReadOnlyReason, documentHash, saveAuthorDocument, readAuthorSave,
   parseDocument, listChapters, scanChapter, deriveChapterFacts, paths, retryAuthorSaveCommit, withBookWrite,
-  canonicalizePath, isFullyQualifiedPath, findPendingReviewDraft,
+  canonicalizePath, isFullyQualifiedPath, isMarkdownFileName, findPendingReviewDraft,
   type OperationProvenance, type AuthorSaveResult,
 } from '@webnovel/core'
 import { scanBooks } from '../bookshelf'
@@ -121,7 +121,7 @@ export class StudyService {
           const target = authorDocumentPath(source.root, relative)
           const info = fs.statSync(target)
           if (!info.isDirectory() && !info.isFile()) return { ...item, error: '不支持的文件类型' }
-          const badge = info.isFile() && entry.name.endsWith('.md') && info.size <= MAX_DOCUMENT_BYTES
+          const badge = info.isFile() && isMarkdownFileName(entry.name) && info.size <= MAX_DOCUMENT_BYTES
             ? fieldLabel(textOf(target)).badge : undefined
           return { ...item, absolutePath: target, directory: info.isDirectory(), ...(badge ? { badge } : {}) }
         } catch (error) {

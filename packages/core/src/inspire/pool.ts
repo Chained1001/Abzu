@@ -7,7 +7,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
-import { assertSegment } from '../repo/paths'
+import { assertSegment, isMarkdownFileName } from '../repo/paths'
 import { removeSync } from '../repo/remove'
 import { createHash } from 'node:crypto'
 import { withBookWrite, writeFileAtomic } from '../repo/atomic'
@@ -80,7 +80,7 @@ export function listNotes(authorRoot: string): readonly InspirationNote[] {
   }
   const out: InspirationNote[] = []
   for (const name of names) {
-    if (!name.endsWith('.md')) continue
+    if (!isMarkdownFileName(name)) continue
     const id = name.slice(0, -3)
     const abs = path.join(dir, name)
     let text: string

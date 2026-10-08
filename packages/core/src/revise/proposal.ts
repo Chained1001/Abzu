@@ -10,6 +10,7 @@
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
+import { isMarkdownFileName } from '../repo/paths'
 import { writeFileAtomic } from '../repo/atomic'
 import { bookWriter } from '../repo/atomic'
 
@@ -45,8 +46,8 @@ export function nextProposalNumber(bookRoot: string): number {
       for (const f of fs.readdirSync(dir)) {
         const m1 = /^(\d{4})-/.exec(f)
         if (m1 !== null) { max = Math.max(max, Number(m1[1]!)); continue }
-        const m2 = /^补偿-(\d{4})\.md$/.exec(f)
-        if (m2 !== null) max = Math.max(max, Number(m2[1]!))
+        const m2 = /^补偿-(\d{4})\.md$/i.exec(f)
+        if (m2 !== null && isMarkdownFileName(f)) max = Math.max(max, Number(m2[1]!))
       }
     } catch { /* 目录不存在＝无提案 */ }
   }
@@ -60,8 +61,8 @@ export function nextProposalNumber(bookRoot: string): number {
     let names: string[] = []
     try { names = fs.readdirSync(nodePath.join(定稿目录, vol, '补偿')) } catch { continue }
     for (const f of names) {
-      const m = /^补偿-(\d{4})\.md$/.exec(f)
-      if (m !== null) max = Math.max(max, Number(m[1]!))
+      const m = /^补偿-(\d{4})\.md$/i.exec(f)
+      if (m !== null && isMarkdownFileName(f)) max = Math.max(max, Number(m[1]))
     }
   }
   return max + 1
@@ -116,7 +117,7 @@ export function loadProposal(
 ): { readonly ok: true; readonly text: string; readonly relPath: string } | { readonly ok: false; readonly reason: string } {
   try {
     for (const f of fs.readdirSync(提案目录(bookRoot))) {
-      if (!f.startsWith(`${编号}-`) || !f.endsWith('.md')) continue
+      if (!f.startsWith(`${编号}-`) || !isMarkdownFileName(f)) continue
       const relPath = `草稿区/提案/${f}`
       return { ok: true, text: fs.readFileSync(nodePath.join(提案目录(bookRoot), f), 'utf-8'), relPath }
     }
