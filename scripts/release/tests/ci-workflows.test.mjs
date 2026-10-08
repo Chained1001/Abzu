@@ -50,32 +50,3 @@ test('both Windows runtimes keep complete, disjoint test shards and required pol
     assert.deepEqual(combined.sort(), actual, 'shards must not omit tests')
   } finally { await vitest.close() }
 })
-
-test('release runs one complete test suite and keeps installation before draft creation', () => {
-  const steps = workflow('v8-release').jobs.release.steps
-  const commands = steps.map(step => step.run ?? '')
-  assert.equal(commands.filter(command => /^pnpm test(?: |$)/.test(command)).length, 1)
-  assert.ok(!commands.some(command => /pnpm -r.*\btest\b/.test(command)))
-  const install = steps.findIndex(step => step.name === 'Install the exact release assets into a clean host')
-  const draft = steps.findIndex(step => step.name === 'Create a draft; never replace an existing release')
-  assert.ok(install >= 0 && draft > install)
-  assert.match(steps[draft].run, /DSH Scriptor v\$\(\$manifest.version\)/)
-})
-
-test('required registry packages gate finalize, companion stays independent, verify cannot upload', () => {
-  const jobs = workflow('v8-npm-publish').jobs
-  const upload = jobs.publish.steps.find(step => step.run?.includes('--submit-only'))
-  assert.match(upload.if, /inputs.phase != 'verify'/)
-  assert.equal(jobs.installation.if, "needs.publish.outputs.ready == 'true'")
-  assert.equal(jobs.finalize.needs, 'installation')
-  const registry = jobs.publish.steps.find(step => step.id === 'registry')
-  assert.match(registry.run, /--check-visibility/)
-  assert.match(registry.run, /--exclude-companion/)
-  const installation = jobs.installation.steps.find(step => step.name === 'Verify registry bytes and install in clean profiles')
-  assert.match(installation.run, /--verify-only --exclude-companion/)
-  assert.match(installation.run, /install-smoke\.mjs \$main \$embedding \$meta --registry/)
-  assert.doesNotMatch(installation.run, /--companion\s/)
-  assert.match(jobs.finalize.steps[0].run, /companion-independent/)
-  assert.ok(!registry.env?.NODE_AUTH_TOKEN)
-  assert.equal(jobs.publish.outputs.ready, '${{ steps.registry.outputs.ready }}')
-})

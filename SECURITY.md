@@ -2,7 +2,7 @@
 
 v8 处于开发预览阶段，优先处理当前预览版的安全问题。v6 的安装和维护范围仍由 master 文档说明；报告时请注明产品线及版本。
 
-请通过 GitHub 的 [Report a vulnerability](https://github.com/lingfengQAQ/webnovel-writer/security/advisories/new) 私密报告漏洞。若页面不可用，请先在 Discussions 仅请求维护者提供私密联系方式，不披露漏洞细节或秘密值。
+本仓库为私有自用 fork，不设公开报告渠道。发现疑似安全问题直接在本机排查修复；上游问题可自行去原仓库 webnovel-writer 查证，不在本仓库传播漏洞细节或秘密值。
 
 报告应包括受影响版本、平台、最小合成复现、可能影响和建议修复。不要上传真实 API key、启动 token、私人作品、未脱敏会话或他人数据。凭据已暴露时应先在服务提供方撤销/轮换；删除公开文件不能使旧凭据重新安全。
 
