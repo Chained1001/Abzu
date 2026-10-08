@@ -62,6 +62,20 @@ describe('待补便签(算不出来的才落盘)', () => {
     expect(bad.ok).toBe(false)
     if (!bad.ok) expect(bad.reason).toContain('没有分节')
   })
+
+  it('冻结区与专区拒绝写入:定稿/构想/账本/本书记忆/草稿区一律拒绝,设计真源三区放行', () => {
+    const root = mkBook(true)
+    for (const rel of ['定稿/卷01/0001-x.md', '构想/构想快照.md', '账本/线索.md', '本书记忆/x.md', '草稿区/章细纲/卷01-x.md']) {
+      const r = writePending(root, rel, '任意节', 'x')
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.reason).toContain('拒绝')
+      expect(fs.existsSync(path.join(root, rel))).toBe(false)
+    }
+    for (const rel of ['作品契约/契约.md', '世界书/人物档案/主角.md']) {
+      const r = writePending(root, rel, '题材与读者定位', 'x')
+      if (!r.ok) expect(r.reason).not.toContain('拒绝')
+    }
+  })
 })
 
 describe('已确认但无内容(#165,标签保留且内容参与建议)', () => {

@@ -212,6 +212,9 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
 /** 便签行(写入与清除共用)。 */
 const PENDING_RE = /^\s*待补[:：]/
 
+/** 待补便签只写设计真源工件；定稿/构想为冻结区、账本与记忆有专属写入路径、草稿区不随 design: 提交。 */
+const PENDING_TARGET_TOPS = new Set(['作品契约', '大纲', '世界书'])
+
 /**
  * 待补便签写入器(算不出来的才落盘):在 relPath 工件的「节名」分节内写/清 `待补：<文本>` 行。
  * 文本 null 表示清除该节全部便签(补齐后清理)。真源改动,必须经工具(novel_note_pending)并 design: 提交。
@@ -219,6 +222,8 @@ const PENDING_RE = /^\s*待补[:：]/
 function writePendingLocked(bookRoot: string, relPath: string, 节名: string, 文本: string | null):
   | { readonly ok: true; readonly relPath: string }
   | { readonly ok: false; readonly reason: string } {
+  const top = relPath.split('/')[0]?.trim() ?? ''
+  if (!PENDING_TARGET_TOPS.has(top)) return { ok: false, reason: `待补便签只写设计真源（作品契约/大纲/世界书），拒绝:${relPath}` }
   const text = readText(bookRoot, relPath)
   if (text === null) return { ok: false, reason: `工件不存在:${relPath}` }
   const lines = text.split('\n')
