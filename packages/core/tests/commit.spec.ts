@@ -7,6 +7,7 @@ import { checkGitHealth } from '../src/commit/health'
 import { formatCommitMessage } from '../src/commit/message'
 import { checkCommitRelPath } from '../src/commit/paths'
 import { archiveChapter, archiveRetcon } from '../src/commit/archive'
+import { preparePack } from '../src/prepare'
 import { commitConfirmed } from '../src/commit/design'
 import { lastCommitOf } from '../src/commit/history'
 
@@ -182,6 +183,32 @@ describe('清单入档', () => {
     expect(fs.existsSync(path.join(root, dest))).toBe(false)
     const log = git(root, ['log', '-1', '--pretty=%s'])
     expect(log.status).not.toBe(0)
+  })
+
+  it.each([
+    ['a/b', '含路径分隔符会建嵌套目录'],
+    ['尾点.', '尾点章名在 Windows 产生不一致仓'],
+    ['带\x07控制符', '控制符非法'],
+  ] as const)('章名白名单:preparePack 拒绝「%s」(%s)且不落任何文件', (章名) => {
+    const root = initRepo()
+    expect(() => preparePack(root, { 卷: 1, 章: 1, 章名 })).toThrow(/章名/)
+    expect(fs.existsSync(path.join(root, '草稿区'))).toBe(false)
+    expect(git(root, ['log', '--oneline']).stdout?.trim()).toBe('')
+  })
+
+  it.each([
+    ['a/b', '定稿/卷01/0001-a/b.md'],
+    ['尾点.', '定稿/卷01/0001-尾点..md'],
+    ['带\x07控制符', '大纲/卷规划/卷01/章摘要/0001-带\x07控制符.md'],
+  ] as const)('章名白名单:archiveChapter 拒绝含「%s」的清单目标,零写入零提交', (章名, 目标) => {
+    const root = initRepo()
+    const r = archiveChapter({ bookRoot: root, files: [{ 目标, 内容: '正文\n' }], summary: 'x' })
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.reason).toContain('章名')
+    expect(fs.existsSync(path.join(root, '定稿'))).toBe(false)
+    expect(fs.existsSync(path.join(root, '大纲'))).toBe(false)
+    expect(git(root, ['log', '--oneline']).stdout?.trim()).toBe('')
   })
 })
 

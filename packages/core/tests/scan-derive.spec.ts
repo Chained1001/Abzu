@@ -126,6 +126,69 @@ describe('扫描器→推导端到端(真实文件树)', () => {
   })
 })
 
+describe('审核记录口径与 review 写侧对齐(M1/M2/M6)', () => {
+  function reviewedBook() {
+    const root = mkBook()
+    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
+    put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
+    put(root, '草稿区/草稿/卷01-初见/稿1.md', md({ 角色: '待审稿' }, '第一章正文'))
+    const draftBody = parseDocument(md({ 角色: '待审稿' }, '第一章正文')).data.body
+    return { root, 正文: draftBody, 细纲: md({ 状态: '已确认' }), 材料清单: JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }) }
+  }
+
+  it('M1:模块 map 残留陈旧待回写键不压住审核完成(写侧只按当轮注册名计算)', () => {
+    const b = reviewedBook()
+    put(b.root, '草稿区/审核/卷01-初见.json', JSON.stringify({
+      schemaVersion: 1, 完成: true,
+      审稿哈希: draftHashOf(b.正文),
+      审读指纹: reviewInputFingerprintOf({ 正文: b.正文, 细纲: b.细纲, 材料清单: b.材料清单 }),
+      问题: [{ 处置: '已解决' }],
+      模块: {
+        文本规范检查: { 完成: true, 失败: false, 待回写: false },
+        旧版一致性检查: { 完成: false, 失败: false, 待回写: true, 理由: '隔离子 Agent 编排' },
+      },
+    }))
+    const scan = scanChapter(b.root, key)
+    expect(scan.审核完成).toBe(true)
+    expect(deriveChapterFacts(scan).建议.环节).toBe('定稿准备与沉淀')
+  })
+
+  it('M2:方案带规范化外字段时,derive 指纹与 review 写侧一致(共用 parseReviewRecord)', () => {
+    const b = reviewedBook()
+    const 方案原文 = { 动作: '全维审读', 理由: '回归', 跳过: [{ 模块: '设定核对', 理由: '不适用', 备注: '旧版字段' }], 扩展说明: '旧版工具遗留' }
+    // 写侧口径:指纹吃 parseReviewRecord 规范化后的方案(只留 动作/理由/跳过,剥额外字段)
+    const 规范化方案 = { 动作: '全维审读', 理由: '回归', 跳过: [{ 模块: '设定核对', 理由: '不适用' }] }
+    put(b.root, '草稿区/审核/卷01-初见.json', JSON.stringify({
+      schemaVersion: 1, 完成: true,
+      审稿哈希: draftHashOf(b.正文),
+      审读指纹: reviewInputFingerprintOf({ 正文: b.正文, 细纲: b.细纲, 材料清单: b.材料清单, 方案: 规范化方案 }),
+      方案: 方案原文,
+      问题: [{ 处置: '已解决' }],
+      模块: { 文本规范检查: { 完成: true, 失败: false } },
+    }))
+    const scan = scanChapter(b.root, key)
+    expect(scan.审核证据过期).toBe(false)
+    expect(scan.审核完成).toBe(true)
+  })
+
+  it('M6:处置值不在词表内按未处置处理,行 8 定稿准备不放行', () => {
+    const b = reviewedBook()
+    put(b.root, '草稿区/审核/卷01-初见.json', JSON.stringify({
+      schemaVersion: 1, 完成: true,
+      审稿哈希: draftHashOf(b.正文),
+      审读指纹: reviewInputFingerprintOf({ 正文: b.正文, 细纲: b.细纲, 材料清单: b.材料清单 }),
+      问题: [{ 处置: '已确认' }, { 处置: 'done' }, { 处置状态: '作者保留' }],
+      模块: { 文本规范检查: { 完成: true, 失败: false } },
+    }))
+    const scan = scanChapter(b.root, key)
+    expect(scan.审核证据过期).toBe(false)
+    expect(scan.审核完成).toBe(false)
+    const rows = deriveChapterFacts(scan)
+    expect(rows.事实项.find((row) => row.row === 8)!.事实).toBe(false)
+    expect(rows.建议.环节).toBe('改稿')
+  })
+})
+
 describe('章键归并与窗口失效过滤(拍板 7 配套)', () => {
   it('窗口第七章 + 真源 0007-第七章 → 只返回一条键(章=7);已消费/已失效窗口项不产生键', () => {
     const root = mkBook()

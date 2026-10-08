@@ -40,7 +40,7 @@ export async function checkNativeWrites({ root, book, main, ctx, service, execut
         ['novel_update_volume_layout', '大纲/分卷布局.md', { 正文: '# 新分卷布局\n' }, core.serializeDocument({ 版本: 2, 父版本: 1, 状态: '已确认', 扩展字段: '原样保留' }, '# 旧布局')],
         ['novel_confirm_volume_outline', '大纲/卷规划/卷01/卷纲.md', { 卷: 1, 目标: '卷纲', 正文: outline }, '# 旧卷纲\n'],
         ['novel_confirm_volume_outline', '大纲/卷规划/卷01/计划时间线.md', { 卷: 1, 目标: '计划时间线', 正文: '# 新计划时间线\n' }, '# 旧计划时间线\n'],
-        ['novel_roll_window', '大纲/卷规划/卷01/近期窗口.md', { 卷: 1, action: '追加', 名称: '新窗口任务' }, '# 近期窗口\n\n- 旧任务 〔可进入〕\n'],
+        ['novel_roll_window', '大纲/卷规划/卷01/近期窗口.md', { 卷: 1, action: '追加', 名称: '新窗口任务' }, '# 近期窗口\n\n- 旧任务 〔已确认〕\n'],
         ['novel_confirm_worldbook_entry', '世界书/人物档案/原生主角.md', { 模块: '人物档案', 名称: '原生主角', 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '作者对谈', 正文: '# 新人物正文\n' }, '# 旧人物正文\n'],
       ]
       for (const [, relative, , content] of cases) put(relative, content)

@@ -167,7 +167,12 @@ export function loadReviewRecord(bookRoot: string, key: Pick<ChapterKey, '卷' |
   return parseReviewRecord(text)
 }
 
-function parseReviewRecord(text: string): ReviewRecord {
+/**
+ * 审核记录单一解析器：derive 扫描与 review/revise 写侧共用——方案规范化、处置词表
+ * 回退、模块态整形在此一次完成，两侧喂给 reviewInputFingerprintOf 的输入才同口径。
+ * 解析失败返回空记录（完成:false）——调用方按「有记录、未完成」处理（B4:不当无）。
+ */
+export function parseReviewRecord(text: string): ReviewRecord {
   const r = parseMachineJson(text, MACHINE_SCHEMA_VERSION)
   if (!r.ok) return { ...emptyReviewRecord(), 完成: false }
   const 问题 = Array.isArray(r.data['问题']) ? r.data['问题'].map(asFinding).filter((x): x is Finding => x !== null) : []

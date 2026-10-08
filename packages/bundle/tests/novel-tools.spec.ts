@@ -287,6 +287,60 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
   })
 })
 
+describe('novel_roll_window 窗口防护(状态词表/读失败分类/保留行)', () => {
+  const CONCEPT = { 状态: '已确认', 核心创意: 'x', 题材与目标读者: '悬疑' }
+  async function setup(bookName: string) {
+    const ws = mkRoot()
+    const bookRoot = path.join(ws, bookName)
+    const tools = createNovelTools({ nativeWrite: nativeWriteStub, workspaceRoot: () => ws, bookRootOfBookId: () => bookRoot })
+    const created = await tools.find((t) => t.name === 'novel_create_book')!.execute({ bookName, concept: CONCEPT }) as { ok: boolean; bookId: string }
+    expect(created.ok).toBe(true)
+    return {
+      bookRoot,
+      bookId: created.bookId,
+      roll: tools.find((t) => t.name === 'novel_roll_window')!,
+      windowPath: path.join(bookRoot, '大纲/卷规划/卷01/近期窗口.md'),
+    }
+  }
+
+  it('追加状态不在词表内被拒并指明全部合法值,窗口保持原样;词表内状态正常入窗', async () => {
+    const { roll, windowPath, bookId } = await setup('词表书')
+    const before = fs.readFileSync(windowPath, 'utf8')
+    for (const 非法 of ['已确', 'confirmed']) {
+      const bad = await roll.execute({ bookId, 卷: 1, action: '追加', 名称: '第一章', 状态: 非法 }) as { ok: boolean; reason: string }
+      expect(bad.ok, 非法).toBe(false)
+      expect(bad.reason, 非法).toContain('不在词表内')
+      expect(bad.reason, 非法).toContain('已确认、暂定、已消费、已失效、等待补设计')
+    }
+    expect(fs.readFileSync(windowPath, 'utf8')).toBe(before)
+    const ok = await roll.execute({ bookId, 卷: 1, action: '追加', 名称: '第一章', 状态: '暂定' }) as { ok: boolean }
+    expect(ok.ok).toBe(true)
+    expect(fs.readFileSync(windowPath, 'utf8')).toContain('- 第一章 〔暂定〕')
+  })
+
+  it('窗口文件不可读(非 ENOENT,如被占用/目录占位)时整体失败,不把既有条目覆盖成空窗口', async () => {
+    const { roll, windowPath, bookId } = await setup('占用书')
+    fs.writeFileSync(windowPath, '# 近期窗口\n\n- 开篇 〔已确认〕\n')
+    fs.unlinkSync(windowPath)
+    fs.mkdirSync(windowPath) // 目录占位 → readFileSync 抛 EISDIR(≠ENOENT)
+    const res = await roll.execute({ bookId, 卷: 1, action: '追加', 名称: '第二章' }) as { ok: boolean; reason: string }
+    expect(res.ok).toBe(false)
+    expect(res.reason).toContain('读取近期窗口失败')
+    expect(fs.statSync(windowPath).isDirectory()).toBe(true)
+  })
+
+  it('作者手写注释在滚动重建后原样保留,多次滚动不堆积(真实文件往返幂等)', async () => {
+    const { roll, windowPath, bookId } = await setup('批注书')
+    fs.writeFileSync(windowPath, '# 近期窗口\n\n- 开篇 〔已确认〕\n\n作者备注:开篇承接卷末钩子。\n')
+    expect(await roll.execute({ bookId, 卷: 1, action: '标已消费', 名称: '开篇' })).toMatchObject({ ok: true })
+    expect(fs.readFileSync(windowPath, 'utf8')).toBe('# 近期窗口\n\n- 开篇 〔已消费〕\n\n作者备注:开篇承接卷末钩子。\n')
+    expect(await roll.execute({ bookId, 卷: 1, action: '追加', 名称: '第二章风波' })).toMatchObject({ ok: true })
+    expect(fs.readFileSync(windowPath, 'utf8')).toBe('# 近期窗口\n\n- 开篇 〔已消费〕\n- 第二章风波 〔已确认〕\n\n作者备注:开篇承接卷末钩子。\n')
+    expect(await roll.execute({ bookId, 卷: 1, action: '追加', 名称: '第三章暗流' })).toMatchObject({ ok: true })
+    expect(fs.readFileSync(windowPath, 'utf8')).toBe('# 近期窗口\n\n- 开篇 〔已消费〕\n- 第二章风波 〔已确认〕\n- 第三章暗流 〔已确认〕\n\n作者备注:开篇承接卷末钩子。\n')
+  })
+})
+
 describe('novel_editor_suggest', () => {
   function setup(intent: EditorIntent, text = '林舟在渡口停下。', requestId = 'polish1') {
     const hub = new EditorRequestHub()

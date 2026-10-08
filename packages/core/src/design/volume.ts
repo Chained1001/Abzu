@@ -5,7 +5,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseWindow } from '../derive/scan'
-import { isWindowEntryReady } from '../derive/states'
+import { assertWindowEntryState, isWindowEntryReady } from '../derive/states'
 import { writeFileAtomic, type FileOp } from '../repo/atomic'
 import { pad, paths } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
@@ -70,8 +70,15 @@ export function preparePlanTimeline(卷: number, body: string): FileOp {
 
 export const writePlanTimeline = bookWriter(writePlanTimelineLocked)
 
-export function prepareRecentWindow(卷: number, items: readonly WindowItem[]): FileOp {
-  const lines = ['# 近期窗口', '', ...items.map((i) => `- ${i.名称} 〔${i.状态}〕`), '']
+export function prepareRecentWindow(卷: number, items: readonly WindowItem[], 保留行: readonly string[] = []): FileOp {
+  for (const i of items) assertWindowEntryState(i.状态)
+  const lines = [
+    '# 近期窗口',
+    '',
+    ...items.map((i) => `- ${i.名称} 〔${i.状态}〕`),
+    ...(保留行.length === 0 ? [] : ['', ...保留行]),
+    '',
+  ]
   return { relPath: paths.近期窗口(卷), content: lines.join('\n') }
 }
 

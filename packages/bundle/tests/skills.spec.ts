@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parse as parseYaml } from 'yaml'
+import { NOVEL_TOOL_NAMES, NOVEL_TEST_TOOL_NAMES } from '../src/novel-tools'
 
 /**
  * 主控+节点+聚合技能（全生命周期 11 份）。
@@ -248,5 +249,23 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
         expect(description, `${s.中文名}: description 中文`).toMatch(/[一-鿿]/)
       }
     }
+  })
+
+  it('工具文档覆盖：作者环境注册的每个工具名至少在一篇技能 .md 中出现', () => {
+    // 递归收集 skills/ 下全部 .md（SKILL.md、底本/、工序/、scripts/ 等）
+    const walkMd = (dir: string): string[] =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = path.join(dir, e.name)
+        return e.isDirectory() ? walkMd(p) : e.name.endsWith('.md') ? [p] : []
+      })
+    const files = walkMd(path.join(__dirname, '..', 'skills'))
+    expect(files.length, 'skills/ 下应收集到 .md 文档').toBeGreaterThan(0)
+    const corpus = files.map((f) => fs.readFileSync(f, 'utf8')).join('\n')
+    // 测试专用工具（NOVEL_TEST_TOOL_NAMES）不在作者环境注册，不要求文档覆盖
+    const authorTools = NOVEL_TOOL_NAMES.filter((name) => !NOVEL_TEST_TOOL_NAMES.includes(name))
+    // 工具只在运行时 description 里自我介绍、技能文档零提及时，模型行为没有文档锚点
+    // （案底：novel_editor_suggest 曾是孤儿工具）。失败信息列出未覆盖工具名，方便后人修。
+    const uncovered = authorTools.filter((name) => !corpus.includes(name))
+    expect(uncovered, `以下工具注册于作者环境却未出现在任何技能 .md 中：${uncovered.join('、')}`).toEqual([])
   })
 })

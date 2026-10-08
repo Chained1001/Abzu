@@ -30,9 +30,11 @@ function fixture(count = 21, upstream = false) {
   const doc = parseDocument(draft)
   if (!doc.ok) throw new Error('bad fixture')
   const 方案 = { 动作: '全维审读', 理由: '回归', 跳过: [], 扩展说明: '不可丢失' }
+  // 指纹按写侧口径:review 侧喂指纹的是 parseReviewRecord 规范化后的方案(只留 动作/理由/跳过),磁盘上的扩展字段保留但不进指纹
+  const 指纹方案 = { 动作: 方案.动作, 理由: 方案.理由, 跳过: 方案.跳过 }
   const record = {
     schemaVersion: 1, 完成: true, 审稿哈希: draftHashOf(doc.data.body),
-    审读指纹: reviewInputFingerprintOf({ 正文: doc.data.body, 细纲: '', 材料清单: null, 方案 }),
+    审读指纹: reviewInputFingerprintOf({ 正文: doc.data.body, 细纲: '', 材料清单: null, 方案: 指纹方案 }),
     方案, 扩展证据: { 来源: '测试', 标记: ['保留'] },
     模块: { 设定核对: { 完成: true, 失败: false, 待回写: false, 扩展字段: 17 } },
     问题: Array.from({ length: count }, (_, i) => ({ ...normalizeFinding({

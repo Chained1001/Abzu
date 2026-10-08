@@ -3,9 +3,9 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import {
-  contractTemplate, parseDocument, prepareContract, prepareEntry, preparePlanTimeline,
+  contractTemplate, parseDocument, parseWindow, prepareContract, prepareEntry, preparePlanTimeline,
   prepareRecentWindow, prepareSkeleton, prepareVolumeLayout, prepareVolumeOutline,
-  serializeDocument, updateSkeleton, updateVolumeLayout, writeContract,
+  serializeDocument, updateSkeleton, updateVolumeLayout, windowExtraLines, writeContract,
 } from '../src'
 import { removeSync } from '../src/repo/remove'
 
@@ -22,7 +22,7 @@ describe('单文件设计准备', () => {
     const ops = [
       prepareContract(root), prepareSkeleton(root, '# 骨架'), prepareVolumeLayout(root, '# 分卷'),
       prepareVolumeOutline(1, '# 卷纲'), preparePlanTimeline(1, '# 时间线'),
-      prepareRecentWindow(1, [{ 名称: '开篇', 状态: '可进入' }]),
+      prepareRecentWindow(1, [{ 名称: '开篇', 状态: '暂定' }]),
       prepareEntry('人物档案', '主角', { 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '对谈' }),
     ]
     expect(new Set(ops.map(op => op.relPath)).size).toBe(7)
@@ -76,5 +76,26 @@ describe('单文件设计准备', () => {
     fs.mkdirSync(path.join(root, rel))
     expect(prepare).toThrow()
     expect(fs.statSync(path.join(root, rel)).isDirectory()).toBe(true)
+  })
+})
+
+describe('近期窗口写侧防护(状态词表/保留行)', () => {
+  it('词表外状态被拒且错误指明全部合法值(已确/confirmed 等自造近义词静默写入=永远进不了细纲)', () => {
+    for (const 非法 of ['已确', 'confirmed', '可进入']) {
+      expect(() => prepareRecentWindow(1, [{ 名称: '开篇', 状态: 非法 }]), 非法).toThrow(/不在词表内/)
+    }
+    expect(() => prepareRecentWindow(1, [{ 名称: '开篇', 状态: '已确' }])).toThrow(/已确认、暂定、已消费、已失效、等待补设计/)
+    expect(prepareRecentWindow(1, [{ 名称: '开篇', 状态: '暂定' }]).content).toContain('- 开篇 〔暂定〕')
+  })
+
+  it('作者注释/自由文本作为保留行原样带回条目区之后,重建两次结果一致(往返幂等)', () => {
+    const 原文 = '# 近期窗口\n\n- 开篇 〔已确认〕\n- 铺垫 〔暂定〕\n\n作者备注:开篇承接卷末钩子。\n'
+    const toItems = (text: string) => parseWindow(text).map((e) => ({ 名称: e.name, 状态: e.state }))
+    expect(windowExtraLines(原文)).toEqual(['作者备注:开篇承接卷末钩子。'])
+    const first = prepareRecentWindow(1, toItems(原文), windowExtraLines(原文))
+    expect(first.content).toBe('# 近期窗口\n\n- 开篇 〔已确认〕\n- 铺垫 〔暂定〕\n\n作者备注:开篇承接卷末钩子。\n')
+    // 对重建结果再解析再重建(parseWindow 忽略保留行,保留行不重复堆积)
+    const second = prepareRecentWindow(1, toItems(first.content), windowExtraLines(first.content))
+    expect(second.content).toBe(first.content)
   })
 })

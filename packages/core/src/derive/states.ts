@@ -42,6 +42,13 @@ export function assertState(state: string, expected: StateFamily): void {
 /** 近期窗口条目状态(格式规格 §7.3 末条):计划族已确认/暂定 + 轮次族三态。 */
 export const WINDOW_ENTRY_STATES = ['已确认', '暂定', '已消费', '已失效', '等待补设计'] as const
 
+/** 窗口条目状态写侧校验:解析侧只认本词表(isWindowEntryReady 只认「已确认」),写侧同词表——自造近义词的条目永远进不了细纲且无报错,故写前即拒。 */
+export function assertWindowEntryState(state: string): void {
+  if (!(WINDOW_ENTRY_STATES as readonly string[]).includes(state)) {
+    throw new Error(`窗口条目状态「${state}」不在词表内(合法值:${WINDOW_ENTRY_STATES.join('、')})`)
+  }
+}
+
 export function isWindowEntryReady(state: string): boolean {
   return state === '已确认' // 「可进入细纲」判定(推导表行 1)
 }

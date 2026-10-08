@@ -40,4 +40,23 @@ describe('章键参数校验（D-004 回归）', () => {
     expect(float.reason).toContain('正整数')
     fs.rmSync(ws, { recursive: true, force: true, maxRetries: 5 })
   })
+
+  it('非法章名(路径白名单)在 prepare/settle 工具层被拒且不产生半截文件', async () => {
+    const { ws, bookRoot } = makeBook()
+    // 裁决通道注入只会抛错的假 askFn:非法章名应在询问作者之前就被拒
+    const askFn = async () => { throw new Error('不应询问作者') }
+    const tools = createNovelTools({ nativeWrite: nativeWriteStub, workspaceRoot: () => ws, bookRootOfBookId: () => bookRoot, askFn })
+    const call = (name: string, a: Record<string, unknown>) => tools.find((t) => t.name === name)!.execute(a)
+    for (const 章名 of ['a/b', '尾点.', '带\x07控制符']) {
+      const prep = await call('novel_prepare_pack', { bookId: 'probe-key', 卷: 1, 章: 1, 章名 }) as { ok: boolean; reason?: string }
+      expect(prep.ok, 章名).toBe(false)
+      expect(prep.reason, 章名).toContain('章名')
+      const settle = await call('novel_settle_chapter', { bookId: 'probe-key', 卷: 1, 章: 1, 章名, summary: 'x' }) as { ok: boolean; reason?: string }
+      expect(settle.ok, 章名).toBe(false)
+      expect(settle.reason, 章名).toContain('章名')
+    }
+    expect(fs.existsSync(path.join(bookRoot, '草稿区'))).toBe(false)
+    expect(fs.existsSync(path.join(bookRoot, '定稿'))).toBe(false)
+    fs.rmSync(ws, { recursive: true, force: true, maxRetries: 5 })
+  })
 })

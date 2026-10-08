@@ -41,6 +41,7 @@ import {
   activeChapterLine,
   applyVersionFields,
   archiveRetconRequest,
+  assertSegment,
   bumpVersion,
   applyRevision,
   applyRevisionBatch,
@@ -69,6 +70,8 @@ import {
   type IndexAction,
   indexFailure,
   writePending,
+  windowExtraLines,
+  WINDOW_ENTRY_STATES,
   seedMinDesign,
   prepareSkeleton,
   prepareVolumeLayout,
@@ -251,6 +254,9 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
     if (!Number.isSafeInteger(卷) || 卷 < 1) return { ok: false, reason: `卷必须是正整数（1 起）——请确认已传入 卷 参数（收到：${String(args['卷'] ?? '未传')}）` }
     if (!Number.isSafeInteger(章) || 章 < 1) return { ok: false, reason: `章必须是正整数（全书连续，1 起）——请确认已传入 章 参数（收到：${String(args['章'] ?? '未传')}）` }
     if (章名 === '') return { ok: false, reason: '章名不能为空（须与近期窗口条目逐字一致）' }
+    try { assertSegment(章名, '章名') } catch (err) {
+      return { ok: false, reason: err instanceof Error ? err.message : String(err) }
+    }
     return { ok: true, key: { 卷, 章, 章名 } }
   }
 
@@ -983,7 +989,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
           卷: { type: 'number', description: '卷号（如 1）' },
           action: { type: 'string', enum: ['追加', '标已消费'], description: '追加新条目 / 把既有条目标已消费' },
           名称: { type: 'string', description: '窗口条目名称' },
-          状态: { type: 'string', description: '追加时的状态（可选，默认「已确认」）' },
+          状态: { type: 'string', enum: [...WINDOW_ENTRY_STATES], description: '追加时的状态（可选，默认「已确认」；须取窗口条目词表：已确认/暂定/已消费/已失效/等待补设计）' },
           summary: { type: 'string', description: '提交摘要（可选）' },
           批次文件: { type: 'array', items: { type: 'string' }, description: '同批整改的受影响未定稿下游文件' },
         },
@@ -1010,20 +1016,32 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
         if (!Number.isSafeInteger(卷) || 卷 < 1) return { ok: false, reason: `卷必须是正整数（收到：${String(args['卷'] ?? '未传')}）` }
         const 名称 = String(args['名称']).trim()
         const action = String(args['action'])
+        // 状态词表双重校验(schema enum 之外 execute 再拒一次):词表外的条目解析侧永远不认,静默写入等于丢失
+        const 状态 = args['状态'] !== undefined ? String(args['状态']).trim() : '已确认'
+        if (!(WINDOW_ENTRY_STATES as readonly string[]).includes(状态)) {
+          return { ok: false, reason: `窗口条目状态「${状态}」不在词表内（合法值：${WINDOW_ENTRY_STATES.join('、')}）` }
+        }
         try {
           const rel = paths.近期窗口(卷)
           let text = ''
-          try { text = fs.readFileSync(nodePath.join(book.bookRoot, rel), 'utf-8') } catch { text = '' }
+          try {
+            text = fs.readFileSync(nodePath.join(book.bookRoot, rel), 'utf-8')
+          } catch (err) {
+            const code = (err as NodeJS.ErrnoException).code
+            // ENOENT＝窗口尚未建立,视作空窗口;其余错误码(EPERM/EBUSY/EISDIR…)必须整体失败——继续会把 items 当空窗口整体覆盖,既有条目全部丢失
+            if (code !== 'ENOENT') throw new Error(`读取近期窗口失败（${code ?? '未知错误'}），拒绝滚动以免覆盖既有条目：${rel}`)
+          }
           const items = parseWindow(text).map((e) => ({ 名称: e.name, 状态: e.state }))
+          const 保留行 = windowExtraLines(text)
           if (action === '追加') {
             if (items.some((i) => i.名称 === 名称)) return { ok: false, reason: `窗口已有同名条目：${名称}` }
-            items.push({ 名称, 状态: args['状态'] !== undefined ? String(args['状态']).trim() : '已确认' })
+            items.push({ 名称, 状态 })
           } else {
             const hit = items.find((i) => i.名称 === 名称)
             if (hit === undefined) return { ok: false, reason: `窗口无条目「${名称}」，无法标已消费` }
             for (const i of items) if (i.名称 === 名称) i.状态 = '已消费'
           }
-          await writeNative(book.bookRoot, prepareRecentWindow(卷, items), sessionContext)
+          await writeNative(book.bookRoot, prepareRecentWindow(卷, items, 保留行), sessionContext)
           return finishDesignCommit(book.bookRoot, [rel], args, `近期窗口·${action}`, null, sessionContext)
         } catch (err) {
           return { ok: false, reason: `窗口滚动失败: ${err instanceof Error ? err.message : String(err)}` }

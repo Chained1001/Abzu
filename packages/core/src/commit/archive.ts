@@ -10,6 +10,7 @@ import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { checkGitHealth } from './health'
 import { formatCommitMessage } from './message'
 import { checkCommitPath } from './paths'
+import { assertSegment } from '../repo/paths'
 import { planSettlement, type SettlementApproval } from '../settlement'
 import { commitWithIsolatedIndex, runGit } from './git'
 import {
@@ -167,6 +168,17 @@ function resumeArchive(root: string, receipt: ArchiveReceipt, provenance?: Opera
 }
 
 const 定稿章 = /^定稿\/卷(\d+)\/(\d{4})-(.+)\.md$/
+const 章摘要目标 = /^大纲\/卷规划\/卷\d+\/章摘要\/\d{4}-(.+)\.md$/
+
+/** 章名白名单(B2):清单目标凡定稿章/章摘要形态,章名段过 assertSegment——`a/b` 建嵌套目录、尾点章名在 Windows 产生不一致仓。 */
+function assertTargetChapterNames(targets: readonly string[]): void {
+  for (const target of targets) {
+    const finalized = 定稿章.exec(target)
+    if (finalized !== null) assertSegment(finalized[3] ?? '', '章名')
+    const summary = 章摘要目标.exec(target)
+    if (summary !== null) assertSegment(summary[1] ?? '', '章名')
+  }
+}
 
 function targetChapter(targets: readonly string[]): { readonly 卷: number; readonly 章: number; readonly 章名: string } | undefined {
   for (const target of targets) {
@@ -232,6 +244,12 @@ function archiveLocked(opts: ArchiveOptions, mode: 'ch' | 'retcon', identity?: R
 
   const loaded = loadOps(opts.bookRoot, packageAbs, files)
   if (!loaded.ok) return loaded
+  // 章名白名单在收据/健康检查/写盘之前:非法章名零写入零提交
+  try {
+    assertTargetChapterNames(loaded.ops.map((op) => op.relPath))
+  } catch (err) {
+    return { ok: false, reason: err instanceof Error ? err.message : String(err) }
+  }
   // 账本与本书记忆只有一条写入路径:沉淀服务。两种模式都不许清单从旁边的门进来,
   // 否则状态词表、计划来源、线索必填字段等校验被整体绕过(吃书亦然)。
   if (loaded.ops.some((op) => op.relPath.startsWith('账本/') || op.relPath.startsWith('本书记忆/'))) {

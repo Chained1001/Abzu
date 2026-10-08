@@ -8,7 +8,7 @@ import * as path from 'node:path'
 import { parseDocument } from '../repo/frontmatter'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { isWindowEntryReady } from './states'
-import { draftHashOf, reviewInputFingerprintOf, reviewRecordHashOf } from '../evidence/record'
+import { draftHashOf, parseReviewRecord, reviewInputFingerprintOf, reviewRecordHashOf, 处置状态列表, type ReviewRecord } from '../evidence/record'
 import { chapterNo } from '../repo/paths'
 import { materialReviewIdentity } from '../assembly/read'
 import { isDraftMarkdownFile } from '../repo/drafts'
@@ -60,38 +60,37 @@ function readText(root: string, rel: string): string | null {
   }
 }
 
+/** 近期窗口条目行式:`- <名称> 〔状态〕`(parseWindow 与重建保留行判定共用同一正则)。 */
+const WINDOW_ENTRY_LINE = /^\s*-\s+(.+?)\s*[〔(]\s*(.+?)\s*[〕)]\s*$/
+
 /** 近期窗口解析:`- <名称> 〔状态〕` 行式(作者可读且可解析)。 */
 export function parseWindow(text: string): ReadonlyArray<{ name: string; state: string }> {
   const out: Array<{ name: string; state: string }> = []
   for (const line of text.split('\n')) {
-    const m = /^\s*-\s+(.+?)\s*[〔(]\s*(.+?)\s*[〕)]\s*$/.exec(line)
+    const m = WINDOW_ENTRY_LINE.exec(line)
     if (m) out.push({ name: m[1]!, state: m[2]! })
   }
   return out
 }
 
-/** 审核记录(草稿区/审核/*.json):完成态、问题处置与模块态。 */
-interface ReviewRecord {
-  readonly 完成?: boolean
-  readonly 问题?: ReadonlyArray<{ 处置?: string; 处置状态?: string }>
-  readonly 模块?: Readonly<Record<string, { readonly 完成?: boolean; readonly 待回写?: boolean }>>
-  /** F5:被审待审稿正文哈希;缺省=旧格式记录(视为证据过期)。 */
-  readonly 审稿哈希?: string
-  readonly 审读指纹?: string
-  readonly 方案?: unknown
+/** 重建保留行:作者手写在窗口里的注释/自由文本(非条目行、非标题、非空行)——滚动重建时原样带回条目区之后,parseWindow 本就忽略它们。 */
+export function windowExtraLines(text: string): string[] {
+  return text.split(/\r?\n/).filter((line) => {
+    const trimmed = line.trim()
+    return trimmed !== '' && trimmed !== '# 近期窗口' && !WINDOW_ENTRY_LINE.test(line)
+  })
 }
 
+/** 处置判定按处置状态词表校验(evidence/record.ts):「已确认」「done」等非法值按未处置处理,不放行行 8。 */
 function issueDisposition(p: { readonly 处置?: string; readonly 处置状态?: string }): string {
-  if (typeof p.处置 === 'string' && p.处置 !== '') return p.处置
-  if (typeof p.处置状态 === 'string') return p.处置状态
-  return ''
+  const raw = typeof p.处置 === 'string' && p.处置 !== '' ? p.处置 : (typeof p.处置状态 === 'string' ? p.处置状态 : '')
+  return (处置状态列表 as readonly string[]).includes(raw) ? raw : ''
 }
 
+/** 解析与写侧同源(evidence/record.ts parseReviewRecord):磁盘上的方案先规范化再喂指纹,与 review/run.ts 的指纹输入一致;解析失败视为「有记录、未完成」(B4:不当无)。 */
 function parseReview(text: string | null): ReviewRecord | null {
   if (text === null) return null
-  const r = parseMachineJson(text, MACHINE_SCHEMA_VERSION)
-  if (!r.ok) return {} // 存在但解析失败——视为「有记录、未完成」(B4:不当无)
-  return r.data as ReviewRecord
+  return parseReviewRecord(text)
 }
 
 const 待定稿包文件 = ['清单.json', '正文.md', '事实变更.md', '时间线变更.md', '账本变更.md', '章摘要.md', '卷对账.md', '本书层记忆候选.md'] as const
@@ -155,12 +154,16 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
     })()
     : false
   // fail-closed(拍板:空审不通过):完成为真还必须——记录带模块态(手写假记录没有)、
-  // 无隔离子 Agent 待回写模块、每条问题处置非空非「待处理」、证据未过期(F5)。
+  // 每条问题处置在词表内且非「待处理」、证据未过期(F5)。
+  // 待回写口径与写侧对齐:写侧(review/src/run.ts)只对当轮注册的检查模块名计算——
+  // computeReview 的 names.every 与 ingestFindings 的「注册名减已完成」都不看历史键,
+  // 记录 完成:true 即保证注册模块全部已回写。模块 map 里的历史键(跨版本改名/删除的
+  // 残留)仅留痕,在此对其全量取 every 会永久压住完成、无法自愈(上游 #162 同型死锁);
+  // core 不 import 注册表,故 derive 只认写侧落盘的完成字段,不重判模块 map。
   const 审核完成 = 审核?.完成 === true
     && !审核证据过期
     && 审核.模块 !== undefined
     && Object.keys(审核.模块).length > 0
-    && Object.values(审核.模块).every((m) => m.待回写 !== true)
     && (审核.问题 ?? []).every((p) => {
       const d = issueDisposition(p)
       return d !== '' && d !== '待处理'

@@ -8,7 +8,7 @@ import * as path from 'node:path'
 import type { ChapterKey } from '../derive/scan'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
-import { chapterNo, paths } from '../repo/paths'
+import { chapterNo, assertSegment, paths } from '../repo/paths'
 import { MACHINE_SCHEMA_VERSION, serializeMachineJson } from '../repo/schema'
 import { countPendingReviewDrafts, countProseText, findPendingReviewDraft, splitCandidateFacts } from '../repo/drafts'
 import { applyVersionFields, extractVersionFields, initialVersion } from '../provenance'
@@ -111,6 +111,8 @@ function reconciliationSections(bookRoot: string, volume: number): { readonly �
 
 /** 组装待定稿包(R21 切割):纯算零写盘,返回精确写盘载荷;无唯一待审稿或校验失败则不产文件。 */
 export function computePack(bookRoot: string, key: ChapterKey, 沉淀候选?: 沉淀候选): ComputedPack {
+  // 章名进路径(待定稿包目录/定稿章/章摘要),先过白名单——`a/b` 会建嵌套目录、尾点章名在 Windows 产生不一致仓(B2)
+  assertSegment(key.章名, '章名')
   const dir = paths.待定稿包目录(key.卷, key.章名)
   const pendingCount = countPendingReviewDrafts(bookRoot, key)
   const pending = findPendingReviewDraft(bookRoot, key)
