@@ -19,7 +19,7 @@ test('credential and personal-path checks do not echo their values', () => {
 })
 test('release version binds exact tag, package and changelog', () => {
   const value = releaseVersion()
-  assert.equal(value.tag, `scriptor-v${value.version}`)
+  assert.equal(value.tag, `abzu-v${value.version}`)
   assert.throws(() => releaseVersion(undefined, 'v6.2.1'))
 })
 
@@ -34,7 +34,7 @@ test('version checks every user tutorial and optional package installation examp
     }
     fs.mkdirSync(path.join(root, 'docs/user'), { recursive: true })
     const tutorial = path.join(root, 'docs/user/another-tutorial.md')
-    for (const sample of ['@linfengqaqtat/dsh-scriptor-retrieval@1.0.0', 'linfengqaqtat-dsh-scriptor-companion-1.0.0.tgz']) {
+    for (const sample of ['abzu-retrieval@1.0.0', 'abzu-companion-1.0.0.tgz']) {
       fs.writeFileSync(tutorial, sample)
       assert.throws(() => releaseVersion(root), /Stale.*example/)
     }

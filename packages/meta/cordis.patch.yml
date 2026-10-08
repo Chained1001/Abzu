@@ -1,9 +1,9 @@
 - insert:
     - id: webnovel
-      name: '@linfengqaqtat/dsh-scriptor'
+      name: 'abzu'
     - id: webnovel-embeddings
-      name: '@linfengqaqtat/dsh-scriptor-retrieval'
+      name: 'abzu-retrieval'
     - id: webnovel-scenes
-      name: '@linfengqaqtat/dsh-scriptor-retrieval/scenes'
+      name: 'abzu-retrieval/scenes'
     - id: webnovel-reranking
-      name: '@linfengqaqtat/dsh-scriptor-retrieval/reranking'
+      name: 'abzu-retrieval/reranking'

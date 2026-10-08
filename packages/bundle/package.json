@@ -1,5 +1,5 @@
 {
-  "name": "@linfengqaqtat/dsh-scriptor",
+  "name": "abzu",
   "version": "8.2.0",
   "type": "module",
   "main": "./lib/index.js",
@@ -124,7 +124,7 @@
     "THIRD_PARTY_NOTICES.md",
     "licenses/*.txt"
   ],
-  "description": "Webnovel Writer：DSH 长篇网文写作工作台",
+  "description": "Abzu：DSH 长篇网文写作工作台",
   "license": "GPL-3.0-only",
   "engines": {
     "node": "^22.19.0 || ^24.0.0"
@@ -145,15 +145,6 @@
     "creative-writing",
     "ai-assistant"
   ],
-  "homepage": "https://lingfengqaq.github.io/webnovel-writer/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/lingfengQAQ/webnovel-writer.git",
-    "directory": "packages/bundle"
-  },
-  "bugs": {
-    "url": "https://github.com/lingfengQAQ/webnovel-writer/issues"
-  },
   "publishConfig": {
     "access": "public",
     "tag": "latest",

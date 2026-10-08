@@ -13,10 +13,10 @@ export function releaseVersion(directory = root, tag) {
   assert.equal(meta.version, bundle.version, 'Full and main release version must agree')
   for (const name of ['embedding-provider', 'companion']) {
     const optional = JSON.parse(fs.readFileSync(path.join(directory, `packages/${name}/package.json`), 'utf8'))
-    assert.equal(optional.version, bundle.version, 'All Scriptor release versions must agree')
+    assert.equal(optional.version, bundle.version, 'All Abzu release versions must agree')
   }
-  assert.equal(bundle.name, '@linfengqaqtat/dsh-scriptor')
-  const expectedTag = `scriptor-v${bundle.version}`
+  assert.equal(bundle.name, 'abzu')
+  const expectedTag = `abzu-v${bundle.version}`
   if (tag) assert.equal(tag, expectedTag, 'Release tag must match the package version')
   const changelog = fs.readFileSync(path.join(directory, 'CHANGELOG.md'), 'utf8')
   assert.ok(changelog.includes(`## [${bundle.version}]`), 'Missing versioned changelog entry')
@@ -25,18 +25,18 @@ export function releaseVersion(directory = root, tag) {
     ...fs.readdirSync(path.join(directory, 'docs/user')).filter(file => file.endsWith('.md')).map(file => `docs/user/${file}`)]
   for (const file of documents) {
     const text = fs.readFileSync(path.join(directory, file), 'utf8')
-    for (const match of text.matchAll(/linfengqaqtat-dsh-scriptor-(?:(?:full|retrieval|companion)-)?([\d][\w.-]*)\.tgz/g)) {
+    for (const match of text.matchAll(/abzu-(?:(?:full|retrieval|companion)-)?([\d][\w.-]*)\.tgz/g)) {
       assert.equal(match[1], bundle.version, `Stale installation example in ${file}`)
     }
-    for (const match of text.matchAll(/releases\/tag\/scriptor-v([\d][\w.-]*)/g)) {
+    for (const match of text.matchAll(/releases\/tag\/abzu-v([\d][\w.-]*)/g)) {
       assert.equal(match[1], bundle.version, `Stale download link in ${file}`)
     }
-    for (const match of text.matchAll(/dsh-scriptor(?:-(?:full|retrieval|companion))?@(\d+[\w.-]*)/g)) {
+    for (const match of text.matchAll(/abzu(?:-(?:full|retrieval|companion))?@(\d+[\w.-]*)/g)) {
       assert.equal(match[1], bundle.version, `Stale registry installation example in ${file}`)
     }
   }
   return { version: bundle.version, tag: expectedTag, prerelease: bundle.version.includes('-'),
-    packageName: bundle.name, filename: `linfengqaqtat-dsh-scriptor-${bundle.version}.tgz` }
+    packageName: bundle.name, filename: `abzu-${bundle.version}.tgz` }
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {

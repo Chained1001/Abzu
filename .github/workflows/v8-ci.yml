@@ -59,11 +59,11 @@ jobs:
         run: pnpm test --shard=${{ matrix.shard }}/2 --reporter=default --reporter=json --reporter=./scripts/release/ci-reporter.mjs --outputFile=.tmp/ci/results.json
       - run: pnpm build
         if: matrix.shard == 1
-      - run: pnpm --filter @linfengqaqtat/dsh-scriptor typecheck
+      - run: pnpm --filter abzu typecheck
         if: matrix.shard == 1
-      - run: pnpm --filter @linfengqaqtat/dsh-scriptor dump-config-check
+      - run: pnpm --filter abzu dump-config-check
         if: matrix.shard == 1
-      - run: pnpm --filter @linfengqaqtat/dsh-scriptor pack-check
+      - run: pnpm --filter abzu pack-check
         if: matrix.shard == 1
       - name: Generated notices are current
         if: matrix.shard == 1

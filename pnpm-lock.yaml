@@ -537,10 +537,10 @@ importers:
 
   packages/meta:
     dependencies:
-      '@linfengqaqtat/dsh-scriptor':
+      abzu:
         specifier: workspace:*
         version: link:../bundle
-      '@linfengqaqtat/dsh-scriptor-retrieval':
+      abzu-retrieval:
         specifier: workspace:*
         version: link:../embedding-provider
 

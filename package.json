@@ -1,9 +1,9 @@
 {
-  "name": "webnovel-writer-v8",
+  "name": "abzu",
   "private": true,
   "type": "module",
   "version": "8.2.0",
-  "description": "DSH Scriptor: a long-form fiction writing workspace for DeepSeek Harness",
+  "description": "Abzu: a long-form fiction writing workspace for DeepSeek Harness",
   "packageManager": "pnpm@11.27.1",
   "scripts": {
     "test": "vitest run",

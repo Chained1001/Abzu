@@ -41,19 +41,19 @@ pack('packages/bundle', info.filename)
 const main = path.join(output, info.filename)
 pnpm(['--filter', info.packageName, 'pack-check', main])
 const embedding = JSON.parse(fs.readFileSync(path.join(root, 'packages/embedding-provider/package.json'), 'utf8'))
-const embeddingTarball = `linfengqaqtat-dsh-scriptor-retrieval-${embedding.version}.tgz`
+const embeddingTarball = `abzu-retrieval-${embedding.version}.tgz`
 pack('packages/embedding-provider', embeddingTarball)
 checkEmbeddingPackage(path.join(output, embeddingTarball), embedding.version)
 const meta = JSON.parse(fs.readFileSync(path.join(root, 'packages/meta/package.json'), 'utf8'))
-const metaTarball = `linfengqaqtat-dsh-scriptor-full-${meta.version}.tgz`
+const metaTarball = `abzu-full-${meta.version}.tgz`
 pack('packages/meta', metaTarball)
 checkMetaPackage(path.join(output, metaTarball), info.version, embedding.version)
 const companion = JSON.parse(fs.readFileSync(path.join(root, 'packages/companion/package.json'), 'utf8'))
-const companionTarball = `linfengqaqtat-dsh-scriptor-companion-${companion.version}.tgz`
+const companionTarball = `abzu-companion-${companion.version}.tgz`
 pack('packages/companion', companionTarball)
 pnpm(['--filter', companion.name, 'pack-check', path.join(output, companionTarball)])
-const source = `dsh-scriptor-${info.version}-source.tar.gz`
-git(['archive', '--format=tar.gz', '--prefix=dsh-scriptor-source/', `--output=${path.join(output, source)}`, 'HEAD'])
+const source = `abzu-${info.version}-source.tar.gz`
+git(['archive', '--format=tar.gz', '--prefix=abzu-source/', `--output=${path.join(output, source)}`, 'HEAD'])
 const dependencies = await collectDependencySources(root, output)
 const hash = file => createHash('sha256').update(fs.readFileSync(path.join(output, file))).digest('hex')
 const assets = fs.readdirSync(output).filter(file => fs.statSync(path.join(output, file)).isFile()).sort()

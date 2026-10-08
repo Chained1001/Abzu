@@ -1,5 +1,5 @@
 {
-  "name": "@linfengqaqtat/dsh-scriptor-retrieval",
+  "name": "abzu-retrieval",
   "version": "8.2.0",
   "type": "module",
   "main": "./lib/index.js",
@@ -111,7 +111,7 @@
     "lib/reranking.js"
   ],
   "license": "GPL-3.0-only",
-  "description": "Scriptor 检索增强：嵌入、场景识别与重排",
+  "description": "Abzu 检索增强：嵌入、场景识别与重排",
   "keywords": [
     "dsh-plugin",
     "deepseek-harness",
@@ -120,15 +120,6 @@
     "vector-search",
     "semantic-retrieval"
   ],
-  "homepage": "https://lingfengqaq.github.io/webnovel-writer/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/lingfengQAQ/webnovel-writer.git",
-    "directory": "packages/embedding-provider"
-  },
-  "bugs": {
-    "url": "https://github.com/lingfengQAQ/webnovel-writer/issues"
-  },
   "publishConfig": {
     "access": "public",
     "tag": "latest",

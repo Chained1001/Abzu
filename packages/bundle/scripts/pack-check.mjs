@@ -34,7 +34,7 @@ for (const [relative, data] of packedFiles) {
 const entries = [...packedFiles.keys()].map(file => `package/${file}`)
 const read = relative => fs.readFileSync(path.join(extracted, relative), 'utf8')
 const manifest = JSON.parse(read('package.json'))
-assert.equal(manifest.name, '@linfengqaqtat/dsh-scriptor')
+assert.equal(manifest.name, 'abzu')
 checkPublishableManifest(manifest)
 assert.equal(manifest.license, 'GPL-3.0-only')
 assert.equal(manifest.dsh.bundle.patch, './cordis.patch.yml')
