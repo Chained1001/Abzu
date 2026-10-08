@@ -12,7 +12,7 @@
 
 - Bug：精确安装包版本、Node/DSH/OS、安装方式、最小复现、预期与实际、脱敏日志；模型相关问题另填 provider/model。
 - 功能建议：描述写作场景、遇到的问题和希望获得的结果。较大的流程或格式改动先讨论方案。
-- 文档：给出文档路径和失效步骤。普通使用交流进入 [Discussions](https://github.com/lingfengQAQ/webnovel-writer/discussions)。
+- 文档：给出文档路径和失效步骤。本仓库为私有自用项目，普通使用交流不设公开渠道。
 - 安全问题按 [安全政策](SECURITY.md) 私下报告。
 
 ## Pull Request

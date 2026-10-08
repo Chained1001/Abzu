@@ -3,16 +3,16 @@
 使用公开 v8 分支，推荐 Node 24.15.0、pnpm 11.27.1（源码构建与宿主插件管理统一为该版本）。无需私人任务文件或原书。
 
 ```text
-git clone --branch v8 --single-branch https://github.com/lingfengQAQ/webnovel-writer.git
-cd webnovel-writer
+git clone --branch v8 --single-branch <本仓库地址>
+cd <仓库目录>
 pnpm install --frozen-lockfile
 pnpm lint
 pnpm test
 pnpm test:release
 pnpm build
-pnpm --filter @linfengqaqtat/dsh-scriptor typecheck
-pnpm --filter @linfengqaqtat/dsh-scriptor dump-config-check
-pnpm --filter @linfengqaqtat/dsh-scriptor pack-check
+pnpm --filter abzu typecheck
+pnpm --filter abzu dump-config-check
+pnpm --filter abzu pack-check
 pnpm check:public
 ```
 

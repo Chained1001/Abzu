@@ -1,19 +1,17 @@
-# DSH Scriptor · Webnovel Writer v8
+# Abzu v8
 
-**[🌐 产品主页](https://lingfengqaq.github.io/webnovel-writer/) · [📖 新手教程](https://lingfengqaq.github.io/webnovel-writer/docs/beginner.html) · [下载正式版](https://github.com/lingfengQAQ/webnovel-writer/releases/latest)**
-
-> Scriptor 8.2.0 正式版配套 **DSH 0.2.0-rc.2**，三个功能插件与完整版均为 8.2.0。旧版升级先备份，参阅安装与升级说明。
+> Abzu 8.2.0 正式版配套 **DSH 0.2.0-rc.2**，三个功能插件与完整版均为 8.2.0。旧版升级先备份，参阅安装与升级说明。
 
 基于 [DeepSeek Harness](https://www.deepseek.com/harness/) 的长篇小说写作工作台。把构想、设定、大纲、写章、审读、修改、定稿、记忆与导出放进一个能够暂停和继续的工作流程，作品以本地文件保存。
 
 **正式版：8.2.0。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
 
-[![DSH Scriptor 项目介绍视频](docs/user/images/video-poster.png)](docs/user/media/intro.mp4)
+[![Abzu 项目介绍视频](docs/user/images/video-poster.png)](docs/user/media/intro.mp4)
 
-> 📹 **2 分钟视频快速了解 DSH Scriptor**：[点击播放或下载视频 (1080P/MP4)](docs/user/media/intro.mp4) · [字幕文件](docs/user/media/intro.srt)  
+> 📹 **2 分钟视频快速了解 Abzu**：[点击播放或下载视频 (1080P/MP4)](docs/user/media/intro.mp4) · [字幕文件](docs/user/media/intro.srt)  
 > 视频演示了核心设计理念、全流程写作闭环、断更无损恢复以及书稿编辑器的交互操作。
 
-DSH Scriptor is a local-first fiction writing workspace for DeepSeek Harness. Version 8.2.0 adds a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
+Abzu is a local-first fiction writing workspace for DeepSeek Harness. Version 8.2.0 adds a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
 
 **8.2.0 旧项目升级须知：请补充并确认作品契约中的“章节篇幅”。** 先备份并保留原契约内容，再约定目标汉字数与宽松上下限。未配置的旧书仍可继续使用，但不会启用篇幅范围核对。完整步骤和可复制请求见 [旧项目契约更新](docs/user/upgrade-backup.md#旧项目需要更新作品契约)。
 
@@ -21,7 +19,7 @@ DSH Scriptor is a local-first fiction writing workspace for DeepSeek Harness. Ve
 
 ## 创作工作流程
 
-Scriptor 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个阶段，每一步都有明确的真源工件和 Git 提交记录：
+Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个阶段，每一步都有明确的真源工件和 Git 提交记录：
 
 ```
 ┌───────────┐     ┌───────────┐     ┌───────────┐     ┌───────────┐
@@ -61,8 +59,8 @@ Scriptor 将长篇小说的生产拆分为**作品设计**与**章节闭环**两
 
 | 产品线 | 运行环境 | 入口 |
 | --- | --- | --- |
-| v6 | Claude Code 插件 | [v6 文档与安装](https://github.com/lingfengQAQ/webnovel-writer/tree/master) |
-| v8（本分支） | DeepSeek Harness 工作台 | [下载正式版](https://github.com/lingfengQAQ/webnovel-writer/releases/tag/scriptor-v8.2.0) · [安装教程](docs/user/install.md) |
+| v6 | Claude Code 插件 | 历史产品线，文档与安装见原仓库 webnovel-writer 的 master 分支 |
+| v8（本分支） | DeepSeek Harness 工作台 | [安装教程](docs/user/install.md) |
 
 两个版本安装方式不同。当前没有经过验证的 v6/v7 书仓直接迁移方案。`v8` 是产品线名称，`8.2.0` 是工作台安装包版本。
 
@@ -81,16 +79,16 @@ Scriptor 将长篇小说的生产拆分为**作品设计**与**章节闭环**两
 ## 开始使用
 
 1. 安装配套的 **DSH 0.2.0-rc.2** 桌面端，打开侧栏 **插件 → 添加插件**。
-2. 输入 `@linfengqaqtat/dsh-scriptor@8.2.0`，核对预览并安装，按提示应用变更。
+2. 输入 `abzu@8.2.0`，核对预览并安装，按提示应用变更。
 3. 配置聊天模型与凭据，选择作品工作区，按 [第一本书与第一章](docs/user/first-book.md) 开始。
 
 逐步说明见 [安装教程](docs/user/install.md) 和 [新手教程](docs/user/beginner.md)。正式版发布到 npm latest，教程使用精确版本便于核对宿主。
 
 | 可选插件 | 安装标识 | 用途 |
 | --- | --- | --- |
-| 检索增强 | `@linfengqaqtat/dsh-scriptor-retrieval@8.2.0` | 嵌入、场景识别、重排，分别配置和启用 |
-| 鲸鱼娘 | `@linfengqaqtat/dsh-scriptor-companion@8.2.0` | 窗口内陪伴与会话状态反馈，不调用模型 |
-| 完整版 | `@linfengqaqtat/dsh-scriptor-full@8.2.0` | 聚合写作和检索，不含桌宠；与单独安装二选一 |
+| 检索增强 | `abzu-retrieval@8.2.0` | 嵌入、场景识别、重排，分别配置和启用 |
+| 鲸鱼娘 | `abzu-companion@8.2.0` | 窗口内陪伴与会话状态反馈，不调用模型 |
+| 完整版 | `abzu-full@8.2.0` | 聚合写作和检索，不含桌宠；与单独安装二选一 |
 
 旧包迁移与备份见 [升级说明](docs/user/upgrade-backup.md)，不要同时启用旧检索包和新检索包。
 
@@ -109,18 +107,10 @@ Scriptor 将长篇小说的生产拆分为**作品设计**与**章节闭环**两
 - [从源码构建](docs/development.md) · [书仓格式与修改边界](docs/book-format.md)
 - [贡献与 PR 规范](CONTRIBUTING.md) · [发行规范](docs/maintenance/releasing.md) · [更新记录](CHANGELOG.md)
 
-## 赞助与交流
-
-欢迎在 [Discussions](https://github.com/lingfengQAQ/webnovel-writer/discussions) 交流使用体验。不便公开的交流或合作事宜，可以发邮件到 [ksdflisjdf@gmail.com](mailto:ksdflisjdf@gmail.com)。
-
-### 赞助商与广告合作
-
-欢迎支持项目的持续维护，也欢迎洽谈 README 赞助商展示与广告合作。有意合作请通过上述邮箱介绍品牌或产品、希望展示的内容及合作周期，具体形式另行沟通。合作展示会明确标注为赞助或广告。
-
 ## 反馈与许可证
 
-[Bug / 功能建议](https://github.com/lingfengQAQ/webnovel-writer/issues/new/choose) 请注明 **v8 和精确安装包版本**。使用交流到 [Discussions](https://github.com/lingfengQAQ/webnovel-writer/discussions)。安全问题按 [SECURITY.md](SECURITY.md) 私下报告，不公开粘贴密钥或作品。
+本项目为内部自用项目，不设公开交流渠道。安全问题按 [SECURITY.md](SECURITY.md) 私下处理，不公开粘贴密钥或作品。
 
 项目继承 [GPL-3.0-only](LICENSE)，可依照许可证使用、修改及分发，包括商用；保留必要声明，并在分发时履行相应源码等义务。仅使用本工具创作不会自动要求你的小说采用 GPL。模型服务及第三方素材适用各自条款。
 
-保留 Webnovel Writer 项目来源及贡献者署名。主包的 [第三方声明](packages/bundle/THIRD_PARTY_NOTICES.md) 随发行件提供。
+本项目基于 GPL-3.0 的 webnovel-writer v8 代码库修改，私有自用；若将来分发须遵循 GPL-3.0 并保留第三方声明（packages/*/licenses/ 与 THIRD_PARTY_NOTICES.md）。

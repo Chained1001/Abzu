@@ -1,16 +1,14 @@
 # 鲸鱼娘桌宠
 
-[产品主页](https://lingfengqaq.github.io/webnovel-writer/) · [安装教程](https://lingfengqaq.github.io/webnovel-writer/docs/install.html)
-
-独立 DSH 插件，在窗口内陪你写作。可单独安装，也可与 DSH Scriptor 小说插件一起使用。
+独立 DSH 插件，在窗口内陪你写作。可单独安装，也可与 Abzu 小说插件一起使用。
 
 8.2.0 为同批兼容发行，桌宠功能没有新增变化。桌宠独立可选，不包含在 full 中；未使用桌宠的用户无需因主包升级而安装它。
 
 ## 安装
 
-配套 DSH 0.2.0-rc.2。在 DSH 侧栏“插件 → 添加插件”输入 `@linfengqaqtat/dsh-scriptor-companion@8.2.0`，核对预览后安装，按提示启用或重启。
+配套 DSH 0.2.0-rc.2。在 DSH 侧栏“插件 → 添加插件”输入 `abzu-companion@8.2.0`，核对预览后安装，按提示启用或重启。
 
-安装包携带全部运行素材，无需 Dola 网络连接、Python、FFmpeg 或额外模型配置。桌宠仍在 DSH 窗口内显示，不是 Windows 全局悬浮窗。旧 @linfengqaqtat/dsh-whale-companion 先撤销安装入口，不要与新包同时启用；详见 [安装与迁移](https://github.com/lingfengQAQ/webnovel-writer/blob/v8/docs/user/install.md)。
+安装包携带全部运行素材，无需 Dola 网络连接、Python、FFmpeg 或额外模型配置。桌宠仍在 DSH 窗口内显示，不是 Windows 全局悬浮窗。旧 @linfengqaqtat/dsh-whale-companion 先撤销安装入口，不要与新包同时启用；详见 [安装与迁移](../../docs/user/install.md)。
 
 ## 使用
 
@@ -25,16 +23,16 @@
 退出/卸载仅移除桌宠，作品和对话不受影响。CLI 卸载前关闭该 profile 的运行实例：
 
 ```sh
-dsh plugin --profile writing remove @linfengqaqtat/dsh-scriptor-companion
+dsh plugin --profile writing remove abzu-companion
 ```
 
 ## 开发
 
 ```sh
-pnpm --filter @linfengqaqtat/dsh-scriptor-companion typecheck
-pnpm --filter @linfengqaqtat/dsh-scriptor-companion test
-pnpm --filter @linfengqaqtat/dsh-scriptor-companion build
-pnpm --filter @linfengqaqtat/dsh-scriptor-companion pack-check
+pnpm --filter abzu-companion typecheck
+pnpm --filter abzu-companion test
+pnpm --filter abzu-companion build
+pnpm --filter abzu-companion pack-check
 ```
 
 素材制作方式和来源见 MEDIA.md。此包独立版本管理，未自动加入小说 full 安装组合。

@@ -88,13 +88,13 @@
    成功时，书房可以打开，并且书仓状态与备份前的预期一致。
 
 ```powershell
-dsh plugin --profile scriptor add @linfengqaqtat/dsh-scriptor@8.2.0
+dsh plugin --profile scriptor add abzu@8.2.0
 dsh --profile scriptor --dump-config
 ```
 
 上面展示的是命令写法。更新时换成实际的目标版本。
 
-完整版安装使用 `@linfengqaqtat/dsh-scriptor-full@8.2.0`。不要在保留完整版时另外安装主包。从单装转到 full，按 [切换步骤](install.md#从单装切换为完整版) 操作。切回单装时，先停机并移除 full，再安装所需的单包。
+完整版安装使用 `abzu-full@8.2.0`。不要在保留完整版时另外安装主包。从单装转到 full，按 [切换步骤](install.md#从单装切换为完整版) 操作。切回单装时，先停机并移除 full，再安装所需的单包。
 
 ## 回退
 
@@ -130,16 +130,16 @@ dsh --profile scriptor --dump-config
 
 | 实际安装组合 | `dsh plugin --profile scriptor remove` 后的参数 |
 | --- | --- |
-| 仅 full，或已切换完成 | `@linfengqaqtat/dsh-scriptor-full` |
-| 仅主包 | `@linfengqaqtat/dsh-scriptor` |
-| 仅提供方 | `@linfengqaqtat/dsh-scriptor-retrieval` |
-| 主包与提供方分别安装 | `@linfengqaqtat/dsh-scriptor @linfengqaqtat/dsh-scriptor-retrieval` |
+| 仅 full，或已切换完成 | `abzu-full` |
+| 仅主包 | `abzu` |
+| 仅提供方 | `abzu-retrieval` |
+| 主包与提供方分别安装 | `abzu abzu-retrieval` |
 | full 与单装包混装 | full 加上列表中实际存在的单装包名 |
 
 例如两个单包都装过，并且希望整套卸载：
 
 ```powershell
-dsh plugin --profile scriptor remove @linfengqaqtat/dsh-scriptor @linfengqaqtat/dsh-scriptor-retrieval
+dsh plugin --profile scriptor remove abzu abzu-retrieval
 dsh --profile scriptor --dump-config
 ```
 

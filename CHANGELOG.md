@@ -1,4 +1,4 @@
-# Changelog · DSH Scriptor (v8)
+# Changelog · Abzu (v8)
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
