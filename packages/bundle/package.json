@@ -101,6 +101,7 @@
     "@types/react-test-renderer": "18.3.1",
     "@webnovel/core": "workspace:*",
     "@webnovel/drafting": "workspace:*",
+    "@webnovel/polish": "workspace:*",
     "@webnovel/review": "workspace:*",
     "d3-force": "3.0.0",
     "diff": "8.0.3",

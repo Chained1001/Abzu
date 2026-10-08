@@ -18,9 +18,9 @@ import {
   paths,
   writeFileAtomic,
   writeCandidate,
-} from '../src/index'
+} from '@webnovel/core'
 import { ingestFindings, planReview, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
-import { removeSync } from '../src/repo/remove'
+import { removeSync } from '../../core/src/repo/remove'
 
 const roots: string[] = []
 function mkDir(prefix: string): string {

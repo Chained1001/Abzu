@@ -24,7 +24,7 @@ import {
   writeCandidate,
   confirmOutline,
   preparePack,
-} from '../src/index'
+} from '@webnovel/core'
 import { runReview } from '@webnovel/review'
 
 const roots: string[] = []

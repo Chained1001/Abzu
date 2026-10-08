@@ -9,9 +9,9 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline } from '../src/index'
-import { applyRevision, ingestAuthorRevision, replayLines } from '../src/revise'
-import { parseDocument } from '../src/repo/frontmatter'
+import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline } from '@webnovel/core'
+import { applyRevision, ingestAuthorRevision, replayLines } from '@webnovel/core'
+import { parseDocument } from '@webnovel/core'
 import { registerDefaultChecks, resetChecks, runReview, recordAuthorFinding, computeReview, ingestFindings } from '@webnovel/review'
 
 const roots: string[] = []

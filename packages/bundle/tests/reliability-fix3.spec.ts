@@ -6,7 +6,7 @@ import {
   classifyHardConstraint, computeMaterials, confirmOutline, draftHashOf,
   loadReviewRecord, paths, scanChapter, seedMinDesign, serializeDocument,
   writeCandidate, writeReviewRecord,
-} from '../src/index'
+} from '@webnovel/core'
 import { ingestFindings, registerDefaultChecks, resetChecks, runCanonCheck, runReview } from '@webnovel/review'
 import { checkFidelity } from '@webnovel/polish'
 

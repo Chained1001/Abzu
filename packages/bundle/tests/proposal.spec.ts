@@ -20,7 +20,7 @@ import {
   writeCandidate,
   paths,
   MACHINE_SCHEMA_VERSION,
-} from '../src/index'
+} from '@webnovel/core'
 import { runReview } from '@webnovel/review'
 
 const roots: string[] = []

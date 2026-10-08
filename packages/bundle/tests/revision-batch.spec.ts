@@ -10,7 +10,7 @@ import {
   parseDocument,
   seedMinDesign,
   writeCandidate,
-} from '../src/index'
+} from '@webnovel/core'
 import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
 
 const roots: string[] = []

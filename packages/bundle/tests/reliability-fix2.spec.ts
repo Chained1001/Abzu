@@ -21,7 +21,7 @@ import {
   paths,
   writeContract,
   type Finding,
-} from '../src/index'
+} from '@webnovel/core'
 import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
 
 const roots: string[] = []
@@ -310,7 +310,7 @@ describe('F5:审稿哈希绑定', () => {
 })
 
 // 辅助:不经 derive 的轻量事实调用(从 core 导出 scanChapter/deriveChapterFacts)
-import { scanChapter, deriveChapterFacts } from '../src/index'
+import { scanChapter, deriveChapterFacts } from '@webnovel/core'
 function deriveFacts(root: string): ReturnType<typeof deriveChapterFacts> {
   return deriveChapterFacts(scanChapter(root, key))
 }

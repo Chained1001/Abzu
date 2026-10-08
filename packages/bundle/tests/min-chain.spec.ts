@@ -11,7 +11,7 @@ import {
   scanChapter,
   seedMinDesign,
   writeCandidate,
-} from '../src/index'
+} from '@webnovel/core'
 import { writeDraft } from '@webnovel/drafting'
 import { polishDraft } from '@webnovel/polish'
 import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
