@@ -82,6 +82,14 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(text).toContain('章内接续')
     expect(text).toContain('直接做下一步，不结束回合等一句「继续」')
     expect(text).toContain('不自动开下一章')
+    // P1 瘦身：书房/记忆/检索/上层规划细则下沉 references，SKILL 只留引用行＋手写回流行为指令
+    const studyRef = path.join(__dirname, '..', 'skills', 'novel-director', 'references', '书房与检索.md')
+    expect(fs.existsSync(studyRef), 'novel-director/references/书房与检索.md 应存在').toBe(true)
+    expect(text).toContain('[书房与检索](references/书房与检索.md)')
+    expect(text, '手写章回流引导必须留在 SKILL 本体（行为指令不下沉）').toContain('无既有草稿目录/无审核记录的新章手稿')
+    expect(text).toContain('novel_import_draft')
+    // 常驻体量上限：调度核心之外的内容走按需读取，SKILL 本体不得超过 8500 字符
+    expect(text.length, `SKILL 本体 ${text.length} 字符，超过瘦身上限 8500`).toBeLessThanOrEqual(8500)
   })
 
   it('中文路由标题对应可加载的 frontmatter name，不能用中文标题调用 skill', () => {
@@ -458,6 +466,16 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
         expect(description.length, `${s.中文名}: description ≤1024`).toBeLessThanOrEqual(1024)
         expect(description, `${s.中文名}: description 中文`).toMatch(/[一-鿿]/)
       }
+    }
+  })
+
+  it('frontmatter：全表 invocation 字段值锁定', () => {
+    // 11 份技能统一 false/false：模型可加载（director 路由可达）、无用户斜杠入口。
+    // 误改任一值会静默改变入口语义（技能变成自然语言触发或冒出斜杠命令），故整表锁定。
+    for (const s of EXPECTED_SKILLS) {
+      const fm = readFrontmatter(readSkill(s.name))
+      expect(fm['disable-model-invocation'], `${s.中文名}: disable-model-invocation 应为 false（模型可加载）`).toBe(false)
+      expect(fm['user-invocable'], `${s.中文名}: user-invocable 应为 false（无用户斜杠入口，入口收敛在 director 路由）`).toBe(false)
     }
   })
 

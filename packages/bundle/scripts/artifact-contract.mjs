@@ -14,6 +14,7 @@ export const referenceDocs = [
   'skills/novel-outline/references/06_章纲.md',
   'skills/novel-drafting/references/07_正文写作.md',
   'skills/novel-director/references/08_修订排障.md',
+  'skills/novel-director/references/书房与检索.md',
 ]
 export const thinScripts = [
   ['skills/novel-review/scripts/确定性检查.mjs', 'runChecksCli'],
