@@ -7,6 +7,7 @@ export const referenceDocs = [
   ...['1-表达清理', '2-节奏与重塑', '3-平台格式'].map(name => `skills/novel-polish/工序/${name}.md`),
   'skills/novel-revision/底本/改稿章程.md',
   'skills/novel-settle/底本/沉淀对账.md',
+  'skills/novel-design/references/参考标尺.md',
 ]
 export const thinScripts = [
   ['skills/novel-review/scripts/确定性检查.mjs', 'runChecksCli'],

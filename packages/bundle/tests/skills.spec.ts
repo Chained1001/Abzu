@@ -127,6 +127,27 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(text).toContain('方向选择')
   })
 
+  it('E1 标尺批：参考标尺单源资产落位 + 三消费视图接线 + 审读分档区间', () => {
+    // 标尺单源资产：文件存在、头部含单源声明（数值只存标尺,SKILL 与底本不内联）
+    const scalePath = path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md')
+    expect(fs.existsSync(scalePath), 'novel-design/references/参考标尺.md 应存在').toBe(true)
+    const scale = fs.readFileSync(scalePath, 'utf8')
+    expect(scale).toContain('反派体系单源声明')
+    // 视图接线防回退：SKILL 点名标尺与取数算式,对手梯队/压力升级检查/主战层级行均在
+    const design = readSkill('novel-design')
+    expect(design).toContain('取数')
+    expect(design).toContain('参考标尺')
+    expect(design).toContain('对手梯队')
+    expect(design).toContain('压力升级检查')
+    expect(design).toContain('主战层级')
+    // 分卷主战层级表行绝不进「故事阶段分配」——那是 parseVolumeAllocations 的进度解析位
+    expect(design).toContain('绝不写进「故事阶段分配」')
+    // 审读侧：分档区间在底本定用法（候选不是及格线）,数值随派发材料动态摘录
+    const pacing = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', '底本', '节奏与张力审读.md'), 'utf8')
+    expect(pacing).toContain('分档参考区间')
+    expect(pacing).toContain('候选，不是及格线')
+  })
+
   it('细纲备料：含定位段/细纲段 + 材料包十段 + 事实播报', () => {
     const text = readSkill('novel-outline')
     expect(text).toContain('定位段')
