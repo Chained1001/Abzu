@@ -182,6 +182,9 @@ try {
 } finally {
   server.closeAllConnections()
   await new Promise(resolve => server.close(resolve))
-  if (!path.resolve(root).startsWith(path.resolve(tempPrefix))) throw new Error('Unexpected benchmark cleanup path')
-  removeSync(root)
+  if (!path.resolve(root).startsWith(path.resolve(tempPrefix))) {
+    console.error(`Unexpected benchmark cleanup path: ${root}`)
+  } else {
+    removeSync(root)
+  }
 }

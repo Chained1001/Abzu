@@ -1,6 +1,6 @@
 import z from '@deepseek-ai/schemastery'
 
-export const SETTINGS_NAMESPACE = 'abzu-embeddings'
+export { SETTINGS_NAMESPACE } from './ns'
 export const DEFAULT_CREDENTIAL = 'ABZU_EMBEDDING_API_KEY'
 
 export interface EmbeddingSettings {

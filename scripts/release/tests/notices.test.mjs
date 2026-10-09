@@ -6,7 +6,7 @@ import os from 'node:os'
 import { writeNotices } from '../notices.mjs'
 
 test('notices find the named owner above a nested package.json and preserve original text', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-notices-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-notices-'))
   const dependency = path.join(root, 'node_modules/example')
   const output = path.join(root, 'output')
   const input = path.join(dependency, 'dist/index.js')

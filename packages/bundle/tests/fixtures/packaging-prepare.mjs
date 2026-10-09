@@ -10,5 +10,5 @@ const { loadProfile, createRuntimeResolution } = await import(pathToFileURL(requ
 const home = path.dirname(path.dirname(profile))
 const resolution = await createRuntimeResolution({ installAnchor: hostAnchor, home,
   profile: loadProfile('dsh', path.basename(profile), hostAnchor, home) })
-fs.writeFileSync(path.join(profile, 'scriptor-probe-resolution.json'), JSON.stringify(resolution))
+fs.writeFileSync(path.join(profile, 'abzu-probe-resolution.json'), JSON.stringify(resolution))
 console.log('Computed the isolated profile runtime resolution using the host launch API')

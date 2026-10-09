@@ -6,7 +6,7 @@ import path from 'node:path'
 import CiReporter from '../ci-reporter.mjs'
 
 test('worker failure retains active and not-yet-started files without serializing environment', async () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-ci-report-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ci-report-'))
   try {
     const reporter = new CiReporter()
     reporter.onInit({ config: { root } })
@@ -28,7 +28,7 @@ test('worker failure retains active and not-yet-started files without serializin
 })
 
 test('pending files contain only the current shard', async () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-ci-shard-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ci-shard-'))
   try {
     const modules = ['one', 'two', 'three', 'four'].map(name => ({ moduleId: path.join(root, `${name}.spec.ts`) }))
     const seen = []

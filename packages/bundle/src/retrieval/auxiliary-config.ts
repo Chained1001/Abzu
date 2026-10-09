@@ -1,8 +1,7 @@
 import z from '@deepseek-ai/schemastery'
 import { DEFAULT_RERANK_TIMEOUT_MS, MAX_RERANK_TIMEOUT_MS, MIN_RERANK_TIMEOUT_MS } from '@abzu/core/retrieval-policy'
 
-export const SCENE_NAMESPACE = 'abzu-scenes'
-export const RERANK_NAMESPACE = 'abzu-reranking'
+export { SCENE_NAMESPACE, RERANK_NAMESPACE } from './ns'
 export const RERANK_CREDENTIAL = 'ABZU_RERANK_API_KEY'
 export interface SceneSettings { enabled?: boolean; provider?: string; model?: string; concurrency?: number; timeoutMs?: number; maxInputChars?: number }
 export interface RerankSettings { enabled?: boolean; endpoint?: string; model?: string; apiKeyEnv?: string; candidates?: number; timeoutMs?: number }

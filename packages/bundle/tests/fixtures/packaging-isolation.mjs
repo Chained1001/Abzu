@@ -14,7 +14,7 @@ const packageRequire = checkEmbedding
   : createRequire(path.join(profile, 'package.json'))
 const packageEntry = packageRequire.resolve('abzu')
 const { boot, PluginPackages } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-app-boot')).href)
-const resolution = JSON.parse(fs.readFileSync(path.join(profile, 'scriptor-probe-resolution.json'), 'utf8'))
+const resolution = JSON.parse(fs.readFileSync(path.join(profile, 'abzu-probe-resolution.json'), 'utf8'))
 const configPath = path.join(path.dirname(reportPath), 'isolation-loader.json')
 const config = [
   { id: 'skills', name: pathToFileURL(require.resolve('@deepseek-ai/dsh-skill')).href },

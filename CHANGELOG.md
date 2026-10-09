@@ -2,6 +2,20 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.5] — 2026-10-09
+
+收官审查随修批：四路对抗审查（运行时/技能层/构建链/真机端到端）结论全绿，本批落审查发现的全部可修项。
+
+### Fixed
+
+- 工具文档防再犯测试补"文档→注册"反向断言（技能 .md 提及的 novel_* 必须真实注册或属白名单；首跑即抓出总控的裸族称 `novel_reference_` 并入白名单）；黑名单词扫描从 11 份 SKILL 扩至底本/工序全部 .md；覆盖测试改边界匹配（`novel_apply_revision` 不再被 `_batch` 前缀假覆盖）。
+- 根包改名 `abzu-workspace`——消除与 bundle 同名 `abzu` 的 `pnpm --filter` 歧义（原靠 script 名分布侥幸成立）。
+
+### Changed
+
+- 检索三插件设置命名空间收单源 `src/retrieval/ns.ts`（服务端 Config 与客户端表单两侧同引，防只改一侧断凭据/禁用挂载）。
+- peerDependencies 移除 `@deepseek-ai/dsh-credentials`（产物实况是内联且已计入第三方声明，宿主提供声明不实）；lint 面扩至 `scripts/**`（benchmark/strip-types 入册）；scriptor 时代临时目录前缀与 README 示例路径清理为 abzu 系。
+
 ## [0.0.4] — 2026-10-09
 
 移除鲸鱼娘桌宠：纯装饰功能自用不需要，版本 **0.0.4** 发行，继续配套 **DSH 0.2.0-rc.2**。`abzu-companion` 条目随之消失，其余四条 insert id（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`）与全部设置、凭据引用不变。

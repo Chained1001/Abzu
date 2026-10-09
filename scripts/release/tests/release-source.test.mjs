@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import { restoreNoticeLineEndings } from '../release-source.mjs'
 
 test('notice normalization restores only CRLF differences and leaves real edits visible', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-notice-eol-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-notice-eol-'))
   const git = args => execFileSync('git', args, { cwd: root, windowsHide: true, stdio: 'pipe' })
   const files = ['packages/bundle/licenses/example--1.0.0.txt', 'packages/bundle/licenses/changed--1.0.0.txt', 'README.md']
   try {

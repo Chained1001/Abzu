@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import { checkTree } from '../check-public-tree.mjs'
 
 function repository(run) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-history-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-history-'))
   const git = (...args) => execFileSync('git', ['-c', 'user.name=History test', '-c', 'user.email=history@example.invalid', '-c', 'commit.gpgsign=false', ...args], { cwd: root, encoding: 'utf8', windowsHide: true }).trim()
   const put = (name, body) => { fs.mkdirSync(path.dirname(path.join(root, name)), { recursive: true }); fs.writeFileSync(path.join(root, name), body) }
   const commit = () => { git('add', '-A'); git('commit', '--quiet', '-m', 'fixture') }

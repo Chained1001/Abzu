@@ -14,7 +14,7 @@ test('registry source exception requires exact archive bytes and complete pinned
   header.write(body.length.toString(8).padStart(11, '0'), 124)
   header.write('0', 156)
   const bytes = zlib.gzipSync(Buffer.concat([header, body, Buffer.alloc(512 - body.length), Buffer.alloc(1024)]))
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-source-proof-'))
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-source-proof-'))
   const file = path.join(directory, 'source.tgz')
   fs.writeFileSync(file, bytes)
   const sha = value => createHash('sha256').update(value).digest('hex')

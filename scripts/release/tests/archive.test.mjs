@@ -14,7 +14,7 @@ function entry(name, type = '0', body = 'example') {
   return Buffer.concat([header, Buffer.from(body), Buffer.alloc((512 - Buffer.byteLength(body) % 512) % 512)])
 }
 function withArchive(data, callback) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-archive-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-archive-'))
   const file = path.join(root, 'package.tgz')
   try { fs.writeFileSync(file, zlib.gzipSync(Buffer.concat([data, Buffer.alloc(1024)]))); callback(file) }
   finally { fs.unlinkSync(file); fs.rmdirSync(root) }

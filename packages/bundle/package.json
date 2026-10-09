@@ -1,6 +1,6 @@
 {
   "name": "abzu",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -151,7 +151,6 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.4",
-    "@deepseek-ai/dsh-credentials": "0.2.0-rc.2",
     "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
     "@deepseek-ai/dsh-settings": "0.2.0-rc.2",
     "@deepseek-ai/dsh-skill-filesystem": "0.2.0-rc.2",

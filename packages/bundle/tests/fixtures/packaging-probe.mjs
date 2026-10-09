@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 
-export const name = 'scriptor-package-acceptance'
+export const name = 'abzu-package-acceptance'
 export const inject = ['agents', 'agentLoop', 'workspaceRegistry', 'skills', 'tools', 'sessionPersistence', 'sessionController']
 export async function apply(ctx, config) {
   const report = { installed: config.installed, ok: false }

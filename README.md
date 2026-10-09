@@ -1,12 +1,12 @@
 # Abzu v8
 
-> Abzu 0.0.4 正式版配套 **DSH 0.2.0-rc.2**，单包 `abzu` 集成工作台与检索增强。旧版升级先备份，参阅安装与升级说明。
+> Abzu 0.0.5 正式版配套 **DSH 0.2.0-rc.2**，单包 `abzu` 集成工作台与检索增强。旧版升级先备份，参阅安装与升级说明。
 
 基于 [DeepSeek Harness](https://www.deepseek.com/harness/) 的长篇小说写作工作台。把构想、设定、大纲、写章、审读、修改、定稿、记忆与导出放进一个能够暂停和继续的工作流程，作品以本地文件保存。
 
-**正式版：0.0.4。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
+**正式版：0.0.5。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
 
-Abzu is a local-first fiction writing workspace for DeepSeek Harness. Version 0.0.4 ships the workbench and the retrieval add-ons in a single package; it includes a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
+Abzu is a local-first fiction writing workspace for DeepSeek Harness. Version 0.0.5 ships the workbench and the retrieval add-ons in a single package; it includes a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
 
 **旧项目升级须知（0.0.1 起）：请补充并确认作品契约中的“章节篇幅”。** 先备份并保留原契约内容，再约定目标汉字数与宽松上下限。未配置的旧书仍可继续使用，但不会启用篇幅范围核对。完整步骤和可复制请求见 [旧项目契约更新](docs/user/upgrade-backup.md#旧项目需要更新作品契约)。
 
@@ -74,7 +74,7 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 ## 开始使用
 
 1. 安装配套的 **DSH 0.2.0-rc.2** 桌面端，打开侧栏 **插件 → 添加插件**。
-2. 输入 `abzu@0.0.4`，核对预览并安装，按提示应用变更。
+2. 输入 `abzu@0.0.5`，核对预览并安装，按提示应用变更。
 3. 配置聊天模型与凭据，选择作品工作区，按 [第一本书与第一章](docs/user/first-book.md) 开始。
 
 逐步说明见 [安装教程](docs/user/install.md) 和 [新手教程](docs/user/beginner.md)。正式版发布到 npm latest，教程使用精确版本便于核对宿主。

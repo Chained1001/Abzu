@@ -13,7 +13,7 @@ import { skills as skillNames, referenceDocs, thinScripts } from './artifact-con
 import { packageFiles, checkPublishableManifest } from '../../../scripts/release/tar.mjs'
 
 const packageRoot = fileURLToPath(new URL('../', import.meta.url))
-const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-pack-'))
+const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-pack-'))
 const run = (exe, args, cwd = temp) => execFileSync(exe, args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 16 * 1024 * 1024 })
 let tarball = process.argv[2] && path.resolve(process.argv[2])
 if (!tarball) {

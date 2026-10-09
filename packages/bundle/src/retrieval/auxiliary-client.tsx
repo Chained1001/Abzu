@@ -1,3 +1,4 @@
+import { SCENE_NAMESPACE, RERANK_NAMESPACE } from './ns'
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -133,8 +134,8 @@ function ModelCard({ scope, host, kind }: { scope: ConfigForm<Draft>; host: Cont
 }
 
 export function installAuxiliaryCards(host: Context): void {
-  const scenes = host.configForms.get<Draft>('abzu-scenes')
-  const reranking = host.configForms.get<Draft>('abzu-reranking')
+  const scenes = host.configForms.get<Draft>(SCENE_NAMESPACE)
+  const reranking = host.configForms.get<Draft>(RERANK_NAMESPACE)
   host.slots.inject('settings.models.footer', () => host.slots.register({ name: 'settings.models.footer', id: 'abzu-auxiliary-models', order: 51 }, () =>
     <section className="abzu-embedding-section"><h3>检索辅助模型</h3><ul><ModelCard host={host} scope={scenes} kind="scenes" /><ModelCard host={host} scope={reranking} kind="reranking" /></ul></section>))
 }

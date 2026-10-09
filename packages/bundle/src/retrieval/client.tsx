@@ -11,7 +11,7 @@ import { dimensionGuidance, shouldSendDimensions, type EmbeddingModelOption } fr
 import { MODEL_DIMENSIONS } from './model-dimensions'
 import { installAuxiliaryCards } from './auxiliary-client'
 
-const NS = 'abzu-embeddings'
+import { SETTINGS_NAMESPACE as NS } from './ns'
 const DEFAULT_REF = 'ABZU_EMBEDDING_API_KEY'
 const FIELDS = ['enabled', 'protocol', 'baseURL', 'model', 'dimensions', 'apiKeyEnv', 'batchSize', 'timeoutMs', 'maxRetries', 'sendDimensions', 'documentPrefix', 'queryPrefix', 'geminiTaskMode'] as const
 export const inject = ['slots', 'configForms', 'remote', 'remote.credentials']

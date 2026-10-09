@@ -3,6 +3,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { NOVEL_TOOL_NAMES, NOVEL_TEST_TOOL_NAMES } from '../src/novel-tools'
+import { REFERENCE_TOOL_NAMES } from '../src/reference/tools'
 
 /**
  * 主控+节点+聚合技能（全生命周期 11 份）。
@@ -222,11 +223,16 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(readSkill('novel-settle')).toContain('底本/沉淀对账.md')
   })
 
-  it('零机器味：全部不含黑名单词', () => {
-    for (const s of EXPECTED_SKILLS) {
-      const text = readSkill(s.name)
+  it('零机器味：SKILL 与底本/工序全部不含黑名单词', () => {
+    const walkMd = (dir: string): string[] =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = path.join(dir, e.name)
+        return e.isDirectory() ? walkMd(p) : e.name.endsWith('.md') ? [p] : []
+      })
+    for (const f of walkMd(path.join(__dirname, '..', 'skills'))) {
+      const text = fs.readFileSync(f, 'utf8')
       for (const w of BLACKLIST) {
-        expect(text, `${s.中文名}: 不应含「${w}」`).not.toContain(w)
+        expect(text, `${path.basename(f)}: 不应含「${w}」`).not.toContain(w)
       }
     }
   })
@@ -251,7 +257,7 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     }
   })
 
-  it('工具文档覆盖：作者环境注册的每个工具名至少在一篇技能 .md 中出现', () => {
+  it('工具文档覆盖：作者环境注册的每个工具名至少在一篇技能 .md 中出现（边界匹配）', () => {
     // 递归收集 skills/ 下全部 .md（SKILL.md、底本/、工序/、scripts/ 等）
     const walkMd = (dir: string): string[] =>
       fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
@@ -263,9 +269,30 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     const corpus = files.map((f) => fs.readFileSync(f, 'utf8')).join('\n')
     // 测试专用工具（NOVEL_TEST_TOOL_NAMES）不在作者环境注册，不要求文档覆盖
     const authorTools = NOVEL_TOOL_NAMES.filter((name) => !NOVEL_TEST_TOOL_NAMES.includes(name))
+    // 边界匹配防前缀假覆盖：只提 novel_apply_revision_batch 不算覆盖 novel_apply_revision
+    const mentions = (name: string) => new RegExp(`${name}(?![a-z_])`).test(corpus)
     // 工具只在运行时 description 里自我介绍、技能文档零提及时，模型行为没有文档锚点
     // （案底：novel_editor_suggest 曾是孤儿工具）。失败信息列出未覆盖工具名，方便后人修。
-    const uncovered = authorTools.filter((name) => !corpus.includes(name))
+    const uncovered = authorTools.filter((name) => !mentions(name))
     expect(uncovered, `以下工具注册于作者环境却未出现在任何技能 .md 中：${uncovered.join('、')}`).toEqual([])
+  })
+
+  it('工具文档零悬空：技能 .md 提及的每个 novel_* 工具名必须真实注册或属白名单', () => {
+    const walkMd = (dir: string): string[] =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = path.join(dir, e.name)
+        return e.isDirectory() ? walkMd(p) : e.name.endsWith('.md') ? [p] : []
+      })
+    const mentioned = new Set<string>()
+    for (const f of walkMd(path.join(__dirname, '..', 'skills'))) {
+      for (const m of fs.readFileSync(f, 'utf8').matchAll(/novel_[a-z_]+/g)) mentioned.add(m[0])
+    }
+    // 白名单：novel-director 的否定式提及（明说"当前无此工具，不虚构调用"）、
+    // `novel_reference_*` 族称（总控用通配符指代四组参考工具）与测试专用工具
+    const whitelist = new Set(['novel_ledger_query', 'novel_memory_query', 'novel_reference_', ...NOVEL_TEST_TOOL_NAMES])
+    const registered = new Set<string>([...NOVEL_TOOL_NAMES, ...REFERENCE_TOOL_NAMES])
+    const dangling = [...mentioned].filter((name) => !whitelist.has(name) && !registered.has(name))
+    // 防前缀截断误报：提及串是注册名前缀（文档省略了后缀）也算悬空——逐条精确对表
+    expect(dangling, `技能文档提及了不存在于注册表的工具：${dangling.join('、')}`).toEqual([])
   })
 })

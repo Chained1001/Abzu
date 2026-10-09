@@ -1,6 +1,6 @@
 # 备份、升级与卸载
 
-## 升级到 0.0.4
+## 升级到 0.0.5
 
 0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭。0.0.3 把五条功能入口的条目 id 统一换为 abzu 系（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`），借零书、零插件设置的窗口完成，设置、凭据引用与停用状态按新 id 重新配置。0.0.4 移除鲸鱼娘桌宠，`abzu-companion` 条目随之消失，其余四条入口与全部设置、凭据引用不变。继续配套 DSH 0.2.0-rc.2，不需要更换 DSH。
 
@@ -85,7 +85,7 @@
    成功时，书房可以打开，并且书仓状态与备份前的预期一致。
 
 ```powershell
-dsh plugin --profile scriptor add abzu@0.0.4
+dsh plugin --profile scriptor add abzu@0.0.5
 dsh --profile scriptor --dump-config
 ```
 

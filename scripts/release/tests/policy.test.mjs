@@ -24,7 +24,7 @@ test('release version binds exact tag, package and changelog', () => {
 })
 
 test('version checks every user tutorial and package installation example', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-doc-versions-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-doc-versions-'))
   const files = ['package.json', 'CHANGELOG.md', 'README.md', 'packages/bundle/package.json', 'packages/bundle/README.md']
   try {
     for (const file of files) {
@@ -43,7 +43,7 @@ test('version checks every user tutorial and package installation example', () =
   }
 })
 test('documentation links cannot escape the exported tree', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-links-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-links-'))
   try {
     fs.writeFileSync(path.join(root, 'README.md'), 'ok')
     checkMarkdownLinks(root, 'README.md', '[self](README.md)')
