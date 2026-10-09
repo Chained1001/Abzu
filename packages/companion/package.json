@@ -1,6 +1,6 @@
 {
   "name": "abzu-companion",
-  "version": "8.2.0",
+  "version": "0.0.1",
   "description": "鲸鱼娘桌宠：DSH 窗口内的写作陪伴",
   "type": "module",
   "main": "./lib/index.js",

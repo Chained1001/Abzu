@@ -14,7 +14,7 @@
 - 兼容修复递增 patch；0.x 的新增能力/不兼容变化递增 minor，并说明迁移影响。
 - 1.x 后按 SemVer 承诺：破坏兼容递增 major，兼容功能 minor，修复 patch。
 - 纯文档修改不必发包。内部 workspace 包不独立发版。当前发行器要求主包、full、检索、桌宠四包同版；每次发布逐组件注明实际变化，无功能变化的组件标为兼容发行。安装仍可选，用户无需为主包升级新增不使用的组件；推荐组合是经过本批验证的同版本。
-- 若未来改为组件独立发版，须同时修改 version/build/publish、manifest、full 的精确依赖、同版本原件复用和兼容安装矩阵；不能只改版本号或文案。本次 8.2.0 保留现有四包同版机制。
+- 若未来改为组件独立发版，须同时修改 version/build/publish、manifest、full 的精确依赖、同版本原件复用和兼容安装矩阵；不能只改版本号或文案。本次 0.0.1 保留现有四包同版机制。
 
 tag、CHANGELOG、包版本和附件必须对应。不得替换已发布同版本的字节；有错误就发布新版本。源码/打包位级可复现未作保证，验收和上传必须使用同一份生成的 tgz。
 
@@ -68,7 +68,7 @@ Release 草稿生成时，发布器核对公共 SHA、tag、四包身份、版�
 确认版本已可见后，以同一标签运行 `phase=verify`：
 
 ```text
-gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v8.2.0 -f phase=verify
+gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v0.0.1 -f phase=verify
 ```
 
 verify 阶段不运行 npm publish、不携带 npm token。四包附件及 manifest 仍完整校验；registry 核对通过 `--exclude-companion` 只检查主包、检索、完整版的版本、latest 与 SHA512，再对这三包做独立 registry 安装验收，成功才公开草稿。任何必需包缺失、哈希不符、HTTP 错误或安装失败仍使流程失败。该排除选项不能用于上传模式，已提交的桌宠不重传。新 Release 标题为 `Abzu v<version>`，标签仍为 `abzu-v<version>`。

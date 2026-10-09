@@ -1,6 +1,6 @@
 {
   "name": "abzu-full",
-  "version": "8.2.0",
+  "version": "0.0.1",
   "description": "网文写作工作台完整版（含可选嵌入提供方）",
   "keywords": [
     "dsh-plugin",
