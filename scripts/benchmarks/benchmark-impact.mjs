@@ -6,8 +6,8 @@ import { register } from 'node:module'
 // Node ≥22.6 类型剥离直接跑源码:不依赖构建产物,`pnpm build` 是纯类型门禁(dsh 同款:
 // tsc 只做聚合类型检查,产物由打包器产出——见 08-22 本地集成踩坑记录 #12)。
 // 仓内源码是无扩展名相对导入,Node ESM 解析不了,先挂补 .ts 的解析钩子再动态导入。
-register('./strip-types-loader.mjs', import.meta.url)
-const { buildRefGraph, analyzeImpact } = await import('../packages/core/src/impact/index.ts')
+register('../strip-types-loader.mjs', import.meta.url)
+const { buildRefGraph, analyzeImpact } = await import('../../packages/core/src/impact/index.ts')
 
 // ── fixture:1000 章 + 200 条设定(4 层树)= 1200 文件 ─────────────────────────
 // 设定树:`设定/类X/子Y/条N.md`,每条引用它的上一条(条N-5),每层 5 条成 40 级链;

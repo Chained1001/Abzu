@@ -33,4 +33,11 @@ pnpm check:public
 
 发行构建只内联项目实现和普通依赖，Cordis/DSH/React 等宿主共享模块保留 peer 身份。构建生成原始第三方声明，并通过实际 tarball 检查证明随包内容。
 
-提交前查看 [CONTRIBUTING](../CONTRIBUTING.md)。主线只合入审阅后的 PR；首次发行和后续更新见 [发行说明](maintenance/releasing.md)。
+## 提交规范
+
+- 提交标题使用 conventional commits 类型：`fix:`、`feat:`、`docs:`、`chore:`、`refactor:`、`test:`，写清最终行为；中文说明可以。
+- **一批一提交**：一次改动批次对应一个提交，不把无关改动混进同一提交；顺手修复必须同批声明，让下个会话可追溯。
+- 上述命令全部通过再提交；涉及发行链或公开文档的改动，另跑 `pnpm check:public`、`pnpm check:version` 与 `pnpm --filter abzu pack-check`。
+- 测试与截图使用合成书仓，不要提交自己的 API key、启动 token、完整对话或私人小说。
+
+本仓库当前为私有自用开发，暂不接受外部贡献；**公开发布后欢迎 PR**：一个 PR 解决一个可解释的问题，正文写清问题、最终行为、关联 Issue 与实际运行的检查；行为修复带有价值的回归测试，技能/提示词属于运行代码，说明流程和模型调用影响。主线和发行 tag 不强推、不改写；发行流程见 [发行说明](maintenance/releasing.md) 与 [发布检查单](maintenance/发布检查单.md)。所有贡献按本项目 GPL-3.0-only 接收；请确认你有权提交内容，并保留第三方许可声明（packages/*/licenses/ 与 THIRD_PARTY_NOTICES.md）。

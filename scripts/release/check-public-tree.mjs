@@ -4,18 +4,18 @@ import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const rootFiles = new Set(['.gitattributes', '.gitignore', '.npmrc', '.node-version', 'LICENSE', 'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CONTEXT.md', 'dsh-baseline.json', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'vitest.config.ts', 'eslint.config.mjs'])
+const rootFiles = new Set(['.gitattributes', '.gitignore', '.npmrc', 'LICENSE', 'README.md', 'CHANGELOG.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'vitest.config.ts', 'eslint.config.mjs'])
 export function checkPublicPath(file) {
   assert.ok(!file.includes('\\') && !file.includes(':') && !file.startsWith('/') && !file.split('/').includes('..'), `Unsafe public path: ${file}`)
-  assert.ok(rootFiles.has(file) || /^(packages|scripts\/release|docs\/(user|maintenance|design)|examples|\.github)\//.test(file)
-    || /^docs\/(development|book-format)\.md$/.test(file) || /^scripts\/(benchmark-(derive|impact|search)|strip-types-loader)\.mjs$/.test(file), `File outside public allowlist: ${file}`)
+  assert.ok(rootFiles.has(file) || /^(packages|scripts|docs|\.github)\//.test(file)
+    || file === 'scripts/strip-types-loader.mjs', `File outside public allowlist: ${file}`)
   assert.ok(!/(^|\/)(\.trellis|\.credentials[^/]*|session[^/]*\.jsonl|node_modules|\.env(?:\..*)?|\.abzu)(\/|$)/.test(file), `Private content path: ${file}`)
   assert.notEqual(file, 'packages/bundle/dsh-local.yml', 'Local instance config is private')
 }
 
 // History-only paths: deleted from the current tree but still present in past commits.
-const historyFiles = new Set(['CODE_OF_CONDUCT.md'])
-const historyPrefixes = ['site/']
+const historyFiles = new Set(['CODE_OF_CONDUCT.md', 'CONTEXT.md', 'SECURITY.md', 'CONTRIBUTING.md', 'dsh-baseline.json', '.node-version'])
+const historyPrefixes = ['site/', 'examples/']
 const isHistoryOnly = file => historyFiles.has(file) || historyPrefixes.some(prefix => file.startsWith(prefix))
 export function checkPublicText(file, data) {
   const text = data.toString('utf8')

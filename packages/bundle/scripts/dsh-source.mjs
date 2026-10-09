@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { execFileSync } from 'node:child_process'
 
-export const baseline = JSON.parse(fs.readFileSync(new URL('../../../dsh-baseline.json', import.meta.url), 'utf8'))
+export const baseline = JSON.parse(fs.readFileSync(new URL('../dsh-baseline.json', import.meta.url), 'utf8'))
 
 function directories(root) {
   return fs.readdirSync(root, { withFileTypes: true }).filter(item => item.isDirectory()).map(item => path.join(root, item.name))

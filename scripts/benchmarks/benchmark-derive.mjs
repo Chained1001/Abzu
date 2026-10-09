@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks'
 // Node ≥22.6 类型剥离直接跑源码:不依赖构建产物,`pnpm build` 是纯类型门禁(dsh 同款:
 // tsc 只做聚合类型检查,产物由打包器产出——见 08-22 本地集成踩坑记录 #12)。
-import { deriveChapter } from '../packages/core/src/derive/derive.ts'
+import { deriveChapter } from '../../packages/core/src/derive/derive.ts'
 
 const facts = Array.from({ length: 200 }, (_, index) => ({
   key: { 卷: Math.floor(index / 50) + 1, 章: index + 1, 章名: `章节${index + 1}` },
