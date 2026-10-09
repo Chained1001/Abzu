@@ -23,7 +23,7 @@ function git(...args: string[]) { return execFileSync('git', args, { cwd: root, 
 function initGit() {
   git('init', '--quiet'); git('config', 'user.name', 'Author Test'); git('config', 'user.email', 'author@example.invalid')
   git('config', 'commit.gpgsign', 'false'); git('config', 'core.autocrlf', 'false')
-  put('.gitignore', '草稿区/\n.webnovel/\n'); git('add', '.'); git('commit', '--quiet', '-m', 'design: fixture')
+  put('.gitignore', '草稿区/\n.abzu/\n'); git('add', '.'); git('commit', '--quiet', '-m', 'design: fixture')
 }
 function draft(role = '待审稿', version = 1, file = '稿1.md') {
   const relative = path.posix.join(paths.草稿目录(1, '开篇'), file)
@@ -31,12 +31,12 @@ function draft(role = '待审稿', version = 1, file = '稿1.md') {
   return { relative, text }
 }
 
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-author-')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-author-')) })
 afterEach(() => { removeSync(root) })
 
 describe('作者文档保存边界', () => {
   it('拒绝穿越、隐藏文件、盘符、备用数据流和目录别名', () => {
-    for (const relative of ['../secret.md', '/absolute.md', 'C:/book.md', '.webnovel/x.md', 'a/node_modules/x.md', 'a/file.md:stream', 'a./x.md', 'a//x.md']) expect(() => authorDocumentPath(root, relative)).toThrow()
+    for (const relative of ['../secret.md', '/absolute.md', 'C:/book.md', '.abzu/x.md', 'a/node_modules/x.md', 'a/file.md:stream', 'a./x.md', 'a//x.md']) expect(() => authorDocumentPath(root, relative)).toThrow()
     fs.mkdirSync(path.join(root, '定稿'))
     fs.symlinkSync(path.join(root, '定稿'), path.join(root, '别名'), process.platform === 'win32' ? 'junction' : 'dir')
     expect(() => authorDocumentPath(root, '别名/正文.md')).toThrow(/链接或别名/)

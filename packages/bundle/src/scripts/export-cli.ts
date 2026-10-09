@@ -7,7 +7,7 @@
  * argv 进、退出码出，模块顶层零副作用。
  */
 
-import { computeExport, inspectExportTarget, verifyExportTarget, type ExportScope } from '@webnovel/core'
+import { computeExport, inspectExportTarget, verifyExportTarget, type ExportScope } from '@abzu/core'
 
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)

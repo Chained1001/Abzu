@@ -3,7 +3,7 @@ import type { ToolCallId } from '@deepseek-ai/dsh-llm'
 import { randomUUID } from 'node:crypto'
 import * as path from 'node:path'
 import type { ToolRuntime } from '@deepseek-ai/dsh-tools'
-import { resolveInsideBook, type FileOp } from '@webnovel/core'
+import { resolveInsideBook, type FileOp } from '@abzu/core'
 import type { PreToolExec } from './gates'
 import type { ToolExecContext } from './novel-tools'
 
@@ -30,7 +30,7 @@ export function createNativeWriteBridge(runtime: Pick<ToolRuntime, 'execute'>) {
       const target = resolveInsideBook(root, op.relPath)
       if (!target.ok) throw new Error('原生写入目标不在书仓内')
       const file = path.resolve(root, target.relPath)
-      const callId = brandString<ToolCallId>(`webnovel-write-${randomUUID()}`)
+      const callId = brandString<ToolCallId>(`abzu-write-${randomUUID()}`)
       pending.set(callId, { parent: exec.token, agent: exec.agent, file, content: op.content })
       try {
         const result = await runtime.execute({

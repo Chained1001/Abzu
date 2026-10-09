@@ -24,7 +24,7 @@ function git(cwd: string, args: readonly string[]): ReturnType<typeof spawnSync>
 }
 
 function initRepo(): string {
-  const root = mkDir('webnovel-git-')
+  const root = mkDir('abzu-git-')
   const init = git(root, ['init'])
   expect(init.status).toBe(0)
   git(root, ['config', 'user.email', 'test@example.com'])
@@ -70,7 +70,7 @@ describe('git 健康检查(B6)', () => {
   })
 
   it('.git 是文件但指针指向不存在的目录→不通过', () => {
-    const root = mkDir('webnovel-git-bad-')
+    const root = mkDir('abzu-git-bad-')
     fs.writeFileSync(path.join(root, '.git'), 'gitdir: ./不存在的目录\n')
     const h = checkGitHealth(root)
     expect(h.ok).toBe(false)
@@ -442,7 +442,7 @@ describe('某工件最近一次提交(lastCommitOf,拍板 3)', () => {
     expect(never.ok).toBe(false)
     if (!never.ok) expect(never.kind).toBe('never')
 
-    const bare = mkDir('webnovel-nogit-')
+    const bare = mkDir('abzu-nogit-')
     const err = lastCommitOf(bare, '作品契约/契约.md')
     expect(err.ok).toBe(false)
     if (!err.ok) expect(err.kind).toBe('error')

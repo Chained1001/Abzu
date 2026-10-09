@@ -45,7 +45,7 @@ try {
     requestAnimationFrame(sample)
   })
   const preview = async name => {
-    await page.locator('.whale-companion').hover()
+    await page.locator('.abzu-companion').hover()
     await page.getByRole('button', { name: '打开桌宠菜单' }).click()
     await page.getByText('预览动作', { exact: true }).click()
     await page.locator('.whale-previews').getByRole('button', { name, exact: true }).click()

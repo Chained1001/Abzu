@@ -7,8 +7,8 @@ import {
   loadReviewRecord,
   seedMinDesign,
   writeCandidate,
-} from '@webnovel/core'
-import { ingestFindings, listChecks, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { ingestFindings, listChecks, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 
 const roots: string[] = []
 function mkDir(prefix: string): string {
@@ -46,7 +46,7 @@ function confirmWithHard(root: string): void {
 
 describe('作者意见审读模块(A14)', () => {
   it('执行形态为「作者」,重跑审核不产生它的模块态、不影响完成态', () => {
-    const root = mkDir('webnovel-author-mod-')
+    const root = mkDir('abzu-author-mod-')
     confirmWithHard(root)
     resetChecks()
     registerDefaultChecks()
@@ -60,7 +60,7 @@ describe('作者意见审读模块(A14)', () => {
   })
 
   it('以「作者意见」回写 2 条发现项:记录含它们,其余模块完成态不变;其余模块回写后「完成」不被它压住', () => {
-    const root = mkDir('webnovel-author-ingest-')
+    const root = mkDir('abzu-author-ingest-')
     confirmWithHard(root)
     resetChecks()
     registerDefaultChecks()

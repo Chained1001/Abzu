@@ -6,7 +6,7 @@ import { writeBatchAtomic } from '../src/repo/atomic'
 
 const roots: string[] = []
 function mkRoot(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-b1-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-b1-'))
   roots.push(dir)
   return dir
 }

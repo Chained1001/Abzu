@@ -6,7 +6,7 @@
  * （写入器内重算＋逐段预校验，失败不落盘）。argv 进、退出码出，模块顶层零副作用。
  */
 
-import { computePack } from '@webnovel/core'
+import { computePack } from '@abzu/core'
 
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)

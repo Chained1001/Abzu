@@ -15,7 +15,7 @@ import {
 const roots: string[] = []
 
 function mkBook(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-ledger-query-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ledger-query-'))
   roots.push(root)
   seedMinDesign(root)
   for (const name of LEDGER_NAMES) {

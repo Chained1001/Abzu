@@ -1,4 +1,4 @@
-import { entryChapterNo, filenameCase, isMarkdownFileName, LEDGER_NAMES, parseDocument, parseLedgerHistory } from '@webnovel/core'
+import { entryChapterNo, filenameCase, isMarkdownFileName, LEDGER_NAMES, parseDocument, parseLedgerHistory } from '@abzu/core'
 import type { TreeEntry } from './types'
 import type { StoryGraph, StoryGraphEdge, StoryGraphRecord } from './graph-types'
 

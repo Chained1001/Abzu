@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import { syncBuiltinESMExports } from 'node:module'
-import { computeMaterials, contractTemplate, loadReviewRecord, scanChapter, seedMinDesign, serializeDocument, writeContract } from '@webnovel/core'
+import { computeMaterials, contractTemplate, loadReviewRecord, scanChapter, seedMinDesign, serializeDocument, writeContract } from '@abzu/core'
 import { computeReview, ingestFindings, listChecks, resetChecks, runReview } from '../src/index'
 import { removeSync } from '../../core/src/repo/remove'
 

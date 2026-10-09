@@ -18,13 +18,13 @@ const resolution = JSON.parse(fs.readFileSync(path.join(profile, 'scriptor-probe
 const configPath = path.join(path.dirname(reportPath), 'isolation-loader.json')
 const config = [
   { id: 'skills', name: pathToFileURL(require.resolve('@deepseek-ai/dsh-skill')).href },
-  { id: 'webnovel', name: pathToFileURL(packageEntry).href },
+  { id: 'abzu', name: pathToFileURL(packageEntry).href },
 ]
 if (checkEmbedding) {
   config.unshift({ id: 'llm', name: pathToFileURL(require.resolve('@deepseek-ai/dsh-llm')).href })
   config.unshift({ id: 'credentials', name: pathToFileURL(require.resolve('@deepseek-ai/dsh-credentials-local')).href,
     config: { path: path.join(path.dirname(reportPath), 'full-credentials.yaml'), watch: false } })
-  for (const [id, subpath] of [['webnovel-embeddings', '/embeddings'], ['webnovel-scenes', '/scenes'], ['webnovel-reranking', '/reranking']]) {
+  for (const [id, subpath] of [['abzu-embeddings', '/embeddings'], ['abzu-scenes', '/scenes'], ['abzu-reranking', '/reranking']]) {
     config.push({ id, name: pathToFileURL(packageRequire.resolve(`abzu${subpath}`)).href })
   }
 }

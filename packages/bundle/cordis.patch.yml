@@ -1,11 +1,11 @@
 - insert:
-    - id: webnovel
+    - id: abzu
       name: 'abzu'
-    - id: webnovel-embeddings
+    - id: abzu-embeddings
       name: 'abzu/embeddings'
-    - id: webnovel-scenes
+    - id: abzu-scenes
       name: 'abzu/scenes'
-    - id: webnovel-reranking
+    - id: abzu-reranking
       name: 'abzu/reranking'
-    - id: whale-companion
+    - id: abzu-companion
       name: 'abzu/companion'

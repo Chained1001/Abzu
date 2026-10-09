@@ -16,7 +16,7 @@ import { removeSync } from '../src/repo/remove'
 const roots: string[] = []
 
 function mkBook(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-ledger-recon-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ledger-recon-'))
   roots.push(root)
   seedMinDesign(root)
   for (const name of LEDGER_NAMES) {

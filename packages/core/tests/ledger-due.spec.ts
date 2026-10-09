@@ -16,7 +16,7 @@ import {
 const roots: string[] = []
 
 function mkBook(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-ledger-due-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ledger-due-'))
   roots.push(root)
   seedMinDesign(root)
   for (const name of LEDGER_NAMES) {
@@ -119,7 +119,7 @@ describe('账本到期与跨卷对账', () => {
   })
 
   it('账本缺失时到期查询返回 kind，并保留已读线索派生项', () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-ledger-due-'))
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ledger-due-'))
     roots.push(root)
     seedMinDesign(root)
     for (const name of LEDGER_NAMES) {

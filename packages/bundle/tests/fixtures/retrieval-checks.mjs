@@ -63,7 +63,7 @@ export async function checkSearch({ root, workspace, main, child, ctx, service, 
     })().catch(() => res.destroy())
   })
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
-  const ns = 'webnovel-embeddings'
+  const ns = 'abzu-embeddings'
   const search = async (query = '归家', agent = main, signal) => {
     const result = await execute(agent, 'novel_search_finalized', { bookId, query }, signal)
     assert.equal(result.isError, false, JSON.stringify(result))
@@ -122,10 +122,10 @@ export async function checkSearch({ root, workspace, main, child, ctx, service, 
     })
 
     await check('独立嵌入提供方真实 HTTP 混合检索与配置刷新', async () => {
-      await service('credentials').set(credentialRef('WEBNOVEL_SEARCH_TEST_KEY'), 'fixture-search-key')
+      await service('credentials').set(credentialRef('ABZU_SEARCH_TEST_KEY'), 'fixture-search-key')
       await service('settings').update(ns, {
         enabled: true, protocol: 'openai-compatible', baseURL: `http://127.0.0.1:${server.address().port}/v1`,
-        model: 'controlled-fixture', dimensions: 3, apiKeyEnv: 'WEBNOVEL_SEARCH_TEST_KEY',
+        model: 'controlled-fixture', dimensions: 3, apiKeyEnv: 'ABZU_SEARCH_TEST_KEY',
         documentPrefix: 'document:', queryPrefix: 'query:', maxRetries: 0,
       })
       await manage('enable')
@@ -160,7 +160,7 @@ export async function checkSearch({ root, workspace, main, child, ctx, service, 
       const firstPause = pause()
       await manage('update')
       await firstPause.entered.promise
-      assert.equal(fs.existsSync(path.join(book, '.webnovel/book.lock')), false)
+      assert.equal(fs.existsSync(path.join(book, '.abzu/book.lock')), false)
       assert.equal((await manage('pause')).phase, 'paused')
       release()
       await manage('resume')
@@ -172,10 +172,10 @@ export async function checkSearch({ root, workspace, main, child, ctx, service, 
       const secondPause = pause()
       await manage('update')
       await secondPause.entered.promise
-      await toggle('webnovel-embeddings', true)
+      await toggle('abzu-embeddings', true)
       release()
       assert.equal((await search()).mode, 'keyword')
-      await toggle('webnovel-embeddings', false)
+      await toggle('abzu-embeddings', false)
       await manage('update')
       assert.equal((await ready()).generated, 2)
       const restored = await search()

@@ -19,7 +19,7 @@ afterAll(() => roots.forEach(root => removeSync(root)))
 afterEach(() => vi.restoreAllMocks())
 
 function fixture(count = 21, upstream = false) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-disposition-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-disposition-'))
   roots.push(root)
   const put = (rel: string, text: string) => {
     fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true })

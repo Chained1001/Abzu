@@ -18,8 +18,8 @@ const shot=async name=>{await page.screenshot({path:path.join(evidence,name+'.pn
 const selected=process.argv[3]?.split(',')
 const check=async(name,fn)=>{if(selected&&!selected.includes(name))return;report.current=name;save();await fn();report.checks[name]=true;save()}
 page.on('pageerror',e=>{report.errors.push(e.message);save()})
-const pet=page.locator('.whale-companion')
-const action=async value=>page.waitForFunction(v=>document.querySelector('.whale-companion')?.getAttribute('data-action')===v,value)
+const pet=page.locator('.abzu-companion')
+const action=async value=>page.waitForFunction(v=>document.querySelector('.abzu-companion')?.getAttribute('data-action')===v,value)
 const openMenu=async()=>{await pet.hover();await page.getByRole('button',{name:'打开桌宠菜单'}).click()}
 const selectSession=async name=>{
  const tab=page.getByRole('tab',{name:'工作区',exact:true})
@@ -123,8 +123,8 @@ try{
    const editor=page.locator('[contenteditable="true"]').first()
    await page.evaluate(()=>{
      window.whaleObservedActions=[]
-     window.whaleActionObserver=new MutationObserver(()=>window.whaleObservedActions.push(document.querySelector('.whale-companion')?.dataset.action))
-     window.whaleActionObserver.observe(document.querySelector('.whale-companion'),{attributes:true,attributeFilter:['data-action']})
+     window.whaleActionObserver=new MutationObserver(()=>window.whaleObservedActions.push(document.querySelector('.abzu-companion')?.dataset.action))
+     window.whaleActionObserver.observe(document.querySelector('.abzu-companion'),{attributes:true,attributeFilter:['data-action']})
    })
    await editor.fill('失败测试');await editor.press('Enter')
    await page.getByText('预期的本地验收错误',{exact:false}).first().waitFor();await action('idle')
@@ -169,10 +169,10 @@ try{
    }
    await toggle(true)
    await pet.waitFor({state:'detached'})
-   await page.waitForFunction(()=>!document.querySelector('style[data-whale-companion]'))
+   await page.waitForFunction(()=>!document.querySelector('style[data-abzu-companion]'))
    assert.equal(await page.evaluate(()=>window.whaleOwnedVideos.every(v=>v.paused&&!v.hasAttribute('src'))),true)
    await toggle(false);await pet.waitFor();assert.equal(await pet.count(),1)
-   assert.equal(await page.locator('style[data-whale-companion]').count(),1)
+   assert.equal(await page.locator('style[data-abzu-companion]').count(),1)
    assert.equal(JSON.parse(fs.readFileSync(path.join(evidence,'native-host.json'),'utf8')).requests,before)
    await shot('native-reloaded')
  })

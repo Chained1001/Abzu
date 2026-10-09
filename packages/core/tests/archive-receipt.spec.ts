@@ -32,7 +32,7 @@ function fixture(): ArchiveOptions {
   git(root, 'config', 'user.name', 'test')
   git(root, 'config', 'user.email', 'test@example.com')
   git(root, 'config', 'commit.gpgsign', 'false')
-  put(root, '.gitignore', '草稿区/\n.webnovel/\n')
+  put(root, '.gitignore', '草稿区/\n.abzu/\n')
   put(root, '账本/时间线.md', '# 时间线\n')
   put(root, '账本/故事线.md', '# 故事线\n')
   put(root, '世界书/设定/铜铃.md', serializeDocument({ 名称: '铜铃', 性质: '事实', 版本: 1 }, '既有事实。'))
@@ -87,7 +87,7 @@ function inProcess(options: ArchiveOptions, mode = 'normal'): ReturnType<typeof 
     let faultHit = false;
     const rename = fs.renameSync;
     if (mode === 'write-fault') fs.renameSync = (from, to) => {
-      if (!faultHit && String(to).replaceAll('\\\\', '/').includes('/.archive-receipts/') && String(from).includes('.webnovel-txn-')) {
+      if (!faultHit && String(to).replaceAll('\\\\', '/').includes('/.archive-receipts/') && String(from).includes('.abzu-txn-')) {
         faultHit = true;
         throw Object.assign(new Error('injected receipt write failure'), { code: 'EIO' });
       }

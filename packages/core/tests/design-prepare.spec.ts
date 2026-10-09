@@ -10,7 +10,7 @@ import {
 import { removeSync } from '../src/repo/remove'
 
 let root: string
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-prepare-')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-prepare-')) })
 afterEach(() => { removeSync(root) })
 const put = (rel: string, text: string) => {
   fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true })

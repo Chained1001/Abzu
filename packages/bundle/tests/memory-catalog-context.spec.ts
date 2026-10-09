@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { writeAuthorMemory, writeBookMemory } from '@webnovel/core'
+import { writeAuthorMemory, writeBookMemory } from '@abzu/core'
 import { createUserMessage, type UserMessage } from '@deepseek-ai/dsh-llm'
 import type { PreStepDecision } from '@deepseek-ai/dsh-agent'
 import { attachInitialMemoryCatalog, MEMORY_CATALOG_SOURCE, bookMemoryCatalogText } from '../src/status-context'
@@ -13,7 +13,7 @@ import { removeSync } from '../../core/src/repo/remove'
 const roots: string[] = []
 afterAll(() => roots.forEach(root => removeSync(root)))
 function makeWorkspace(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-memctx-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-memctx-'))
   roots.push(dir)
   const book = path.join(dir, '星辰')
   fs.mkdirSync(path.join(book, '作品契约'), { recursive: true })
@@ -101,7 +101,7 @@ describe('作者记忆目录：独立的一次性原生消息（15A）', () => {
 
   it('兼容历史combined快照的已发送目录，不再另加一份', async () => {
     const ws = makeWorkspace()
-    const legacy = createUserMessage({ content: [{ type: 'text', text: '旧目录' }], source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'webnovel.memory', text: '旧目录' }] } })
+    const legacy = createUserMessage({ content: [{ type: 'text', text: '旧目录' }], source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'abzu.memory', text: '旧目录' }] } })
     const host = harness(() => ws, [legacy])
     await host.run()
     expect(host.history).toEqual([legacy])

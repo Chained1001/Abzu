@@ -12,7 +12,7 @@ import { serializeMachineJson, MACHINE_SCHEMA_VERSION, writeSettlementDecision }
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'webnovel-decision-'))
+  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'abzu-decision-'))
   roots.push(dir)
   return dir
 }

@@ -2,7 +2,7 @@
  * 发现项契约(插件规格 §9)。
  */
 
-import type { Finding, 处置状态 } from '@webnovel/core'
+import type { Finding, 处置状态 } from '@abzu/core'
 
 export type { Finding }
 

@@ -25,9 +25,9 @@ export function EditorPanel({ sessionId, store, actions, memory, requests, docum
   const state = useEditor(store, sessionId)
   const key = documentKey ?? state.current
   const buffer = key ? state.buffers[key] : undefined
-  if (!key || !buffer) return <div className="webnovel nw-panel"><p className="nw-empty">暂无打开的文档</p></div>
+  if (!key || !buffer) return <div className="abzu nw-panel"><p className="nw-empty">暂无打开的文档</p></div>
   const identity = sessionId + ':' + key
-  return <div className="webnovel nw-panel" onPointerDownCapture={() => { if (embedded && state.current !== key) store.update(sessionId, { current: key }) }} onFocusCapture={() => { if (embedded && state.current !== key) store.update(sessionId, { current: key }) }}>
+  return <div className="abzu nw-panel" onPointerDownCapture={() => { if (embedded && state.current !== key) store.update(sessionId, { current: key }) }} onFocusCapture={() => { if (embedded && state.current !== key) store.update(sessionId, { current: key }) }}>
     <FocusEditor key={identity} {...{ identity, buffer, store, sessionId, bufferKey: key, memory, actions, requests, plainText, notice: state.notice }} />
   </div>
 }

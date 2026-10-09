@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { seedMinDesign, serializeDocument, computePack, parseDocument, writeContract } from '@webnovel/core'
-import { computeReview, ingestFindings, resetChecks } from '@webnovel/review'
+import { seedMinDesign, serializeDocument, computePack, parseDocument, writeContract } from '@abzu/core'
+import { computeReview, ingestFindings, resetChecks } from '@abzu/review'
 import { removeSync } from '../../core/src/repo/remove'
 import { runChecksCli } from '../src/scripts/deterministic-checks'
 
@@ -17,7 +17,7 @@ afterEach(() => {
 
 describe('确定性检查官方回写载荷', () => {
   it.each([false, true])('审读材料=%s：范围核对与普通文本规范发现项一并输出', (materials) => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-review-cli-'))
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-review-cli-'))
     roots.push(root)
     seedMinDesign(root)
     writeContract(root, { 阅读体验与情绪承诺: { state: '已确认', body: '### 章节篇幅\n- 目标汉字数: 2000\n- 下限汉字数: 1600\n- 上限汉字数: 2400' } })
@@ -34,7 +34,7 @@ describe('确定性检查官方回写载荷', () => {
   })
 
   it.each([false, true])('审读材料=%s：每个载荷绑定实际输入，原样可回写，换稿后拒绝重放', (materials) => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-review-cli-'))
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-review-cli-'))
     roots.push(root)
     seedMinDesign(root)
     const draft = path.join(root, '草稿区/草稿/卷01-回写验收/稿1.md')
@@ -77,7 +77,7 @@ describe('确定性检查官方回写载荷', () => {
   })
 
   it.each([0, 2])('%s 份待审稿时拒绝，不输出可被误用的统计', (drafts) => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-review-cli-'))
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-review-cli-'))
     roots.push(root)
     const dir = path.join(root, '草稿区/草稿/卷01-回写验收')
     fs.mkdirSync(dir, { recursive: true })

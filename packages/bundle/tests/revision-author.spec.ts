@@ -9,14 +9,14 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline } from '@webnovel/core'
-import { applyRevision, ingestAuthorRevision, replayLines } from '@webnovel/core'
-import { parseDocument } from '@webnovel/core'
-import { registerDefaultChecks, resetChecks, runReview, recordAuthorFinding, computeReview, ingestFindings } from '@webnovel/review'
+import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline } from '@abzu/core'
+import { applyRevision, ingestAuthorRevision, replayLines } from '@abzu/core'
+import { parseDocument } from '@abzu/core'
+import { registerDefaultChecks, resetChecks, runReview, recordAuthorFinding, computeReview, ingestFindings } from '@abzu/review'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-m1-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-m1-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

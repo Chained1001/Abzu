@@ -10,7 +10,7 @@ import { StudyService } from '../src/study/service'
 import { decideTargetForFile } from '../src/gates'
 import { createStudyHandler, type StudyWebRuntime } from '../src/study/web'
 
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-identity-'))
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-identity-'))
 afterAll(() => removeSync(scratch))
 const concept = { 状态: '已确认', 核心创意: '审计虚构样例', 题材与目标读者: '审计', 主角核心欲望: '审计', 主要冲突: '审计', 核心看点: '审计', 差异化方向: '审计', 明确不要什么: '审计' } as const
 const workspace = (label: string) => fs.mkdtempSync(path.join(scratch, label))
@@ -71,7 +71,7 @@ describe('host adversarial repro', () => {
     const origin = 'http://127.0.0.1'
     const ref = { space: 'book:b-audit', path: relative.replace(/\.md$/, '.MD') }
     const post = async (method: string, input: object) => {
-      const response = await handler(new Request(origin + '/api/webnovel/study/' + method, { method: 'POST', headers: { 'x-webnovel-request': '1', 'content-type': 'application/json' }, body: JSON.stringify({ sessionId: 'audit', ...input }) }))
+      const response = await handler(new Request(origin + '/api/abzu/study/' + method, { method: 'POST', headers: { 'x-abzu-request': '1', 'content-type': 'application/json' }, body: JSON.stringify({ sessionId: 'audit', ...input }) }))
       return { status: response.status, value: await response.json() as any }
     }
     {

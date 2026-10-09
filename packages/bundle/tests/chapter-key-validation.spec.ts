@@ -11,7 +11,7 @@ import { nativeWriteStub } from './fixtures/native-write-stub'
  * 修复：章键工具先校验 卷/章/章名，返回指明缺失参数的明确原因。
  */
 function makeBook(): { ws: string; bookRoot: string } {
-  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-keycheck-'))
+  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-keycheck-'))
   const bookRoot = path.join(ws, '探书')
   fs.mkdirSync(path.join(bookRoot, '作品契约'), { recursive: true })
   fs.writeFileSync(path.join(bookRoot, '作品契约', '契约.md'), '---\n书id: probe-key\n---\n正文\n', 'utf-8')

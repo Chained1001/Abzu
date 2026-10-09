@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { EmbeddingInput, EmbeddingProvider } from '@webnovel/core'
+import type { EmbeddingInput, EmbeddingProvider } from '@abzu/core'
 import type { ResolvedEmbeddingSettings } from './config'
 import type { EmbeddingModelOption } from './models'
 

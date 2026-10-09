@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Pause, Play, RefreshCw, RotateCcw } from 'lucide-react'
-import type { IndexAction } from '@webnovel/core'
+import type { IndexAction } from '@abzu/core'
 import type { IndexView } from '../indexing/manager'
 import type { StudyShelf } from '../study/types'
 import type { ClientHost } from './host'
@@ -9,8 +9,8 @@ import { callStudy } from './api'
 import { useStudy } from './hooks'
 import { createIndexSelection, isNewerIndexView, type IndexSelection } from './index-state'
 
-const TAB_ID = '@webnovel/bundle/index'
-const TAB_KIND = 'webnovel-index'
+const TAB_ID = '@abzu/bundle/index'
+const TAB_KIND = 'abzu-index'
 const labels: Record<IndexView['phase'], string> = {
   disabled: '自动更新已关闭', unconfigured: '等待配置嵌入模型', queued: '等待后台处理', scanning: '正在校准定稿',
   scenes: '正在识别场景', embedding: '正在生成向量', retrying: '等待自动重试', paused: '已暂停', ready: '索引已同步', failed: '索引需要处理',
@@ -92,7 +92,7 @@ function IndexPanel({ sessionId, selection }: { sessionId: string; selection: In
 
   const working = !!value && ['queued', 'scanning', 'scenes', 'embedding', 'retrying'].includes(value.phase)
   const remaining = value?.retryAt ? Math.max(0, Math.ceil((value.retryAt - Date.now()) / 1000)) : 0
-  return <div className="webnovel nw-index">
+  return <div className="abzu nw-index">
     <label className="nw-index-book"><span>作品</span><select aria-label="选择索引作品" value={space ?? ''} onChange={event => selection.choose(sessionId, event.target.value)}>
       {books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}
     </select></label>
@@ -142,9 +142,9 @@ function IndexPanel({ sessionId, selection }: { sessionId: string; selection: In
 
 export function installIndexSidebar(host: ClientHost): OpenIndex {
   const selection = createIndexSelection()
-  host.effect(() => () => selection.dispose(), 'webnovel: index view selection')
+  host.effect(() => () => selection.dispose(), 'abzu: index view selection')
   host.effect(() => host.sidebarRightTabs.register({ id: TAB_ID, kind: TAB_KIND, title: () => '检索索引',
-    guide: [{ id: TAB_ID, order: 51, title: () => '检索索引', description: () => '查看当前书的后台索引进度、重试和错误。' }] }), 'webnovel: index progress tab')
+    guide: [{ id: TAB_ID, order: 51, title: () => '检索索引', description: () => '查看当前书的后台索引进度、重试和错误。' }] }), 'abzu: index progress tab')
   host.slots.inject('sidebar.right.pane.tab', () => host.slots.register({ name: 'sidebar.right.pane.tab', key: TAB_ID,
     inject: (sessionId: string) => ({ sessionId, selection }) }, IndexPanel))
   return (sessionId, space) => {

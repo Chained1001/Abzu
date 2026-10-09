@@ -26,7 +26,7 @@ import {
   resolveInsideBook,
   type ToolCall,
   type PreToolDecision,
-} from '@webnovel/core'
+} from '@abzu/core'
 import { parseBookPathInput } from './paths'
 
 /** 与真实 dsh ToolExecution 的消费交集(窄声明)。 */
@@ -76,7 +76,7 @@ export function attachFileGateToAgent(
       if (target !== null) {
         const ws = deps.workspaceRoot()
         const absolute = ws ? canonicalizePath(path.resolve(ws, target)) : undefined
-        if (ws && absolute && inside(path.join(ws, '书房/参考书'), absolute) && /(?:^|[\\/])\.(?:analysis|webnovel)(?:[\\/]|$)/i.test(absolute)) {
+        if (ws && absolute && inside(path.join(ws, '书房/参考书'), absolute) && /(?:^|[\\/])\.(?:analysis|abzu)(?:[\\/]|$)/i.test(absolute)) {
           return { kind: 'deny', reason: '受管原文与机器状态仅供参考工具读取，请使用拆书或定点证据回查' }
         }
       }

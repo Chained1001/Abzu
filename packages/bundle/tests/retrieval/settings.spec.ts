@@ -10,7 +10,7 @@ import { linkFixtureDependencies } from '../fixtures/fixture-dependencies.mjs'
 
 describe('真实 DSH 设置与提供方生命周期', () => {
   it('可保存维度、隔离凭据、热更新配置并保持卸载重装等价', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-embedding-settings-'))
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-embedding-settings-'))
     const packageRoot = path.resolve(__dirname, '../..')
     try {
       linkFixtureDependencies(packageRoot, root)

@@ -9,7 +9,7 @@
  * 为什么必须打包(2026-09-01 真机冒烟实证):
  * dsh 用原生 ESM `import()` 吃插件入口,而 Node 的 ESM 解析器不补全扩展名;
  * 本仓 tsconfig 走 moduleResolution: "Bundler",源码里相对导入都无扩展名,
- * 且 `@webnovel/core` 是源码直引 —— dsh 端没有 node_modules/@webnovel/*。
+ * 且 `@abzu/core` 是源码直引 —— dsh 端没有 node_modules/@abzu/*。
  * 直接把 dsh-local.yml 指向 src/index.ts 会以 ERR_MODULE_NOT_FOUND 加载失败。
  * 单文件产物同时解掉这两条:相对导入全部内联,跨包依赖一并内联。
  * 形态对齐 dsh 自身插件(@deepseek-ai/dsh-skill-filesystem:main=lib/index.js,产物内零相对导入)。

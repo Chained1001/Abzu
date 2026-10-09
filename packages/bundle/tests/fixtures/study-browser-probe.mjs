@@ -6,8 +6,8 @@ import assert from 'node:assert/strict'
 const runtimePath = path.resolve(process.argv[2])
 const runtime = JSON.parse(fs.readFileSync(runtimePath, 'utf8').replace(/^\uFEFF/, ''))
 const evidence = path.dirname(runtimePath)
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const context = await browser.newContext({ viewport: { width: 1440, height: 960 } })
 const page = await context.newPage()
 const captureScreen = page.screenshot.bind(page)
@@ -225,7 +225,7 @@ async function settleLayout() {
 page.on('response', async response => {
   if (response.status() < 400) return
   const url = new URL(response.url()).pathname
-  failedResponses.push({ url, status: response.status(), ...(url.startsWith('/api/webnovel/') ? { body: (await response.text()).slice(0,500) } : {}) })
+  failedResponses.push({ url, status: response.status(), ...(url.startsWith('/api/abzu/') ? { body: (await response.text()).slice(0,500) } : {}) })
 })
 page.on('request', request => { if (request.method() === 'POST') requests.push({ url: new URL(request.url()).pathname, body: request.postData()?.slice(0,800) }) })
 page.on('pageerror', error => errors.push(error.message))
@@ -265,7 +265,7 @@ try {
     await page.locator('[data-rightbar-collapsed]').waitFor({ state: 'hidden' })
     await page.getByRole('button', { name: '收起右侧边栏', exact: true }).click()
     await page.locator('[data-rightbar-collapsed]').waitFor()
-    assert.equal(await page.locator('[data-webnovel-writing-frame]').count(), 0)
+    assert.equal(await page.locator('[data-abzu-writing-frame]').count(), 0)
   }
   if (process.argv[3] === 'production') {
     await page.screenshot({ path: path.join(evidence, 'production-desktop.png'), fullPage: true })

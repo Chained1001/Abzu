@@ -5,7 +5,7 @@
  * 章摘要不齐时如实报缺（exit 0＝检查完成，报缺非异常）。argv 进、退出码出，顶层零副作用。
  */
 
-import { computeVolumeSummaryCandidate } from '@webnovel/core'
+import { computeVolumeSummaryCandidate } from '@abzu/core'
 
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)

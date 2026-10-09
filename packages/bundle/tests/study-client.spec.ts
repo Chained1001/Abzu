@@ -151,14 +151,14 @@ describe('完整原文引用', () => {
     const link = studyLink('dsh-app://app/', 'one', ref)
     expect(parseStudyLink(link, 'dsh-app://app/')).toEqual({ sessionId: 'one', ref })
     expect(parseStudyLink(link.replace('://app/', '://other/'), 'dsh-app://app/')).toBeUndefined()
-    expect(parseStudyLink('file:///?webnovel={}', 'dsh-app://app/')).toBeUndefined()
+    expect(parseStudyLink('file:///?abzu={}', 'dsh-app://app/')).toBeUndefined()
   })
   it('文档链接结构化往返中文路径，拒绝外站和非法载荷', () => {
     const ref = { space: 'book:one', path: '草稿区/稿1.md' }
     const link = studyLink('http://127.0.0.1:6094', 'one', ref)
     expect(parseStudyLink(link, 'http://127.0.0.1:6094')).toEqual({ sessionId: 'one', ref })
     expect(parseStudyLink(link, 'http://evil.example')).toBeUndefined()
-    expect(parseStudyLink('http://127.0.0.1:6094/?webnovel=bad', 'http://127.0.0.1:6094')).toBeUndefined()
+    expect(parseStudyLink('http://127.0.0.1:6094/?abzu=bad', 'http://127.0.0.1:6094')).toBeUndefined()
   })
   it('长中文引用保留全文和来源，不因超过 500 字符退化成路径', () => {
     const text = '中文段落。'.repeat(200)

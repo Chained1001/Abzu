@@ -7,7 +7,7 @@ export interface Position { x: number; y: number }
 export interface Preferences { visible: boolean; size: keyof typeof sizes; position: Position | null }
 export interface Snapshot { action: Action; label: string; busy: boolean; preferences: Preferences; mediaError: string }
 export interface Storage { getItem(key: string): string | null; setItem(key: string, value: string): void }
-const KEY = 'whale-companion:v1'
+const KEY = 'abzu-companion:v1'
 const defaults: Preferences = { visible: true, size: 'medium', position: null }
 
 export function readPreferences(storage?: Storage): Preferences {

@@ -9,7 +9,7 @@ import type { Concept } from '../src/inspire/concept'
 
 const roots: string[] = []
 function mkRoot(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-create-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-create-'))
   roots.push(dir)
   return dir
 }

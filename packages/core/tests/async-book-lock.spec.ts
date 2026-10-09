@@ -6,9 +6,9 @@ import { withBookLock, withBookLockAsync, withBookWriteAsync, writeBatchAtomic }
 import { removeSync } from '../src/repo/remove'
 
 let root: string
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-async-lock-')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-async-lock-')) })
 afterEach(() => { removeSync(root) })
-const lockPath = () => path.join(root, '.webnovel/book.lock')
+const lockPath = () => path.join(root, '.abzu/book.lock')
 
 describe('等待原生写入时的书仓锁', () => {
   it('跨 await 保持独占，同一调用链可重入同步提交与原子事务', async () => {
@@ -30,7 +30,7 @@ describe('等待原生写入时的书仓锁', () => {
     } finally { release(); await task }
     expect(fs.existsSync(lockPath())).toBe(false)
     expect(fs.readFileSync(path.join(root, '大纲/故事骨架.md'), 'utf8')).toBe('正文\n')
-    const audit = JSON.parse(fs.readFileSync(path.join(root, '.webnovel/operations/async-native-write.json'), 'utf8'))
+    const audit = JSON.parse(fs.readFileSync(path.join(root, '.abzu/operations/async-native-write.json'), 'utf8'))
     expect(audit).toMatchObject({ status: 'completed', callId: 'call-1', targets: ['大纲/故事骨架.md'] })
   })
 
@@ -43,7 +43,7 @@ describe('等待原生写入时的书仓锁', () => {
     if (mode === 'throw') await expect(task).rejects.toThrow('原生版本冲突')
     else await expect(task).resolves.toEqual({ ok: false, reason: '原生版本冲突' })
     expect(fs.existsSync(lockPath())).toBe(false)
-    const audit = JSON.parse(fs.readFileSync(path.join(root, `.webnovel/operations/failure-${mode}.json`), 'utf8'))
+    const audit = JSON.parse(fs.readFileSync(path.join(root, `.abzu/operations/failure-${mode}.json`), 'utf8'))
     expect(audit.status).toBe('failed')
     expect(audit.error).toContain('原生版本冲突')
     expect(withBookLock(root, () => '再次写入')).toBe('再次写入')

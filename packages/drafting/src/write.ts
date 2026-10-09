@@ -21,11 +21,11 @@ import {
   splitCandidateFacts,
   writeFileAtomic,
   type ChapterKey,
-} from '@webnovel/core'
-import { bookWriter } from '@webnovel/core'
+} from '@abzu/core'
+import { bookWriter } from '@abzu/core'
 
 // 候选事实段拆拼自 core 迁入(repo/drafts.ts),重导出保持旧 import 可用
-export { CANDIDATE_HEADING, composeBody, splitCandidateFacts } from '@webnovel/core'
+export { CANDIDATE_HEADING, composeBody, splitCandidateFacts } from '@abzu/core'
 
 export interface WriteDraftInput {
   readonly 卷: number

@@ -10,8 +10,8 @@ import {
   parseDocument,
   seedMinDesign,
   writeCandidate,
-} from '@webnovel/core'
-import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 
 const roots: string[] = []
 function mkDir(prefix: string): string {
@@ -71,7 +71,7 @@ function seedFindings(root: string): void {
 
 describe('改稿批(A8)', () => {
   it('一次写新稿并回写 3 条处置:旧稿降级、版本+1、处置说明回填、候选事实保留', () => {
-    const root = mkDir('webnovel-batch-')
+    const root = mkDir('abzu-batch-')
     confirmWithHard(root)
     putPending(root, `综上所述，${HARD}。\n\n## 草稿候选事实\n\n${FACTS.map((f) => `- ${f}`).join('\n')}\n`)
     seedFindings(root)
@@ -111,7 +111,7 @@ describe('改稿批(A8)', () => {
   })
 
   it('审核记录 3 条处置状态与处置说明均已更新', () => {
-    const root = mkDir('webnovel-batch-record-')
+    const root = mkDir('abzu-batch-record-')
     confirmWithHard(root)
     putPending(root, `综上所述，${HARD}。`)
     seedFindings(root)
@@ -136,7 +136,7 @@ describe('改稿批(A8)', () => {
   })
 
   it('不带新稿正文时只回写处置,不产生新文件', () => {
-    const root = mkDir('webnovel-batch-nodraft-')
+    const root = mkDir('abzu-batch-nodraft-')
     confirmWithHard(root)
     putPending(root, `综上所述，${HARD}。`)
     seedFindings(root)
@@ -154,7 +154,7 @@ describe('改稿批(A8)', () => {
   })
 
   it('含不存在的发现项编号 → 整批不写', () => {
-    const root = mkDir('webnovel-batch-miss-')
+    const root = mkDir('abzu-batch-miss-')
     confirmWithHard(root)
     putPending(root, `综上所述，${HARD}。`)
     seedFindings(root)
@@ -173,7 +173,7 @@ describe('改稿批(A8)', () => {
   })
 
   it('触及真源的发现项整批拒绝', () => {
-    const root = mkDir('webnovel-batch-true-')
+    const root = mkDir('abzu-batch-true-')
     confirmWithHard(root)
     putPending(root, `${HARD}。`)
     resetChecks()

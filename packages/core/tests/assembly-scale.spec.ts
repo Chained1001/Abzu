@@ -25,7 +25,7 @@ function sectionText(root: string, 章名: string, name: string): string {
 
 describe('材料包切片与规模不变量', () => {
   it('200 章书:时间线段只含最近 20 条＋命中项;活跃账本项一行制;清单每段有字数(A5)', () => {
-    const root = mkDir('webnovel-scale200-')
+    const root = mkDir('abzu-scale200-')
     makeFixtureBook(root, 200)
     const r = assembleMaterials(root, KEY51)
     expect(r.ok).toBe(true)
@@ -50,7 +50,7 @@ describe('材料包切片与规模不变量', () => {
   })
 
   it('第 51 章衔接段含第 50 章末尾与 48-50 章摘要;第 1 章标无上一章定稿(A6)', () => {
-    const root = mkDir('webnovel-scale-link-')
+    const root = mkDir('abzu-scale-link-')
     makeFixtureBook(root, 200)
     const r = assembleMaterials(root, KEY51)
     expect(r.ok).toBe(true)
@@ -72,7 +72,7 @@ describe('材料包切片与规模不变量', () => {
   })
 
   it('同书高章位材料包合计字数不随章数增长(A7——规模不变量本体)', () => {
-    const big = mkDir('webnovel-scale200b-')
+    const big = mkDir('abzu-scale200b-')
     makeFixtureBook(big, 200)
     expect(assembleMaterials(big, KEY51).ok).toBe(true)
     const t51 = readManifest(big, { 卷: KEY51.卷, 章名: KEY51.章名 })!.合计字数
@@ -85,7 +85,7 @@ describe('材料包切片与规模不变量', () => {
   })
 
   it('世界书事实切片:历史事实只保留最近 30 条并显式省略标注,未来事实仍被剔除(A8)', () => {
-    const root = mkDir('webnovel-scale-wb-')
+    const root = mkDir('abzu-scale-wb-')
     makeFixtureBook(root, 200)
     expect(assembleMaterials(root, { 卷: 4, 章: 151, 章名: '章151' }).ok).toBe(true)
     const dir = paths.材料包目录(4, '章151')
@@ -102,7 +102,7 @@ describe('材料包切片与规模不变量', () => {
   })
 
   it('超原段上限的段不再截断:正文逐字保留、完整性非截断、清单无原始字数', () => {
-    const root = mkDir('webnovel-scale-cap-')
+    const root = mkDir('abzu-scale-cap-')
     makeFixtureBook(root, 1)
     const 基调正文 = '基调要求：句子短促，画面先行，不解释情绪。'.repeat(200)
     const 巨型契约 = serializeDocument({ 状态: '已确认' }, [

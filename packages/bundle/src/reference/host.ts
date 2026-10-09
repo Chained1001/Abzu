@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import type { FileSystem } from '@deepseek-ai/dsh-fs'
 import type { SettingsForms } from '@deepseek-ai/dsh-settings'
 import { BlockAssembler, createUserMessage, type LlmRuntime } from '@deepseek-ai/dsh-llm'
-import { REFERENCE_LIMITS, ReferenceError, abortableReference, referenceHash, sameReferenceRoute, type ModelRunner, type ReferenceRoute } from '@webnovel/core'
+import { REFERENCE_LIMITS, ReferenceError, abortableReference, referenceHash, sameReferenceRoute, type ModelRunner, type ReferenceRoute } from '@abzu/core'
 import type { AgentLike } from '../novel-tools'
 
 export interface ReferenceHostAccess {

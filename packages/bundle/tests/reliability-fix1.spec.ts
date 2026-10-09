@@ -24,12 +24,12 @@ import {
   writeCandidate,
   confirmOutline,
   preparePack,
-} from '@webnovel/core'
-import { runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { runReview } from '@abzu/review'
 
 const roots: string[] = []
 function mkBook(withGit = true): string {
-  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'webnovel-rel1-'))
+  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'abzu-rel1-'))
   roots.push(dir)
   seedMinDesign(dir)
   if (withGit) {

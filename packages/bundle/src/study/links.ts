@@ -10,7 +10,7 @@ export function studyFileLink(absolutePath: string): string {
 export function studyLink(origin: string, sessionId: string, ref: FileRef): string {
   const url = new URL('/', origin)
   if (!isStudyOrigin(url)) throw new Error('Unsupported study origin')
-  url.searchParams.set('webnovel', JSON.stringify({ sessionId, ref }))
+  url.searchParams.set('abzu', JSON.stringify({ sessionId, ref }))
   return url.href
 }
 
@@ -23,7 +23,7 @@ export function parseStudyLink(href: string, origin: string): StudyLink | undefi
     const url = new URL(href, origin)
     const base = new URL(origin)
     if (!isStudyOrigin(url) || !isStudyOrigin(base) || url.protocol !== base.protocol || url.host !== base.host || url.pathname !== '/') return
-    const raw: unknown = JSON.parse(url.searchParams.get('webnovel') ?? 'null')
+    const raw: unknown = JSON.parse(url.searchParams.get('abzu') ?? 'null')
     if (!raw || typeof raw !== 'object') return
     const input = raw as Record<string, unknown>
     if (typeof input['sessionId'] !== 'string' || !input['sessionId'] || !input['ref'] || typeof input['ref'] !== 'object') return

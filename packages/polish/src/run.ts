@@ -22,10 +22,10 @@ import {
   writeFileAtomic,
   草稿字段序,
   type ChapterKey,
-} from '@webnovel/core'
+} from '@abzu/core'
 import { checkFidelity, type FidelityRisk } from './fidelity'
 import { applyPolishRules, type PolishChange } from './rules'
-import { bookWriter } from '@webnovel/core'
+import { bookWriter } from '@abzu/core'
 
 export interface PolishInput {
   readonly 卷: number

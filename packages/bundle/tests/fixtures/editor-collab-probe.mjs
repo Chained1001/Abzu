@@ -6,8 +6,8 @@ import assert from 'node:assert/strict'
 const runtimePath = path.resolve(process.argv[2])
 const runtime = JSON.parse(fs.readFileSync(runtimePath, 'utf8').replace(/^\uFEFF/, ''))
 const evidence = path.dirname(runtimePath)
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const context = await browser.newContext({ viewport: { width: 1440, height: 960 } })
 const page = await context.newPage()
 const errors = []
@@ -20,7 +20,7 @@ page.on('console', message => { if (message.type() === 'error') errors.push(mess
 page.on('request', request => {
   if (request.method() !== 'POST') return
   const url = new URL(request.url())
-  if (!url.pathname.includes('/api/webnovel/study/')) return
+  if (!url.pathname.includes('/api/abzu/study/')) return
   let body = {}
   try { body = JSON.parse(request.postData() || '{}') } catch { body = {} }
   posts.push({
@@ -366,7 +366,7 @@ try {
   let releaseSuggestions
   const suggestionsGate = new Promise(resolve => { releaseSuggestions = resolve })
   const holdSuggestions = async route => { await suggestionsGate; await route.continue() }
-  await page.route('**/api/webnovel/study/suggestions', holdSuggestions)
+  await page.route('**/api/abzu/study/suggestions', holdSuggestions)
   await page.getByRole('menuitem', { name: '从这里续写', exact: true }).click()
   await page.getByRole('status', { name: '处理中', exact: true }).waitFor({ timeout: 8000 })
   const continueAsks = posts.filter(item => item.method === 'ask').length
@@ -377,7 +377,7 @@ try {
   ])
   assert.equal(posts.filter(item => item.method === 'ask').length, continueAsks)
   releaseSuggestions()
-  await page.unroute('**/api/webnovel/study/suggestions', holdSuggestions)
+  await page.unroute('**/api/abzu/study/suggestions', holdSuggestions)
   await page.getByText('验收续写。').waitFor({ timeout: 20000 })
   assert.equal(editorCount().scripts, continueBefore.scripts + 1)
   await shot('04-ghost.png')
@@ -461,7 +461,7 @@ try {
     const response = await route.fetch({ headers: { ...route.request().headers(), 'sec-fetch-site': 'same-origin' } })
     await route.fulfill({ response })
   }
-  await page.route('**/api/webnovel/study/ask', holdAsk)
+  await page.route('**/api/abzu/study/ask', holdAsk)
   const sendingBefore = posts.filter(item => item.method === 'ask').length
   const sendingScripts = editorCount().scripts
   const cancelledBefore = posts.filter(item => item.method === 'ask-cancel').length
@@ -485,7 +485,7 @@ try {
   await sendingChip.waitFor({ state: 'hidden', timeout: 2000 })
   releases[1]()
   await waitPosts('ask-cancel', cancelledBefore + 2)
-  await page.unroute('**/api/webnovel/study/ask', holdAsk)
+  await page.unroute('**/api/abzu/study/ask', holdAsk)
   // The fixture holds every model step for 4.5s after the earlier hold case;
   // these two queued requests must both reach the tool before checking late delivery.
   const sendingDeadline = Date.now() + 30000

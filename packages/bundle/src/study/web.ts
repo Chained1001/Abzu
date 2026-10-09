@@ -2,12 +2,12 @@ import { AUTHOR_SAVE_SOURCE, EDITOR_REQUEST_SOURCE } from '../message-sources'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import { createUserMessage, type UserMessage } from '@deepseek-ai/dsh-llm'
-import { AuthorDocumentError, isFullyQualifiedPath } from '@webnovel/core'
+import { AuthorDocumentError, isFullyQualifiedPath } from '@abzu/core'
 import { StudyService } from './service'
 import type { FileRef, StudySave } from './types'
 import { studyFileLink } from './links'
 import type { BookIndexManager } from '../indexing/manager'
-import type { IndexAction } from '@webnovel/core'
+import type { IndexAction } from '@abzu/core'
 import { WorkflowObserver, observeWorkflow, type WorkflowAgent } from './workflow'
 import {
   EDITOR_CONTEXT_LIMIT, EDITOR_ENTRY_LIMIT, EDITOR_INSTRUCTION_LIMIT, EDITOR_INTENTS, EDITOR_REQUEST_ID, EDITOR_SELECTION_LIMIT,
@@ -25,7 +25,7 @@ export interface StudyWebRuntime {
   readonly agents: { get(id: string): StudyAgent | undefined; roots(): readonly StudyAgent[] }
 }
 
-export const STUDY_API_PATH = '/api/webnovel/study/'
+export const STUDY_API_PATH = '/api/abzu/study/'
 const METHODS = ['shelf', 'tree', 'read', 'resolve', 'search', 'chapters', 'graph', 'workflow', 'save', 'notify', 'retry-commit', 'index-status', 'index-control', 'ask', 'ask-cancel', 'suggestions']
 
 function stringOf(record: Record<string, unknown>, key: string): string {
@@ -182,7 +182,7 @@ function openEditorRequest(hub: EditorRequestHub, agent: StudyAgent, snapshot: E
 export function createStudyHandler(runtime: StudyWebRuntime, indexing?: BookIndexManager, workflow = new WorkflowObserver(), editorRequests = new EditorRequestHub()) {
   const delivered = new Map<string, StudyAgent>()
   return async (request: Request): Promise<Response> => {
-    if (request.method !== 'POST' || request.headers.get('x-webnovel-request') !== '1') {
+    if (request.method !== 'POST' || request.headers.get('x-abzu-request') !== '1') {
       return reply(403, { ok: false, code: 'forbidden', error: '请求来源不被允许' })
     }
     try {

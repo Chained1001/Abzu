@@ -16,7 +16,7 @@ import { paths } from '../src/repo/paths'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-outline-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-outline-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

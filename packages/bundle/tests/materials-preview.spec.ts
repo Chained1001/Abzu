@@ -12,7 +12,7 @@ import { nativeWriteStub } from './fixtures/native-write-stub'
  * 修复：预览与保存失败分支一律回填空值，返回值必须无损 JSON 往返。
  */
 function makeBook(): { ws: string; bookRoot: string } {
-  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-preview-'))
+  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-preview-'))
   const bookRoot = path.join(ws, '探书')
   fs.mkdirSync(path.join(bookRoot, '作品契约'), { recursive: true })
   fs.writeFileSync(path.join(bookRoot, '作品契约', '契约.md'), '---\n书id: probe-preview\n---\n正文\n', 'utf-8')

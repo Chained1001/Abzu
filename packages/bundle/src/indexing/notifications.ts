@@ -1,4 +1,4 @@
-import type { IndexNotice } from '@webnovel/core'
+import type { IndexNotice } from '@abzu/core'
 import type { IndexBook } from './manager'
 
 export function indexFailureMessage(book: IndexBook, notice: IndexNotice): string {

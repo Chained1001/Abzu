@@ -6,7 +6,7 @@ import { removeSync } from '../src/repo/remove'
 
 const roots: string[] = []
 function mkRoot(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-remove-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-remove-'))
   roots.push(dir)
   return dir
 }

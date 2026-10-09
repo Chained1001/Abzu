@@ -10,7 +10,7 @@ import { serializeDocument } from '../src/repo/frontmatter'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-book-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-book-'))
   roots.push(dir)
   return dir
 }

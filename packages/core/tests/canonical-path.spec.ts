@@ -31,7 +31,7 @@ describe('canonicalizePath', () => {
   })
 
   it('不存在深路径:取最长存在祖先 realpath 并拼回尾段', () => {
-    const base = mkDir('webnovel-can-')
+    const base = mkDir('abzu-can-')
     const deep = path.join(base, '不存在的目录', '更深', '草稿.md')
     const c = canonicalizePath(deep)
     expect(c.startsWith(canonicalizePath(base))).toBe(true)
@@ -57,7 +57,7 @@ describe('canonicalizePath', () => {
   })
 
   it('junction/symlink 别名解析到真实目标', () => {
-    const base = mkDir('webnovel-can-alias-')
+    const base = mkDir('abzu-can-alias-')
     const realDir = path.join(base, '真实目录')
     fs.mkdirSync(realDir, { recursive: true })
     const linkPath = path.join(base, '别名目录')
@@ -75,7 +75,7 @@ describe('canonicalizePath', () => {
 
 describe('isInsidePath', () => {
   it('严格内含判成立,根自身不算内含,外部位拒', () => {
-    const base = mkDir('webnovel-can-inside-')
+    const base = mkDir('abzu-can-inside-')
     const child = path.join(base, '子')
     fs.mkdirSync(child, { recursive: true })
     expect(isInsidePath(base, child)).toBe(true)
@@ -85,7 +85,7 @@ describe('isInsidePath', () => {
   })
 
   it('别名路径(child)仍判内含——修复前 junction 别名误判逃逸', () => {
-    const base = mkDir('webnovel-can-gate-')
+    const base = mkDir('abzu-can-gate-')
     const realDir = path.join(base, '书仓')
     fs.mkdirSync(path.join(realDir, '草稿区'), { recursive: true })
     const alias = path.join(base, '书仓别名')
@@ -103,7 +103,7 @@ describe('isInsidePath', () => {
 
   it('盘符大小写与 \\\\?\\ 形态不影响 membership(win32)', () => {
     if (!IS_WIN) return
-    const base = mkDir('webnovel-can-drive-')
+    const base = mkDir('abzu-can-drive-')
     const child = path.join(base, '子')
     fs.mkdirSync(child, { recursive: true })
     const drive = child.slice(0, 1)
@@ -112,7 +112,7 @@ describe('isInsidePath', () => {
   })
 
   it('resolveInsideBook:真逃逸仍拒', () => {
-    const base = mkDir('webnovel-can-esc-')
+    const base = mkDir('abzu-can-esc-')
     const book = path.join(base, '书仓')
     fs.mkdirSync(book, { recursive: true })
     expect(resolveInsideBook(book, path.join(base, '外面.md')).ok).toBe(false)

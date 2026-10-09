@@ -26,7 +26,7 @@ export async function checkMemoryCatalog({ host, ctx, workspace, book, service, 
   const index = (dir, title, rows) => fs.writeFileSync(path.join(dir, '索引.md'), `# ${title}\n\n${rows.map(([n, d]) => `- [${n}](${n}.md) — ${d}`).join('\n')}\n`)
   const memoryText = async (agent, expectedCatalogs = 1) => {
     const assembly = await service('systemPrompt').assemble({ agent, scope: agent })
-    assert.equal(assembly.contexts.filter(c => c.name === 'webnovel.memory').length, 0)
+    assert.equal(assembly.contexts.filter(c => c.name === 'abzu.memory').length, 0)
     await new Promise((resolve, reject) => {
       const timer = setTimeout(() => { off(); reject(new Error('catalog fixture turn timeout')) }, 10000)
       const off = ctx.on('agent/status', ({ agent: subject, status }) => {
@@ -36,7 +36,7 @@ export async function checkMemoryCatalog({ host, ctx, workspace, book, service, 
       agent.followup(createUserMessage({ content: [{ type: 'text', text: '核对本次上下文。' }], source: { kind: 'user' } }))
     })
     const catalogs = Array.from({ length: agent.session.seq }, (_, i) => agent.session.eventAt(i))
-      .filter(event => event.type === 'user/message' && event.data.source.kind === 'plugin:webnovel-memory-catalog')
+      .filter(event => event.type === 'user/message' && event.data.source.kind === 'plugin:abzu-memory-catalog')
     assert.equal(catalogs.length, expectedCatalogs)
     return { rendered: catalogs.map(catalog => ({ text: catalog.data.content[0].text })) }
   }

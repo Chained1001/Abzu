@@ -8,7 +8,7 @@ import { readSceneRecords, SCENE_CACHE_PATH, validateSceneEnds } from '../src/re
 import { removeSync } from '../src/repo/remove'
 
 let root: string
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-retrieval-models-')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-retrieval-models-')) })
 afterEach(() => { removeSync(root) })
 function chapter(n: number, body = '甲说：救人。\n\n乙跳进河中。\n\n另一边，城门关闭。') {
   const file = path.join(root, '定稿', '卷01', String(n).padStart(4, '0') + '-章' + n + '.md')
@@ -52,7 +52,7 @@ describe('场景边界与独立缓存', () => {
     const pending = syncFinalizedIndex(root, { getProvider: () => client, getSceneProvider: () => sceneClient })
     await entered.promise
     const before = readIndexState(root)
-    fs.writeFileSync(path.join(root, '.webnovel/finalized-search.sqlite'), 'broken')
+    fs.writeFileSync(path.join(root, '.abzu/finalized-search.sqlite'), 'broken')
     expect(await searchFinalized(root, { query: '救人', provider: client })).toMatchObject({ ok: true, index: { ready: false } })
     expect(readIndexState(root)).toMatchObject({ generation: before.generation + 1, completedChunks: 0, phase: 'disabled' })
     sceneClient = scenes()
@@ -65,7 +65,7 @@ describe('场景边界与独立缓存', () => {
     const newClient: EmbeddingProvider = { metadata: { ...client.metadata, dimensions: 3, revision: 'new-dimensions' }, embed: newEmbed, embedBatch: newEmbed }
     expect(await syncFinalizedIndex(root, { getProvider: () => newClient, getSceneProvider: () => sceneClient })).toMatchObject({ ok: true, state: { provider: { dimensions: 3 }, generated: 1 } })
     const boundaries = fs.readFileSync(path.join(root, SCENE_CACHE_PATH))
-    fs.writeFileSync(path.join(root, '.webnovel/finalized-search.sqlite'), 'broken again')
+    fs.writeFileSync(path.join(root, '.abzu/finalized-search.sqlite'), 'broken again')
     await searchFinalized(root, { query: '救人', provider: newClient })
     sceneClient = { ...sceneClient, metadata: { ...sceneClient.metadata, revision: 'new-scene-model' } }
     expect(await syncFinalizedIndex(root, { getProvider: () => newClient, getSceneProvider: () => sceneClient })).toMatchObject({ ok: true, state: { generated: 1 } })
@@ -201,7 +201,7 @@ describe('查询阶段的可选重排序', () => {
     const reranker = ranker(async () => { entered.resolve(); return late.promise })
     const pending = searchFinalized(root, { query: '城门', provider: client, getReranker: () => reranker })
     await entered.promise
-    fs.writeFileSync(path.join(root, '.webnovel/finalized-search.sqlite'), 'broken')
+    fs.writeFileSync(path.join(root, '.abzu/finalized-search.sqlite'), 'broken')
     await searchFinalized(root, { query: '城门', provider: client, mode: 'keyword' })
     late.resolve([0, 1])
     expect(await pending).toMatchObject({ ok: false, code: 'index-changed' })

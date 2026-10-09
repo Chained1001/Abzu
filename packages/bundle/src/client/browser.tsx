@@ -100,11 +100,11 @@ function StudyBrowser({ sessionId, store, host, openIndex }: { sessionId: string
 export function WorkspaceStudyTabs({ wide, expandSidebar, renderSlot, host, store, openIndex }: WorkspaceProps & StudyUI) {
   const [tab, setTab] = useState<'workspace' | 'study'>('study')
   const sessionId = useSession(host)
-  useEffect(() => { const show = () => setTab('study'); window.addEventListener('webnovel:show-study', show); return () => window.removeEventListener('webnovel:show-study', show) }, [])
-  if (!wide) return <div className="webnovel nw-rail"><button type="button" className="nw-icon" title="展开书房" aria-label="展开书房" onClick={expandSidebar}><BookOpen size={20} /></button></div>
-  return <div className="webnovel nw-left">
+  useEffect(() => { const show = () => setTab('study'); window.addEventListener('abzu:show-study', show); return () => window.removeEventListener('abzu:show-study', show) }, [])
+  if (!wide) return <div className="abzu nw-rail"><button type="button" className="nw-icon" title="展开书房" aria-label="展开书房" onClick={expandSidebar}><BookOpen size={20} /></button></div>
+  return <div className="abzu nw-left">
     <div className="nw-tabs" role="tablist" aria-label="导航分类"><button type="button" role="tab" aria-selected={tab === 'workspace'} onClick={() => setTab('workspace')}><Folder size={15} />工作区</button><button type="button" role="tab" aria-selected={tab === 'study'} onClick={() => setTab('study')}><BookOpen size={15} />书房</button></div>
-    <div className="nw-native-workspaces" hidden={tab !== 'workspace'}>{renderSlot('webnovel.workspaces', { wide, expandSidebar })}</div>
+    <div className="nw-native-workspaces" hidden={tab !== 'workspace'}>{renderSlot('abzu.workspaces', { wide, expandSidebar })}</div>
     {tab === 'study' ? sessionId ? <StudyBrowser key={sessionId} sessionId={sessionId} store={store} host={host} openIndex={openIndex} /> : <p className="nw-empty">打开一个工作区会话后，即可浏览作品与共享资料。</p> : null}
   </div>
 }

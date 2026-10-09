@@ -6,7 +6,7 @@ import { applySwap, probeFrame, restoreSwap, swappable, type ProbeHit } from './
 const FRAME_ATTRS = ['data-rightbar-collapsed', 'data-rightbar-fullscreen', 'data-rightbar-instant']
 
 interface PlaceWindow extends Window {
-  __webnovelSwapPlaces?: number
+  __abzuSwapPlaces?: number
 }
 
 interface Bound {
@@ -88,12 +88,12 @@ export function SwapHandle(): React.ReactElement | null {
 
     const place = () => {
       const placeWindow = window as PlaceWindow
-      placeWindow.__webnovelSwapPlaces = (placeWindow.__webnovelSwapPlaces ?? 0) + 1
+      placeWindow.__abzuSwapPlaces = (placeWindow.__abzuSwapPlaces ?? 0) + 1
       const hit = probeFrame(document)
       if (!hit) watchWide()
       else watchNarrow(hit)
       restoreSwap(document, localStorage)
-      const on = document.documentElement.hasAttribute('data-webnovel-swap')
+      const on = document.documentElement.hasAttribute('data-abzu-swap')
       if (!hit || !swappable(hit.frame)) {
         const key = on ? 'hidden:on' : 'hidden'
         if (last.current === key) return
@@ -119,7 +119,7 @@ export function SwapHandle(): React.ReactElement | null {
       if (raf !== 0) cancelAnimationFrame(raf)
       ro.disconnect()
       mo.disconnect()
-      document.documentElement.removeAttribute('data-webnovel-swap')
+      document.documentElement.removeAttribute('data-abzu-swap')
     }
   }, [])
 
@@ -133,9 +133,9 @@ export function SwapHandle(): React.ReactElement | null {
     aria-pressed={pressed}
     title={label}
     onClick={() => {
-      if (!applySwap(document, localStorage, !document.documentElement.hasAttribute('data-webnovel-swap'))) return
+      if (!applySwap(document, localStorage, !document.documentElement.hasAttribute('data-abzu-swap'))) return
       last.current = ''
-      setPressed(document.documentElement.hasAttribute('data-webnovel-swap'))
+      setPressed(document.documentElement.hasAttribute('data-abzu-swap'))
     }}
   ><ArrowLeftRight size={13} strokeWidth={1.75} /></button>
 }

@@ -9,7 +9,7 @@ import type { RefGraph } from '../src/index'
 const roots: string[] = []
 afterAll(() => { for (const root of roots) { try { fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
 
-function mkRoot(prefix = 'webnovel-impact-'): string {
+function mkRoot(prefix = 'abzu-impact-'): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix))
   roots.push(root)
   return root
@@ -191,7 +191,7 @@ describe('影响闭包:传递闭包', () => {
   })
 
   it('git checkout 换掉工作树后结果随之改变——证明无缓存、无过期(A6)', () => {
-    const root = mkRoot('webnovel-impact-git-')
+    const root = mkRoot('abzu-impact-git-')
     const git = (args: readonly string[]): void => {
       const r = spawnSync('git', args, { cwd: root, encoding: 'utf-8', windowsHide: true })
       expect(r.status).toBe(0)

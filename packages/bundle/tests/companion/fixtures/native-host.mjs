@@ -2,7 +2,7 @@
 import { writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 const { LlmAdapter, createUserMessage } = await import(pathToFileURL(process.env.WHALE_TEST_LLM).href)
-export const name = 'whale-companion-acceptance'
+export const name = 'abzu-companion-acceptance'
 export const inject = ['agents', 'agentLoop', 'llm', 'sessionPersistence', 'workspaceRegistry', 'sessionController', 'userQuestions', 'approval', 'webServer', 'loader', 'clientModules', 'pluginManager']
 export async function apply(ctx) {
   const report = { requests: 0, sessions: [], interactions: [] }

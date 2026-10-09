@@ -20,12 +20,12 @@ import {
   writeCandidate,
   paths,
   MACHINE_SCHEMA_VERSION,
-} from '@webnovel/core'
-import { runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { runReview } from '@abzu/review'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'webnovel-s4-'))
+  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'abzu-s4-'))
   roots.push(dir)
   seedMinDesign(dir)
   // 建书在真实流程中 git init＋首提交;测试夹具补齐(B6 健康检查需要)

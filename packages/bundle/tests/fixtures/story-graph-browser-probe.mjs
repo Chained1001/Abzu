@@ -5,15 +5,15 @@ import assert from 'node:assert/strict'
 import { pathToFileURL } from 'node:url'
 const runtimePath = path.resolve(process.argv[2]), runtime = JSON.parse(fs.readFileSync(runtimePath, 'utf8')), output = path.dirname(runtimePath)
 const model = JSON.parse(fs.readFileSync(new URL('./story-graph-sample.json', import.meta.url), 'utf8'))
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const page = await browser.newPage({ viewport: { width: 1500, height: 1250 } })
 page.setDefaultTimeout(20000)
 const report = { simulated: true, checks: [], errors: [], screenshots: [], externalRequests: [] }
 page.on('pageerror', e => report.errors.push(e.message))
 page.on('request', r => { if (/^https?:/.test(r.url()) && !r.url().startsWith('http://127.0.0.1:')) report.externalRequests.push(r.url()) })
 let graphData = model
-await page.route('**/api/webnovel/study/graph', route => route.fulfill({ json: { ok: true, value: route.request().postDataJSON().space === 'book:acceptance-a' ? graphData : { ...model, records: [], edges: [], events: [] } } }))
+await page.route('**/api/abzu/study/graph', route => route.fulfill({ json: { ok: true, value: route.request().postDataJSON().space === 'book:acceptance-a' ? graphData : { ...model, records: [], edges: [], events: [] } } }))
 const ready = async () => { await page.waitForTimeout(150); await page.locator('.nw-g6-map[data-ready="true"]').waitFor() }
 const count = () => page.locator('[aria-label="选择图谱记录"] optgroup[label="人物与条目"] option').count()
 const pick = async id => { await page.getByLabel('选择图谱记录', { exact: true }).selectOption(id); await ready() }

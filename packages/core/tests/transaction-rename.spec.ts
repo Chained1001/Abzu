@@ -14,7 +14,7 @@ afterEach(() => {
 })
 
 function fixture(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-rename-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-rename-'))
   roots.push(root)
   return root
 }
@@ -34,7 +34,7 @@ describe('事务 rename 失败边界', () => {
     writeFileAtomic(root, '定稿/卷01/0001-开篇.md', '完整正文')
     expect(attempts).toBe(3)
     expect(fs.readFileSync(path.join(root, '定稿/卷01/0001-开篇.md'), 'utf8')).toBe('完整正文')
-    expect(fs.readdirSync(path.join(root, '.webnovel', 'transactions'))).toEqual([])
+    expect(fs.readdirSync(path.join(root, '.abzu', 'transactions'))).toEqual([])
   })
 
   it('EXDEV 不重试，保留未发布批次且不写真源', () => {
@@ -52,6 +52,6 @@ describe('事务 rename 失败边界', () => {
     expect(() => writeFileAtomic(root, '正文.md', '不应落盘')).toThrow('EXDEV')
     expect(attempts).toBe(1)
     expect(fs.existsSync(path.join(root, '正文.md'))).toBe(false)
-    expect(fs.readdirSync(path.join(root, '.webnovel', 'transactions'))).toHaveLength(1)
+    expect(fs.readdirSync(path.join(root, '.abzu', 'transactions'))).toHaveLength(1)
   })
 })

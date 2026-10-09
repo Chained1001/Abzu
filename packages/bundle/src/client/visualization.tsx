@@ -82,5 +82,5 @@ function WorkspaceVisual({ sessionId, store }: { sessionId: string; store: Edito
 
 export function VisualView({ host, store }: StudyUI) {
   const sessionId = useSession(host)
-  return <div className="webnovel nw-visual-root" data-conversation-composer-overlay="">{sessionId ? <WorkspaceVisual key={sessionId} {...{ sessionId, store }} /> : <p className="nw-empty">请先打开一个工作区会话</p>}</div>
+  return <div className="abzu nw-visual-root" data-conversation-composer-overlay="">{sessionId ? <WorkspaceVisual key={sessionId} {...{ sessionId, store }} /> : <p className="nw-empty">请先打开一个工作区会话</p>}</div>
 }

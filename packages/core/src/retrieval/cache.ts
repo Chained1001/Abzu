@@ -10,12 +10,12 @@ import { readVector, vectorBytes } from './vectors'
 import { snapshotInputs, type IndexedEmbeddingInput } from './embedding'
 import { invalidateIndexCache, readIndexState } from './state'
 
-export const CACHE_PATH = '.webnovel/finalized-search.sqlite'
+export const CACHE_PATH = '.abzu/finalized-search.sqlite'
 const APPLICATION_ID = 0x57565336
 const SCHEMA_VERSION = 2
 
 function assertCachePaths(root: string): string {
-  const runtime = path.join(root, '.webnovel')
+  const runtime = path.join(root, '.abzu')
   if (fs.lstatSync(runtime).isSymbolicLink()) throw new SearchError('unsafe-cache', '检索缓存目录不得为链接')
   const filename = path.join(root, CACHE_PATH)
   for (const suffix of ['', '-journal', '-wal', '-shm']) {

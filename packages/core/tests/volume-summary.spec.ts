@@ -7,7 +7,7 @@ import { removeSync } from '../src/repo/remove'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-volsum-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-volsum-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

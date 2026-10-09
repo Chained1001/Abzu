@@ -17,7 +17,7 @@ import {
 
 const roots: string[] = []
 function mkRoot(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-inspire-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-inspire-'))
   roots.push(dir)
   return dir
 }

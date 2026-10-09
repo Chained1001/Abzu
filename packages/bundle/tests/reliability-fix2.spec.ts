@@ -21,12 +21,12 @@ import {
   paths,
   writeContract,
   type Finding,
-} from '@webnovel/core'
-import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 
 const roots: string[] = []
 function mkBook(withGit = true): string {
-  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'webnovel-rel2-'))
+  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'abzu-rel2-'))
   roots.push(dir)
   seedMinDesign(dir)
   if (withGit) {
@@ -310,7 +310,7 @@ describe('F5:审稿哈希绑定', () => {
 })
 
 // 辅助:不经 derive 的轻量事实调用(从 core 导出 scanChapter/deriveChapterFacts)
-import { scanChapter, deriveChapterFacts } from '@webnovel/core'
+import { scanChapter, deriveChapterFacts } from '@abzu/core'
 function deriveFacts(root: string): ReturnType<typeof deriveChapterFacts> {
   return deriveChapterFacts(scanChapter(root, key))
 }

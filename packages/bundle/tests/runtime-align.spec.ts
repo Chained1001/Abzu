@@ -70,7 +70,7 @@ interface SessionEvents {
 }
 
 function mkWorkspace(): string {
-  const ws = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'webnovel-align-'))
+  const ws = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'abzu-align-'))
   roots.push(ws)
   const book = nodePath.join(ws, '测试书')
   fs.mkdirSync(nodePath.join(book, '作品契约'), { recursive: true })

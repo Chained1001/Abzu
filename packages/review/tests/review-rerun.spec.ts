@@ -11,7 +11,7 @@ import {
   serializeDocument,
   writeCandidate,
   writeReviewRecord,
-} from '@webnovel/core'
+} from '@abzu/core'
 import {
   computeReview,
   ingestFindings,
@@ -32,7 +32,7 @@ import { removeSync } from '../../core/src/repo/remove'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-rerun-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-rerun-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

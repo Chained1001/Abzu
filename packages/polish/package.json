@@ -1,5 +1,5 @@
 {
-  "name": "@webnovel/polish",
+  "name": "@abzu/polish",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -9,11 +9,11 @@
     "test": "vitest --root ../.. run packages/polish/tests"
   },
   "dependencies": {
-    "@webnovel/core": "workspace:*"
+    "@abzu/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.0",
-    "@webnovel/drafting": "workspace:*"
+    "@abzu/drafting": "workspace:*"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.4"

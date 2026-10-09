@@ -44,15 +44,15 @@ for (const [subpath, entry] of [['.', './lib/index.js'], ['./client', './lib/cli
 }
 // 五条 insert 与宿主五入口一一对应；id 逐字沿用四包时代取值，迁移零成本。
 assert.deepEqual(parse(read('cordis.patch.yml')), [{ insert: [
-  { id: 'webnovel', name: manifest.name },
-  { id: 'webnovel-embeddings', name: `${manifest.name}/embeddings` },
-  { id: 'webnovel-scenes', name: `${manifest.name}/scenes` },
-  { id: 'webnovel-reranking', name: `${manifest.name}/reranking` },
-  { id: 'whale-companion', name: `${manifest.name}/companion` },
+  { id: 'abzu', name: manifest.name },
+  { id: 'abzu-embeddings', name: `${manifest.name}/embeddings` },
+  { id: 'abzu-scenes', name: `${manifest.name}/scenes` },
+  { id: 'abzu-reranking', name: `${manifest.name}/reranking` },
+  { id: 'abzu-companion', name: `${manifest.name}/companion` },
 ] }])
 for (const hook of ['preinstall', 'install', 'postinstall', 'prepare']) assert.equal(manifest.scripts?.[hook], undefined)
 for (const [name, version] of Object.entries({ ...manifest.dependencies, ...manifest.peerDependencies })) {
-  assert.ok(!name.startsWith('@webnovel/'), `Unpublished runtime dependency: ${name}`)
+  assert.ok(!name.startsWith('@abzu/'), `Unpublished runtime dependency: ${name}`)
   assert.ok(!/^(workspace:|file:|link:)/.test(version), `Local runtime dependency: ${name}`)
 }
 const scripts = thinScripts.map(([file]) => file)

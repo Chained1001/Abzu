@@ -5,13 +5,13 @@ import * as path from 'node:path'
 import * as os from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { createNovelTools } from '../src/novel-tools'
-import { computeReview, listChecks, registerDefaultChecks } from '@webnovel/review'
+import { computeReview, listChecks, registerDefaultChecks } from '@abzu/review'
 import { nativeWriteStub } from './fixtures/native-write-stub'
-import { paths, serializeDocument } from '@webnovel/core'
+import { paths, serializeDocument } from '@abzu/core'
 
 const roots: string[] = []
 function mkWs(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-chain-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-chain-'))
   roots.push(dir)
   return dir
 }

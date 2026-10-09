@@ -9,13 +9,13 @@ import fs from 'node:fs'
 import { syncBuiltinESMExports } from 'node:module'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline, draftHashOf, reviewInputFingerprintOf, loadMaterialPackage, countProseText } from '@webnovel/core'
+import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline, draftHashOf, reviewInputFingerprintOf, loadMaterialPackage, countProseText } from '@abzu/core'
 import { computeReview, ingestFindings, listChecks, registerCheck, registerDefaultChecks, resetChecks, runReview, type CheckInput } from '../src/index'
 import { removeSync } from '../../core/src/repo/remove'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-script-nowrite-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-script-nowrite-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

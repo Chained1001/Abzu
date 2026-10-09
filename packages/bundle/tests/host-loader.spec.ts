@@ -60,7 +60,7 @@ let root: string
 let report: LoaderReport
 
 function linkHostDependencies(fixtureRoot: string) {
-  const source = process.env['WEBNOVEL_DSH_SOURCE']
+  const source = process.env['ABZU_DSH_SOURCE']
   if (source === undefined) {
     linkFixtureDependencies(packageRoot, fixtureRoot)
   } else {
@@ -73,15 +73,15 @@ function linkHostDependencies(fixtureRoot: string) {
 }
 
 beforeAll(async () => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-loader-'))
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-loader-'))
   const workspace = path.join(root, 'workspace')
   fs.mkdirSync(workspace)
   linkHostDependencies(root)
-  const outfile = path.join(root, 'lib', 'webnovel.mjs')
+  const outfile = path.join(root, 'lib', 'abzu.mjs')
   fs.cpSync(path.join(packageRoot, 'skills'), path.join(root, 'skills'), { recursive: true })
   await build({
     entryPoints: {
-      'lib/webnovel': path.join(packageRoot, 'src', 'index.ts'),
+      'lib/abzu': path.join(packageRoot, 'src', 'index.ts'),
       'native-write-core': path.join(packageRoot, 'tests/fixtures/native-write-core.ts'),
       'embedding-provider': path.join(packageRoot, 'src', 'retrieval', 'index.ts'),
       scenes: path.join(packageRoot, 'src', 'retrieval', 'scenes.ts'),
@@ -110,12 +110,12 @@ beforeAll(async () => {
   }).catch((error: unknown) => {
     const partialPath = path.join(root, 'report.json')
     const partial = fs.existsSync(partialPath) ? fs.readFileSync(partialPath, 'utf8') : '(report not created)'
-    const reportPath = process.env['WEBNOVEL_LOADER_REPORT']
+    const reportPath = process.env['ABZU_LOADER_REPORT']
     if (reportPath !== undefined) fs.writeFileSync(path.resolve(reportPath), partial)
     throw new Error(`Loader process failed; last progress report:\n${partial}`, { cause: error })
   })
   report = JSON.parse(fs.readFileSync(path.join(root, 'report.json'), 'utf8')) as LoaderReport
-  const reportPath = process.env['WEBNOVEL_LOADER_REPORT']
+  const reportPath = process.env['ABZU_LOADER_REPORT']
   if (reportPath !== undefined) fs.writeFileSync(path.resolve(reportPath), JSON.stringify({ ...report, stdout: result.stdout, stderr: result.stderr }, null, 2))
   expect(result.stderr).not.toContain('UNHANDLED')
 }, 100_000)
@@ -128,11 +128,11 @@ afterAll(() => {
 
 describe('真实 DSH Loader 验收（独立进程）', () => {
   it('#167 作者保存后重复空操作结束轮次，新的作者委托仍可正常修改', async () => {
-    const loopRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-save-loop-'))
+    const loopRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-save-loop-'))
     try {
       linkHostDependencies(loopRoot)
       for (const file of ['native-write-core.mjs', 'embedding-provider.mjs', 'scenes.mjs', 'reranking.mjs']) fs.copyFileSync(path.join(root, file), path.join(loopRoot, file))
-      await run(process.execPath, [path.join(packageRoot, 'tests/fixtures/host-loader.mjs'), loopRoot, path.join(root, 'lib/webnovel.mjs'), 'save-loop'], {
+      await run(process.execPath, [path.join(packageRoot, 'tests/fixtures/host-loader.mjs'), loopRoot, path.join(root, 'lib/abzu.mjs'), 'save-loop'], {
         cwd: loopRoot, env: { ...process.env, DSH_HOME: path.join(loopRoot, '.dsh'), DSH_AGENTS_HOME: path.join(loopRoot, '.agents'), DSH_TELEMETRY_DISABLED: '1' },
         timeout: 45000, windowsHide: true, maxBuffer: 2 * 1024 * 1024,
       })

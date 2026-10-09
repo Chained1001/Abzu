@@ -24,23 +24,23 @@ import type { ToolExecutionToken, ToolRuntime } from '@deepseek-ai/dsh-tools'
 import { attachFileGateToAgent } from './gates'
 import { uniqueBookRoot, scanBooks } from './bookshelf'
 import { attachStatusToAgent, type SystemPromptLike } from './status-context'
-import { canonicalizePath, isFullyQualifiedPath, isInsidePath } from '@webnovel/core'
+import { canonicalizePath, isFullyQualifiedPath, isInsidePath } from '@abzu/core'
 import { attachPersonaToAgent, type AgentCtxLike } from './persona'
 import { createNovelTools, type NovelToolDefinition, type ToolExecContext, type AgentLike } from './novel-tools'
-import type { AskFn, EmbeddingProvider } from '@webnovel/core'
+import type { AskFn, EmbeddingProvider } from '@abzu/core'
 import { EditorRequestHub } from './study/editor-requests'
 import { attachStudyWeb, notifySaved } from './study/web'
 import { StudyService } from './study/service'
 import { createNativeWriteBridge } from './native-write'
 import { BookIndexManager } from './indexing/manager'
-import type { SceneProvider, RerankingProvider } from '@webnovel/core'
+import type { SceneProvider, RerankingProvider } from '@abzu/core'
 import { indexFailureMessage } from './indexing/notifications'
 import { ReferenceHost } from './reference/host'
 import type { FileSystem } from '@deepseek-ai/dsh-fs'
 import type { LlmRuntime } from '@deepseek-ai/dsh-llm'
 import type { SettingsForms } from '@deepseek-ai/dsh-settings'
 
-export const name = 'webnovel-bundle'
+export const name = 'abzu-bundle'
 
 /**
  * 确定性检查脚本的 CLI 能力（R21/A1）：薄入口
@@ -312,16 +312,16 @@ function toExecContext(exec: DshToolExec): ToolExecContext {
 }
 
 export function apply(ctx: Context) {
-  ctx.logger.info('工作台插件已加载（webnovel bundle）')
+  ctx.logger.info('工作台插件已加载（abzu bundle）')
   const bundledSkillDir = fileURLToPath(new URL('../skills/', import.meta.url))
   if (typeof ctx.inject !== 'function' || typeof ctx.plugin !== 'function') {
-    ctx.logger.warn('[webnovel-bundle] 随包技能未挂载：宿主缺少 inject/plugin 能力，请核对 DSH 版本。')
+    ctx.logger.warn('[abzu-bundle] 随包技能未挂载：宿主缺少 inject/plugin 能力，请核对 DSH 版本。')
   } else if (!existsSync(bundledSkillDir)) {
-    ctx.logger.warn(`[webnovel-bundle] 随包技能未挂载：安装包缺少技能目录 ${bundledSkillDir}`)
+    ctx.logger.warn(`[abzu-bundle] 随包技能未挂载：安装包缺少技能目录 ${bundledSkillDir}`)
   } else {
     ctx.inject(['skills'], scope => {
       scope.plugin(skillFilesystem, {
-        providerName: 'webnovel-bundled',
+        providerName: 'abzu-bundled',
         includeDefaultRoots: false,
         bundledSkillDir,
       })
@@ -339,7 +339,7 @@ export function apply(ctx: Context) {
     llm: agent => agentCtxGet<LlmRuntime>(agent, 'llm'),
     settings: agent => agentCtxGet<SettingsForms>(agent, 'settings'),
   })
-  step(ctx, 'webnovel:reference', () => {
+  step(ctx, 'abzu:reference', () => {
     const off = typeof ctx.on === 'function' ? ctx.on('llm/adapters-updated', () => referenceHost.changed()) : undefined
     return () => { if (typeof off === 'function') off(); referenceHost.close() }
   })
@@ -363,7 +363,7 @@ export function apply(ctx: Context) {
       return notifySaved(agent as Parameters<typeof notifySaved>[0], indexFailureMessage(book, notice)).notification === 'delivered'
     },
   })
-  step(ctx, 'webnovel:indexing', () => () => indexing.close())
+  step(ctx, 'abzu:indexing', () => () => indexing.close())
   const editorRequests = new EditorRequestHub()
   attachStudyWeb(ctx, indexing, editorRequests)
 
@@ -386,7 +386,7 @@ export function apply(ctx: Context) {
         askFn,
         nativeWrite: bridge?.write,
         // 测试/走查专用工具(seed 占位设计)只在显式开启时注册,作者环境看不到
-        testTools: process.env['WEBNOVEL_TEST_TOOLS'] === '1',
+        testTools: process.env['ABZU_TEST_TOOLS'] === '1',
         editorRequests,
         embeddingProvider: agent => agent === undefined ? undefined : agentCtxGet<{ current(): EmbeddingProvider | undefined }>(agent, 'embeddings')?.current(),
         rerankingProvider: agent => agent === undefined ? undefined : agentCtxGet<{ current(): RerankingProvider | undefined }>(agent, 'reranking')?.current(),
@@ -419,7 +419,7 @@ export function apply(ctx: Context) {
       if (typeof off === 'function') offs.push(off)
     }
     agentToolOffs.set(agent.id, offs)
-    ctx.logger.info(`[webnovel-bundle] 已为主 Agent（${agent.id}）scoped 注册 ${toolKit.defs.length} 个写作工具${toolKit.askFn === undefined ? '(裁决通道缺失,定稿沉淀不可用)' : ''}。`)
+    ctx.logger.info(`[abzu-bundle] 已为主 Agent（${agent.id}）scoped 注册 ${toolKit.defs.length} 个写作工具${toolKit.askFn === undefined ? '(裁决通道缺失,定稿沉淀不可用)' : ''}。`)
     return true
   }
 
@@ -438,7 +438,7 @@ export function apply(ctx: Context) {
     const approval = agentCtxGet<{ setPolicy?: (agent: unknown, policy: 'never') => void }>(agent, 'approval')
     if (typeof approval?.setPolicy !== 'function') return
     try { approval.setPolicy(agent, 'never') }
-    catch (err) { ctx.logger.warn(`[webnovel-bundle] 子 Agent 审批策略设置失败（${agent.id}）：${String(err)}`) }
+    catch (err) { ctx.logger.warn(`[abzu-bundle] 子 Agent 审批策略设置失败（${agent.id}）：${String(err)}`) }
   }
 
   /** 子 Agent restrict（E2）：deny 名单须是子 Agent 当前可见面的已知名字，
@@ -455,7 +455,7 @@ export function apply(ctx: Context) {
       if (typeof offRestrict === 'function') agentRestrictOffs.set(agent.id, offRestrict)
       return true
     } catch (err) {
-      ctx.logger.warn(`[webnovel-bundle] 子 Agent 工具 restrict 暂不可挂（${agent.id}）：${err instanceof Error ? err.message : String(err)}`)
+      ctx.logger.warn(`[abzu-bundle] 子 Agent 工具 restrict 暂不可挂（${agent.id}）：${err instanceof Error ? err.message : String(err)}`)
       return false
     }
   }
@@ -465,10 +465,10 @@ export function apply(ctx: Context) {
   // pending，快照那一刻取到 undefined 便永不重试，工作范围就永远认不到（dsh
   // workspace.zh.md 明言「持久化这一依赖不可用时插件保持 pending，而不是把这种不可用
   // 误当作空历史」）。
-  step(ctx, 'webnovel:workspace-root', () => {
+  step(ctx, 'abzu:workspace-root', () => {
     let claimed: string | undefined
     const reg = withServices(ctx, ['workspaceRegistry'], (scope) => {
-      step(scope, 'webnovel:workspace-generation', () => {
+      step(scope, 'abzu:workspace-generation', () => {
         const generation = claimWorkspaceRoot(ctxGet(scope, 'workspaceRegistry'))
         if (generation !== undefined) claimed = generation
         return () => { releaseWorkspaceRoot(generation) }
@@ -488,7 +488,7 @@ export function apply(ctx: Context) {
 
   // 第二步：agent 出现时按需安装 status context 与文件门禁（per-agent scoped）。
   // 每个 agent 的注册都把注销函数收进 attached，随本步 effect 逆操作一起交回（审计 B2）。
-  step(ctx, 'webnovel:agent-attach', () => {
+  step(ctx, 'abzu:agent-attach', () => {
     const host = ctx as unknown as NarrowHost
     if (typeof host.on !== 'function') return
     const subscriptions: Array<() => void> = []
@@ -506,8 +506,8 @@ export function apply(ctx: Context) {
       attachments.delete(agent.id)
       for (const off of offs.reverse()) {
         try {
-          void Promise.resolve(off()).catch(err => ctx.logger.warn(`[webnovel-bundle] Agent 卸载失败（${agent.id}）：${String(err)}`))
-        } catch (err) { ctx.logger.warn(`[webnovel-bundle] Agent 卸载失败（${agent.id}）：${String(err)}`) }
+          void Promise.resolve(off()).catch(err => ctx.logger.warn(`[abzu-bundle] Agent 卸载失败（${agent.id}）：${String(err)}`))
+        } catch (err) { ctx.logger.warn(`[abzu-bundle] Agent 卸载失败（${agent.id}）：${String(err)}`) }
       }
     }
     const installFor = (agent: AgentLike): void => {
@@ -535,14 +535,14 @@ export function apply(ctx: Context) {
           const offPersona = attachPersonaToAgent(agentCtx as unknown as AgentCtxLike, undefined, { logger: ctx.logger })
           if (offPersona !== undefined) attached.push(offPersona)
         } catch (err) {
-          ctx.logger.warn(`[webnovel-bundle] persona 挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
+          ctx.logger.warn(`[abzu-bundle] persona 挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
         }
         // 书架总览——经 agent.ctx 挂 scoped systemPrompt.context。
         try {
           const offStatus = attachStatusToAgent(agentCtx, { workspaceRoot: rootOf })
           if (offStatus !== undefined) attached.push(offStatus)
         } catch (err) {
-          ctx.logger.warn(`[webnovel-bundle] 状态注入挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
+          ctx.logger.warn(`[abzu-bundle] 状态注入挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
         }
         // 主 Agent scoped 工具注册（toolKit 未就绪时由第三步反应式补装）。
         registerToolsInto(agent)
@@ -571,7 +571,7 @@ export function apply(ctx: Context) {
         },
         workspaceRoot: rootOf,
       })
-      if (offGate === undefined) ctx.logger.warn(`[webnovel-bundle] 文件门禁未挂载（${agentId}）。`)
+      if (offGate === undefined) ctx.logger.warn(`[abzu-bundle] 文件门禁未挂载（${agentId}）。`)
       else attached.push(offGate)
     }
 
@@ -605,10 +605,10 @@ export function apply(ctx: Context) {
   // 第三步：小说工具集构建＋主 Agent scoped 注册的反应式驱动（E1：不再根注册）。
   // tools/userQuestions 后到即建 kit 并对已装机主 Agent 补注册；每个工具的注销
   // 收进 agentToolOffs，随本步 effect 逆操作（以及 agent-attach 的兜底清理）交回。
-  step(ctx, 'webnovel:tools-register', () => {
+  step(ctx, 'abzu:tools-register', () => {
     const registerAllInstalled = (scope: Context): void => {
       // 注册落在 Agent scope，须显式归还给本次依赖生命周期；依赖重启重建工具集。
-      step(scope, 'webnovel:tools-generation', () => {
+      step(scope, 'abzu:tools-generation', () => {
         ensureToolKit(scope)
         for (const agent of installedAgents.values()) {
           if (isMainAgent(agent)) registerToolsInto(agent)
@@ -631,7 +631,7 @@ export function apply(ctx: Context) {
     }
   })
 
-  step(ctx, 'webnovel:approval-policy', () => {
+  step(ctx, 'abzu:approval-policy', () => {
     const enforceAll = (): void => {
       for (const agent of installedAgents.values()) enforceChildApproval(agent)
     }
@@ -641,11 +641,11 @@ export function apply(ctx: Context) {
   })
 
   // 第四步：环境自检（有书时总览可用）。
-  step(ctx, 'webnovel:self-check', () => {
+  step(ctx, 'abzu:self-check', () => {
     const root = currentWorkspaceRoot()
     if (root === undefined) return
     const books = scanBooks(root)
-    ctx.logger.info(`[webnovel-bundle] 工作范围已注册：${root}（${books.length} 本书）`)
+    ctx.logger.info(`[abzu-bundle] 工作范围已注册：${root}（${books.length} 本书）`)
   })
   void indexing.refresh()
 }

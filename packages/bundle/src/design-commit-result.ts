@@ -1,7 +1,7 @@
 import { AUTHOR_SAVE_SOURCE, EDITOR_REQUEST_SOURCE } from './message-sources'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import type { SessionSeq } from '@deepseek-ai/dsh-session'
-import type { commitConfirmed } from '@webnovel/core'
+import type { commitConfirmed } from '@abzu/core'
 import type { ToolExecContext } from './novel-tools'
 
 export const NATIVE_DESIGN_TOOLS = new Set([

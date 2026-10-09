@@ -6,8 +6,8 @@ import assert from 'node:assert/strict'
 const runtimePath = path.resolve(process.argv[2])
 const runtime = JSON.parse(fs.readFileSync(runtimePath, 'utf8').replace(/^\uFEFF/, ''))
 const evidence = path.dirname(runtimePath)
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const context = await browser.newContext({ viewport: { width: 1440, height: 960 } })
 const page = await context.newPage()
 const errors = []
@@ -25,7 +25,7 @@ async function shot(name) {
 }
 const swapButton = () => page.getByRole('button', { name: /把对话移/ })
 async function placeCount() {
-  return page.evaluate(() => window.__webnovelSwapPlaces ?? 0)
+  return page.evaluate(() => window.__abzuSwapPlaces ?? 0)
 }
 async function expandWorkspace(name) {
   const group = page.locator('[role="treeitem"][aria-expanded]').filter({ has: page.getByText(name, { exact: true }) })
@@ -66,7 +66,7 @@ async function columns() {
       return { x: rect.x, width: rect.width, right: rect.right }
     }
     return {
-      swapped: document.documentElement.hasAttribute('data-webnovel-swap'),
+      swapped: document.documentElement.hasAttribute('data-abzu-swap'),
       collapsed: !!frame?.hasAttribute('data-rightbar-collapsed'),
       fullscreen: !!frame?.hasAttribute('data-rightbar-fullscreen'),
       center: center ? box(center) : null,
@@ -105,7 +105,7 @@ try {
   await swapButton().waitFor({ timeout: 8000 })
   const checks = {}
   const flood = await page.evaluate(async () => {
-    const before = window.__webnovelSwapPlaces ?? 0
+    const before = window.__abzuSwapPlaces ?? 0
     const column = document.querySelector('[data-rightbar-col]')?.previousElementSibling
     const target = column?.querySelector('[data-conversation-scroll]') ?? column
     if (!target) return { before, after: before, inserted: 0, delta: -1 }
@@ -120,7 +120,7 @@ try {
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
     }
     await new Promise(resolve => setTimeout(resolve, 80))
-    const after = window.__webnovelSwapPlaces ?? 0
+    const after = window.__abzuSwapPlaces ?? 0
     host.remove()
     return { before, after, inserted: 40, delta: after - before }
   })
@@ -211,7 +211,7 @@ try {
   await page.getByRole('button', { name: '收起右侧边栏', exact: true }).click()
   await page.locator('[data-rightbar-collapsed]').waitFor()
   await waitForLayout()
-  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-webnovel-swap')), true)
+  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-abzu-swap')), true)
   assert.equal(await swapButton().count(), 0)
   const collapsed = await columns()
   assert.equal(collapsed.collapsed, true)
@@ -299,7 +299,7 @@ try {
   await expandWorkspace('S5 空工作范围')
   await page.getByText('S5 会话隔离验收', { exact: true }).click()
   await page.getByText('确认这个工作范围是空的。', { exact: false }).waitFor({ timeout: 8000 })
-  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-webnovel-swap')), true)
+  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-abzu-swap')), true)
   await page.getByRole('tab', { name: '工作区', exact: true }).click()
   await expandWorkspace('S5 临时验收书房')
   await page.getByText('S5 书房验收', { exact: true }).click()
@@ -334,7 +334,7 @@ try {
   assert.ok(removed)
   assert.equal(removed.inline, '|')
   assert.ok(removed.centerX < removed.columnX, 'without the column marker the host order returns')
-  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-webnovel-swap')), false)
+  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-abzu-swap')), false)
   checks.probeFailure = true
 
   assert.deepEqual(errors, [])

@@ -5,7 +5,7 @@ import { checkedIndexFile } from './state'
 import { SearchError, type SearchChunk } from './types'
 
 export const SCENE_RULE_VERSION = 'scene-paragraph-ends-v1'
-export const SCENE_CACHE_PATH = '.webnovel/finalized-scenes.json'
+export const SCENE_CACHE_PATH = '.abzu/finalized-scenes.json'
 export const sceneBodyHash = (body: string) => createHash('sha256').update(body).digest('hex')
 export interface ProseParagraph { readonly start: number; readonly end: number; readonly text: string }
 export interface SceneRecord {

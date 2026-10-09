@@ -2,7 +2,7 @@ node_modules/
 lib/
 dist/
 .tmp/
-.webnovel/
+.abzu/
 .dsh/
 .agents/
 .trellis/

@@ -38,7 +38,7 @@ describe('F6:跨盘原子写入', () => {
 
   it('写入后目录零临时残留', () => {
     const dir = nodePath.join(bookRoot, '定稿/卷01')
-    const residue = fs.readdirSync(dir).filter((f) => f.includes('.tmp') || f.startsWith('.webnovel-b1'))
+    const residue = fs.readdirSync(dir).filter((f) => f.includes('.tmp') || f.startsWith('.abzu-b1'))
     expect(residue).toEqual([])
   })
 
@@ -53,7 +53,7 @@ describe('F6:跨盘原子写入', () => {
     // 第一个 op 已写的 0002 须回滚干净;原目标不受影响
     expect(fs.existsSync(nodePath.join(bookRoot, '定稿/卷01/0002-第二章.md'))).toBe(false)
     expect(fs.readFileSync(target, 'utf-8')).toBe(before)
-    const residue = fs.readdirSync(nodePath.join(bookRoot, '定稿/卷01')).filter((f) => f.startsWith('.webnovel-b1') || f.endsWith('.tmp'))
+    const residue = fs.readdirSync(nodePath.join(bookRoot, '定稿/卷01')).filter((f) => f.startsWith('.abzu-b1') || f.endsWith('.tmp'))
     expect(residue).toEqual([])
   })
 })

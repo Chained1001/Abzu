@@ -47,7 +47,7 @@ function inProcess(root: string, args: Record<string, unknown>, mode = 'normal')
     let faultHit = false;
     const rename = fs.renameSync;
     if (mode === 'write-fault') fs.renameSync = (from, to) => {
-      if (!faultHit && String(to).replaceAll('\\\\', '/').includes('/.archive-receipts/') && String(from).includes('.webnovel-txn-')) {
+      if (!faultHit && String(to).replaceAll('\\\\', '/').includes('/.archive-receipts/') && String(from).includes('.abzu-txn-')) {
         faultHit = true;
         throw Object.assign(new Error('injected receipt failure'), { code: 'EIO' });
       }
@@ -84,7 +84,7 @@ function snapshot(root: string): Record<string, string> {
   const files: Record<string, string> = {}
   function walk(relative: string): void {
     for (const entry of fs.readdirSync(path.join(root, relative), { withFileTypes: true })) {
-      if (entry.name === '.git' || entry.name === '.webnovel') continue
+      if (entry.name === '.git' || entry.name === '.abzu') continue
       const file = relative ? `${relative}/${entry.name}` : entry.name
       if (entry.isDirectory()) walk(file)
       else files[file] = fs.readFileSync(path.join(root, file), 'utf8')

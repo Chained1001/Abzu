@@ -76,7 +76,7 @@ const 章摘要候选 = '主角在城门盘问中发现异状。章末状态：�
 
 describe('沉淀候选经 novel_prepare_pack 预校验(A2)', () => {
   it('缺 计划来源 的账本变更 → ok:false 且 reason 含解析器原话,包目录无变化', () => {
-    const root = mkDir('webnovel-cand-a2-')
+    const root = mkDir('abzu-cand-a2-')
     confirmWithHard(root)
     const r = preparePack(root, key, {
       账本变更: '# 账本变更\n\n## 线索\n### 纸鹤\n状态：已埋\n埋设点：第1章\n预期兑现区间：第8-12章\n',
@@ -87,7 +87,7 @@ describe('沉淀候选经 novel_prepare_pack 预校验(A2)', () => {
   })
 
   it('无候选组包 → 四件占位,章摘要为占位而非首行(R4)', () => {
-    const root = mkDir('webnovel-cand-none-')
+    const root = mkDir('abzu-cand-none-')
     confirmWithHard(root)
     const r = preparePack(root, key)
     expect(r.ok).toBe(true)
@@ -102,7 +102,7 @@ describe('沉淀候选经 novel_prepare_pack 预校验(A2)', () => {
 
 describe('合法候选入档后的真源沉淀(A3/A4)', () => {
   it('账本新增条目、时间线新增事件、章摘要为候选内容(A3)', () => {
-    const root = mkDir('webnovel-cand-a3-')
+    const root = mkDir('abzu-cand-a3-')
     initGit(root)
     confirmWithHard(root)
     const r = preparePack(root, key, {
@@ -134,7 +134,7 @@ describe('合法候选入档后的真源沉淀(A3/A4)', () => {
   })
 
   it('事实变更:既有条目末尾追加且原正文逐字保留,新条目新建(A4)', () => {
-    const root = mkDir('webnovel-cand-a4-')
+    const root = mkDir('abzu-cand-a4-')
     initGit(root)
     confirmWithHard(root)
     const existingRel = path.join(root, '世界书', '人物档案', '主角.md')
@@ -170,7 +170,7 @@ describe('合法候选入档后的真源沉淀(A3/A4)', () => {
   })
 
   it('世界书补偿整条更正既有正文，缺目标或无批准拒绝，规划保持只读', () => {
-    const root = mkDir('webnovel-fact-correction-')
+    const root = mkDir('abzu-fact-correction-')
     confirmWithHard(root)
     const file = path.join(root, '世界书/人物档案/主角.md')
     const initial = parseDocument(fs.readFileSync(file, 'utf8'))
@@ -199,7 +199,7 @@ describe('合法候选入档后的真源沉淀(A3/A4)', () => {
   })
 
   it('未登记模块的事实变更 → 入档拒绝,无半成品(A4 后半)', () => {
-    const root = mkDir('webnovel-cand-a4b-')
+    const root = mkDir('abzu-cand-a4b-')
     confirmWithHard(root)
     const r = preparePack(root, key, {
       事实变更: '# 事实变更\n\n## 从未登记\n### 新律\n新增规则。\n',

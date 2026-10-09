@@ -54,7 +54,7 @@ export function PetOverlay({ store }: PetProps) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
   }
   if (!state.preferences.visible) return null
-  return <section className="whale-companion" aria-label="鲸鱼娘桌宠" data-action={state.action}
+  return <section className="abzu-companion" aria-label="鲸鱼娘桌宠" data-action={state.action}
     style={{ left: point.x, top: point.y, width: height * .75, height }}>
     <PetPlayer action={state.action} animate={animate} store={store} />
     <svg className="whale-hit" viewBox={`0 0 ${manifest.width} ${manifest.height}`} aria-label="鲸鱼娘">

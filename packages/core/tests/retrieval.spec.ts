@@ -11,7 +11,7 @@ import { scanFinalized } from '../src/retrieval/source'
 import { CACHE_PATH } from '../src/retrieval/cache'
 
 let root: string
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-search-')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-search-')) })
 afterEach(() => { vi.restoreAllMocks(); removeSync(root) })
 
 function write(relative: string, raw: string): string {
@@ -193,7 +193,7 @@ describe('可丢弃缓存与真实内容校准', () => {
   it('未知 SQLite 和共享缓存硬链接保持原样并明确拒绝', async () => {
     chapter(1, '线索')
     const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite')
-    fs.mkdirSync(path.join(root, '.webnovel'))
+    fs.mkdirSync(path.join(root, '.abzu'))
     const file = path.join(root, CACHE_PATH)
     const db = new DatabaseSync(file)
     try { db.exec('CREATE TABLE author_data(value TEXT); INSERT INTO author_data VALUES (\'保留\')') } finally { db.close() }
@@ -282,7 +282,7 @@ describe('向量融合、新鲜度与取消', () => {
     })
     const pending = syncFinalizedIndex(root, { getProvider: () => embeddings })
     await entered.promise
-    expect(fs.existsSync(path.join(root, '.webnovel/book.lock'))).toBe(false)
+    expect(fs.existsSync(path.join(root, '.abzu/book.lock'))).toBe(false)
     withBookWrite(root, () => writeBatchAtomic(root, [{ relPath: '定稿/卷01/0001-章1.md', content: '新线索原文' }]))
     response.resolve([[1, 0]])
     expect(await pending).toMatchObject({ ok: false, failure: { code: 'source-changed' } })
@@ -330,12 +330,12 @@ describe('向量融合、新鲜度与取消', () => {
     chapter(1, '线索')
     const release = deferred<void>()
     const held = withBookLockAsync(root, () => release.promise)
-    const lock = fs.readFileSync(path.join(root, '.webnovel/book.lock'), 'utf8')
+    const lock = fs.readFileSync(path.join(root, '.abzu/book.lock'), 'utf8')
     try {
       expect(await searchFinalized(root, { query: '线索' })).toMatchObject({ ok: false, code: 'book-busy' })
-      expect(fs.readFileSync(path.join(root, '.webnovel/book.lock'), 'utf8')).toBe(lock)
+      expect(fs.readFileSync(path.join(root, '.abzu/book.lock'), 'utf8')).toBe(lock)
     } finally { release.resolve(); await held }
-    const evidence = write('.webnovel/transactions/unfinished/manifest.json', '{"incomplete":true}')
+    const evidence = write('.abzu/transactions/unfinished/manifest.json', '{"incomplete":true}')
     expect(await searchFinalized(root, { query: '线索' })).toMatchObject({ ok: false, code: 'recovery-required' })
     expect(fs.readFileSync(evidence, 'utf8')).toBe('{"incomplete":true}')
   })

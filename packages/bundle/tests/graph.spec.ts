@@ -2,14 +2,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { serializeDocument } from '@webnovel/core'
+import { serializeDocument } from '@abzu/core'
 import { removeSync } from '../../core/src/repo/remove'
 import { StudyService } from '../src/study/service'
 import { projectStoryGraph, type StoryGraph } from '../src/study/graph-types'
 
 let root: string
 const put = (relative: string, value: string) => { const file = path.join(root, '测试书', relative); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, value) }
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-graph-')); put('作品契约/契约.md', serializeDocument({ 书id: 'graph-book' }, '测试书')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-graph-')); put('作品契约/契约.md', serializeDocument({ 书id: 'graph-book' }, '测试书')) })
 afterEach(() => removeSync(root))
 const read = () => new StudyService(root).graph('book:graph-book')
 const project = (graph: StoryGraph, chapter: number, reader = false, unknown = true) => projectStoryGraph(graph, { chapter, reader, unknown, plans: false })
@@ -75,7 +75,7 @@ describe('读取既有沉淀的时序图谱', () => {
     expect(project(model, 7).edges.some(edge => edge.relation)).toBe(false)
   })
   it('世界书链接不读取工作范围外的资料', () => {
-    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-graph-outside-'))
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-graph-outside-'))
     try {
       fs.writeFileSync(path.join(outside, '外部.md'), serializeDocument({ 名称: '外部秘密' }, '不可读取'))
       fs.mkdirSync(path.join(root, '测试书/世界书'), { recursive: true })

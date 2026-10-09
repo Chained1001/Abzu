@@ -18,8 +18,8 @@ import {
   paths,
   writeFileAtomic,
   writeCandidate,
-} from '@webnovel/core'
-import { ingestFindings, planReview, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { ingestFindings, planReview, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 import { removeSync } from '../../core/src/repo/remove'
 
 const roots: string[] = []
@@ -39,7 +39,7 @@ function git(cwd: string, args: readonly string[]): ReturnType<typeof spawnSync>
 }
 
 function initRepo(): string {
-  const root = mkDir('webnovel-prepare-')
+  const root = mkDir('abzu-prepare-')
   expect(git(root, ['init']).status).toBe(0)
   git(root, ['config', 'user.email', 'test@example.com'])
   git(root, ['config', 'user.name', 'test'])
@@ -112,7 +112,7 @@ function putPending(root: string, body: string, file = '稿1.md'): void {
 
 describe('改稿最小 + 定稿准备', () => {
   it('applyRevision 产出新一版待审稿，原稿降级留档 → derive 定稿准备', () => {
-    const root = mkDir('webnovel-revise-')
+    const root = mkDir('abzu-revise-')
     confirmWithHard(root)
     assembleMaterials(root, key)
     putPending(root, `综上所述，${HARD}。`)
@@ -160,7 +160,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('applyRevision 不带补丁只记处置，不产生新稿', () => {
-    const root = mkDir('webnovel-revise-nopatch-')
+    const root = mkDir('abzu-revise-nopatch-')
     confirmWithHard(root)
     assembleMaterials(root, key)
     putPending(root, `综上所述，${HARD}。`)
@@ -174,7 +174,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('true-source 处置 → 须呈报上游', () => {
-    const root = mkDir('webnovel-revise-up-')
+    const root = mkDir('abzu-revise-up-')
     confirmWithHard(root)
     putPending(root, `${HARD}。`)
     resetChecks()
@@ -189,7 +189,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('preparePack writes 8 files, 卷对账 contains 偏离 or 无偏离', () => {
-    const root = mkDir('webnovel-pack-')
+    const root = mkDir('abzu-pack-')
     confirmWithHard(root)
     putPending(root, `巷口风大。${HARD}。`)
     const r = preparePack(root, key)
@@ -208,7 +208,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('preparePack presents actual ledger reconciliation instead of hardcoded 无偏离', () => {
-    const root = mkDir('webnovel-pack-reconcile-')
+    const root = mkDir('abzu-pack-reconcile-')
     confirmWithHard(root)
     for (const name of ['故事线', '人物弧线', '承诺', '线索']) {
       writeFileAtomic(root, paths.账本(name as '故事线' | '人物弧线' | '承诺' | '线索'), `# ${name}\n`)
@@ -224,7 +224,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('正文 includes finalized frontmatter contract fields', () => {
-    const root = mkDir('webnovel-frontmatter-')
+    const root = mkDir('abzu-frontmatter-')
     confirmWithHard(root)
     putPending(root, `巷口风大。${HARD}。`)
     expect(preparePack(root, key).ok).toBe(true)
@@ -241,7 +241,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('汉字数 counts CJK, not ASCII letters and digits', () => {
-    const root = mkDir('webnovel-hancount-')
+    const root = mkDir('abzu-hancount-')
     confirmWithHard(root)
     putPending(root, `主角走进城门，发现异响。${HARD}。ABC123`)
     expect(preparePack(root, key).ok).toBe(true)
@@ -257,7 +257,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('对账无法进行时清单不谎报偏离已呈报', () => {
-    const root = mkDir('webnovel-manifest-honesty-')
+    const root = mkDir('abzu-manifest-honesty-')
     confirmWithHard(root)
     removeSync(path.join(root, paths.计划时间线(1)))
     putPending(root, `巷口风大。${HARD}。`)
@@ -269,7 +269,7 @@ describe('改稿最小 + 定稿准备', () => {
   })
 
   it('preparePack 本卷对账不把其他卷事实列为未计划，且不改写卷纲', () => {
-    const root = mkDir('webnovel-pack-volume-filter-')
+    const root = mkDir('abzu-pack-volume-filter-')
     confirmWithHard(root)
     for (const name of ['故事线', '人物弧线', '承诺', '线索'] as const) {
       writeFileAtomic(root, paths.账本(name), `# ${name}\n`)
@@ -297,7 +297,7 @@ describe('改稿最小 + 定稿准备', () => {
     expect(fs.readFileSync(path.join(root, paths.卷纲(1)), 'utf-8')).toBe(outline)
   })
 
-  it('multiple 待审稿 → preparePack refuses', () => {    const root = mkDir('webnovel-pack-multi-')
+  it('multiple 待审稿 → preparePack refuses', () => {    const root = mkDir('abzu-pack-multi-')
     confirmWithHard(root)
     putPending(root, `巷口风大。${HARD}。`)
     putPending(root, `另一版。${HARD}。`, '稿2.md')

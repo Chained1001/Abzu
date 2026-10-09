@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { documentHash, serializeDocument } from '@webnovel/core'
+import { documentHash, serializeDocument } from '@abzu/core'
 import { removeSync } from '../../core/src/repo/remove'
 import { StudyService } from '../src/study/service'
 import { createStudyHandler, savedMessage, STUDY_API_PATH, type StudyWebRuntime } from '../src/study/web'
@@ -15,7 +15,7 @@ import { BookIndexManager } from '../src/indexing/manager'
 let root: string
 function put(relative: string, text: string) { const target = path.join(root, relative); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.writeFileSync(target, text); return target }
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-study-'))
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-study-'))
   for (const [name, id] of [['雾港', 'fog'], ['长夜', 'night']]) {
     put(`${name}/作品契约/契约.md`, serializeDocument({ 书id: id }, name!))
     put(`${name}/大纲/卷01/细纲.md`, serializeDocument({ 版本: 1 }, '真实细纲'))
@@ -99,7 +99,7 @@ async function serve(followup = vi.fn(), indexing?: BookIndexManager, editorRequ
   const base = 'http://127.0.0.1'
   const post = async (method: string, input: object, headers: Record<string, string> = {}) => {
     const response = await handler(new Request(base + STUDY_API_PATH + method, { method: 'POST', headers: {
-      'x-webnovel-request': '1', 'content-type': 'application/json', ...headers,
+      'x-abzu-request': '1', 'content-type': 'application/json', ...headers,
     }, body: JSON.stringify({ sessionId: 'main', ...input }) }))
     return { status: response.status, body: await response.json() as { ok: boolean; code?: string; value: StudySave; error: string } }
   }
@@ -132,19 +132,19 @@ describe('已通过宿主认证的书房 Fetch 保存和原生通知入口', () 
       const paused = await post('index-control', { space: 'book:fog', action: 'pause', cwd: 'C:/outside', root: 'C:/outside' })
       expect(paused.status).toBe(200)
       expect(paused.body.value).toMatchObject({ bookId: 'fog', phase: 'paused', paused: true, recipientSession: 'main' })
-      expect(fs.existsSync(path.join(root, '雾港/.webnovel/finalized-search-state.json'))).toBe(true)
-      expect(fs.existsSync(path.join(root, '长夜/.webnovel/finalized-search-state.json'))).toBe(false)
+      expect(fs.existsSync(path.join(root, '雾港/.abzu/finalized-search-state.json'))).toBe(true)
+      expect(fs.existsSync(path.join(root, '长夜/.abzu/finalized-search-state.json'))).toBe(false)
     } finally { await indexing.close() }
   })
   it('接收已认证的桌面请求，仍要求业务标识和 JSON 格式', async () => {
     const { post } = await serve()
     expect((await post('shelf', {})).status).toBe(200)
-    expect((await post('shelf', {}, { 'x-webnovel-request': '' })).status).toBe(403)
+    expect((await post('shelf', {}, { 'x-abzu-request': '' })).status).toBe(403)
     expect((await post('shelf', {}, { 'content-type': 'text/plain' })).status).toBe(400)
   })
   it('取消与超限请求不会进入保存', async () => {
     const { handler, followup } = await serve()
-    const headers = { 'x-webnovel-request': '1', 'content-type': 'application/json' }
+    const headers = { 'x-abzu-request': '1', 'content-type': 'application/json' }
     const abort = new AbortController(); abort.abort()
     const canceled = await handler(new Request('http://127.0.0.1' + STUDY_API_PATH + 'save', { method: 'POST', headers, signal: abort.signal, body: '{}' }))
     expect(canceled.status).toBe(400)
@@ -198,7 +198,7 @@ describe('书房编辑器请求', () => {
   it('沿用头部、会话和主 Agent 校验，子会话与非法字段被拒绝', async () => {
     const { post, followup } = await serve()
     const doc = new StudyService(root).read({ space: 'book:fog', path: '草稿区/草稿/卷01-开篇/稿1.md' })
-    expect((await post('ask', askInput(doc), { 'x-webnovel-request': '' })).status).toBe(403)
+    expect((await post('ask', askInput(doc), { 'x-abzu-request': '' })).status).toBe(403)
     expect((await post('ask', { ...askInput(doc), sessionId: 'child' })).status).toBe(400)
     expect((await post('suggestions', { requestIds: ['polish1'], sessionId: 'child' })).status).toBe(400)
     const base = askInput(doc)
@@ -278,7 +278,7 @@ describe('书房编辑器请求', () => {
     const handler = createStudyHandler(runtime, undefined, undefined, editorRequests)
     const post = async (method: string, input: object) => {
       const response = await handler(new Request('http://127.0.0.1' + STUDY_API_PATH + method, {
-        method: 'POST', headers: { 'x-webnovel-request': '1', 'content-type': 'application/json' },
+        method: 'POST', headers: { 'x-abzu-request': '1', 'content-type': 'application/json' },
         body: JSON.stringify({ sessionId: 'main', ...input }),
       }))
       return { status: response.status, body: await response.json() as { ok: boolean; error: string; value: { requestId?: string; busy?: boolean; items?: { requestId: string; state: string; reply?: { kind: string; text?: string } }[] } } }

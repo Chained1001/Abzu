@@ -32,6 +32,18 @@ importers:
 
   packages/bundle:
     devDependencies:
+      '@abzu/core':
+        specifier: workspace:*
+        version: link:../core
+      '@abzu/drafting':
+        specifier: workspace:*
+        version: link:../drafting
+      '@abzu/polish':
+        specifier: workspace:*
+        version: link:../polish
+      '@abzu/review':
+        specifier: workspace:*
+        version: link:../review
       '@antv/g6':
         specifier: 5.1.1
         version: 5.1.1
@@ -257,18 +269,6 @@ importers:
       '@types/react-test-renderer':
         specifier: 18.3.1
         version: 18.3.1
-      '@webnovel/core':
-        specifier: workspace:*
-        version: link:../core
-      '@webnovel/drafting':
-        specifier: workspace:*
-        version: link:../drafting
-      '@webnovel/polish':
-        specifier: workspace:*
-        version: link:../polish
-      '@webnovel/review':
-        specifier: workspace:*
-        version: link:../review
       d3-force:
         specifier: 3.0.0
         version: 3.0.0
@@ -327,12 +327,12 @@ importers:
 
   packages/drafting:
     dependencies:
+      '@abzu/core':
+        specifier: workspace:*
+        version: link:../core
       '@deepseek-ai/cordis':
         specifier: 4.0.4
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
-      '@webnovel/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       typescript:
         specifier: ^5.5.0
@@ -340,12 +340,12 @@ importers:
 
   packages/ledger:
     dependencies:
+      '@abzu/core':
+        specifier: workspace:*
+        version: link:../core
       '@deepseek-ai/cordis':
         specifier: 4.0.4
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
-      '@webnovel/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       typescript:
         specifier: ^5.5.0
@@ -353,14 +353,14 @@ importers:
 
   packages/polish:
     dependencies:
+      '@abzu/core':
+        specifier: workspace:*
+        version: link:../core
       '@deepseek-ai/cordis':
         specifier: 4.0.4
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
-      '@webnovel/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
-      '@webnovel/drafting':
+      '@abzu/drafting':
         specifier: workspace:*
         version: link:../drafting
       typescript:
@@ -369,12 +369,12 @@ importers:
 
   packages/review:
     dependencies:
+      '@abzu/core':
+        specifier: workspace:*
+        version: link:../core
       '@deepseek-ai/cordis':
         specifier: 4.0.4
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
-      '@webnovel/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       typescript:
         specifier: ^5.5.0

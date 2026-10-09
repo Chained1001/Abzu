@@ -11,10 +11,10 @@ import {
   scanChapter,
   seedMinDesign,
   writeCandidate,
-} from '@webnovel/core'
-import { writeDraft } from '@webnovel/drafting'
-import { polishDraft } from '@webnovel/polish'
-import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { writeDraft } from '@abzu/drafting'
+import { polishDraft } from '@abzu/polish'
+import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 
 const roots: string[] = []
 afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
@@ -25,7 +25,7 @@ const HARD = '开场必须点名主角现身'
 
 describe('最小链 e2e', () => {
   it('seedMinDesign → confirm → assemble → writeDraft → polish → review → preparePack → 作者定稿裁决', () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-minchain-'))
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-minchain-'))
     roots.push(root)
     seedMinDesign(root)
 

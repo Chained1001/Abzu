@@ -42,7 +42,7 @@ for (const method of ['vectors', 'publish', 'keyword']) {
     try { return original.apply(this, args) } finally { phases[`${method}Ms`] += performance.now() - start }
   }
 }
-const tempPrefix = path.join(os.tmpdir(), 'webnovel-benchmark-search-')
+const tempPrefix = path.join(os.tmpdir(), 'abzu-benchmark-search-')
 const root = fs.mkdtempSync(tempPrefix)
 const marker = '独有青铜信物'
 const changedMarker = '独有琉璃信物'
@@ -156,7 +156,7 @@ try {
       console.error(`[search benchmark] ${chapters} chapters / ${mode}: first index`)
       const initialSync = await measureSync(fixture.book, provider)
       const cold = await measure(fixture.book, marker, provider)
-      const coldIndexBytes = fs.statSync(path.join(fixture.book, '.webnovel/finalized-search.sqlite')).size
+      const coldIndexBytes = fs.statSync(path.join(fixture.book, '.abzu/finalized-search.sqlite')).size
       const warm = []
       for (let iteration = 0; iteration < report.warmRepeats; iteration++) warm.push(await measure(fixture.book, marker, provider))
       console.error(`[search benchmark] ${chapters} chapters / ${mode}: content update`)
@@ -173,7 +173,7 @@ try {
       }
       report.cases.push({ chapters, mode, sourceBytes: fixture.sourceBytes, hanCharacters: fixture.hanCharacters, initialSync, updateSync, cold, warm,
         warmMedianMs: [...warm.map(row => row.elapsedMs)].sort((a, b) => a - b)[1], update, coldIndexBytes,
-        updatedIndexBytes: fs.statSync(path.join(fixture.book, '.webnovel/finalized-search.sqlite')).size })
+        updatedIndexBytes: fs.statSync(path.join(fixture.book, '.abzu/finalized-search.sqlite')).size })
     } finally { await provider?.close() }
   }
   const json = JSON.stringify(report, null, 2) + '\n'

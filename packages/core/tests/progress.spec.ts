@@ -7,7 +7,7 @@ import type { LastCommitResult } from '../src/commit/history'
 
 const roots: string[] = []
 function mkBook(seed = false): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-progress-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-progress-'))
   roots.push(dir)
   if (seed) seedMinDesign(dir)
   return dir

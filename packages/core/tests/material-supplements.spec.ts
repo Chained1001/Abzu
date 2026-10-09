@@ -21,7 +21,7 @@ beforeEach(() => { resetChecks(); registerDefaultChecks() })
 afterEach(() => vi.restoreAllMocks())
 
 function fixture() {
-  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-supplements-'))
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-supplements-'))
   roots.push(workspace)
   const root = path.join(workspace, '测试书')
   makeFixtureBook(root, 3)
@@ -52,7 +52,7 @@ function fixture() {
 describe('持久补料与实际消费（15B）', () => {
   it('公开预览入口不进入写锁或事务恢复', () => {
     const f = fixture()
-    const lock = path.join(f.root, '.webnovel/book.lock')
+    const lock = path.join(f.root, '.abzu/book.lock')
     fs.writeFileSync(lock, JSON.stringify({ pid: process.pid }))
     const before = fs.readFileSync(lock, 'utf8')
     expect(assembleMaterials(f.root, { ...key, 仅预览: true, 补充操作: f.operations }).ok).toBe(true)

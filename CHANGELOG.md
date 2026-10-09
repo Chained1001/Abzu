@@ -2,6 +2,19 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.3] — 2026-10-09
+
+功能标识统一改 abzu 系：全仓去掉现行标识中的 `webnovel` 前缀与 `whale-companion`，版本 **0.0.3** 发行，继续配套 **DSH 0.2.0-rc.2**。借零书、零插件设置的窗口完成，不存在迁移面。
+
+### Changed
+
+- 五条 insert id 换为 `abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`（原 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`）；设置命名空间、凭据引用（`ABZU_EMBEDDING_API_KEY`、`ABZU_RERANK_API_KEY`）与禁用状态随新 id 生效。
+- 内部 workspace 包 scope `@webnovel/core|drafting|ledger|polish|review` 改为 `@abzu/*`；模块名导出（`abzu-bundle`、`abzu-embedding-provider` 等）、书仓状态目录 `.webnovel/`（改 `.abzu/`）、书仓 git 身份 `webnovel-writer@local`（改 `abzu@local`）、书房 HTTP 前缀 `/api/webnovel/*`（改 `/api/abzu/*`）与测试/脚本环境变量 `WEBNOVEL_*`（改 `ABZU_*`）同步换新。
+
+### Upgrade
+
+从 0.0.2 升级：更新 `abzu` 到 0.0.3 并重启即可；条目 id 已随包换为 abzu 系，自定义 profile 覆盖里的旧 id 与凭据引用名称按维护文档换成现行值。步骤见 [安装教程](docs/user/install.md) 与 [备份与升级](docs/user/upgrade-backup.md)。
+
 ## [0.0.2] — 2026-10-09
 
 四包合一：`abzu-retrieval`、`abzu-companion`、`abzu-full` 并入主包 `abzu`，单包 **0.0.2** 发行，继续配套 **DSH 0.2.0-rc.2**。

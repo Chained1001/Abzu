@@ -13,7 +13,7 @@ const roots: string[] = []
 afterAll(() => roots.forEach((root) => removeSync(root)))
 
 function fixture(chapters = 5, opts?: { 每卷章数?: number; 书名?: string }) {
-  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-export-'))
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-export-'))
   roots.push(workspace)
   const root = path.join(workspace, opts?.书名 ?? '测试书')
   makeFixtureBook(root, chapters, { 每卷章数: opts?.每卷章数 ?? 2 })

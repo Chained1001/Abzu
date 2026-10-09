@@ -6,7 +6,7 @@ import { decideTargetForFile } from '../src/gates'
 
 /** 构造临时工作范围:书房 + 书仓(草稿区/定稿/作品契约)。 */
 function makeWorkspace(): { ws: string; bookRoot: string } {
-  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-gate-'))
+  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-gate-'))
   const bookRoot = path.join(ws, '星辰')
   fs.mkdirSync(path.join(bookRoot, '草稿区', '章细纲'), { recursive: true })
   fs.mkdirSync(path.join(bookRoot, '草稿区', '草稿', '卷01-第一章'), { recursive: true })
@@ -75,7 +75,7 @@ describe('gate 分区判定（A2a/A2b + N5/N10 修复）', () => {
   it('绝对路径在工作范围外触发 ask (N10)', () => {
     const { ws, bookRoot } = makeWorkspace()
     const d = depsOf(ws, bookRoot)
-    const outside = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-out-')), 'x.md')
+    const outside = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-out-')), 'x.md')
     const r = decideTargetForFile(outside, d)
     expect(r.kind).toBe('ask')
   })

@@ -9,8 +9,8 @@ import {
   parseOutline,
   paths,
   type ChapterKey,
-} from '@webnovel/core'
-import { loadMaterialPackage } from '@webnovel/core'
+} from '@abzu/core'
+import { loadMaterialPackage } from '@abzu/core'
 
 export interface DraftContext {
   readonly 细纲: string

@@ -7,8 +7,8 @@ import assert from 'node:assert/strict'
 const runtimePath = path.resolve(process.argv[2])
 const runtime = JSON.parse(fs.readFileSync(runtimePath, 'utf8').replace(/^\uFEFF/, ''))
 const evidence = path.dirname(runtimePath)
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const context = await browser.newContext({ viewport: { width: 1440, height: 960 } })
 const page = await context.newPage()
 page.setDefaultTimeout(15000)
@@ -137,7 +137,7 @@ try {
     // Playwright's fetch engine drops browser fetch-metadata headers, and the
     // study API requires sec-fetch-site: same-origin; restore it on replays.
     const replay = route => route.fetch({ headers: { ...route.request().headers(), 'sec-fetch-site': 'same-origin' } })
-    await page.route('**/api/webnovel/study/save', async route => {
+    await page.route('**/api/abzu/study/save', async route => {
       const payload = route.request().postDataJSON()
       report.saveRequests.push({ operationId: payload.operationId, ref: payload.ref, body: payload.body, sessionId: payload.sessionId }); persist()
       if (!firstPayload) {
@@ -184,7 +184,7 @@ try {
     assert.deepEqual(fs.readdirSync(dir).filter(name => /^稿\d+\.md$/.test(name)).sort(), ['稿1.md', '稿2.md'])
     report.F01 = { sameOperationId: firstPayload.operationId, bothDirty: true, savedTargetUnchanged: true, versions: ['稿1.md', '稿2.md'] }
     await screenshot('F01-target-preserved')
-    await page.unroute('**/api/webnovel/study/save')
+    await page.unroute('**/api/abzu/study/save')
   })
   await stage('sidebar-keeps-dirty-editor', async () => {
     const text = await editorEndText()
@@ -200,7 +200,7 @@ try {
     const checkbox = page.getByRole('checkbox', { name: '提交后自动更新', exact: true })
     await checkbox.waitFor()
     assert.equal(await checkbox.isEnabled(), true)
-    await page.route('**/api/webnovel/study/index-control', async route => {
+    await page.route('**/api/abzu/study/index-control', async route => {
       const payload = route.request().postDataJSON()
       let release
       const gate = new Promise(resolve => { release = resolve })
@@ -239,10 +239,10 @@ try {
     held[1].release()
     await until(() => checkbox.isEnabled(), 'new request releases its own busy state')
     assert.equal(report.controlRequests.length, 2)
-    assert.equal(report.controlRequests.every(item => item.sessionId === 'webnovel-browser-acceptance' && item.space === 'book:acceptance-a'), true)
+    assert.equal(report.controlRequests.every(item => item.sessionId === 'abzu-browser-acceptance' && item.space === 'book:acceptance-a'), true)
     report.F11 = { cancelledBookReusable: true, staleResponseKeptNewRequestBusy: true, newRequestReleased: true }
     await screenshot('F11-controls-recovered')
-    await page.unroute('**/api/webnovel/study/index-control')
+    await page.unroute('**/api/abzu/study/index-control')
   })
   await stage('settings-open-and-return', async () => {
     // Use the host's own settings entry, discovered by its accessible label.
@@ -257,7 +257,7 @@ try {
   assert.ok(report.host.savesReceived > 0)
   assert.equal(report.host.customEvents, 0)
   assert.deepEqual(report.pageErrors, [])
-  report.expectedConsoleErrors = report.consoleErrors.filter(item => item.path === '/api/webnovel/study/save' && item.message.includes('net::ERR_FAILED'))
+  report.expectedConsoleErrors = report.consoleErrors.filter(item => item.path === '/api/abzu/study/save' && item.message.includes('net::ERR_FAILED'))
   report.unexpectedConsoleErrors = report.consoleErrors.filter(item => !report.expectedConsoleErrors.includes(item))
   assert.deepEqual(report.unexpectedConsoleErrors, [])
   report.ok = true; report.current = 'complete'; persist()

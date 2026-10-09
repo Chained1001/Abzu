@@ -3,11 +3,11 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import { createNovelTools, type NovelToolsDeps } from '../src/novel-tools'
-import { APPROVE_LABEL, REJECT_LABEL, type AskRequest, type AskResponse } from '@webnovel/core'
+import { APPROVE_LABEL, REJECT_LABEL, type AskRequest, type AskResponse } from '@abzu/core'
 
 const roots: string[] = []
 function mkWs(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-settle-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-settle-'))
   roots.push(dir)
   return dir
 }

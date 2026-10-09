@@ -6,7 +6,7 @@ import * as path from 'node:path'
 
 /** 宿主注入 askFn 的接线：裁决通道须由 ctx.userQuestions 供给，而非模型自证。 */
 function makeWorkspace(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-ask-wire-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ask-wire-'))
   const book = path.join(dir, '星辰')
   fs.mkdirSync(path.join(book, '作品契约'), { recursive: true })
   fs.writeFileSync(path.join(book, '作品契约', '契约.md'), '---\n书id: xingchen-001\n---\n正文\n', 'utf8')

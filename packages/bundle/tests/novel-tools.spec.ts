@@ -5,12 +5,12 @@ import * as os from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { createNovelTools, NOVEL_TEST_TOOL_NAMES, NOVEL_TOOL_NAMES } from '../src/novel-tools'
 import { EDITOR_CANCELLED_REASON, EDITOR_DUPLICATE_REASON, EDITOR_UNKNOWN_REASON, EditorRequestHub, type EditorIntent, type EditorRequestSnapshot } from '../src/study/editor-requests'
-import { createBook, scanDesign, writeContract, 契约六部 } from '@webnovel/core'
+import { createBook, scanDesign, writeContract, 契约六部 } from '@abzu/core'
 import { nativeWriteStub } from './fixtures/native-write-stub'
 
 const roots: string[] = []
 function mkRoot(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-tools-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-tools-'))
   roots.push(dir)
   return dir
 }

@@ -9,7 +9,7 @@ import { validateWorkspacePath, scaffoldStudy, STUDY_DIRS } from '../src/workspa
 
 /** 临时工作范围:建书签名+契约。 */
 function makeWorkspace(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-scan-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-scan-'))
   const book = path.join(dir, '星辰')
   fs.mkdirSync(path.join(book, '作品契约'), { recursive: true })
   fs.writeFileSync(path.join(book, '作品契约', '契约.md'), '---\n书id: xingchen-001\n---\n正文\n', 'utf8')
@@ -27,20 +27,20 @@ describe('bookshelf 书架扫描', () => {
   })
 
   it('空工作范围:无书', () => {
-    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-scan-empty-'))
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-scan-empty-'))
     expect(scanBooks(ws)).toEqual([])
     expect(hasBooks(ws)).toBe(false)
   })
 
   it('无契约的子目录不算书', () => {
-    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-scan-nocontract-'))
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-scan-nocontract-'))
     fs.mkdirSync(path.join(ws, '书房'), { recursive: true })
     fs.mkdirSync(path.join(ws, '随笔'), { recursive: true })
     expect(scanBooks(ws)).toEqual([])
   })
 
   it('输出有序(按目录名),确定性', () => {
-    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-scan-sort-'))
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-scan-sort-'))
     for (const name of ['乙书', '甲书']) {
       fs.mkdirSync(path.join(ws, name, '作品契约'), { recursive: true })
       fs.writeFileSync(path.join(ws, name, '作品契约', '契约.md'), '---\n书id: x\n---\n', 'utf8')
@@ -91,7 +91,7 @@ describe('paths 当前书路径解析', () => {
 
 describe('status-context 状态注入', () => {
   it('renderOverview:空工作区给出新建入口', () => {
-    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-status-')) 
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-status-')) 
     const text = renderOverview(ws)
     expect(text).toContain('【工作区总览】')
     expect(text).toContain('目前还没有书')
@@ -119,7 +119,7 @@ describe('status-context 状态注入', () => {
       systemPrompt: {
         context: (c: unknown) => {
           const entry = c as NonNullable<typeof registered>
-          if (entry.name === 'webnovel.status') registered = entry
+          if (entry.name === 'abzu.status') registered = entry
         },
       },
       inject: (_deps: unknown, cb: (scope: unknown) => void) => {
@@ -134,7 +134,7 @@ describe('status-context 状态注入', () => {
     const dispose = attachStatusToAgent(fakeCtx as never, deps)
     expect(dispose).toBeDefined()
     expect(registered).not.toBeNull()
-    expect(registered!.name).toBe('webnovel.status')
+    expect(registered!.name).toBe('abzu.status')
     expect(registered!.text({})).toContain('【工作区总览】')
     fs.mkdirSync(path.join(ws, '夜航', '作品契约'), { recursive: true })
     fs.writeFileSync(path.join(ws, '夜航', '作品契约', '契约.md'), '---\n书id: yehang-002\n---\n')
@@ -145,13 +145,13 @@ describe('status-context 状态注入', () => {
 
 describe('workspace 装机', () => {
   it('校验:普通目录通过', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-ws-'))
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ws-'))
     const r = validateWorkspacePath(dir, () => undefined, () => false)
     expect(r.ok).toBe(true)
   })
 
   it('校验:本身是 git 仓被拒', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-wsgit-'))
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-wsgit-'))
     fs.mkdirSync(path.join(dir, '.git'))
     const r = validateWorkspacePath(dir, () => undefined, () => false)
     expect(r.ok).toBe(false)
@@ -159,7 +159,7 @@ describe('workspace 装机', () => {
   })
 
   it('校验:落在别人 git 仓内部被拒', () => {
-    const outer = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-outer-'))
+    const outer = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-outer-'))
     fs.mkdirSync(path.join(outer, '.git'))
     const inner = path.join(outer, 'child')
     fs.mkdirSync(inner)
@@ -169,7 +169,7 @@ describe('workspace 装机', () => {
   })
 
   it('校验:已是 workspace 或位于其下被拒', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-wsowned-'))
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-wsowned-'))
     expect(validateWorkspacePath(dir, () => ({ owned: true }), () => false).ok).toBe(false)
     const inner = path.join(dir, 'sub')
     fs.mkdirSync(inner)
@@ -177,7 +177,7 @@ describe('workspace 装机', () => {
   })
 
   it('书房脚手架:建出四目录且幂等', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-study-'))
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-study-'))
     const created = scaffoldStudy(dir)
     expect(created.length).toBe(STUDY_DIRS.length)
     for (const d of STUDY_DIRS) {
@@ -193,7 +193,7 @@ describe('workspace 装机', () => {
 
 describe('progressLineOf 选书近况(一行固定形状,只扫当前卷)', () => {
   it('有章节动静时输出固定形状一行;连续两次求值完全相同', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-progress-'))
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-progress-'))
     // 构造有近期窗口+候选细纲的最小书仓
     fs.mkdirSync(path.join(dir, '大纲', '卷规划', '卷01'), { recursive: true })
     fs.writeFileSync(path.join(dir, '大纲', '卷规划', '卷01', '近期窗口.md'), '# 近期窗口\n\n- 第一章 〔已确认〕\n\n', 'utf8')
@@ -205,7 +205,7 @@ describe('progressLineOf 选书近况(一行固定形状,只扫当前卷)', () =
   })
 
   it('无章节规划时给出推进提示', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-progress-empty-'))
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-progress-empty-'))
     const line = progressLineOf(dir)
     expect(line).toContain('尚无已规划章节')
   })

@@ -50,7 +50,7 @@ export function attachSceneModel(ctx: Context, sceneSource: () => SceneSettings)
     const runtime = llm
     return { key: JSON.stringify(config), dependency: runtime, create: () => new HostSceneProvider(config, runtime) }
   })
-  ctx.effect(() => () => scenes.close(), 'webnovel: scene model requests')
+  ctx.effect(() => () => scenes.close(), 'abzu: scene model requests')
   attachLiveSettings(ctx, resolveSceneSettings, () => scenes.refresh())
   ctx.on('llm/adapters-updated', () => scenes.refresh())
   // Cordis contextual facades are not identity-stable across get() calls.
@@ -59,7 +59,7 @@ export function attachSceneModel(ctx: Context, sceneSource: () => SceneSettings)
     const runtime = scope.llm
     llm = runtime
     scenes.refresh()
-    scope.effect(() => () => { if (llm === runtime) { llm = undefined; scenes.refresh() } }, 'webnovel: scene LLM generation')
+    scope.effect(() => () => { if (llm === runtime) { llm = undefined; scenes.refresh() } }, 'abzu: scene LLM generation')
   })
 }
 
@@ -72,6 +72,6 @@ export function attachRerankingModel(ctx: Context, rerankSource: () => RerankSet
       return credentials ? (await credentials.resolve(credentialRef(config.apiKeyEnv)))?.value : undefined
     }) }
   })
-  ctx.effect(() => () => reranking.close(), 'webnovel: reranking requests')
+  ctx.effect(() => () => reranking.close(), 'abzu: reranking requests')
   attachLiveSettings(ctx, resolveRerankSettings, () => reranking.refresh())
 }

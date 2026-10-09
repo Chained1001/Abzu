@@ -44,7 +44,7 @@ describe('#167 相同设计空操作的轮次保护', () => {
   })
 
   it('新轮次、用户新指令或新的书房保存通知不继承上一操作的停止判定', () => {
-    for (const boundary of [event('turn/end'), event('turn/start'), event('user/message', { source: { kind: 'user' } }), event('user/message', { source: { kind: 'plugin:webnovel' } }), event('user/message', { source: { kind: EDITOR_REQUEST_SOURCE, requestId: 'polish1' } })]) {
+    for (const boundary of [event('turn/end'), event('turn/start'), event('user/message', { source: { kind: 'user' } }), event('user/message', { source: { kind: 'plugin:abzu' } }), event('user/message', { source: { kind: EDITOR_REQUEST_SOURCE, requestId: 'polish1' } })]) {
       expect(repeatedDesignNoChange(args, context([...trace(), boundary]))).toBe(false)
     }
     expect(repeatedDesignNoChange(args, { name, agent: { id: 'other' } })).toBe(false)

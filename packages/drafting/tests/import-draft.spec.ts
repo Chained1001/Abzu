@@ -9,7 +9,7 @@ import {
   parseDocument,
   seedMinDesign,
   writeCandidate,
-} from '@webnovel/core'
+} from '@abzu/core'
 import { importAuthorDraft } from '../src/index'
 
 const roots: string[] = []
@@ -48,7 +48,7 @@ function readyBook(root: string): void {
 
 describe('作者稿导入(A9)', () => {
   it('整章自写:落 稿N+1.md,生成模块 作者手写,角色 草稿,不覆盖既有稿', () => {
-    const root = mkDir('webnovel-import-1-')
+    const root = mkDir('abzu-import-1-')
     readyBook(root)
     const r1 = importAuthorDraft(root, {
       卷: 1, 章: 1, 章名: key.章名,
@@ -78,7 +78,7 @@ describe('作者稿导入(A9)', () => {
   })
 
   it('作者手改:角色 待审稿 时旧待审稿降级、父版本指向被改的稿、选定唯一', () => {
-    const root = mkDir('webnovel-import-2-')
+    const root = mkDir('abzu-import-2-')
     readyBook(root)
     fs.mkdirSync(path.join(root, `草稿区/草稿/卷01-${key.章名}`), { recursive: true })
     fs.writeFileSync(
@@ -111,7 +111,7 @@ describe('作者稿导入(A9)', () => {
   })
 
   it('空正文被拒;未确认细纲不拒绝(R1 播报)', () => {
-    const root = mkDir('webnovel-import-3-')
+    const root = mkDir('abzu-import-3-')
     readyBook(root)
     expect(importAuthorDraft(root, { 卷: 1, 章: 1, 章名: key.章名, 正文: '  ', 角色: '草稿', 生成模块: '作者手写' }).ok).toBe(false)
     const r = importAuthorDraft(root, { 卷: 2, 章: 2, 章名: '未确认章', 正文: '正文', 角色: '草稿', 生成模块: '作者手写' })

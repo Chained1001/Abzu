@@ -80,14 +80,14 @@ export function editorAcceptancePlan(messages) {
   return { action: 'tool', handled: false, requestId, branch, args }
 }
 
-export const name = 'webnovel-browser-acceptance'
-export const inject = ['agents', 'agentLoop', 'sessionPersistence', 'workspaceRegistry', 'llm', 'sessionController', 'webServer', ...(process.env.WEBNOVEL_WORKFLOW_CHECK ? ['connection', 'userQuestions'] : []), ...(process.env.WEBNOVEL_INDEX_CHECK ? ['embeddings', 'settings', 'credentials'] : [])]
+export const name = 'abzu-browser-acceptance'
+export const inject = ['agents', 'agentLoop', 'sessionPersistence', 'workspaceRegistry', 'llm', 'sessionController', 'webServer', ...(process.env.ABZU_WORKFLOW_CHECK ? ['connection', 'userQuestions'] : []), ...(process.env.ABZU_INDEX_CHECK ? ['embeddings', 'settings', 'credentials'] : [])]
 
 export async function apply(ctx) {
-  const root = process.env.WEBNOVEL_BROWSER_WORKSPACE
-  const reportPath = process.env.WEBNOVEL_BROWSER_REPORT
+  const root = process.env.ABZU_BROWSER_WORKSPACE
+  const reportPath = process.env.ABZU_BROWSER_REPORT
   if (!root || !path.isAbsolute(root) || !reportPath) throw new Error('Missing isolated browser acceptance paths')
-  const sessionId = process.env.WEBNOVEL_BROWSER_SESSION ?? 'webnovel-browser-acceptance'
+  const sessionId = process.env.ABZU_BROWSER_SESSION ?? 'abzu-browser-acceptance'
   const exists = (await ctx.sessionPersistence.list()).some(snapshot => snapshot.header.id === sessionId)
   const put = (relative, text) => {
     if (exists) return
@@ -109,13 +109,13 @@ export async function apply(ctx) {
   const report = { requests: 0, savesReceived: 0, indexErrorsReceived: 0, complete: 0, customEvents: 0, resumed: exists }
   // Restored cards describe an earlier export. The book may have changed since;
   // resume its runtime without reseeding files, revalidating old exports or replaying tools.
-  const demo = !exists && process.env.WEBNOVEL_RESULT_DEMO ? prepareResultCardDemo(root) : []
+  const demo = !exists && process.env.ABZU_RESULT_DEMO ? prepareResultCardDemo(root) : []
   let demoStep = 0
   let workflowRequest, workflowMode = '', workflowIndex = 100
   const persist = () => fs.writeFileSync(reportPath, JSON.stringify(report, null, 2))
   // Settings writes await Loader settlement in DSH 0.1.7. Do not await them from
   // this plugin's apply: that would keep the very Loader settlement they need pending.
-  const indexReady = (process.env.WEBNOVEL_INDEX_CHECK ? attachIndexFixture(ctx, root, report, persist, { seed: !exists }) : Promise.resolve())
+  const indexReady = (process.env.ABZU_INDEX_CHECK ? attachIndexFixture(ctx, root, report, persist, { seed: !exists }) : Promise.resolve())
     .then(() => true).catch(error => { report.fixtureError = String(error); persist(); return false })
   class AcceptanceAdapter extends LlmAdapter {
     providerInfo(provider) { return { id: provider, name: '本地验收提供方' } }
@@ -176,8 +176,8 @@ export async function apply(ctx) {
         return
       }
       const document = new URL(`http://127.0.0.1:${ctx.webServer.port}/`)
-      document.searchParams.set('webnovel', JSON.stringify({ sessionId, ref: { space: 'book:acceptance-a', path: '草稿区/草稿/卷01-来信/稿1.md' } }))
-      const text = process.env.WEBNOVEL_RESULT_DEMO
+      document.searchParams.set('abzu', JSON.stringify({ sessionId, ref: { space: 'book:acceptance-a', path: '草稿区/草稿/卷01-来信/稿1.md' } }))
+      const text = process.env.ABZU_RESULT_DEMO
         ? '演示草稿、已校验的定稿合集与来源清单已准备好。'
         : '浏览器验收会话。\n\n[打开原文](<' + document + '>)\n\n保存通知已进入本次原生对话。'
       yield { type: 'block-start', index: 0, blockType: 'text' }
@@ -188,12 +188,12 @@ export async function apply(ctx) {
       persist()
     }
   }
-  ctx.llm.registerAdapter(['webnovel-acceptance'], new AcceptanceAdapter())
+  ctx.llm.registerAdapter(['abzu-acceptance'], new AcceptanceAdapter())
   const workspace = await ctx.workspaceRegistry.create(root, 'S5 临时验收书房')
-  const options = { provider: 'webnovel-acceptance', model: 'fixture' }
+  const options = { provider: 'abzu-acceptance', model: 'fixture' }
   const handle = exists ? await ctx.agents.resume({ resumeSessionId: sessionId, agentOptions: options })
     : await ctx.agents.create({ sessionId, meta: { cwd: root, title: 'S5 书房验收' }, agentOptions: options })
-  if (process.env.WEBNOVEL_RESULT_DEMO) handle.agent.ctx.plugin(present, { maxFiles: 8 })
+  if (process.env.ABZU_RESULT_DEMO) handle.agent.ctx.plugin(present, { maxFiles: 8 })
   const off = ctx.on('agent/status', ({ agent, status }) => {
     if (agent !== handle.agent || status !== 'idle') return
     report.complete++
@@ -201,7 +201,7 @@ export async function apply(ctx) {
     persist()
   })
   if (!exists) await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => { done(); reject(new Error('Acceptance session did not finish')) }, process.env.WEBNOVEL_RESULT_DEMO ? 30000 : 10000)
+    const timer = setTimeout(() => { done(); reject(new Error('Acceptance session did not finish')) }, process.env.ABZU_RESULT_DEMO ? 30000 : 10000)
     const done = ctx.on('agent/status', ({ agent, status }) => {
       if (agent !== handle.agent || status !== 'idle') return
       clearTimeout(timer); done(); resolve()
@@ -210,11 +210,11 @@ export async function apply(ctx) {
   })
   await ctx.sessionPersistence.flush()
   await workspace.attachSession(sessionId)
-  await ctx.sessionController.rename({ sessionId, title: process.env.WEBNOVEL_RESULT_DEMO ? '写作交互演示 · DSH 0.2' : process.env.WEBNOVEL_INDEX_CHECK ? 'S6 后台索引验收' : 'S5 书房验收' })
+  await ctx.sessionController.rename({ sessionId, title: process.env.ABZU_RESULT_DEMO ? '写作交互演示 · DSH 0.2' : process.env.ABZU_INDEX_CHECK ? 'S6 后台索引验收' : 'S5 书房验收' })
   const secondRoot = path.join(root, '另一工作范围')
   fs.mkdirSync(secondRoot, { recursive: true })
   const secondWorkspace = await ctx.workspaceRegistry.create(secondRoot, 'S5 空工作范围')
-  const secondId = process.env.WEBNOVEL_BROWSER_SESSION ? sessionId + '-second' : 'webnovel-browser-second'
+  const secondId = process.env.ABZU_BROWSER_SESSION ? sessionId + '-second' : 'abzu-browser-second'
   const secondExists = (await ctx.sessionPersistence.list()).some(snapshot => snapshot.header.id === secondId)
   const second = secondExists ? await ctx.agents.resume({ resumeSessionId: secondId, agentOptions: options })
     : await ctx.agents.create({ sessionId: secondId, meta: { cwd: secondRoot, title: 'S5 会话隔离验收' }, agentOptions: options })
@@ -233,7 +233,7 @@ export async function apply(ctx) {
   await ctx.sessionPersistence.flush()
   await secondWorkspace.attachSession(secondId)
   await ctx.sessionController.rename({ sessionId: secondId, title: 'S5 会话隔离验收' })
-  if (process.env.WEBNOVEL_WORKFLOW_CHECK) {
+  if (process.env.ABZU_WORKFLOW_CHECK) {
     ctx.on('tools/execute', async (exec, next) => {
       if (exec.agent === handle.agent && exec.name === 'novel_assemble_materials') {
         if (workflowMode === 'waiting') await ctx.userQuestions.ask({ agent: exec.agent, signal: exec.signal, questions: [{ id: 'continue', question: '验收：继续读取合成书稿吗？', options: [{ label: '继续' }] }] })
@@ -246,7 +246,7 @@ export async function apply(ctx) {
       }
       return next()
     })
-    ctx.connection.fetch.register({ path: '/api/webnovel-workflow-check', methods: ['POST'], requestBody: 'buffered', fetch: async request => {
+    ctx.connection.fetch.register({ path: '/api/abzu-workflow-check', methods: ['POST'], requestBody: 'buffered', fetch: async request => {
       const input = await request.json()
       if (input.action === 'cancel') { handle.agent.cancel({ kind: 'user' }); return Response.json({ ok: true }) }
       if (handle.agent.status !== 'idle') return Response.json({ ok: false }, { status: 409 })

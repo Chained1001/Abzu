@@ -29,7 +29,7 @@ function WritingFileTitle({ props, Native, store }: { props: TitleProps; Native:
 export function openWritingDocument(host: ClientHost, store: EditorStore, sessionId: string): void {
   if (mainSessionOf(host) !== sessionId) return
   const state = store.get(sessionId), document = state.current ? state.buffers[state.current]?.document : undefined
-  if (!document) { window.dispatchEvent(new Event('webnovel:show-study')); return }
+  if (!document) { window.dispatchEvent(new Event('abzu:show-study')); return }
   const address = sessionFileAddress(sessionId, document.absolutePath)
   if (host.sidebarRight.mounted.getSnapshot() === sessionId) host.sidebarRight.openResource(address)
   else {
@@ -110,7 +110,7 @@ export function installNativeDocuments(host: ClientHost, store: EditorStore, act
         if (!live) return
         const id = host.sidebarRight.mounted.getSnapshot()
         for (const tab of host.sidebarRight.openTabs.getSnapshot()) {
-          if (tab.sessionId === id && tab.kind === 'webnovel-writing') host.sidebarRight.close(tab.tabId)
+          if (tab.sessionId === id && tab.kind === 'abzu-writing') host.sidebarRight.close(tab.tabId)
         }
       })
     }
@@ -118,7 +118,7 @@ export function installNativeDocuments(host: ClientHost, store: EditorStore, act
     const offMounted = host.sidebarRight.mounted.subscribe(retire)
     retire()
     return () => { live = false; offTabs(); offMounted() }
-  }, 'webnovel: retire legacy page tabs')
+  }, 'abzu: retire legacy page tabs')
   host.slots.inject(BODY_SLOT, () => {
     const offs: (() => void)[] = []
     for (const key of RENDERERS) {

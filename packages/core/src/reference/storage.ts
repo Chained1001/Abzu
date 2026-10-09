@@ -51,17 +51,17 @@ export function referenceRead(root: string, relative: string, maxBytes = REFEREN
 }
 export function referenceWrite(root: string, ops: readonly FileOp[]): void {
   for (const op of ops) referencePath(root, op.relPath)
-  referencePath(root, '.webnovel/transactions')
+  referencePath(root, '.abzu/transactions')
   writeBatchAtomic(root, ops)
 }
 export function referenceLocked<T>(workspace: string, sourceId: string, operation: (root: string) => T): T {
   const root = referenceRoot(workspace, sourceId)
-  referencePath(root, '.webnovel/transactions')
+  referencePath(root, '.abzu/transactions')
   return withBookWrite(root, () => operation(root))
 }
 export function readReferenceManifest(root: string): ReferenceManifest {
   try {
-    const pending = referencePath(root, '.webnovel/transactions')
+    const pending = referencePath(root, '.abzu/transactions')
     if (fs.existsSync(pending) && fs.readdirSync(pending).length) throw new ReferenceError('recovery-required', '参考库有未完成事务，请先显式恢复再读取')
     const value = JSON.parse(referenceRead(root, '.analysis/manifest.json', 16 * 1024 * 1024)) as ReferenceManifest
     if (value.schemaVersion !== 1 || !isHash(value.currentRevision) || !value.revisions[value.currentRevision]) throw new Error('schema')

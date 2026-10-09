@@ -2,7 +2,7 @@
  * 检查项库注册协议(插件规格 §9)。
  */
 
-import type { ChapterKey, Finding, ChapterLengthCheck } from '@webnovel/core'
+import type { ChapterKey, Finding, ChapterLengthCheck } from '@abzu/core'
 
 export interface CheckInput {
   readonly bookRoot: string

@@ -2,12 +2,12 @@ import { afterAll, describe, expect, it, vi } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { paths, seedMinDesign, serializeDocument, writeFileAtomic } from '@webnovel/core'
+import { paths, seedMinDesign, serializeDocument, writeFileAtomic } from '@abzu/core'
 import { volumeSummaryCli } from '../src/scripts/volume-summary-cli'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-volsum-cli-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-volsum-cli-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

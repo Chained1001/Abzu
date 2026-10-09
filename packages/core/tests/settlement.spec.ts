@@ -12,7 +12,7 @@ const roots: string[] = []
 const key = { 卷: 1, 章: 1, 章名: '开篇任务' } as const
 
 function mkRoot(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-settlement-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-settlement-'))
   roots.push(root)
   fs.mkdirSync(path.join(root, '账本'), { recursive: true })
   fs.mkdirSync(path.join(root, '本书记忆'), { recursive: true })

@@ -3,7 +3,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SceneSettings, RerankSettings } from './auxiliary-config'
-import { DEFAULT_RERANK_TIMEOUT_MS, MAX_RERANK_TIMEOUT_MS, MIN_RERANK_TIMEOUT_MS } from '@webnovel/core/retrieval-policy'
+import { DEFAULT_RERANK_TIMEOUT_MS, MAX_RERANK_TIMEOUT_MS, MIN_RERANK_TIMEOUT_MS } from '@abzu/core/retrieval-policy'
 
 type Draft = SceneSettings & RerankSettings
 type Group = { readonly id: string; readonly name: string; readonly models: readonly { readonly id: string; readonly name: string }[] }
@@ -27,7 +27,7 @@ function ModelCard({ scope, host, kind }: { scope: ConfigForm<Draft>; host: Cont
   const catalogRequest = useRef(0)
   const scene = kind === 'scenes'
   const title = scene ? '混合检索 · 场景识别' : '混合检索 · 重排序 API'
-  const ref = draft.apiKeyEnv || 'WEBNOVEL_RERANK_API_KEY'
+  const ref = draft.apiKeyEnv || 'ABZU_RERANK_API_KEY'
   useEffect(() => { alive.current = true; return () => { alive.current = false; catalogRequest.current++ } }, [])
   useEffect(() => { if (!dirty && state.value) { setDraft({ ...state.value }); setRevision(state.revision) } }, [state, dirty])
   useEffect(() => {
@@ -85,7 +85,7 @@ function ModelCard({ scope, host, kind }: { scope: ConfigForm<Draft>; host: Cont
   const selected = draft.provider && draft.model ? JSON.stringify([draft.provider, draft.model]) : ''
   const inCatalog = groups.some(group => group.id === draft.provider && group.models.some(model => model.id === draft.model))
   if (state.status === 'unavailable') return null
-  return <li className={'webnovel-embedding-card' + (open ? ' we-open' : '')}>
+  return <li className={'abzu-embedding-card' + (open ? ' we-open' : '')}>
     <button type="button" className="we-header" aria-expanded={open} aria-label={(open ? '收起' : '展开') + '设置: ' + title}
       onClick={() => { setOpen(value => !value); if (!open && scene && !groups.length && !loading) void catalog() }}>
       <span className="we-head-text"><span className="we-title">{title}</span><span className="we-description">{scene ? '复用已配置的聊天模型，每章识别一次并缓存场景边界。' : '对少量正文候选重新排序，提高相关片段的可见性。'}</span></span>
@@ -120,7 +120,7 @@ function ModelCard({ scope, host, kind }: { scope: ConfigForm<Draft>; host: Cont
             onChange={event => { setKey(event.target.value); setDirty(true) }} /><span className="we-hint">由 DSH 凭据服务保存，普通配置只保留引用。</span></label>
       </>}</div>
       <details className="we-advanced"><summary>高级设置</summary><div className="we-fields">
-        {scene ? <>{text('provider', '宿主提供方路由')}{text('model', '场景模型标识')}{number('maxInputChars', '单章输入字符预算', 100, 500_000, 60_000)}</> : text('apiKeyEnv', '重排凭据引用名称', 'WEBNOVEL_RERANK_API_KEY')}
+        {scene ? <>{text('provider', '宿主提供方路由')}{text('model', '场景模型标识')}{number('maxInputChars', '单章输入字符预算', 100, 500_000, 60_000)}</> : text('apiKeyEnv', '重排凭据引用名称', 'ABZU_RERANK_API_KEY')}
         {scene ? number('timeoutMs', '场景请求超时（毫秒）', 100, 180_000, 60_000) : null}
       </div></details>
       <div className="we-actions">{message ? <p className="we-error" role="status">{message}</p> : null}
@@ -133,8 +133,8 @@ function ModelCard({ scope, host, kind }: { scope: ConfigForm<Draft>; host: Cont
 }
 
 export function installAuxiliaryCards(host: Context): void {
-  const scenes = host.configForms.get<Draft>('webnovel-scenes')
-  const reranking = host.configForms.get<Draft>('webnovel-reranking')
-  host.slots.inject('settings.models.footer', () => host.slots.register({ name: 'settings.models.footer', id: 'webnovel-auxiliary-models', order: 51 }, () =>
-    <section className="webnovel-embedding-section"><h3>检索辅助模型</h3><ul><ModelCard host={host} scope={scenes} kind="scenes" /><ModelCard host={host} scope={reranking} kind="reranking" /></ul></section>))
+  const scenes = host.configForms.get<Draft>('abzu-scenes')
+  const reranking = host.configForms.get<Draft>('abzu-reranking')
+  host.slots.inject('settings.models.footer', () => host.slots.register({ name: 'settings.models.footer', id: 'abzu-auxiliary-models', order: 51 }, () =>
+    <section className="abzu-embedding-section"><h3>检索辅助模型</h3><ul><ModelCard host={host} scope={scenes} kind="scenes" /><ModelCard host={host} scope={reranking} kind="reranking" /></ul></section>))
 }

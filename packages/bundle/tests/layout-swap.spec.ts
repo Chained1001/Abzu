@@ -94,7 +94,7 @@ describe('布局互换自检', () => {
     expect(swappable(frameOf({ fullscreen: true }).frame)).toBe(false)
   })
 
-  it('偏好按 webnovel-layout-swap 读写', () => {
+  it('偏好按 abzu-layout-swap 读写', () => {
     const box = storage()
     expect(readSwapPreference(box)).toBe(false)
     writeSwapPreference(box, true)
@@ -108,21 +108,21 @@ describe('布局互换自检', () => {
     const { doc } = frameOf()
     const box = storage()
     expect(applySwap(doc, box, true)).toBe(true)
-    expect(doc.documentElement.hasAttribute('data-webnovel-swap')).toBe(true)
+    expect(doc.documentElement.hasAttribute('data-abzu-swap')).toBe(true)
     expect(readSwapPreference(box)).toBe(true)
     expect(applySwap(doc, box, false)).toBe(true)
-    expect(doc.documentElement.hasAttribute('data-webnovel-swap')).toBe(false)
+    expect(doc.documentElement.hasAttribute('data-abzu-swap')).toBe(false)
     expect(readSwapPreference(box)).toBe(false)
   })
 
   it('自检失败不写标记，恢复时清掉已有标记但保留偏好', () => {
     const broken = frameOf({ panel: false })
     const box = storage({ [SWAP_STORAGE_KEY]: '1' })
-    broken.doc.documentElement.setAttribute('data-webnovel-swap', '')
+    broken.doc.documentElement.setAttribute('data-abzu-swap', '')
     expect(applySwap(broken.doc, box, true)).toBe(false)
     expect(box.data[SWAP_STORAGE_KEY]).toBe('1')
     expect(restoreSwap(broken.doc, box)).toBe(false)
-    expect(broken.doc.documentElement.hasAttribute('data-webnovel-swap')).toBe(false)
+    expect(broken.doc.documentElement.hasAttribute('data-abzu-swap')).toBe(false)
     expect(box.data[SWAP_STORAGE_KEY]).toBe('1')
   })
 
@@ -130,7 +130,7 @@ describe('布局互换自检', () => {
     const ready = frameOf({ collapsed: true })
     const box = storage({ [SWAP_STORAGE_KEY]: '1' })
     expect(restoreSwap(ready.doc, box)).toBe(true)
-    expect(ready.doc.documentElement.hasAttribute('data-webnovel-swap')).toBe(true)
+    expect(ready.doc.documentElement.hasAttribute('data-abzu-swap')).toBe(true)
     expect(swappable(ready.frame)).toBe(false)
   })
 })

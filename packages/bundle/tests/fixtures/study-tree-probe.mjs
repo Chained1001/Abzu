@@ -30,8 +30,8 @@ const baseline = await esbuild.build({
     })
   } }],
 })
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const url = fs.readFileSync(path.join(runtime.root, 'stdout.log'), 'utf8').match(/dsh web: (http\S+)/)?.[1]
 assert.ok(url, 'acceptance host must be ready')
 const checks = {}
@@ -108,7 +108,7 @@ async function setup(before) {
     replaced++
     await route.fulfill({ response, body: body.replace(currentClient, () => baseline.outputFiles[0].text) })
   })
-  await page.route('**/api/webnovel/study/*', async route => {
+  await page.route('**/api/abzu/study/*', async route => {
     const method = new URL(route.request().url()).pathname.split('/').at(-1)
     const body = route.request().postDataJSON()
     if (method === 'tree' && body.ref?.path === failPath) {

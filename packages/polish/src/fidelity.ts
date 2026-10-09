@@ -2,7 +2,7 @@
  * 保真核对:硬约束仍须出现;CJK 删减不得过大。
  */
 
-import { classifyHardConstraint, hardConstraintCore, parseOutline, type HardConstraintRule } from '@webnovel/core'
+import { classifyHardConstraint, hardConstraintCore, parseOutline, type HardConstraintRule } from '@abzu/core'
 
 export const CJK_LOSS_LIMIT = 0.2
 

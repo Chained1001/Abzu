@@ -2,7 +2,7 @@
  * M0 两项确定性检查:文本规范 + 设定与时序核对。
  */
 
-import { classifyHardConstraint, parseOutline, type Finding } from '@webnovel/core'
+import { classifyHardConstraint, parseOutline, type Finding } from '@abzu/core'
 import { makeFinding } from './finding'
 import { getCheck, registerCheck, type CheckInput, type CheckModule } from './registry'
 

@@ -14,16 +14,16 @@ await new Promise((resolve, reject) => {
   probe.once('error', reject)
   probe.listen(port, '127.0.0.1', () => probe.close(resolve))
 })
-const root = path.join(packageRoot, '.webnovel', 'local-server')
+const root = path.join(packageRoot, '.abzu', 'local-server')
 fs.mkdirSync(root, { recursive: true })
 const patch = path.join(root, 'cordis.patch.yml')
 // 本地开发 patch 与正式 cordis.patch.yml 同构:五条 insert,只是 name 指向本机 lib 产物。
 const localInserts = [
-  ['webnovel', 'lib/index.js'],
-  ['webnovel-embeddings', 'lib/embeddings.js'],
-  ['webnovel-scenes', 'lib/scenes.js'],
-  ['webnovel-reranking', 'lib/reranking.js'],
-  ['whale-companion', 'lib/companion.js'],
+  ['abzu', 'lib/index.js'],
+  ['abzu-embeddings', 'lib/embeddings.js'],
+  ['abzu-scenes', 'lib/scenes.js'],
+  ['abzu-reranking', 'lib/reranking.js'],
+  ['abzu-companion', 'lib/companion.js'],
 ].map(([id, file]) => ({ id, name: pathToFileURL(path.join(packageRoot, file)).href }))
 fs.writeFileSync(patch, JSON.stringify([{ insert: localInserts }], null, 2) + '\n')
 const stdout = fs.openSync(path.join(root, 'stdout.log'), 'w')

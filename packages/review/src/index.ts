@@ -1,5 +1,5 @@
-/* @webnovel/review —— 行为规格见 docs/book-format.md(单一真源);本包只放实现 */
-export const pkg = '@webnovel/review'
+/* @abzu/review —— 行为规格见 docs/book-format.md(单一真源);本包只放实现 */
+export const pkg = '@abzu/review'
 
 export { makeFinding, type Finding } from './finding'
 export { getCheck, listChecks, registerCheck, resetChecks, type CheckInput, type CheckModule } from './registry'

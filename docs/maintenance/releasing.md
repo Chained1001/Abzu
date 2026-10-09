@@ -55,7 +55,7 @@ Issue/PR 模板在默认 master 生效。v8 的 CI 使用 push/pull_request；�
 
 ## npm 正式包发布
 
-从 8.0.0 起的四个公开包（写作、检索增强、鲸鱼娘、完整版）已在 0.0.2 合一为 `abzu` 单包发布，publishConfig 固定 public/latest/npmjs。根 workspace 与 @webnovel/* 不发布。旧 preview 标签保留历史，不再更新。
+从 8.0.0 起的四个公开包（写作、检索增强、鲸鱼娘、完整版）已在 0.0.2 合一为 `abzu` 单包发布，publishConfig 固定 public/latest/npmjs。根 workspace 与 @abzu/* 不发布。旧 preview 标签保留历史，不再更新。
 
 Release 草稿生成时，发布器核对公共 SHA、tag、包身份、版本、校验和与许可证，对待发布包先 dry-run，再允许上传。同版本只能接受字节一致的重试，不能重新打包覆盖。
 
@@ -68,7 +68,7 @@ Release 草稿生成时，发布器核对公共 SHA、tag、包身份、版本�
 确认版本已可见后，以同一标签运行 `phase=verify`：
 
 ```text
-gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v0.0.2 -f phase=verify
+gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v0.0.3 -f phase=verify
 ```
 
 verify 阶段不运行 npm publish、不携带 npm token。附件及 manifest 仍完整校验；registry 核对 `abzu` 的版本、latest 与 SHA512，再做独立 registry 安装验收，成功才公开草稿。任何缺失、哈希不符、HTTP 错误或安装失败仍使流程失败。新 Release 标题为 `Abzu v<version>`，标签仍为 `abzu-v<version>`。

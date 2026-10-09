@@ -6,10 +6,10 @@ import assert from 'node:assert/strict'
 
 const runtimePath = path.resolve(process.argv[2])
 const runtime = JSON.parse(fs.readFileSync(runtimePath, 'utf8').replace(/^\uFEFF/, ''))
-assert.equal(path.basename(runtime.root).startsWith('webnovel-browser-'), true)
+assert.equal(path.basename(runtime.root).startsWith('abzu-browser-'), true)
 const evidence = path.dirname(runtimePath)
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const page = await browser.newPage({ viewport: { width: 1440, height: 960 } })
 page.setDefaultTimeout(15000)
 const report = { checks: [], pageErrors: [] }

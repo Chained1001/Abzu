@@ -82,7 +82,7 @@ function applyWorkbench(host: ClientHost) {
   }
   host.effect(() => {
     const style = document.createElement('style')
-    style.dataset.webnovel = ''
+    style.dataset.abzu = ''
     style.textContent = styles + '\n' + indexStyles + '\n' + visualizationStyles + '\n' + workflowArtworkStyles + '\n' + resultStyles + '\n' + editorStyles + '\n' + layoutSwapStyles
     document.head.append(style)
     const offMove = store.onMove((id, previous, next) => {
@@ -99,13 +99,13 @@ function applyWorkbench(host: ClientHost) {
       offMove(); offDiscard(); window.removeEventListener('beforeunload', preventLoss)
       requests.dispose(); bindEditorRequests(undefined); store.dispose(); memory.clear(); style.remove()
     }
-  }, 'webnovel: client lifetime')
-  host.slots.inject('shell.overlay', () => host.slots.register({ name: 'shell.overlay', id: 'webnovel-layout-swap' }, SwapHandle))
-  host.slots.inject('conversation.input.right', () => host.slots.register({ name: 'conversation.input.right', id: 'webnovel-open', order: 50 }, () => {
+  }, 'abzu: client lifetime')
+  host.slots.inject('shell.overlay', () => host.slots.register({ name: 'shell.overlay', id: 'abzu-layout-swap' }, SwapHandle))
+  host.slots.inject('conversation.input.right', () => host.slots.register({ name: 'conversation.input.right', id: 'abzu-open', order: 50 }, () => {
     const id = useSession(host)
-    return <button type="button" className="webnovel nw-launch" disabled={!id} title="打开书稿与资料" aria-label="打开书稿与资料" onClick={() => { if (id) openWritingDocument(host, store, id) }}><BookOpen size={17} /><span>书稿</span></button>
+    return <button type="button" className="abzu nw-launch" disabled={!id} title="打开书稿与资料" aria-label="打开书稿与资料" onClick={() => { if (id) openWritingDocument(host, store, id) }}><BookOpen size={17} /><span>书稿</span></button>
   }))
-  host.slots.inject('conversation.view', () => host.slots.register({ name: 'conversation.view', id: 'webnovel-visual', label: '可视化', order: 30, inject: () => ({ host, store, openIndex }) }, VisualView))
+  host.slots.inject('conversation.view', () => host.slots.register({ name: 'conversation.view', id: 'abzu-visual', label: '可视化', order: 30, inject: () => ({ host, store, openIndex }) }, VisualView))
   installNativeDocuments(host, store, actions, memory, requests)
   host.effect(() => {
     const openLink = (link: NonNullable<ReturnType<typeof parseStudyLink>>) => {
@@ -126,13 +126,13 @@ function applyWorkbench(host: ClientHost) {
       const openInitial = () => {
         if (!host.sessions.list.getSnapshot().byId[initial.sessionId]) return
         offInitial(); openLink(initial)
-        const url = new URL(window.location.href); url.searchParams.delete('webnovel'); window.history.replaceState(null, '', url)
+        const url = new URL(window.location.href); url.searchParams.delete('abzu'); window.history.replaceState(null, '', url)
       }
       offInitial = host.sessions.list.subscribe(openInitial)
       openInitial()
     }
     return () => { offInitial(); document.removeEventListener('click', intercept, true) }
-  }, 'webnovel: conversation document links')
+  }, 'abzu: conversation document links')
   installWorkspaceStudyTabs({ host, store, openIndex })
   host.inject(['remote.session'], scope => scope.effect(() => {
     const remote = scope.get('remote.session') as NativeOpenService | undefined
@@ -160,5 +160,5 @@ function applyWorkbench(host: ClientHost) {
       if (descriptor) Object.defineProperty(remote, 'openWorkspacePath', descriptor)
       else Reflect.deleteProperty(remote, 'openWorkspacePath')
     }
-  }, 'webnovel: native document links'))
+  }, 'abzu: native document links'))
 }

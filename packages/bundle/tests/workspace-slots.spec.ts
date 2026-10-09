@@ -12,7 +12,7 @@ const menu = `${workspace}.session.menu.item`
 const actions = `${workspace}.session.row.action`
 const leading = 'sidebar.session.row.leading'
 const hover = 'sidebar.session.row.hover'
-const mirrored = (key: string) => `webnovel.${key}`
+const mirrored = (key: string) => `abzu.${key}`
 const Placeholder = () => null
 
 function fixture() {
@@ -53,7 +53,7 @@ function fixture() {
 describe('原生工作区子插槽转发（#178）', () => {
   it('分别渲染目录、菜单、行内操作和装饰，原样传递菜单上下文', () => {
     const f = fixture()
-    const entry = f.core.entries('webnovel.workspaces')[0] as unknown as NativeEntry
+    const entry = f.core.entries('abzu.workspaces')[0] as unknown as NativeEntry
     const renderSlot = vi.fn((key: string) => {
       // Match the native renderer authorization boundary: undeclared keys fail.
       expect(entry.children).toHaveProperty(key)

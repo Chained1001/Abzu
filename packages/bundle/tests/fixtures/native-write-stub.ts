@@ -1,4 +1,4 @@
-import { writeFileAtomic } from '@webnovel/core'
+import { writeFileAtomic } from '@abzu/core'
 import type { NativeWrite } from '../../src/native-write'
 
 /** Business-only tests; the real Loader suite owns DSH observation/CAS coverage. */

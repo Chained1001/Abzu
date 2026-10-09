@@ -6,9 +6,9 @@ import {
   classifyHardConstraint, computeMaterials, confirmOutline, draftHashOf,
   loadReviewRecord, paths, scanChapter, seedMinDesign, serializeDocument,
   writeCandidate, writeReviewRecord,
-} from '@webnovel/core'
-import { ingestFindings, registerDefaultChecks, resetChecks, runCanonCheck, runReview } from '@webnovel/review'
-import { checkFidelity } from '@webnovel/polish'
+} from '@abzu/core'
+import { ingestFindings, registerDefaultChecks, resetChecks, runCanonCheck, runReview } from '@abzu/review'
+import { checkFidelity } from '@abzu/polish'
 
 const roots: string[] = []
 const key = { 卷: 1, 章: 51, 章名: '审计章' } as const
@@ -20,7 +20,7 @@ function put(root: string, rel: string, text: string): void {
 }
 
 function makeBook(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-rel3-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-rel3-'))
   roots.push(root)
   seedMinDesign(root)
   const outline = [

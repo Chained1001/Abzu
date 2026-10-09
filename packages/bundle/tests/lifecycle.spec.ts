@@ -7,7 +7,7 @@ import { NOVEL_TOOL_NAMES } from '../src/novel-tools'
 
 /** 临时工作范围:一本带契约的书。 */
 function makeWorkspace(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-lifecycle-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-lifecycle-'))
   const book = path.join(dir, '星辰')
   fs.mkdirSync(path.join(book, '作品契约'), { recursive: true })
   fs.writeFileSync(path.join(book, '作品契约', '契约.md'), '---\n书id: xingchen-001\n---\n正文\n', 'utf8')

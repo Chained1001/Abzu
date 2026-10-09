@@ -14,7 +14,7 @@ import {
   seedMinDesign,
   serializeDocument,
   writeCandidate,
-} from '@webnovel/core'
+} from '@abzu/core'
 import {
   ingestFindings,
   planReview,
@@ -26,7 +26,7 @@ import {
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-review-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-review-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

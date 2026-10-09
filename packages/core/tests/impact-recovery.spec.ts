@@ -15,7 +15,7 @@ const roots: string[] = []
 afterAll(() => { for (const root of roots) { try { fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
 
 function mkBook(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-recovery-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-recovery-'))
   roots.push(root)
   seedMinDesign(root)
   return root

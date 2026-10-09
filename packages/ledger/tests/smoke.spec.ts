@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { queryDueLedger as coreQueryDueLedger, reconcileBookLedger as coreReconcileBookLedger } from '@webnovel/core'
+import { queryDueLedger as coreQueryDueLedger, reconcileBookLedger as coreReconcileBookLedger } from '@abzu/core'
 import { pkg, planSettlement, queryDueLedger, queryLedger, reconcileBookLedger, reconcileLedger } from '../src/index'
 
 describe('包冒烟', () => {

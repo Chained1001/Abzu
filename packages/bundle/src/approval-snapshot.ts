@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { createHash } from 'node:crypto'
-import { authorDocumentPath, canonicalizePath } from '@webnovel/core'
+import { authorDocumentPath, canonicalizePath } from '@abzu/core'
 
 /** Bind author approval to actual bytes, including absence, never manifest claims. */
 export function captureApprovalFiles(root: string, relatives: readonly string[], request: unknown):

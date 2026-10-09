@@ -6,7 +6,7 @@
  * 待写内容不过模型上下文）。argv 进、退出码出，模块顶层零副作用。
  */
 
-import { computeMaterials } from '@webnovel/core'
+import { computeMaterials } from '@abzu/core'
 
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)

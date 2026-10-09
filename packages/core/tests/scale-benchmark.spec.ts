@@ -56,7 +56,7 @@ function timeOp(op: string, book: string, fn: () => unknown, detail?: string): v
 
 function makeBook(label: string, chapters: number, opts?: { 记忆条数?: number; 卷摘要?: number }): { root: string; buildMs: number } {
   const t0 = performance.now()
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), `webnovel-10b-${label}-`))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), `abzu-10b-${label}-`))
   roots.push(root)
   makeFixtureBook(root, chapters, { 每卷章数: 50 })
   // 夹具补记：末章须见于本卷卷纲脚手架（真实书里卷纲随章滚动补记）

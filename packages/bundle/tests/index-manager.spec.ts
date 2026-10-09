@@ -3,7 +3,7 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import { execFileSync } from 'node:child_process'
-import { changeIndexState, commitWithIsolatedIndex, onBookCommit, readIndexState, searchFinalized, withBookWrite, writeBatchAtomic, type EmbeddingProvider } from '@webnovel/core'
+import { changeIndexState, commitWithIsolatedIndex, onBookCommit, readIndexState, searchFinalized, withBookWrite, writeBatchAtomic, type EmbeddingProvider } from '@abzu/core'
 import { removeSync } from '../../core/src/repo/remove'
 import { BookIndexManager, type IndexBook } from '../src/indexing/manager'
 import { bookGitWatchPaths } from '../src/indexing/git'
@@ -12,7 +12,7 @@ let workspace: string
 let book: IndexBook
 const managers: BookIndexManager[] = []
 beforeEach(() => {
-  workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-index-manager-'))
+  workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-index-manager-'))
   book = { root: path.join(workspace, '测试作品'), bookId: 'manager-book', name: '测试作品', workspace }
   put('作品契约/契约.md', '---\n书id: manager-book\n---\n测试作品')
   put('定稿/卷01/0001-开篇.md', '第一章原文')
@@ -88,7 +88,7 @@ describe('Git 驱动的后台索引', () => {
     const original = readIndexState(book.root)
     const duplicate = duplicateBook()
     late.resolve([[1, 0]])
-    await vi.waitFor(() => expect(fs.existsSync(path.join(book.root, '.webnovel/finalized-search.worker.lock'))).toBe(false))
+    await vi.waitFor(() => expect(fs.existsSync(path.join(book.root, '.abzu/finalized-search.worker.lock'))).toBe(false))
     expect(readIndexState(book.root)).toMatchObject({ auto: true, paused: false, generation: original.generation, completedChunks: 0 })
     expect(await runtime.status(book)).toMatchObject({ phase: 'failed', lastError: { code: 'duplicate-book-id' } })
     expect(notify).not.toHaveBeenCalled()
@@ -112,8 +112,8 @@ describe('Git 驱动的后台索引', () => {
     if (mode !== 'enabled') await original.control(book, mode === 'paused' ? 'pause' : 'disable', 'owner')
     await original.close()
     const before = readIndexState(book.root)
-    const sceneBytes = fs.readFileSync(path.join(book.root, '.webnovel/finalized-scenes.json'))
-    fs.writeFileSync(path.join(book.root, '.webnovel/finalized-search.sqlite'), 'broken SQLite cache')
+    const sceneBytes = fs.readFileSync(path.join(book.root, '.abzu/finalized-scenes.json'))
+    fs.writeFileSync(path.join(book.root, '.abzu/finalized-search.sqlite'), 'broken SQLite cache')
     const query = await searchFinalized(book.root, { query: '原文', provider })
     const phase = mode === 'enabled' ? 'queued' : mode
     expect(query).toMatchObject({ ok: true, mode: 'keyword', index: { ready: false, missing: 1, phase } })
@@ -121,9 +121,9 @@ describe('Git 驱动的后台索引', () => {
       auto: before.auto, paused: before.paused, completedChunks: 0, completedChapters: 0, generated: 0, reused: 0, recipientSession: 'owner' })
     expect(readIndexState(book.root).indexedHead).toBeUndefined()
     expect(readIndexState(book.root).fingerprint).toBeUndefined()
-    expect(fs.readdirSync(path.join(book.root, '.webnovel')).filter(name => name.includes('.invalid-'))).toHaveLength(1)
+    expect(fs.readdirSync(path.join(book.root, '.abzu')).filter(name => name.includes('.invalid-'))).toHaveLength(1)
     expect(embed.mock.calls.map(call => call[1])).toEqual(['document'])
-    expect(fs.readFileSync(path.join(book.root, '.webnovel/finalized-scenes.json'))).toEqual(sceneBytes)
+    expect(fs.readFileSync(path.join(book.root, '.abzu/finalized-scenes.json'))).toEqual(sceneBytes)
     const recoveredGeneration = readIndexState(book.root).generation
     await searchFinalized(book.root, { query: '原文', provider })
     expect(readIndexState(book.root).generation).toBe(recoveredGeneration)
@@ -206,7 +206,7 @@ describe('Git 驱动的后台索引', () => {
       expect(result.status).toBe(0)
       await Promise.resolve()
       expect(observed).toEqual([['大纲/故事骨架.md']])
-      expect(fs.existsSync(path.join(book.root, '.webnovel/book.lock'))).toBe(false)
+      expect(fs.existsSync(path.join(book.root, '.abzu/book.lock'))).toBe(false)
     } finally { off(); response.resolve([[1, 0]]) }
     await ready()
   }, 15_000)

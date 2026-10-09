@@ -32,10 +32,10 @@ import {
   type ProseTextCounts,
   type ChapterLengthPolicy,
   type ChapterLengthCheck,
-} from '@webnovel/core'
+} from '@abzu/core'
 import { 作者意见模块名, findingId, registerDefaultChecks } from './checks'
 import { getCheck, listChecks } from './registry'
-import { bookWriter } from '@webnovel/core'
+import { bookWriter } from '@abzu/core'
 
 export interface ReviewKey {
   readonly 卷: number

@@ -23,7 +23,7 @@ export async function apply(ctx, config) {
     const tools = ctx.tools.schemas(agent).filter(tool => tool.name.startsWith('novel_'))
     assert.equal(tools.length, config.installed ? 30 : 0)
     assert.ok(!tools.some(tool => tool.name === 'novel_seed_min_design'), 'production install must not expose the test-only seed')
-    const skills = (await ctx.skills.list({ cwd: config.workspace, scope: agent })).filter(skill => skill.provider === 'webnovel-bundled')
+    const skills = (await ctx.skills.list({ cwd: config.workspace, scope: agent })).filter(skill => skill.provider === 'abzu-bundled')
     assert.equal(skills.length, config.installed ? 11 : 0)
     report.tools = tools.length
     report.skills = []

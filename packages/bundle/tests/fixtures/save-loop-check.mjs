@@ -78,7 +78,7 @@ export async function checkSaveLoop({ root, book, workspace, ctx, service, git, 
         })
         handle.agent.followup(message)
       })
-      await complete(createUserMessage({ content: [{ type: 'text', text: core.savedMessage(saved) }], source: { kind: 'plugin:webnovel' } }))
+      await complete(createUserMessage({ content: [{ type: 'text', text: core.savedMessage(saved) }], source: { kind: 'plugin:abzu' } }))
       const results = handle.agent.session.snapshotEvents().filter(event => event.type === 'tool/result')
       assert.equal(turnRequests, 3, 'one native read and two unchanged design calls must terminate the loop: ' + JSON.stringify(results.map(event => event.data.message)))
       assert.equal(git('rev-parse', 'HEAD'), savedHead, 'no extra commit after an author save')
@@ -106,7 +106,7 @@ export async function checkSaveLoop({ root, book, workspace, ctx, service, git, 
       const inspectionHead = git('rev-parse', 'HEAD')
       const beforeSeq = handle.agent.session.seq
       mode = 'inspect'; turnRequests = 0
-      await complete(createUserMessage({ content: [{ type: 'text', text: core.savedMessage(substantive) }], source: { kind: 'plugin:webnovel' } }))
+      await complete(createUserMessage({ content: [{ type: 'text', text: core.savedMessage(substantive) }], source: { kind: 'plugin:abzu' } }))
       const inspectionEvents = events().slice(beforeSeq)
       const reads = inspectionEvents.filter(event => event.type === 'tool/call')
       assert.equal(turnRequests, 3)

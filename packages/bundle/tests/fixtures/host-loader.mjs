@@ -19,7 +19,7 @@ const root = path.resolve(process.argv[2])
 const bundleUrl = pathToFileURL(path.resolve(process.argv[3])).href
 const workspace = path.join(root, 'workspace')
 const require = createRequire(import.meta.url)
-const host = process.env.WEBNOVEL_DSH_SOURCE === undefined ? undefined : loadSourceHost(process.env.WEBNOVEL_DSH_SOURCE)
+const host = process.env.ABZU_DSH_SOURCE === undefined ? undefined : loadSourceHost(process.env.ABZU_DSH_SOURCE)
 const appBoot = await import(host === undefined ? '@deepseek-ai/dsh-app-boot' : pathToFileURL(host.entry('@deepseek-ai/dsh-app-boot')).href)
 const expectedVersion = host?.version ?? baseline.registry.version
 const report = { node: process.version, checks: {}, versions: {}, baseline: { version: expectedVersion, sourceCommit: host?.commit ?? null, kind: host === undefined ? 'npm' : 'source' } }
@@ -61,10 +61,10 @@ const profile = [
   { id: 'config-editor', name: '@deepseek-ai/dsh-config-editor' },
   { id: 'settings', name: '@deepseek-ai/dsh-settings' },
   { id: 'credentials', name: '@deepseek-ai/dsh-credentials-local', config: { path: path.join(root, 'credentials.yaml'), watch: false } },
-  { id: 'webnovel-embeddings', name: pathToFileURL(path.join(root, 'embedding-provider.mjs')).href },
-  { id: 'webnovel-scenes', name: pathToFileURL(path.join(root, 'scenes.mjs')).href },
-  { id: 'webnovel-reranking', name: pathToFileURL(path.join(root, 'reranking.mjs')).href },
-  { id: 'webnovel', name: bundleUrl },
+  { id: 'abzu-embeddings', name: pathToFileURL(path.join(root, 'embedding-provider.mjs')).href },
+  { id: 'abzu-scenes', name: pathToFileURL(path.join(root, 'scenes.mjs')).href },
+  { id: 'abzu-reranking', name: pathToFileURL(path.join(root, 'reranking.mjs')).href },
+  { id: 'abzu', name: bundleUrl },
 ]
 const configuredProfile = host === undefined ? profile : profile.map(row => row.name.startsWith('@deepseek-ai/')
   ? { ...row, name: pathToFileURL(host.entry(row.name)).href }
@@ -76,7 +76,7 @@ fs.writeFileSync(path.join(book, '作品契约', '契约.md'), '---\n书id: load
 const chapter = path.join(book, '定稿', '卷01', '0001-开篇.md')
 fs.mkdirSync(path.dirname(chapter), { recursive: true })
 fs.writeFileSync(chapter, '---\n身份:\n  卷: 1\n  章: 1\n  章名: 开篇\n角色: 已定稿\n版本: 1\n---\n\n原定稿正文。\n')
-fs.writeFileSync(path.join(book, '.gitignore'), '草稿区/\n.webnovel/\n')
+fs.writeFileSync(path.join(book, '.gitignore'), '草稿区/\n.abzu/\n')
 const git = (...args) => execFileSync('git', args, { cwd: book, encoding: 'utf8', windowsHide: true })
 git('init', '--quiet')
 git('config', 'user.name', 'Loader Test')
@@ -86,7 +86,7 @@ git('config', 'core.autocrlf', 'false')
 git('add', '.')
 git('commit', '--quiet', '-m', 'ch: fixture')
 
-const ctx = await settingsProfile.start('webnovel-loader-test')
+const ctx = await settingsProfile.start('abzu-loader-test')
 const service = name => ctx.get(name)
 const schemas = agent => service('tools').schemas(agent).map(tool => tool.name).filter(name => name.startsWith('novel_')).sort()
 let sequence = 0
@@ -99,7 +99,7 @@ const presentation = async agent => {
   const assembled = await service('systemPrompt').assemble({ agent, scope: agent })
   return {
     persona: assembled.sections.filter(section => section.name === 'deployment:persona-prefix'),
-    status: assembled.contexts.filter(context => context.name === 'webnovel.status'),
+    status: assembled.contexts.filter(context => context.name === 'abzu.status'),
   }
 }
 const toggle = async (id, disabled) => {
@@ -125,7 +125,7 @@ try {
       report.versions[metadata.name] = metadata.version
       assert.equal(metadata.version, expectedVersion)
     }
-    assert.equal(entry('webnovel').options.name, bundleUrl)
+    assert.equal(entry('abzu').options.name, bundleUrl)
     for (const name of ['agents', 'agentLoop', 'sessions', 'sessionProjections', 'userQuestions', 'approval', 'workspaceRegistry']) assert.ok(service(name), name)
     await service('workspaceRegistry').create(workspace)
   })
@@ -178,7 +178,7 @@ try {
     assert.equal(names.length, 11)
     for (const name of names) {
       const skill = await service('skills').get(name, { cwd: workspace, scope: main })
-      assert.equal(skill.provider, 'webnovel-bundled')
+      assert.equal(skill.provider, 'abzu-bundled')
       assert.ok(skill.content.length > 100)
       assert.ok(skill.resourceBase.path.startsWith(path.join(root, 'skills')))
     }
@@ -190,9 +190,9 @@ try {
     await localProvider
     assert.equal((await service('skills').get(names[0], { cwd: workspace, scope: main })).provider, 'acceptance-local')
     await localProvider.dispose()
-    await toggle('webnovel', true)
+    await toggle('abzu', true)
     assert.equal((await skills()).length, 0)
-    await toggle('webnovel', false)
+    await toggle('abzu', false)
     assert.deepEqual((await skills()).map(skill => skill.name).sort(), names)
     await toggle('skills', true)
     await toggle('skills', false)
@@ -204,7 +204,7 @@ try {
     const hostPrompt = await presentation(undefined)
     assert.equal(prompt.persona.length, 1)
     assert.equal(prompt.status.length, 1)
-    const row = entry('webnovel')
+    const row = entry('abzu')
     await row.update({ disabled: true }, false, true)
     await service('loader').await()
     let absentTools
@@ -517,14 +517,14 @@ try {
     const catalogHits = adapter.requests.map(request => snapshotMessages(request).length)
     assert.deepEqual(catalogHits, [1, 1, 1], JSON.stringify(catalogHits))
     assert.equal(snapshotMessages(adapter.requests[0])[0].source?.form, 'snapshot')
-    assert.equal(snapshotMessages(adapter.requests[0])[0].source?.kind, 'plugin:webnovel-memory-catalog')
+    assert.equal(snapshotMessages(adapter.requests[0])[0].source?.kind, 'plugin:abzu-memory-catalog')
     assert.match(JSON.stringify(adapter.requests[0].messages), /- 冷开场 — 作者偏好 \{\{冷开场\}\} 直接入戏/)
     assert.match(JSON.stringify(adapter.requests[1].messages), /【本书记忆目录】选书时/)
     assert.ok(events(previous.agent).some(event => event.type === 'tool/result'))
     assert.ok(events(previous.agent).every(event => !event.type.startsWith('novel/')))
     await ctx.fiber.dispose()
 
-    const restoredHost = await settingsProfile.start('webnovel-native-resume')
+    const restoredHost = await settingsProfile.start('abzu-native-resume')
     try {
       restoredHost.get('llm').registerAdapter(['loader-native'], adapter)
       const restored = await restoredHost.get('agents').resume({ resumeSessionId: 'loader-native-resume', agentOptions: options })

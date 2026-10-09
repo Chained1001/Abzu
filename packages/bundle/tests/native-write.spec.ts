@@ -9,7 +9,7 @@ import { createNovelTools, type ToolExecContext } from '../src/novel-tools'
 import { removeSync } from '../../core/src/repo/remove'
 
 let root: string
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-native-')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-native-')) })
 afterEach(() => { removeSync(root) })
 const op = { relPath: '大纲/故事骨架.md', content: '# 完整正文\n' }
 const success: ToolExecutionResult = { isError: false, value: { written: true }, content: [] }

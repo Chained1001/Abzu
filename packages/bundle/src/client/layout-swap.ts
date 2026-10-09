@@ -1,4 +1,4 @@
-export const SWAP_STORAGE_KEY = 'webnovel-layout-swap'
+export const SWAP_STORAGE_KEY = 'abzu-layout-swap'
 
 export interface SwapStorage {
   getItem(key: string): string | null
@@ -59,9 +59,9 @@ export function writeSwapPreference(storage: SwapStorage, on: boolean): void {
 }
 
 export function setSwapMark(root: SwapRoot, on: boolean): void {
-  const has = root.hasAttribute('data-webnovel-swap')
-  if (on && !has) root.setAttribute('data-webnovel-swap', '')
-  else if (!on && has) root.removeAttribute('data-webnovel-swap')
+  const has = root.hasAttribute('data-abzu-swap')
+  if (on && !has) root.setAttribute('data-abzu-swap', '')
+  else if (!on && has) root.removeAttribute('data-abzu-swap')
 }
 
 /** 自检通过才写入偏好和标记。失败时两者都不写。 */

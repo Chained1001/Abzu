@@ -2,7 +2,7 @@ import React from 'react'
 import type { ClientHost, NativeEntry, WorkspaceProps } from './host'
 import { WorkspaceStudyTabs, type StudyUI } from './browser'
 
-const alias = (name: string) => `webnovel.${name}`
+const alias = (name: string) => `abzu.${name}`
 
 /** Mirror native declarations and entries together: menu hooks live on the
  * declaration, while action identity, ordering and behavior live on entries. */
@@ -36,10 +36,10 @@ export function installWorkspaceStudyTabs({ host, store, openIndex }: StudyUI): 
     const original = host.slots.entries('sidebar.workspaces')[0]
     if (!original) return
     const offRegion = host.slots.register({ name: 'sidebar.workspaces', priority: -40,
-      children: { 'webnovel.workspaces': { kind: 'single', scope: 'root' } },
+      children: { 'abzu.workspaces': { kind: 'single', scope: 'root' } },
       inject: () => ({ host, store, openIndex }),
     }, WorkspaceStudyTabs)
-    const offNative = mountNativeEntry(host, 'webnovel.workspaces', original)
+    const offNative = mountNativeEntry(host, 'abzu.workspaces', original)
     return () => { offNative(); offRegion() }
   })
 }

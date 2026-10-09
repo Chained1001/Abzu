@@ -14,7 +14,7 @@ export function apply(ctx: Context & SessionHost): void {
   const store = new CompanionStore(storage)
   ctx.effect(() => {
     const style = document.createElement('style')
-    style.dataset.whaleCompanion = ''; style.textContent = css; document.head.append(style)
+    style.dataset.abzuCompanion = ''; style.textContent = css; document.head.append(style)
     const unwatch = watchSession(ctx, store)
     document.addEventListener('pointerdown', store.touch, { passive: true })
     document.addEventListener('keydown', store.touch, { passive: true })
@@ -22,7 +22,7 @@ export function apply(ctx: Context & SessionHost): void {
       unwatch(); store.dispose(); style.remove()
       document.removeEventListener('pointerdown', store.touch); document.removeEventListener('keydown', store.touch)
     }
-  }, 'whale-companion: presentation lifetime')
-  ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: 'whale-companion', inject: () => ({ store }) }, PetOverlay))
-  ctx.slots.inject('settings.general.item', () => ctx.slots.register({ name: 'settings.general.item', id: 'whale-companion', order: 80, inject: () => ({ store }) }, PetSettings))
+  }, 'abzu-companion: presentation lifetime')
+  ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: 'abzu-companion', inject: () => ({ store }) }, PetOverlay))
+  ctx.slots.inject('settings.general.item', () => ctx.slots.register({ name: 'settings.general.item', id: 'abzu-companion', order: 80, inject: () => ({ store }) }, PetSettings))
 }

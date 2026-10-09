@@ -13,7 +13,7 @@ import { vectorBytes, normalizedVector } from '../src/retrieval/vectors'
 import { retryDelayMs, DEFAULT_INDEX_RETRY } from '../src/retrieval/retry'
 
 let root: string
-beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-index-sync-')) })
+beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-index-sync-')) })
 afterEach(() => { removeSync(root) })
 function chapter(number: number, body: string, title = `章${number}`) {
   const relative = `定稿/卷01/${String(number).padStart(4, '0')}-${title}.md`
@@ -41,14 +41,14 @@ describe('程序维护的向量索引', () => {
     await entered.promise
     const before = readIndexState(root)
     expect(before.completedChunks).toBe(1)
-    fs.writeFileSync(path.join(root, '.webnovel/finalized-search.sqlite'), 'broken')
+    fs.writeFileSync(path.join(root, '.abzu/finalized-search.sqlite'), 'broken')
     if (discoveredBy === 'query') expect(await searchFinalized(root, { query: '第一份', provider: client }))
       .toMatchObject({ ok: true, mode: 'keyword', index: { phase: 'queued', ready: false, missing: 2 } })
     late.resolve([[1, 0]])
     expect(await pending).toMatchObject({ ok: false, failure: { code: 'cancelled' } })
     expect(readIndexState(root)).toMatchObject({ generation: before.generation + 1, phase: 'queued', completedChunks: 0, completedChapters: 0 })
     const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite')
-    const db = new DatabaseSync(path.join(root, '.webnovel/finalized-search.sqlite'))
+    const db = new DatabaseSync(path.join(root, '.abzu/finalized-search.sqlite'))
     try { expect(db.prepare('SELECT count(*) AS count FROM embeddings').get()?.['count']).toBe(0) } finally { db.close() }
     expect(await syncFinalizedIndex(root, { getProvider: () => client })).toMatchObject({ ok: true, state: { generated: 2, reused: 0 } })
   })
@@ -58,7 +58,7 @@ describe('程序维护的向量索引', () => {
     const client = provider()
     await syncFinalizedIndex(root, { getProvider: () => client })
     const before = readIndexState(root)
-    fs.unlinkSync(path.join(root, '.webnovel/finalized-search.sqlite'))
+    fs.unlinkSync(path.join(root, '.abzu/finalized-search.sqlite'))
     expect(await searchFinalized(root, { query: '原文', provider: client })).toMatchObject({ ok: true, index: { ready: false, phase: 'disabled' } })
     expect(readIndexState(root)).toMatchObject({ generation: before.generation + 1, completedChunks: 0, phase: 'disabled', auto: false })
     await searchFinalized(root, { query: '原文', provider: client })
@@ -75,7 +75,7 @@ describe('程序维护的向量索引', () => {
     await syncFinalizedIndex(root, { getProvider: () => client })
     const pending = searchFinalized(root, { query: '原文', provider: client })
     await entered.promise
-    fs.writeFileSync(path.join(root, '.webnovel/finalized-search.sqlite'), 'broken')
+    fs.writeFileSync(path.join(root, '.abzu/finalized-search.sqlite'), 'broken')
     late.resolve([[1, 0]])
     expect(await pending).toMatchObject({ ok: false, code: 'index-changed' })
     expect(readIndexState(root)).toMatchObject({ phase: 'disabled', completedChunks: 0 })
@@ -91,7 +91,7 @@ describe('程序维护的向量索引', () => {
       const snapshot = await scanFinalized(root)
       const cache = await SearchCache.open(root)
       try {
-        const db = new DatabaseSync(path.join(root, '.webnovel/finalized-search.sqlite'))
+        const db = new DatabaseSync(path.join(root, '.abzu/finalized-search.sqlite'))
         try {
           const writable = db as typeof db & { enableDefensive?(enabled: boolean): void }
           writable.enableDefensive?.(false)
@@ -175,7 +175,7 @@ describe('程序维护的向量索引', () => {
     controller.abort()
     expect(await pending).toMatchObject({ ok: false, failure: { code: 'cancelled' }, state: { completedChunks: 1 } })
     late.resolve([[1, 0]])
-    expect(fs.existsSync(path.join(root, '.webnovel/finalized-search.worker.lock'))).toBe(false)
+    expect(fs.existsSync(path.join(root, '.abzu/finalized-search.worker.lock'))).toBe(false)
     const next = provider()
     expect(await syncFinalizedIndex(root, { getProvider: () => next })).toMatchObject({ ok: true, state: { generated: 1, reused: 1 } })
   })
@@ -186,7 +186,7 @@ describe('程序维护的向量索引', () => {
     const client = provider(async () => { entered.resolve(); return late.promise })
     const pending = syncFinalizedIndex(root, { getProvider: () => client })
     await entered.promise
-    expect(fs.existsSync(path.join(root, '.webnovel/book.lock'))).toBe(false)
+    expect(fs.existsSync(path.join(root, '.abzu/book.lock'))).toBe(false)
     withBookWrite(root, () => writeBatchAtomic(root, [{ relPath: relative, content: '新正文' }]))
     late.resolve([[1, 0]])
     expect(await pending).toMatchObject({ ok: false, failure: { code: 'source-changed' }, state: { phase: 'queued', completedChunks: 0 } })
@@ -243,7 +243,7 @@ describe('程序维护的向量索引', () => {
     await changeIndexState(root, state => ({ ...state, auto: true, recipientSession: 'owner-session' }))
     const client = provider()
     await syncFinalizedIndex(root, { getProvider: () => client })
-    fs.writeFileSync(path.join(root, '.webnovel/finalized-search.sqlite'), 'broken')
+    fs.writeFileSync(path.join(root, '.abzu/finalized-search.sqlite'), 'broken')
     expect(await syncFinalizedIndex(root, { getProvider: () => client })).toMatchObject({ ok: true, state: { auto: true, recipientSession: 'owner-session', generated: 1 } })
   })
 
@@ -252,9 +252,9 @@ describe('程序维护的向量索引', () => {
     const client = provider(vi.fn(async () => { throw new Error('should not call API') }))
     const snapshot = await scanFinalized(root)
     const chunk = snapshot.documents[0]!.chunks[0]!
-    fs.mkdirSync(path.join(root, '.webnovel'), { recursive: true })
+    fs.mkdirSync(path.join(root, '.abzu'), { recursive: true })
     const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite')
-    const db = new DatabaseSync(path.join(root, '.webnovel/finalized-search.sqlite'))
+    const db = new DatabaseSync(path.join(root, '.abzu/finalized-search.sqlite'))
     try {
       db.exec("CREATE TABLE chunks(id TEXT PRIMARY KEY,body TEXT,vector BLOB,revision TEXT,dimensions INTEGER); CREATE VIRTUAL TABLE terms USING fts5(id UNINDEXED,body,tokenize='trigram case_sensitive 1'); CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT); PRAGMA user_version=1;")
       db.exec('PRAGMA application_id=' + 0x57565336)

@@ -1,5 +1,5 @@
-/* @webnovel/ledger —— 账本协议由 core 单一实现，本包提供 seam 入口。 */
-export const pkg = '@webnovel/ledger'
+/* @abzu/ledger —— 账本协议由 core 单一实现，本包提供 seam 入口。 */
+export const pkg = '@abzu/ledger'
 export {
   ledgerKinds,
   planSettlement,
@@ -7,7 +7,7 @@ export {
   type SettlementMode,
   type SettlementPlan,
   type SettlementPlanResult,
-} from '@webnovel/core'
+} from '@abzu/core'
 export {
   queryDueLedger,
   queryLedger,
@@ -26,4 +26,4 @@ export {
   type MemoryEntry,
   type MemoryQueryResult,
   type ReconciliationItem,
-} from '@webnovel/core'
+} from '@abzu/core'

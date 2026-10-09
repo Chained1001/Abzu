@@ -1,5 +1,5 @@
 {
-  "name": "@webnovel/review",
+  "name": "@abzu/review",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "test": "vitest --root ../.. run packages/review/tests"
   },
   "dependencies": {
-    "@webnovel/core": "workspace:*"
+    "@abzu/core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

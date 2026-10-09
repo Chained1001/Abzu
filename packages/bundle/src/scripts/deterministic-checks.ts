@@ -10,7 +10,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { computeReview, listChecks } from '@webnovel/review'
+import { computeReview, listChecks } from '@abzu/review'
 
 interface Args {
   readonly book: string

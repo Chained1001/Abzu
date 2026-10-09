@@ -6,7 +6,7 @@ import {
   parseDocument, listChapters, scanChapter, deriveChapterFacts, paths, retryAuthorSaveCommit, withBookWrite,
   canonicalizePath, isFullyQualifiedPath, isMarkdownFileName, findPendingReviewDraft,
   type OperationProvenance, type AuthorSaveResult,
-} from '@webnovel/core'
+} from '@abzu/core'
 import { scanBooks } from '../bookshelf'
 import { progressLineOf } from '../status-context'
 import type { ChapterView, FileRef, StudyDocument, StudySave, StudyShelf, TreeEntry } from './types'

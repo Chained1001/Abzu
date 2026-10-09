@@ -10,12 +10,12 @@ import {
   scanChapter,
   seedMinDesign,
   writeCandidate,
-} from '@webnovel/core'
+} from '@abzu/core'
 import { loadDraftContext, writeDraft } from '../src/index'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-draft-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-draft-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

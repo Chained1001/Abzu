@@ -101,18 +101,18 @@ import {
   type 处置状态,
   askAuthor,
   type AskFn,
-} from '@webnovel/core'
-import { writeSettlementDecision } from '@webnovel/core'
-import { ingestAuthorRevision, planSettlement, registerProposal, resolveProposal, retconEventOps } from '@webnovel/core'
-import { importAuthorDraft } from '@webnovel/drafting'
-import { ingestFindings } from '@webnovel/review'
-import { lastCommitOf, type LastCommitResult } from '@webnovel/core'
-import type { OperationProvenance } from '@webnovel/core'
+} from '@abzu/core'
+import { writeSettlementDecision } from '@abzu/core'
+import { ingestAuthorRevision, planSettlement, registerProposal, resolveProposal, retconEventOps } from '@abzu/core'
+import { importAuthorDraft } from '@abzu/drafting'
+import { ingestFindings } from '@abzu/review'
+import { lastCommitOf, type LastCommitResult } from '@abzu/core'
+import type { OperationProvenance } from '@abzu/core'
 import type { NativeWrite } from './native-write'
 import { scanBooks } from './bookshelf'
 import { bookMemoryCatalogText, progressLineOf, renderCurrentBook } from './status-context'
 import type { IndexView } from './indexing/manager'
-import { computeMaterials, type SupplementEdit } from '@webnovel/core'
+import { computeMaterials, type SupplementEdit } from '@abzu/core'
 
 /** 窄取工具执行内可见的 Agent 子集（避免全量依赖 dsh-agent）。 */
 export interface AgentLike {
@@ -162,7 +162,7 @@ export interface NovelToolsDeps {
   readonly nativeWrite?: NativeWrite
   /** Resolve on every query, including after network waits, to respect service reloads. */
   readonly embeddingProvider?: (agent?: AgentLike) => EmbeddingProvider | undefined
-  readonly rerankingProvider?: (agent?: AgentLike) => import('@webnovel/core').RerankingProvider | undefined
+  readonly rerankingProvider?: (agent?: AgentLike) => import('@abzu/core').RerankingProvider | undefined
   readonly indexManage?: (bookId: string, action: IndexAction | 'status', agent: AgentLike, chapter?: number) => Promise<IndexView>
   readonly workspaceRoot: (agent?: AgentLike) => string | undefined
   /** 按会话解析书仓（D10）：agent 的会话 cwd 优先，全局认领兜底。 */

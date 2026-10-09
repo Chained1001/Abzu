@@ -14,7 +14,7 @@ function sysPromptOf(ctx: Context): SystemPromptLike | undefined {
 /** 书架事实随请求现算；选书与近况由普通工具回复进入宿主对话。 */
 import { type Context } from '@deepseek-ai/cordis'
 import { scanBooks, type BookOverview } from './bookshelf'
-import { activeChapterLine, readAuthorMemoryCatalog, readBookMemoryCatalog, renderMemoryCatalog } from '@webnovel/core'
+import { activeChapterLine, readAuthorMemoryCatalog, readBookMemoryCatalog, renderMemoryCatalog } from '@abzu/core'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { MEMORY_CATALOG_SOURCE, isMemoryCatalogSource } from './message-sources'
 export { MEMORY_CATALOG_SOURCE } from './message-sources'
@@ -111,7 +111,7 @@ export function attachInitialMemoryCatalog(ctx: Context, deps: StatusDeps): () =
     const text = authorMemoryCatalogText(root)
     return { ...decision, messages: [...decision.messages, createUserMessage({
       content: [{ type: 'text', text }],
-      source: { kind: MEMORY_CATALOG_SOURCE, form: 'snapshot', sections: [{ name: 'webnovel.memory', text }] },
+      source: { kind: MEMORY_CATALOG_SOURCE, form: 'snapshot', sections: [{ name: 'abzu.memory', text }] },
     })] }
   }, { prepend: true })
 }
@@ -144,7 +144,7 @@ export function attachStatusToAgent(
       const sys = sysPromptOf(scope as Context)
       if (sys === undefined) return
       const undo = sys.context({
-        name: 'webnovel.status',
+        name: 'abzu.status',
         order: 90,
         text: () => {
           const ws = deps.workspaceRoot()

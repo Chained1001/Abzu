@@ -36,7 +36,7 @@ const FONTS = {
   sans: '"PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", sans-serif',
 }
 const MEASURES = { narrow: '30em', medium: '38em', full: 'none' }
-const TYPE_KEY = 'webnovel-editor-typography'
+const TYPE_KEY = 'abzu-editor-typography'
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
 const dismissedReadonly = new Set<string>()
 

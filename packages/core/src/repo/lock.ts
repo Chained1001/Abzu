@@ -5,7 +5,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { canonicalizePath } from '../gate/canonical'
 
-export const RUNTIME_DIR = '.webnovel'
+export const RUNTIME_DIR = '.abzu'
 export const TRANSACTION_DIR = `${RUNTIME_DIR}/transactions`
 export const OPERATION_DIR = `${RUNTIME_DIR}/operations`
 

@@ -5,7 +5,7 @@
  * 只读不写：analyzeImpact 是纯读反向闭包；argv 进、退出码出，模块顶层零副作用。
  */
 
-import { analyzeImpact } from '@webnovel/core'
+import { analyzeImpact } from '@abzu/core'
 
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)

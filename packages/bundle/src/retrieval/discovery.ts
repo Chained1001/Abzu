@@ -8,9 +8,9 @@ import { EmbeddingError, HttpEmbeddingProvider } from './http'
 export function attachDiscovery(ctx: Context): void {
   ctx.inject(['connection'], scope => {
     const clients = new Set<HttpEmbeddingProvider>()
-    scope.effect(() => () => Promise.allSettled([...clients].map(client => client.close())), 'webnovel embeddings: discovery requests')
+    scope.effect(() => () => Promise.allSettled([...clients].map(client => client.close())), 'abzu embeddings: discovery requests')
     scope.connection.fetch.register({
-      path: '/api/webnovel/embeddings', methods: ['POST'], requestBody: 'buffered',
+      path: '/api/abzu/embeddings', methods: ['POST'], requestBody: 'buffered',
       fetch: async request => {
         let client: HttpEmbeddingProvider | undefined
         try {

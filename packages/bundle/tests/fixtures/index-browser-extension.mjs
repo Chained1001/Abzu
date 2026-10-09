@@ -44,7 +44,7 @@ export async function attachIndexFixture(ctx, root, report, persist, { seed = tr
   })
   await new Promise(resolve => api.listen(0, '127.0.0.1', resolve))
   report.rerankEndpoint = 'http://127.0.0.1:' + api.address().port + '/v1/rerank'
-  await ctx.credentials.set(credentialRef('WEBNOVEL_RERANK_API_KEY'), 'synthetic-rerank-key')
+  await ctx.credentials.set(credentialRef('ABZU_RERANK_API_KEY'), 'synthetic-rerank-key')
   persist()
   ctx.effect(() => () => {
     api.closeAllConnections()
@@ -55,7 +55,7 @@ export async function attachIndexFixture(ctx, root, report, persist, { seed = tr
       const file = path.join(book, `定稿/卷01/${String(number).padStart(4, '0')}-索引验收.md`)
       fs.writeFileSync(file, `---\n版本: 1\n角色: 已定稿\n---\n第${number}章的独立测试正文，书信、渡口和归航。\n`)
     }
-    fs.writeFileSync(path.join(book, '.gitignore'), '草稿区/\n.webnovel/\n')
+    fs.writeFileSync(path.join(book, '.gitignore'), '草稿区/\n.abzu/\n')
   }
   const git = (...args) => execFileSync('git', args, { cwd: book, encoding: 'utf8', windowsHide: true })
   if (!fs.existsSync(path.join(book, '.git'))) {
@@ -63,9 +63,9 @@ export async function attachIndexFixture(ctx, root, report, persist, { seed = tr
     git('config', 'commit.gpgsign', 'false'); git('config', 'core.autocrlf', 'false')
     git('add', '.'); git('commit', '--quiet', '-m', 'fixture')
   }
-  await ctx.credentials.set(credentialRef('WEBNOVEL_BROWSER_EMBED_KEY'), 'fixture-only-key')
-  await ctx.settings.update('webnovel-embeddings', { enabled: true, protocol: 'openai-compatible', baseURL: `http://127.0.0.1:${api.address().port}/v1`,
-    model: 'local-index-fixture', dimensions: 3, batchSize: 1, maxRetries: 0, apiKeyEnv: 'WEBNOVEL_BROWSER_EMBED_KEY' })
+  await ctx.credentials.set(credentialRef('ABZU_BROWSER_EMBED_KEY'), 'fixture-only-key')
+  await ctx.settings.update('abzu-embeddings', { enabled: true, protocol: 'openai-compatible', baseURL: `http://127.0.0.1:${api.address().port}/v1`,
+    model: 'local-index-fixture', dimensions: 3, batchSize: 1, maxRetries: 0, apiKeyEnv: 'ABZU_BROWSER_EMBED_KEY' })
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/__index-fixture', handler: async (req, res) => {
     const url = new URL(req.url, 'http://localhost')
     const mode = url.searchParams.get('mode')

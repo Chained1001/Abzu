@@ -3,7 +3,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import { removeSync } from '../../core/src/repo/remove'
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-editor-retry-'))
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-editor-retry-'))
 afterAll(() => removeSync(scratch))
 import { paths, serializeDocument } from '../../core/src/index'
 import { StudyService } from '../src/study/service'

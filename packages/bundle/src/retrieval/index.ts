@@ -3,12 +3,12 @@ import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import type {} from '@deepseek-ai/dsh-settings'
 import { Config as SettingsConfig, resolveSettings, type EmbeddingSettings } from './config'
 import { HttpEmbeddingProvider } from './http'
-import type { EmbeddingProvider } from '@webnovel/core'
+import type { EmbeddingProvider } from '@abzu/core'
 import { attachDiscovery } from './discovery'
 import { attachLiveSettings } from './live-settings'
 
 export const Config = SettingsConfig.volatile()
-export const name = 'webnovel-embedding-provider'
+export const name = 'abzu-embedding-provider'
 export const inject = ['credentials']
 
 declare module '@deepseek-ai/cordis' { interface Context { embeddings: EmbeddingService } }
@@ -50,6 +50,6 @@ export function apply(ctx: Context, entry: ReturnType<typeof Config>): void {
   resolveSettings(current())
   const service = new EmbeddingService(ctx, current)
   attachDiscovery(ctx)
-  ctx.effect(() => () => service.close(), 'webnovel embeddings: cancel pending requests')
+  ctx.effect(() => () => service.close(), 'abzu embeddings: cancel pending requests')
   attachLiveSettings(ctx, resolveSettings, () => service.refresh())
 }

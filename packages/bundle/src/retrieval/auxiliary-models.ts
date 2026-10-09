@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { BlockAssembler, createUserMessage, type LlmRuntime } from '@deepseek-ai/dsh-llm'
-import type { EmbeddingInput, RerankingProvider, SceneProvider } from '@webnovel/core'
+import type { EmbeddingInput, RerankingProvider, SceneProvider } from '@abzu/core'
 import type { resolveSceneSettings, resolveRerankSettings } from './auxiliary-config'
 
 export class AuxiliaryModelError extends Error {

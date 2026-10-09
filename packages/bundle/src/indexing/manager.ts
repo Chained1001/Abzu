@@ -3,7 +3,7 @@ import {
   canonicalizePath, changeIndexState, embeddingRevision, emptyIndexState, indexFailure, onBookCommit,
   readIndexState, syncFinalizedIndex, forgetSceneBoundaries,
   type EmbeddingProvider, type SceneProvider, type IndexAction, type IndexFailure, type IndexNotice, type IndexRetryPolicy, type IndexSyncState,
-} from '@webnovel/core'
+} from '@abzu/core'
 import { scanBooks } from '../bookshelf'
 import { bookGitWatchPaths, bookHead, finalizedChanged } from './git'
 

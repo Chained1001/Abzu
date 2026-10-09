@@ -10,7 +10,7 @@ const cli = path.resolve(process.argv[3])
 const port = Number(process.argv[4] ?? 6096)
 const indexCheck = process.argv.includes('--index')
 if (!fs.existsSync(cli) || !Number.isInteger(port) || port < 1024) throw new Error('Supply the installed DSH CLI entry and an available port')
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-browser-'))
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-browser-'))
 const profile = path.join(root, 'profiles', 'web')
 const workspaceArg = process.argv.indexOf('--workspace')
 if (workspaceArg >= 0 && !process.argv[workspaceArg + 1]) throw new Error('--workspace requires a path')
@@ -22,18 +22,18 @@ const linkPackage = (name, target) => {
   fs.symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir')
 }
 linkPackage('abzu', packageRoot)
-fs.writeFileSync(path.join(profile, 'package.json'), JSON.stringify({ name: 'webnovel-acceptance-profile', private: true, type: 'module', dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'], patchReload: 'live' } } }, null, 2))
+fs.writeFileSync(path.join(profile, 'package.json'), JSON.stringify({ name: 'abzu-acceptance-profile', private: true, type: 'module', dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'], patchReload: 'live' } } }, null, 2))
 fs.writeFileSync(path.join(profile, 'cordis.yml'), '[]\n')
 fs.writeFileSync(path.join(profile, 'cordis.patch.yml'), JSON.stringify([
-  { id: 'agent-default-model', config: { provider: 'webnovel-acceptance', model: 'fixture' } },
-  { insert: [{ id: 'webnovel', name: 'abzu' },
-    ...(indexCheck ? [['webnovel-embeddings', '/embeddings'], ['webnovel-scenes', '/scenes'], ['webnovel-reranking', '/reranking']].map(([id, entry]) => ({ id, name: `abzu${entry}` })) : []),
-    { id: 'webnovel-browser-acceptance', name: pathToFileURL(path.join(packageRoot, 'tests/fixtures/study-browser-host.mjs')).href }] },
+  { id: 'agent-default-model', config: { provider: 'abzu-acceptance', model: 'fixture' } },
+  { insert: [{ id: 'abzu', name: 'abzu' },
+    ...(indexCheck ? [['abzu-embeddings', '/embeddings'], ['abzu-scenes', '/scenes'], ['abzu-reranking', '/reranking']].map(([id, entry]) => ({ id, name: `abzu${entry}` })) : []),
+    { id: 'abzu-browser-acceptance', name: pathToFileURL(path.join(packageRoot, 'tests/fixtures/study-browser-host.mjs')).href }] },
 ], null, 2))
 const stdout = fs.openSync(path.join(root, 'stdout.log'), 'a')
 const stderr = fs.openSync(path.join(root, 'stderr.log'), 'a')
 const child = spawn(process.execPath, [cli, '--profile', 'web', '--host', '127.0.0.1', '--port', String(port), '--no-open'], {
-  cwd: packageRoot, env: { ...process.env, DSH_HOME: root, ...(indexCheck ? { WEBNOVEL_INDEX_CHECK: '1' } : {}), WEBNOVEL_BROWSER_WORKSPACE: workspace, WEBNOVEL_BROWSER_REPORT: path.join(evidence, 'browser-host-report.json'), DSH_TELEMETRY_DISABLED: '1' },
+  cwd: packageRoot, env: { ...process.env, DSH_HOME: root, ...(indexCheck ? { ABZU_INDEX_CHECK: '1' } : {}), ABZU_BROWSER_WORKSPACE: workspace, ABZU_BROWSER_REPORT: path.join(evidence, 'browser-host-report.json'), DSH_TELEMETRY_DISABLED: '1' },
   detached: true, windowsHide: true, stdio: ['ignore', stdout, stderr],
 })
 child.unref(); fs.closeSync(stdout); fs.closeSync(stderr)

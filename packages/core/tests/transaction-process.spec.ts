@@ -10,7 +10,7 @@ import { removeSync } from '../src/repo/remove'
 
 const roots: string[] = []
 function root(): string {
-  const value = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-process-'))
+  const value = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-process-'))
   roots.push(value)
   return value
 }
@@ -35,7 +35,7 @@ const rename = fs.renameSync;
 let applied = 0;
 fs.renameSync = (from, to) => {
   const result = rename(from, to);
-  if (mode === 'rename' && path.basename(String(from)).startsWith('.webnovel-txn-') && ++applied === Number(count)) process.exit(88);
+  if (mode === 'rename' && path.basename(String(from)).startsWith('.abzu-txn-') && ++applied === Number(count)) process.exit(88);
   if (mode === 'commit' && path.basename(String(to)) === 'manifest.json' && JSON.parse(fs.readFileSync(to, 'utf8')).phase === 'committed') process.exit(88);
   return result;
 };
@@ -73,7 +73,7 @@ describe('real process interruption', () => {
   it.each([1, 2, 3])('recovers before a writer reads after target rename %s', (count) => {
     const value = fixture()
     crash(value, 'rename', count)
-    const txs = path.join(value, '.webnovel/transactions')
+    const txs = path.join(value, '.abzu/transactions')
     const manifest = JSON.parse(fs.readFileSync(path.join(txs, fs.readdirSync(txs)[0]!, 'manifest.json'), 'utf8'))
     expect(manifest.provenance).toMatchObject({ operationId: 'process-operation', sessionId: 'process-session', callId: 'process-call' })
     withBookWrite(value, () => {
@@ -91,7 +91,7 @@ describe('real process interruption', () => {
     withBookWrite(value, () => {
       for (const op of ops) expect(fs.readFileSync(path.join(value, op.relPath), 'utf8')).toBe(op.content)
     })
-    expect(fs.readdirSync(path.join(value, '.webnovel/transactions'))).toEqual([])
+    expect(fs.readdirSync(path.join(value, '.abzu/transactions'))).toEqual([])
   })
 
   it('retains all evidence and all targets when any target conflicts', () => {
@@ -101,7 +101,7 @@ describe('real process interruption', () => {
     expect(() => withBookWrite(value, () => 'unreachable')).toThrow(/恢复冲突/)
     expect(fs.readFileSync(path.join(value, '正文/a.md'), 'utf8')).toBe('new-a')
     expect(fs.readFileSync(path.join(value, '正文/b.md'), 'utf8')).toBe('author-edit')
-    const tx = path.join(value, '.webnovel/transactions', fs.readdirSync(path.join(value, '.webnovel/transactions'))[0]!)
+    const tx = path.join(value, '.abzu/transactions', fs.readdirSync(path.join(value, '.abzu/transactions'))[0]!)
     expect(fs.existsSync(path.join(tx, 'manifest.json'))).toBe(true)
     expect(fs.readFileSync(path.join(tx, 'backups/0.bak'), 'utf8')).toBe('old-a')
   })

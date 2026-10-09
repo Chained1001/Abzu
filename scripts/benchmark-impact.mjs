@@ -12,7 +12,7 @@ const { buildRefGraph, analyzeImpact } = await import('../packages/core/src/impa
 // ── fixture:1000 章 + 200 条设定(4 层树)= 1200 文件 ─────────────────────────
 // 设定树:`设定/类X/子Y/条N.md`,每条引用它的上一条(条N-5),每层 5 条成 40 级链;
 // 1000 章各引用一条设定。预期总边数 = 195(设定链)+ 1000(章→设定)= 1195。
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-benchmark-impact-'))
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-benchmark-impact-'))
 const SETTING_COUNT = 200
 const CHAPTER_COUNT = 1000
 const doc = (fields, body) => {

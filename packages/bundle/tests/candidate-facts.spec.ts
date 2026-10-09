@@ -11,9 +11,9 @@ import {
   seedMinDesign,
   splitCandidateFacts,
   writeCandidate,
-} from '@webnovel/core'
-import { polishDraft } from '@webnovel/polish'
-import { registerDefaultChecks, resetChecks, runReview } from '@webnovel/review'
+} from '@abzu/core'
+import { polishDraft } from '@abzu/polish'
+import { registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 
 const roots: string[] = []
 function mkDir(prefix: string): string {
@@ -81,7 +81,7 @@ describe('候选事实通道保真(A1)', () => {
   })
 
   it('起草稿候选段经润色两批与改稿一轮后逐字相同', () => {
-    const root = mkDir('webnovel-candidate-')
+    const root = mkDir('abzu-candidate-')
     confirmWithHard(root)
     const prose = `巷口风大，综上所述有人来过。${HARD}。`
     putPending(root, composeBody(prose, FACTS))
@@ -116,7 +116,7 @@ describe('候选事实通道保真(A1)', () => {
   })
 
   it('补丁只作用于正文:只出现在候选事实段里的旧文不命中', () => {
-    const root = mkDir('webnovel-candidate-probe-')
+    const root = mkDir('abzu-candidate-probe-')
     confirmWithHard(root)
     putPending(root, composeBody(`巷口风大，综上所述有人来过。${HARD}。`, FACTS))
     resetChecks()

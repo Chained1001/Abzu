@@ -1,6 +1,6 @@
 {
   "name": "abzu",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -117,10 +117,10 @@
     "@types/markdown-it": "14.1.2",
     "@types/react": "18.3.12",
     "@types/react-test-renderer": "18.3.1",
-    "@webnovel/core": "workspace:*",
-    "@webnovel/drafting": "workspace:*",
-    "@webnovel/polish": "workspace:*",
-    "@webnovel/review": "workspace:*",
+    "@abzu/core": "workspace:*",
+    "@abzu/drafting": "workspace:*",
+    "@abzu/polish": "workspace:*",
+    "@abzu/review": "workspace:*",
     "d3-force": "3.0.0",
     "diff": "8.0.3",
     "dompurify": "3.4.16",
@@ -166,7 +166,7 @@
   "keywords": [
     "dsh-plugin",
     "deepseek-harness",
-    "webnovel",
+    "abzu",
     "writing",
     "chinese-novel",
     "creative-writing",

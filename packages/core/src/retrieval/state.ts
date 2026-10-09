@@ -60,8 +60,8 @@ export interface IndexSyncState {
   readonly scenes?: { readonly total: number; readonly completed: number; readonly generated: number; readonly reused: number; readonly fallback: number; readonly model?: string; readonly warning?: string }
 }
 
-export const INDEX_STATE_PATH = '.webnovel/finalized-search-state.json'
-const LEASE_PATH = '.webnovel/finalized-search.worker.lock'
+export const INDEX_STATE_PATH = '.abzu/finalized-search-state.json'
+const LEASE_PATH = '.abzu/finalized-search.worker.lock'
 const phases: readonly string[] = ['disabled', 'unconfigured', 'queued', 'scanning', 'scenes', 'embedding', 'retrying', 'paused', 'ready', 'failed']
 
 export function emptyIndexState(): IndexSyncState {
@@ -70,7 +70,7 @@ export function emptyIndexState(): IndexSyncState {
 }
 
 export function checkedIndexFile(root: string, relative: string): string {
-  const directory = path.join(root, '.webnovel')
+  const directory = path.join(root, '.abzu')
   try {
     const stat = fs.lstatSync(directory)
     if (!stat.isDirectory() || stat.isSymbolicLink()) throw new SearchError('unsafe-cache', '索引运行目录不得为链接或其他文件')

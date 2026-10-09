@@ -56,7 +56,7 @@ describe('设计侧事实清单与建议(格式规格 §8;R1:建议无权威)', 
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-design-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-design-'))
   roots.push(dir)
   return dir
 }

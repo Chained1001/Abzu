@@ -1,7 +1,7 @@
 import z from '@deepseek-ai/schemastery'
 
-export const SETTINGS_NAMESPACE = 'webnovel-embeddings'
-export const DEFAULT_CREDENTIAL = 'WEBNOVEL_EMBEDDING_API_KEY'
+export const SETTINGS_NAMESPACE = 'abzu-embeddings'
+export const DEFAULT_CREDENTIAL = 'ABZU_EMBEDDING_API_KEY'
 
 export interface EmbeddingSettings {
   enabled?: boolean

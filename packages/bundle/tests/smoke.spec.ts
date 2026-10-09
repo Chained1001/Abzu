@@ -5,7 +5,7 @@ import * as os from 'node:os'
 import * as path from 'node:path'
 
 function makeWorkspace(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-bundle-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-bundle-'))
   const book = path.join(dir, '星辰')
   fs.mkdirSync(path.join(book, '作品契约'), { recursive: true })
   fs.writeFileSync(path.join(book, '作品契约', '契约.md'), '---\n书id: xingchen-001\n---\n正文\n', 'utf8')
@@ -14,7 +14,7 @@ function makeWorkspace(): string {
 
 describe('包冒烟', () => {
   it('可导入', () => {
-    expect(name).toBe('webnovel-bundle');
+    expect(name).toBe('abzu-bundle');
   });
 
   it('无 tools 表面仍加载', () => {
@@ -69,7 +69,7 @@ describe('包冒烟', () => {
 
     // 初装：现有 sess-1 已 attach
     expect(registeredContexts.length).toBeGreaterThanOrEqual(1)
-    const status = registeredContexts.find((c) => c.name === 'webnovel.status')
+    const status = registeredContexts.find((c) => c.name === 'abzu.status')
     expect(status).toBeDefined()
     expect(status!.text({})).toContain('【工作区总览】')
     expect(status!.text({})).toContain('《星辰》')
@@ -77,7 +77,7 @@ describe('包冒烟', () => {
     // agent/created 新起 agent 也 attach
     const newCtx = makeAgentCtx()
     for (const l of createdListeners) l({ agent: { id: 'sess-2', ctx: newCtx } })
-    const created = registeredContexts.filter((c) => c.name === 'webnovel.status')
+    const created = registeredContexts.filter((c) => c.name === 'abzu.status')
     expect(created.length).toBe(2)
 
   });

@@ -7,7 +7,7 @@ import { createNovelTools } from '../src/novel-tools'
 import { APPROVE_LABEL, seedMinDesign, serializeDocument, paths, scanChapter, loadReviewRecord } from '../../core/src/index'
 import { computeReview, listChecks, resetChecks, registerDefaultChecks } from '../../review/src/index'
 
-const fixtures = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-approval-snapshot-'))
+const fixtures = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-approval-snapshot-'))
 afterAll(() => removeSync(fixtures))
 fs.mkdirSync(fixtures, { recursive: true })
 const key = { 卷: 1, 章: 1, 章名: '开篇任务' }

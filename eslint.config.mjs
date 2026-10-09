@@ -1,7 +1,7 @@
 import tseslint from 'typescript-eslint'
 
 export default [
-  { ignores: ['**/node_modules/**', '**/lib/**', '**/.tmp/**', '**/.webnovel/**', '.trellis/**', 'tools/**', 'scripts/evaluation/**'] },
+  { ignores: ['**/node_modules/**', '**/lib/**', '**/.tmp/**', '**/.abzu/**', '.trellis/**', 'tools/**', 'scripts/evaluation/**'] },
   {
     files: ['packages/**/*.{ts,tsx,mjs}', 'scripts/release/**/*.mjs'],
     languageOptions: { parser: tseslint.parser, ecmaVersion: 'latest', sourceType: 'module' },

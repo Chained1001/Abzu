@@ -82,8 +82,8 @@ export async function checkNativeWrites({ root, book, main, ctx, service, execut
         assert.match(text(relative), /扩展字段: 原样保留/)
       }
       report.nativeWriteGuards = { targets: cases.length, unreadRejected: cases.length, observedCommitted: cases.length }
-      const audits = fs.readdirSync(path.join(book, '.webnovel/operations'))
-        .map(file => JSON.parse(fs.readFileSync(path.join(book, '.webnovel/operations', file), 'utf8')))
+      const audits = fs.readdirSync(path.join(book, '.abzu/operations'))
+        .map(file => JSON.parse(fs.readFileSync(path.join(book, '.abzu/operations', file), 'utf8')))
       for (const [, relative] of cases) {
         assert.ok(audits.some(audit => audit.status === 'failed' && audit.targets.includes(relative)), relative)
       }
@@ -211,7 +211,7 @@ export async function checkNativeWrites({ root, book, main, ctx, service, execut
       assert.equal(core.parseDocument(text(second.relPath)).data.fields.父版本, 1)
       assert.equal(writes.length, count)
       assert.equal(head(), beforeHead)
-      assert.deepEqual(fs.readdirSync(path.join(book, '.webnovel/transactions')), [])
+      assert.deepEqual(fs.readdirSync(path.join(book, '.abzu/transactions')), [])
     })
   } finally { offResult() }
 }

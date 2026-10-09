@@ -1,5 +1,5 @@
 {
-  "name": "@webnovel/drafting",
+  "name": "@abzu/drafting",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "typescript": "^5.5.0"
   },
   "dependencies": {
-    "@webnovel/core": "workspace:*"
+    "@abzu/core": "workspace:*"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.4"

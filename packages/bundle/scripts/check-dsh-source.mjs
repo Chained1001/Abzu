@@ -9,14 +9,14 @@ import { loadSourceHost } from './dsh-source.mjs'
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const repoRoot = path.resolve(packageRoot, '../..')
 const require = createRequire(path.join(repoRoot, 'package.json'))
-const sourcePath = process.argv.slice(2).filter(arg => arg !== '--')[0] ?? process.env.WEBNOVEL_DSH_SOURCE
+const sourcePath = process.argv.slice(2).filter(arg => arg !== '--')[0] ?? process.env.ABZU_DSH_SOURCE
 if (sourcePath === undefined) throw new Error('Usage: pnpm test:dsh-source -- <DSH checkout>')
 const host = loadSourceHost(sourcePath)
 host.entry('@deepseek-ai/dsh-app-boot')
 for (const name of ['@deepseek-ai/cordis', '@deepseek-ai/dsh-tools', '@deepseek-ai/dsh-user-questions/types']) {
   if (host.typePaths[name] === undefined) throw new Error(`DSH declarations missing: ${name}`)
 }
-const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-dsh-types-'))
+const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-dsh-types-'))
 const config = path.join(temp, 'tsconfig.json')
 try {
   for (const name of ['bundle']) {
@@ -31,7 +31,7 @@ try {
   const vitest = path.join(path.dirname(require.resolve('vitest/package.json')), 'vitest.mjs')
   execFileSync(process.execPath, [vitest, 'run', 'packages/bundle/tests/host-loader.spec.ts'], {
     cwd: repoRoot,
-    env: { ...process.env, WEBNOVEL_DSH_SOURCE: host.root },
+    env: { ...process.env, ABZU_DSH_SOURCE: host.root },
     stdio: 'inherit',
     windowsHide: true,
   })

@@ -1,13 +1,13 @@
 # 备份、升级与卸载
 
-## 升级到 0.0.2
+## 升级到 0.0.3
 
-0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭；五条功能入口的条目 id 保持不变，原有设置、凭据引用与停用状态升级后继续生效。继续配套 DSH 0.2.0-rc.2，不需要更换 DSH。
+0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭。0.0.3 把五条功能入口的条目 id 统一换为 abzu 系（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`），借零书、零插件设置的窗口完成，设置、凭据引用与停用状态按新 id 重新配置。继续配套 DSH 0.2.0-rc.2，不需要更换 DSH。
 
 1. 停止正在运行的会话。
 2. 卸载单独安装过的 `abzu-retrieval`、`abzu-companion` 或 `abzu-full`（如果有）。
-3. 更新或安装 `abzu` 到 0.0.2，应用变更并重启。
-   成功时，已安装列表只剩 `abzu` 一个入口，书房与配置照旧。
+3. 更新或安装 `abzu` 到 0.0.3，应用变更并重启。
+   成功时，已安装列表只剩 `abzu` 一个入口；设置中五条入口使用 abzu 系新 id。
 
 0.0.1 基于上游 webnovel-writer 8.2.0，包含其直接编辑、行内 Agent 建议、确定性字数统计与契约篇幅约定，修复旧书的世界书模块登记，并移植上游之后的四批缺陷修复。从 8.0.x 或 8.1.x 升级的旧项目仍须按 [旧项目需要更新作品契约](#旧项目需要更新作品契约) 补充篇幅约定。新界面见 [编辑器教程](editor.md)。
 
@@ -85,7 +85,7 @@
    成功时，书房可以打开，并且书仓状态与备份前的预期一致。
 
 ```powershell
-dsh plugin --profile scriptor add abzu@0.0.2
+dsh plugin --profile scriptor add abzu@0.0.3
 dsh --profile scriptor --dump-config
 ```
 
@@ -138,7 +138,7 @@ dsh --profile scriptor --dump-config
 > [!CAUTION]
 > 不要把未安装的包名一起传入。否则 pnpm 会拒绝这次卸载。
 
-3. 整套卸载后，核对配置里已经没有 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`。
+3. 整套卸载后，核对配置里已经没有 `abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`（0.0.2 及更早版本的条目 id 为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`）。
 4. 核对直接安装列表里已经清空。
 5. 再按安装教程重装。
    卸载不会删除作者的书仓、书房、设置或模型凭据，也不会清空 pnpm 的共享缓存。保留下来的作者资料不属于重复安装。

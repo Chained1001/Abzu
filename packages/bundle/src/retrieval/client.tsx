@@ -11,8 +11,8 @@ import { dimensionGuidance, shouldSendDimensions, type EmbeddingModelOption } fr
 import { MODEL_DIMENSIONS } from './model-dimensions'
 import { installAuxiliaryCards } from './auxiliary-client'
 
-const NS = 'webnovel-embeddings'
-const DEFAULT_REF = 'WEBNOVEL_EMBEDDING_API_KEY'
+const NS = 'abzu-embeddings'
+const DEFAULT_REF = 'ABZU_EMBEDDING_API_KEY'
 const FIELDS = ['enabled', 'protocol', 'baseURL', 'model', 'dimensions', 'apiKeyEnv', 'batchSize', 'timeoutMs', 'maxRetries', 'sendDimensions', 'documentPrefix', 'queryPrefix', 'geminiTaskMode'] as const
 export const inject = ['slots', 'configForms', 'remote', 'remote.credentials']
 
@@ -43,7 +43,7 @@ function EmbeddingCard({ scope, host }: { scope: ConfigForm<EmbeddingSettings>; 
     const controller = new AbortController(); discovery.current = controller
     setDiscovering(true); setNotice('')
     try {
-      const response = await fetch('/api/webnovel/embeddings', {
+      const response = await fetch('/api/abzu/embeddings', {
         method: 'POST', credentials: 'same-origin', signal: controller.signal,
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ action, protocol: draft.protocol ?? 'openai-compatible', baseURL: draft.baseURL, model: draft.model, apiKeyEnv: ref, apiKey: key }),
@@ -139,7 +139,7 @@ function EmbeddingCard({ scope, host }: { scope: ConfigForm<EmbeddingSettings>; 
   </label>
   if (state.status === 'unavailable') return null
   // The form's state stays above the disclosure, so collapsing keeps every draft.
-  return <li className={`webnovel-embedding-card${open ? ' we-open' : ''}`}>
+  return <li className={`abzu-embedding-card${open ? ' we-open' : ''}`}>
     <button type="button" className="we-header" aria-expanded={open} aria-label={`${open ? '收起' : '展开'}设置: 混合检索 · 嵌入 API`} onClick={() => setOpen(value => !value)}>
       <span className="we-head-text"><span className="we-title">混合检索 · 嵌入 API</span><span className="we-description">配置混合检索使用的接口、向量模型和维度。</span></span>
       {dirty ? <span className="we-tag">未保存</span> : null}
@@ -162,8 +162,8 @@ function EmbeddingCard({ scope, host }: { scope: ConfigForm<EmbeddingSettings>; 
           </label> : null}
           {numeric('dimensions', '向量维度', 1, 65_536, '按模型填写，例如 1024', '启用前必填。模型或维度变更后，下次检索会重建旧向量。')}
           <div className="we-field"><button type="button" disabled={discovering || !draft.baseURL || !draft.model} onClick={() => void discover('dimensions')}>检测默认维度</button><span className="we-hint">向所填接口发送一条固定测试文本，可能产生少量费用。检测只得到默认维度，不代表全部可选维度。</span></div>
-          <div className="we-field"><div className="we-field-head"><label className="we-label" htmlFor="webnovel-embedding-key">API Key</label><span className="we-tag">{credential.configured ? '已配置' : '未配置'}</span></div>
-            <input id="webnovel-embedding-key" type="password" autoComplete="off" value={key} disabled={!credential.writable}
+          <div className="we-field"><div className="we-field-head"><label className="we-label" htmlFor="abzu-embedding-key">API Key</label><span className="we-tag">{credential.configured ? '已配置' : '未配置'}</span></div>
+            <input id="abzu-embedding-key" type="password" autoComplete="off" value={key} disabled={!credential.writable}
               placeholder={credential.configured ? '留空保持现有密钥' : ''} onChange={event => { invalidateDiscovery(); setModels([]); setKey(event.target.value); setDirty(true) }} />
             <p className="we-hint">由 DSH 凭据服务保存，不写入普通配置。留空不会清除现有密钥。</p></div>
         </div>
@@ -192,8 +192,8 @@ export function apply(host: Context): void {
   host.effect(() => {
     const style = document.createElement('style'); style.textContent = css; document.head.append(style)
     return () => style.remove()
-  }, 'webnovel embeddings: settings style')
-  host.slots.inject('settings.models.footer', () => host.slots.register({ name: 'settings.models.footer', id: NS, order: 50 }, () => <section className="webnovel-embedding-section">
+  }, 'abzu embeddings: settings style')
+  host.slots.inject('settings.models.footer', () => host.slots.register({ name: 'settings.models.footer', id: NS, order: 50 }, () => <section className="abzu-embedding-section">
     <h3>嵌入模型</h3>
     <ul><EmbeddingCard host={host} scope={scope} /></ul>
   </section>))

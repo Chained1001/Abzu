@@ -26,23 +26,23 @@ const fixture = createSettingsProfile(root, [
   { id: 'config-editor', name: '@deepseek-ai/dsh-config-editor' },
   { id: 'settings', name: '@deepseek-ai/dsh-settings' },
   { id: 'credentials', name: '@deepseek-ai/dsh-credentials-local', config: { path: credentialsFile, watch: false } },
-  { id: 'webnovel-embeddings', name: plugin },
+  { id: 'abzu-embeddings', name: plugin },
 ], appBoot)
 const settingsFile = fixture.profile.patchPath
 let ctx
 try {
-  ctx = await fixture.start('webnovel-embedding-settings-test')
+  ctx = await fixture.start('abzu-embedding-settings-test')
   const settings = ctx.get('settings')
   const credentials = ctx.get('credentials')
   const service = ctx.get('embeddings')
-  const namespace = 'webnovel-embeddings'
+  const namespace = 'abzu-embeddings'
   assert.equal(service.current(), undefined)
   const descriptor = settings.describe({ redactSecrets: true }).find(item => item.ns === namespace)
   assert.ok(descriptor)
   assert.equal(descriptor.autoGenerate, false)
   assert.ok(JSON.stringify(descriptor.schema).includes('dimensions'))
   assert.equal(requests.length, 0)
-  const base = { enabled: true, protocol: 'openai-compatible', baseURL: `http://127.0.0.1:${server.address().port}/v1`, model: 'fixture-model', apiKeyEnv: 'WEBNOVEL_TEST_EMBED_KEY' }
+  const base = { enabled: true, protocol: 'openai-compatible', baseURL: `http://127.0.0.1:${server.address().port}/v1`, model: 'fixture-model', apiKeyEnv: 'ABZU_TEST_EMBED_KEY' }
   await assert.rejects(settings.update(namespace, base), /维度/)
   await credentials.set(credentialRef(base.apiKeyEnv), 'fixture-native-credential')
   await settings.update(namespace, { ...base, dimensions: 3 })

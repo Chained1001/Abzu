@@ -12,13 +12,13 @@ import {
   scanChapter,
   seedMinDesign,
   writeCandidate,
-} from '@webnovel/core'
-import { writeDraft } from '@webnovel/drafting'
+} from '@abzu/core'
+import { writeDraft } from '@abzu/drafting'
 import { polishDraft } from '../src/index'
 
 const roots: string[] = []
 function mkBook(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'webnovel-polish-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-polish-'))
   roots.push(dir)
   seedMinDesign(dir)
   return dir

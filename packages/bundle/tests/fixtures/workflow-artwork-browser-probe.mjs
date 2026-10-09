@@ -7,8 +7,8 @@ import { pathToFileURL } from 'node:url'
 const runtimePath = path.resolve(process.argv[2])
 const runtime = JSON.parse(fs.readFileSync(runtimePath, 'utf8'))
 const output = path.dirname(runtimePath)
-const { chromium } = await import(pathToFileURL(path.join(process.env.WEBNOVEL_PLAYWRIGHT, 'index.mjs')).href)
-const browser = await chromium.launch({ headless: true, executablePath: process.env.WEBNOVEL_CHROMIUM })
+const { chromium } = await import(pathToFileURL(path.join(process.env.ABZU_PLAYWRIGHT, 'index.mjs')).href)
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ABZU_CHROMIUM })
 const page = await browser.newPage({ viewport: { width: 1500, height: 1300 } })
 page.setDefaultTimeout(15000)
 const report = { simulated: true, checks: [], errors: [], screenshots: [] }
@@ -20,13 +20,13 @@ const call = (id, chapter, stage, state, age) => ({ id, bookId: 'acceptance-a', 
   ...(['running', 'waiting', 'preparing'].includes(state) ? {} : { ended: now - age + 1 }) })
 let calls = [call('第12章上次改稿失败', 12, 'revise', 'error', 10000), call('第12章正在重试', 12, 'revise', 'running', 4000), call('第13章等待资料取舍', 13, 'materials', 'waiting', 1000)]
 let active = true, syncing = false, disconnected = false, finalized = false, chapterReads = 0, holdFacts = false, releaseFacts
-await page.route('**/api/webnovel/study/workflow', route => {
+await page.route('**/api/abzu/study/workflow', route => {
   if (disconnected) return route.abort()
   const body = route.request().postDataJSON()
   return route.fulfill({ json: { ok: true, value: { available: true, active, syncing, asOf: calls.length,
     calls: body.space === 'book:acceptance-a' ? calls : [], otherActive: 0, waiting: active && calls.some(c => c.state === 'waiting') } } })
 })
-await page.route('**/api/webnovel/study/chapters', async route => {
+await page.route('**/api/abzu/study/chapters', async route => {
   chapterReads++
   if (holdFacts) await new Promise(resolve => { releaseFacts = resolve })
   await route.fulfill({ json: { ok: true, value: { bookId: 'acceptance-a', bookName: '合成样本', chapters: [

@@ -110,7 +110,7 @@ function parseManifest(root: string, file: string): TransactionManifest {
     }
     if (!e.backupRel.startsWith(expectedBackup)
       || path.posix.dirname(normalizedTmp) !== path.posix.dirname(normalizedRel)
-      || !path.posix.basename(normalizedTmp).startsWith(`.webnovel-txn-${o.id}-`)) {
+      || !path.posix.basename(normalizedTmp).startsWith(`.abzu-txn-${o.id}-`)) {
       throw new Error(`事务清单临时/备份路径越界:${file}`)
     }
     entries.push({
@@ -246,7 +246,7 @@ function runLocked(root: string, ops: readonly { readonly relPath: string; reado
   let entries: ManifestEntry[] = normalized.map((op, index) => {
     const relPath = op.relPath
     const dest = inside(root, relPath)
-    const tmp = path.join(path.dirname(dest), `.webnovel-txn-${id}-${index}.tmp`)
+    const tmp = path.join(path.dirname(dest), `.abzu-txn-${id}-${index}.tmp`)
     return {
       relPath,
       tmpRel: path.relative(root, tmp).split(path.sep).join('/'),
