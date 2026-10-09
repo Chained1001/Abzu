@@ -54,7 +54,8 @@ pack('packages/companion', companionTarball)
 pnpm(['--filter', companion.name, 'pack-check', path.join(output, companionTarball)])
 const source = `abzu-${info.version}-source.tar.gz`
 git(['archive', '--format=tar.gz', '--prefix=abzu-source/', `--output=${path.join(output, source)}`, 'HEAD'])
-const dependencies = await collectDependencySources(root, output)
+// 自用构建可 ABZU_SKIP_SOURCES=1 跳过第三方源码材料拉取（GPL 分发合规件，网络易超时；将来对外分发时去掉此开关恢复）
+const dependencies = process.env.ABZU_SKIP_SOURCES === '1' ? [] : await collectDependencySources(root, output)
 const hash = file => createHash('sha256').update(fs.readFileSync(path.join(output, file))).digest('hex')
 const assets = fs.readdirSync(output).filter(file => fs.statSync(path.join(output, file)).isFile()).sort()
 const manifest = { schemaVersion: 1, ...info, publicCommit: git(['rev-parse', 'HEAD']), node: process.version,
@@ -71,5 +72,5 @@ assets.push('release-manifest.json')
 fs.writeFileSync(path.join(output, 'SHA256SUMS'), assets.sort().map(file => `${hash(file)}  ${file}`).join('\n') + '\n')
 const changelog = fs.readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8')
 const notes = changelog.slice(changelog.indexOf(`## [${info.version}]`)).split(/\n## \[/)[0]
-fs.writeFileSync(path.join(output, 'release-notes.md'), notes + '\n\n校验与安装：请使用本页 SHA256SUMS、release-manifest.json 和对应源码，参阅 v8 分支的安装教程。\n')
+fs.writeFileSync(path.join(output, 'release-notes.md'), notes + '\n\n校验与安装：请使用本页 SHA256SUMS、release-manifest.json，参阅 docs/user/install.md。\n')
 console.log(JSON.stringify({ ok: true, output, version: info.version, publicCommit: manifest.publicCommit, assets: assets.length }))
