@@ -41,7 +41,7 @@ pnpm release:build
 
 第三方源码定位来自已审阅工具中的 upstream-sources.json。默认必须提供准确上游提交；个别旧包确实只提供随 npm 分发的 TypeScript 源码时，只能按确切版本显式记录 registry 原件 integrity、源码文件数量和内容摘要。缺文件、内容或字节不符仍拒绝，清单明确 sourceKind 和无上游提交，不伪造 gitHead。
 
-对生成的同一主包执行 `pnpm release:smoke -- <main.tgz>`。它新装固定 DSH，创建独立 Web profile，在源目录不可读的权限环境运行真实 Loader，再核对卸载/重装；发布后的 `--registry` 验收全程使用 npmjs。需要 npm 随 Node 提供的 CLI；输出目录保留供故障调查，报告不能冒充真实模型创作验收。
+对生成的同一主包执行实包核对：`pnpm --filter abzu pack-check -- <main.tgz>`（manifest/技能/许可清单/内嵌媒体哈希逐项断言；本地构建走 `ABZU_SKIP_SOURCES=1` 跳过第三方源码材料）。报告不能冒充真实模型创作验收。
 
 人工再核对浏览器入口、配置与合成首章教程。模型服务的调用费用单独记录；不以程序回归替代模型质量判断。
 

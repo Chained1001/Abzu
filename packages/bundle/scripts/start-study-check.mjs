@@ -22,13 +22,12 @@ const linkPackage = (name, target) => {
   fs.symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir')
 }
 linkPackage('abzu', packageRoot)
-if (indexCheck) linkPackage('abzu-retrieval', path.resolve(packageRoot, '../embedding-provider'))
 fs.writeFileSync(path.join(profile, 'package.json'), JSON.stringify({ name: 'webnovel-acceptance-profile', private: true, type: 'module', dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'], patchReload: 'live' } } }, null, 2))
 fs.writeFileSync(path.join(profile, 'cordis.yml'), '[]\n')
 fs.writeFileSync(path.join(profile, 'cordis.patch.yml'), JSON.stringify([
   { id: 'agent-default-model', config: { provider: 'webnovel-acceptance', model: 'fixture' } },
   { insert: [{ id: 'webnovel', name: 'abzu' },
-    ...(indexCheck ? [['webnovel-embeddings', ''], ['webnovel-scenes', '/scenes'], ['webnovel-reranking', '/reranking']].map(([id, entry]) => ({ id, name: `abzu-retrieval${entry}` })) : []),
+    ...(indexCheck ? [['webnovel-embeddings', '/embeddings'], ['webnovel-scenes', '/scenes'], ['webnovel-reranking', '/reranking']].map(([id, entry]) => ({ id, name: `abzu${entry}` })) : []),
     { id: 'webnovel-browser-acceptance', name: pathToFileURL(path.join(packageRoot, 'tests/fixtures/study-browser-host.mjs')).href }] },
 ], null, 2))
 const stdout = fs.openSync(path.join(root, 'stdout.log'), 'a')
