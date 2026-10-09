@@ -7,13 +7,13 @@ DSH 插件 `abzu`，包含工作台、11 个写作技能、七个脚本入口，
 
 ## 安装正式版
 
-在 DSH 0.2.0-rc.2 桌面端侧栏打开“插件 → 添加插件”，输入 `abzu@0.0.9`，核对后安装并应用变更。桌面端自带运行时，不需要另外安装 Node/pnpm。检索增强随主包一起安装，默认关闭，不需要再装任何可选包。
+在 DSH 0.2.0-rc.2 桌面端侧栏打开“插件 → 添加插件”，输入 `abzu@0.0.10`，核对后安装并应用变更。桌面端自带运行时，不需要另外安装 Node/pnpm。检索增强随主包一起安装，默认关闭，不需要再装任何可选包。
 
 以下是进阶用户创建独立 Web profile 的方式，不用于桌面端保留的 `desktop` profile：
 
 ```powershell
 dsh --profile abzu --from-default-profile web --dump-config
-dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.9.tgz
+dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.10.tgz
 dsh --profile abzu --host 127.0.0.1 --port 6104 --no-open
 ```
 
@@ -23,7 +23,7 @@ dsh --profile abzu --host 127.0.0.1 --port 6104 --no-open
 
 ## 更新与卸载
 
-先停止指定 profile 的运行实例，再安装目标精确版本并重启（本版为 `C:/abzu-dist/abzu-0.0.9.tgz`）。
+先停止指定 profile 的运行实例，再安装目标精确版本并重启（本版为 `C:/abzu-dist/abzu-0.0.10.tgz`）。
 卸载后可执行上面的安装命令重装：
 
 ```powershell

@@ -311,6 +311,26 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(reshape).toContain('脚本未实装')
   })
 
+  it('思考增强批：design 全景开场/待改清单/跨轨道自检/卷级交叉思考/规则连锁＋outline 写时整合＋drafting 写作心智', () => {
+    // 大纲阶段三件：路径 B 全景开场＋对谈纪律第 7 条待改清单＋步骤 5/6 之间跨轨道自检
+    const design = readSkill('novel-design')
+    expect(design).toContain('全景开场')
+    expect(design).toContain('待改清单')
+    expect(design).toContain('跨轨道自检')
+    // 卷纲：步骤 6 判据行后的卷级交叉思考
+    expect(design).toContain('卷级交叉思考')
+    // 设定：步骤 2 判据行后的规则连锁
+    expect(design).toContain('规则连锁')
+    // 章纲：步骤 2 落候选末尾的写时整合
+    expect(readSkill('novel-outline')).toContain('写时整合')
+    // 起草：任务包第 0 件写作心智＋三条心智防回退
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('写作心智')
+    expect(drafting).toContain('入戏')
+    expect(drafting).toContain('一气呵成')
+    expect(drafting).toContain('角色自决')
+  })
+
   it('细纲备料：含定位段/细纲段 + 材料包十段 + 事实播报', () => {
     const text = readSkill('novel-outline')
     expect(text).toContain('定位段')
