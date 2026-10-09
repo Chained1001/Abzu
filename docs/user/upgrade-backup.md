@@ -85,7 +85,7 @@
    成功时，书房可以打开，并且书仓状态与备份前的预期一致。
 
 ```powershell
-dsh plugin --profile scriptor add abzu@0.0.8
+dsh plugin --profile scriptor add abzu@0.0.9
 dsh --profile scriptor --dump-config
 ```
 

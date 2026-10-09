@@ -190,6 +190,71 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(readSkill('novel-outline'), '《细纲备料》应可带种子底子进材料包').toContain('种子底子')
   })
 
+  it('KB 06/07/08 批：净版三件存在带版本戳零标注残留；outline/drafting/director 三 SKILL §x.y 引用逐一命中分发件标题', () => {
+    // 域随技能走：06→novel-outline、07→novel-drafting、08→novel-director；引用测试逻辑与 E5′ 一致，只扩解析范围
+    const kbChapters: ReadonlyArray<{ readonly skill: string; readonly file: string; readonly chapter: string }> = [
+      { skill: 'novel-outline', file: '06_章纲.md', chapter: '6' },
+      { skill: 'novel-drafting', file: '07_正文写作.md', chapter: '7' },
+      { skill: 'novel-director', file: '08_修订排障.md', chapter: '8' },
+    ]
+    const stamp = '> 知识库净版 · 源版本 v2.0.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // 章→分发件全映射（1-5 在 novel-design），三 SKILL 里出现的任何 §x.y 都要能落到对应文件
+    const chapterFile: Record<string, { skill: string; file: string }> = {
+      '1': { skill: 'novel-design', file: '01_开书.md' }, '2': { skill: 'novel-design', file: '02_人物设计.md' },
+      '3': { skill: 'novel-design', file: '03_世界观设计.md' }, '4': { skill: 'novel-design', file: '04_大纲.md' },
+      '5': { skill: 'novel-design', file: '05_卷纲.md' }, '6': { skill: 'novel-outline', file: '06_章纲.md' },
+      '7': { skill: 'novel-drafting', file: '07_正文写作.md' }, '8': { skill: 'novel-director', file: '08_修订排障.md' },
+    }
+    const headingsByFile = new Map<string, Set<string>>()
+    const headingsOf = (skill: string, file: string): Set<string> => {
+      const key = `${skill}/${file}`
+      let set = headingsByFile.get(key)
+      if (set === undefined) {
+        const text = fs.readFileSync(path.join(__dirname, '..', 'skills', skill, 'references', file), 'utf8')
+        set = new Set([...text.matchAll(/^## (§[\d.]+)/gm)].map((m) => m[1]!))
+        headingsByFile.set(key, set)
+      }
+      return set
+    }
+    for (const { skill, file, chapter } of kbChapters) {
+      const p = path.join(__dirname, '..', 'skills', skill, 'references', file)
+      expect(fs.existsSync(p), `${skill}/references/${file} 应存在`).toBe(true)
+      const text = fs.readFileSync(p, 'utf8')
+      expect(text.startsWith('# '), `${file}: 应以一级标题开头`).toBe(true)
+      expect(text, `${file}: 头部应含净版版本戳（唯一元信息）`).toContain(stamp)
+      for (const banned of ['**来源**：', '编者推断', '可信度', '内容：原话', '理论锚点']) {
+        expect(text, `${file}: 净版不应残留「${banned}」`).not.toContain(banned)
+      }
+      expect(text.match(/T0\d\d/g), `${file}: 净版不应残留 T 编号理论锚点`).toBeNull()
+      // 引用一致性：SKILL 里全部 §x.y 引用逐一反查分发件标题（跨章引用按全映射落到对应技能包），悬空即失败
+      const skillText = readSkill(skill)
+      const mentioned = [...new Set([...skillText.matchAll(/§\d+\.\d+/g)].map((m) => m[0]!))]
+      expect(mentioned.filter((ref) => ref.slice(1).split('.')[0] === chapter).length,
+        `${skill} SKILL 应含 §${chapter}.x 判据引用`).toBeGreaterThan(0)
+      const dangling = mentioned.filter((ref) => {
+        const target = chapterFile[ref.slice(1).split('.')[0]!]
+        return target === undefined || !headingsOf(target.skill, target.file).has(ref)
+      })
+      expect(dangling, `${skill} SKILL 的以下 §x.y 引用在分发件中无对应标题：${dangling.join('、')}`).toEqual([])
+      expect(headingsOf(skill, file).size, `${file}: §x.y 标题数应大于零`).toBeGreaterThan(0)
+    }
+    // 接线防回退：三 SKILL 判据行＋排障索引入口＋改稿章程内联摘要（跨包引用不可达，走内联方案）
+    expect(readSkill('novel-outline')).toContain('判据：读 [06_章纲](references/06_章纲.md)')
+    expect(readSkill('novel-outline')).toContain('按 `## §x.y` 标题定位后只读该节，不整文件读入')
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', '底本', '写前十查.md'), 'utf8')
+    expect(checks).toContain('判据延伸：读 [06_章纲](../references/06_章纲.md) §6.1')
+    expect(readSkill('novel-drafting')).toContain('判据：读 [07_正文写作](references/07_正文写作.md) §7.1')
+    expect(readSkill('novel-drafting')).toContain('按当前场景选择性引用')
+    expect(readSkill('novel-drafting')).toContain('§7.13（中文行文怎么不怪异')
+    expect(readSkill('novel-director')).toContain('[08_修订排障](references/08_修订排障.md) 的 **§8.0 排障索引**')
+    expect(readSkill('novel-director')).toContain('「中期崩盘」→§8.8')
+    const charter = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-revision', '底本', '改稿章程.md'), 'utf8')
+    expect(charter).toContain('改稿方向判据（内联摘要）')
+    expect(charter).toContain('完整判据在 novel-director 技能包的 references/08_修订排障.md')
+    // 跨包相对链接在 DSH resourceBase 解析语义下不可达（技能基目录的 ../../ 逃出 skills 树）且章程整体内联进隔离子代理——禁用链接形态
+    expect(charter, '改稿章程不得用跨包相对链接').not.toContain('](../')
+  })
+
   it('E3 写作管线批：写前十查底本＋细纲固定小节＋连写三档＋热回看＋篇幅三岔＋四级扫描', () => {
     // 写前十查：底本存在，机器四查＋过目单六查＋「呈确认前的检查不是门禁」纪律
     const tenChecks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', '底本', '写前十查.md'), 'utf8')

@@ -11,6 +11,9 @@ export const referenceDocs = [
   'skills/novel-design/references/参考标尺.md',
   ...['01_开书', '02_人物设计', '03_世界观设计', '04_大纲', '05_卷纲', '0A_第一性原理层']
     .map(name => `skills/novel-design/references/${name}.md`),
+  'skills/novel-outline/references/06_章纲.md',
+  'skills/novel-drafting/references/07_正文写作.md',
+  'skills/novel-director/references/08_修订排障.md',
 ]
 export const thinScripts = [
   ['skills/novel-review/scripts/确定性检查.mjs', 'runChecksCli'],
