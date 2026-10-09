@@ -148,6 +148,48 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(pacing).toContain('候选，不是及格线')
   })
 
+  it('E5′ KB 批：净版六件存在带版本戳零标注残留；SKILL §x.y 引用逐一命中分发件标题', () => {
+    const refsDir = path.join(__dirname, '..', 'skills', 'novel-design', 'references')
+    // 0B 节级索引.yaml 不入包（发行正则只认 md/mjs），节级核验直接解析分发件 §x.y 标题
+    const kbFiles = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '0A_第一性原理层.md']
+    const chapterFile: Record<string, string> = { '1': '01_开书.md', '2': '02_人物设计.md', '3': '03_世界观设计.md', '4': '04_大纲.md', '5': '05_卷纲.md' }
+    const stamp = '> 知识库净版 · 源版本 v2.0.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+    const headings = new Map<string, Set<string>>()
+    for (const f of kbFiles) {
+      const p = path.join(refsDir, f)
+      expect(fs.existsSync(p), `novel-design/references/${f} 应存在`).toBe(true)
+      const text = fs.readFileSync(p, 'utf8')
+      expect(text.startsWith('# '), `${f}: 应以一级标题开头`).toBe(true)
+      expect(text, `${f}: 头部应含净版版本戳（唯一元信息）`).toContain(stamp)
+      // 净版纪律：分发层只含归纳态方法论——来源行/编者推断/可信度/原话标记/理论锚点一律剥净
+      for (const banned of ['**来源**：', '编者推断', '可信度', '内容：原话', '理论锚点']) {
+        expect(text, `${f}: 净版不应残留「${banned}」`).not.toContain(banned)
+      }
+      expect(text.match(/T0\d\d/g), `${f}: 净版不应残留 T 编号理论锚点`).toBeNull()
+      headings.set(f.replace('.md', ''), new Set([...text.matchAll(/^## (§[\d.]+)/gm)].map((m) => m[1]!)))
+    }
+    // 引用一致性：SKILL 里全部 §x.y 引用（判据行/追问卡）逐一反查分发件标题，悬空即失败
+    const design = readSkill('novel-design')
+    const mentioned = [...new Set([...design.matchAll(/§\d+\.\d+/g)].map((m) => m[0]))]
+    expect(mentioned.length, '《定调设计》应含 §x.y 判据引用').toBeGreaterThan(0)
+    const dangling = mentioned.filter((ref) => {
+      const chapter = ref.slice(1).split('.')[0]!
+      const file = chapterFile[chapter]
+      return file === undefined || !(headings.get(file.replace('.md', ''))?.has(ref) ?? false)
+    })
+    expect(dangling, `以下 §x.y 引用在分发件中无对应标题：${dangling.join('、')}`).toEqual([])
+    // E5′ 瘦身件防回退：对谈纪律/五步判据行/三张追问卡/种子三百字
+    expect(design).toContain('## 对谈纪律')
+    expect(design).toContain('判据：读 [01_开书](references/01_开书.md)')
+    expect(design).toContain('判据：读 [05_卷纲](references/05_卷纲.md)')
+    expect(design).toContain('追问限额')
+    expect(design).toContain('金手指四轨道追问')
+    expect(design).toContain('暗面一问')
+    expect(design).toContain('结局镜像卡')
+    expect(design).toContain('书房/开书/<书名>/种子底子.md')
+    expect(readSkill('novel-outline'), '《细纲备料》应可带种子底子进材料包').toContain('种子底子')
+  })
+
   it('细纲备料：含定位段/细纲段 + 材料包十段 + 事实播报', () => {
     const text = readSkill('novel-outline')
     expect(text).toContain('定位段')
