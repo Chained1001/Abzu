@@ -1,13 +1,13 @@
 # 备份、升级与卸载
 
-## 升级到 0.0.3
+## 升级到 0.0.4
 
-0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭。0.0.3 把五条功能入口的条目 id 统一换为 abzu 系（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`），借零书、零插件设置的窗口完成，设置、凭据引用与停用状态按新 id 重新配置。继续配套 DSH 0.2.0-rc.2，不需要更换 DSH。
+0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭。0.0.3 把五条功能入口的条目 id 统一换为 abzu 系（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`），借零书、零插件设置的窗口完成，设置、凭据引用与停用状态按新 id 重新配置。0.0.4 移除鲸鱼娘桌宠，`abzu-companion` 条目随之消失，其余四条入口与全部设置、凭据引用不变。继续配套 DSH 0.2.0-rc.2，不需要更换 DSH。
 
 1. 停止正在运行的会话。
 2. 卸载单独安装过的 `abzu-retrieval`、`abzu-companion` 或 `abzu-full`（如果有）。
-3. 更新或安装 `abzu` 到 0.0.3，应用变更并重启。
-   成功时，已安装列表只剩 `abzu` 一个入口；设置中五条入口使用 abzu 系新 id。
+3. 更新或安装 `abzu` 到 0.0.4，应用变更并重启。
+   成功时，已安装列表只剩 `abzu` 一个入口；设置中剩余四条入口使用 abzu 系新 id。
 
 0.0.1 基于上游 webnovel-writer 8.2.0，包含其直接编辑、行内 Agent 建议、确定性字数统计与契约篇幅约定，修复旧书的世界书模块登记，并移植上游之后的四批缺陷修复。从 8.0.x 或 8.1.x 升级的旧项目仍须按 [旧项目需要更新作品契约](#旧项目需要更新作品契约) 补充篇幅约定。新界面见 [编辑器教程](editor.md)。
 
@@ -43,9 +43,9 @@
 
 如果旧书曾因世界书模块声明缺失而停在世界构建，升级后重新读取并成功确认已有条目，就会自动补齐模块登记。不需要用通用文件工具修改声明。
 
-## 检索和桌宠要一起更新吗
+## 检索要单独更新吗
 
-0.0.2 起四包合一：更新 `abzu` 一个包就同时更新工作台、检索增强和桌宠，不存在组件版本组合问题。检索与桌宠功能默认关闭；不想使用时在设置中保持对应条目停用即可，见 [配置教程](configuration.md)。
+0.0.2 起四包合一：更新 `abzu` 一个包就同时更新工作台和检索增强，不存在组件版本组合问题。检索功能默认关闭；不想使用时在设置中保持对应条目停用即可，见 [配置教程](configuration.md)。0.0.4 起鲸鱼娘桌宠已移除，不再随包提供。
 
 0.0.1 及更早版本的可选包不再发布，也不与新包同时启用；旧入口按上文步骤卸载。
 
@@ -85,7 +85,7 @@
    成功时，书房可以打开，并且书仓状态与备份前的预期一致。
 
 ```powershell
-dsh plugin --profile scriptor add abzu@0.0.3
+dsh plugin --profile scriptor add abzu@0.0.4
 dsh --profile scriptor --dump-config
 ```
 
@@ -138,7 +138,7 @@ dsh --profile scriptor --dump-config
 > [!CAUTION]
 > 不要把未安装的包名一起传入。否则 pnpm 会拒绝这次卸载。
 
-3. 整套卸载后，核对配置里已经没有 `abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`（0.0.2 及更早版本的条目 id 为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`）。
+3. 整套卸载后，核对配置里已经没有 `abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`（0.0.2–0.0.3 还有 `abzu-companion`；0.0.2 及更早版本的条目 id 为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`）。
 4. 核对直接安装列表里已经清空。
 5. 再按安装教程重装。
    卸载不会删除作者的书仓、书房、设置或模型凭据，也不会清空 pnpm 的共享缓存。保留下来的作者资料不属于重复安装。

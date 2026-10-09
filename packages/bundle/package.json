@@ -1,6 +1,6 @@
 {
   "name": "abzu",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -9,7 +9,6 @@
     "./embeddings": "./lib/embeddings.js",
     "./scenes": "./lib/scenes.js",
     "./reranking": "./lib/reranking.js",
-    "./companion": "./lib/companion.js",
     "./package.json": "./package.json"
   },
   "dsh": {
@@ -24,7 +23,6 @@
         "@deepseek-ai/dsh-client-ui-sidebar-documentpreview",
         "@deepseek-ai/dsh-client-ui-settings",
         "@deepseek-ai/dsh-client-ui-settings-models",
-        "@deepseek-ai/dsh-client-ui-session",
         "@deepseek-ai/dsh-api-remotes"
       ]
     },
@@ -138,18 +136,15 @@
     "lib/embeddings.js",
     "lib/scenes.js",
     "lib/reranking.js",
-    "lib/companion.js",
-    "assets/manifest.json",
     "skills/**/*",
     "cordis.patch.yml",
     "README.md",
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
     "MODEL_DIMENSIONS.md",
-    "MEDIA.md",
     "licenses/*.txt"
   ],
-  "description": "Abzu：DSH 长篇网文写作工作台（含检索增强与鲸鱼娘桌宠）",
+  "description": "Abzu：DSH 长篇网文写作工作台（含检索增强）",
   "license": "GPL-3.0-only",
   "engines": {
     "node": "^22.19.0 || ^24.0.0"
@@ -172,8 +167,7 @@
     "creative-writing",
     "ai-assistant",
     "embedding",
-    "semantic-retrieval",
-    "desktop-companion"
+    "semantic-retrieval"
   ],
   "publishConfig": {
     "access": "public",

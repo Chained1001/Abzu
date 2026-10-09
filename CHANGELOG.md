@@ -2,6 +2,19 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.4] — 2026-10-09
+
+移除鲸鱼娘桌宠：纯装饰功能自用不需要，版本 **0.0.4** 发行，继续配套 **DSH 0.2.0-rc.2**。`abzu-companion` 条目随之消失，其余四条 insert id（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`）与全部设置、凭据引用不变。
+
+### Removed
+
+- 删除桌宠源码（`src/companion/`）、媒体素材（`assets/` 十条 WebM＋海报＋manifest 与 `MEDIA.md`）、媒体制作脚本（prepare-media / prepare-continuous-media / verify-media）、11 个桌宠测试及其 fixtures。
+- 装载契约收窄：`abzu/companion` 子路径导出、`abzu-companion` insert 条目、dsh client 注入清单中的 `dsh-client-ui-session` 一并移除；客户端合并产物不再内嵌媒体，体积从约 8.4 MiB 回落至约 2.4 MiB。
+
+### Upgrade
+
+从 0.0.3 升级：更新 `abzu` 到 0.0.4 并重启即可；原有书仓、检索设置与凭据引用全部照旧。桌宠若曾停用，其停用状态随条目一并消失，无需处理。
+
 ## [0.0.3] — 2026-10-09
 
 功能标识统一改 abzu 系：全仓去掉现行标识中的 `webnovel` 前缀与 `whale-companion`，版本 **0.0.3** 发行，继续配套 **DSH 0.2.0-rc.2**。借零书、零插件设置的窗口完成，不存在迁移面。

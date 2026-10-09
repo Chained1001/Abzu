@@ -23,7 +23,7 @@ pnpm check:public
 | 目录 | 职责 |
 | --- | --- |
 | packages/core | 书仓、状态推导、规划、账本、记忆、检索、导出与安全写入 |
-| packages/bundle | 宿主接线、原生客户端、随包技能和打包；内含 retrieval（嵌入/场景/重排）与 companion（桌宠）子树 |
+| packages/bundle | 宿主接线、原生客户端、随包技能和打包；内含 retrieval（嵌入/场景/重排）子树 |
 | packages/drafting、review、polish | 写稿、审读和修改相关实现 |
 | scripts/release | 公开源码检查、版本、许可证、发行与安装验收 |
 

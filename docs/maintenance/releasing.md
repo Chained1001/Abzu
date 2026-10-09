@@ -13,7 +13,7 @@
 - 从 8.0.0 起仅发布正式 SemVer，兼容修复递增 patch，功能更新递增 minor；每份公开安装包版本唯一。
 - 兼容修复递增 patch；0.x 的新增能力/不兼容变化递增 minor，并说明迁移影响。
 - 1.x 后按 SemVer 承诺：破坏兼容递增 major，兼容功能 minor，修复 patch。
-- 纯文档修改不必发包。内部 workspace 包不独立发版。0.0.2 起四包合一：`abzu` 是唯一安装包，工作台、检索增强与桌宠随它同版发行，不再有可选组件组合与"四包同版"约束。
+- 纯文档修改不必发包。内部 workspace 包不独立发版。0.0.2 起四包合一：`abzu` 是唯一安装包，工作台与检索增强随它同版发行（0.0.4 起桌宠移除），不再有可选组件组合与"四包同版"约束。
 - 0.0.1 及更早的四包同版机制（abzu / abzu-retrieval / abzu-companion / abzu-full）已废止；若将来拆回组件发版，须同时修改 version/build、manifest 与兼容安装矩阵，不能只改版本号或文案。
 
 tag、CHANGELOG、包版本和附件必须对应。不得替换已发布同版本的字节；有错误就发布新版本。源码/打包位级可复现未作保证，验收和上传必须使用同一份生成的 tgz。
@@ -68,7 +68,7 @@ Release 草稿生成时，发布器核对公共 SHA、tag、包身份、版本�
 确认版本已可见后，以同一标签运行 `phase=verify`：
 
 ```text
-gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v0.0.3 -f phase=verify
+gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v0.0.4 -f phase=verify
 ```
 
 verify 阶段不运行 npm publish、不携带 npm token。附件及 manifest 仍完整校验；registry 核对 `abzu` 的版本、latest 与 SHA512，再做独立 registry 安装验收，成功才公开草稿。任何缺失、哈希不符、HTTP 错误或安装失败仍使流程失败。新 Release 标题为 `Abzu v<version>`，标签仍为 `abzu-v<version>`。

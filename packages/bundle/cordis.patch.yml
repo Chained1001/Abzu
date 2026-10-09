@@ -7,5 +7,3 @@
       name: 'abzu/scenes'
     - id: abzu-reranking
       name: 'abzu/reranking'
-    - id: abzu-companion
-      name: 'abzu/companion'

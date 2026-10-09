@@ -39,16 +39,15 @@ checkPublishableManifest(manifest)
 assert.equal(manifest.license, 'GPL-3.0-only')
 assert.equal(manifest.dsh.bundle.patch, './cordis.patch.yml')
 for (const [subpath, entry] of [['.', './lib/index.js'], ['./client', './lib/client.js'], ['./embeddings', './lib/embeddings.js'],
-  ['./scenes', './lib/scenes.js'], ['./reranking', './lib/reranking.js'], ['./companion', './lib/companion.js']]) {
+  ['./scenes', './lib/scenes.js'], ['./reranking', './lib/reranking.js']]) {
   assert.equal(manifest.exports?.[subpath], entry, `Missing export: ${subpath}`)
 }
-// 五条 insert 与宿主五入口一一对应；id 逐字沿用四包时代取值，迁移零成本。
+// 四条 insert 与宿主四入口一一对应；id 逐字沿用四包时代取值，迁移零成本。
 assert.deepEqual(parse(read('cordis.patch.yml')), [{ insert: [
   { id: 'abzu', name: manifest.name },
   { id: 'abzu-embeddings', name: `${manifest.name}/embeddings` },
   { id: 'abzu-scenes', name: `${manifest.name}/scenes` },
   { id: 'abzu-reranking', name: `${manifest.name}/reranking` },
-  { id: 'abzu-companion', name: `${manifest.name}/companion` },
 ] }])
 for (const hook of ['preinstall', 'install', 'postinstall', 'prepare']) assert.equal(manifest.scripts?.[hook], undefined)
 for (const [name, version] of Object.entries({ ...manifest.dependencies, ...manifest.peerDependencies })) {
@@ -67,7 +66,7 @@ for (const reference of referenceDocs) assert.ok(read(reference).trim(), `Empty 
 for (const script of scripts) assert.match(read(script), /new URL\(['"]\.\.\/\.\.\/\.\.\/lib\/index\.js['"], import\.meta\.url\)/)
 for (const entry of entries) {
   const rel = entry.slice('package/'.length)
-  assert.ok(/^(package\.json|README\.md|THIRD_PARTY_NOTICES\.md|MODEL_DIMENSIONS\.md|MEDIA\.md|licenses\/[^/]+\.txt|LICENSE|cordis\.patch\.yml|assets\/manifest\.json|lib\/(index|client|embeddings|scenes|reranking|companion)\.js|skills\/[\w-]+\/.+\.(md|mjs))$/.test(rel), `Unexpected release file: ${rel}`)
+  assert.ok(/^(package\.json|README\.md|THIRD_PARTY_NOTICES\.md|MODEL_DIMENSIONS\.md|licenses\/[^/]+\.txt|LICENSE|cordis\.patch\.yml|lib\/(index|client|embeddings|scenes|reranking)\.js|skills\/[\w-]+\/.+\.(md|mjs))$/.test(rel), `Unexpected release file: ${rel}`)
   const text = read(rel)
   assert.ok(!text.includes(path.resolve(packageRoot, '../..')), `Workspace path embedded in ${rel}`)
   assert.ok(!/-----BEGIN .*PRIVATE KEY-----|sk-[A-Za-z0-9]{24,}/.test(text), `Credential in ${rel}`)
@@ -78,22 +77,14 @@ assert.ok(read('THIRD_PARTY_NOTICES.md').includes('Original notices'))
 assert.ok(entries.some(entry => entry.startsWith('package/licenses/')))
 assert.ok(read('README.md').includes('--from-default-profile web'))
 assert.ok(read('MODEL_DIMENSIONS.md').includes('常用向量模型维度表'))
-assert.ok(read('MEDIA.md').length > 0, 'Missing companion media notes')
 assert.ok(read('lib/client.js').includes(`id: ${JSON.stringify(manifest.name)}`))
-// 桌宠媒体以内嵌 dataurl 随 client.js 分发；逐条核对哈希防止素材悄悄损坏或缺失。
-const clientText = read('lib/client.js')
-const embedded = [...clientText.matchAll(/data:[^"']+?;base64,([A-Za-z0-9+/=]+)/g)]
-  .map(match => createHash('sha256').update(Buffer.from(match[1], 'base64')).digest('hex'))
-const media = JSON.parse(read('assets/manifest.json'))
-assert.equal(Object.keys(media.assets).length, 10)
-for (const asset of [...Object.values(media.assets), media.poster]) assert.ok(embedded.includes(asset.sha256), 'Missing/corrupt embedded media: ' + asset.file)
 // 每个宿主入口都自包含：除已声明 peers 与 Node 内置外不得再引外部模块。
-for (const entry of ['index', 'embeddings', 'scenes', 'reranking', 'companion']) {
+for (const entry of ['index', 'embeddings', 'scenes', 'reranking']) {
   const compiled = await build({ entryPoints: [path.join(extracted, `lib/${entry}.js`)], bundle: true, packages: 'external', write: false, metafile: true, platform: 'node', format: 'esm', logLevel: 'silent' })
   const imports = [...new Set(Object.values(compiled.metafile.outputs).flatMap(output => output.imports).map(item => item.path))]
   for (const name of imports) assert.ok(isBuiltin(name) || manifest.peerDependencies?.[name] || manifest.dependencies?.[name], `Undeclared packed import in lib/${entry}.js: ${name}`)
   assert.equal(Object.keys(compiled.metafile.inputs).length, 1, `Packed lib/${entry}.js must be self-contained apart from declared peers`)
 }
-const report = { package: manifest.name, version: manifest.version, tarball, sha256: createHash('sha256').update(fs.readFileSync(tarball)).digest('hex'), files: entries.length, skills: skillNames.length, scripts: scripts.length, embeddedMedia: embedded.length, ok: true }
+const report = { package: manifest.name, version: manifest.version, tarball, sha256: createHash('sha256').update(fs.readFileSync(tarball)).digest('hex'), files: entries.length, skills: skillNames.length, scripts: scripts.length, ok: true }
 fs.writeFileSync(path.join(temp, 'report.json'), JSON.stringify(report, null, 2) + '\n')
 console.log(JSON.stringify({ ...report, report: path.join(temp, 'report.json') }, null, 2))
