@@ -60,7 +60,7 @@ export function writeNotices(packageRoot, builds) {
     expected.add(filename)
     const text = [`${entry.name}@${entry.version}`, `SPDX: ${entry.license}`, `Repository: ${entry.repository ?? 'see package metadata'}`, '',
       ...entry.files.flatMap(name => [`--- ${name} ---`, fs.readFileSync(path.join(entry.licenseDirectory, name), 'utf8'), ''])].join('\n')
-    fs.writeFileSync(path.join(licenses, filename), text.trimEnd() + '\n')
+    fs.writeFileSync(path.join(licenses, filename), text.replaceAll('\r\n', '\n').trimEnd() + '\n')
     rows.push(`| ${entry.name} | ${entry.version} | ${entry.license} | [${entry.files.includes('DECLARATION.txt') ? 'Declaration and license terms' : 'Original notices'}](licenses/${filename}) |`)
   }
   // Only previously generated regular notice files in this exact directory.
@@ -73,7 +73,7 @@ export function writeNotices(packageRoot, builds) {
     'The application is GPL-3.0-only; these components retain their own licenses. For DOMPurify, this distribution elects the Apache-2.0 option.',
     'Shared DSH/React peers are provided by the host and are not included in this bundle. Their exact versions are recorded in package.json.', '',
     '| Component | Version | License | Text |', '| --- | --- | --- | --- |', ...rows, '',
-    'The release includes source materials and a manifest for these bundled components. Build from the corresponding public source tag with the lockfile.', '',
+    'Build from the corresponding public source tag with the lockfile.', '',
   ].join('\n'))
   fs.writeFileSync(path.join(packageRoot, 'lib', 'third-party-inputs.json'), JSON.stringify(entries, null, 2) + '\n')
   console.log(`[licenses] ${path.basename(packageRoot)}: ${entries.length} bundled components`)

@@ -73,7 +73,7 @@ Shared DSH/React peers are provided by the host and are not included in this bun
 | yaml | 2.9.0 | ISC | [Original notices](licenses/yaml--2.9.0.txt) |
 | yauzl | 3.4.0 | MIT | [Original notices](licenses/yauzl--3.4.0.txt) |
 
-The release includes source materials and a manifest for these bundled components. Build from the corresponding public source tag with the lockfile.
+Build from the corresponding public source tag with the lockfile.
 
 ## Archify artwork
 

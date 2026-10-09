@@ -1,12 +1,12 @@
 # Abzu v8
 
-> Abzu 0.0.5 正式版配套 **DSH 0.2.0-rc.2**，单包 `abzu` 集成工作台与检索增强。旧版升级先备份，参阅安装与升级说明。
+> Abzu 0.0.7 配套 **DSH 0.2.0-rc.2**，单包 `abzu` 集成工作台与检索增强。旧版升级先备份，参阅安装与升级说明。
 
 基于 [DeepSeek Harness](https://www.deepseek.com/harness/) 的长篇小说写作工作台。把构想、设定、大纲、写章、审读、修改、定稿、记忆与导出放进一个能够暂停和继续的工作流程，作品以本地文件保存。
 
-**正式版：0.0.5。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
+**当前版本：0.0.7。私有自用开发，将来可能公开发布；基于 webnovel-writer v8.2.0 深度改造。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
 
-Abzu is a local-first fiction writing workspace for DeepSeek Harness. Version 0.0.5 ships the workbench and the retrieval add-ons in a single package; it includes a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
+Abzu is a local-first fiction writing workspace for DeepSeek Harness. It includes a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
 
 **旧项目升级须知（0.0.1 起）：请补充并确认作品契约中的“章节篇幅”。** 先备份并保留原契约内容，再约定目标汉字数与宽松上下限。未配置的旧书仍可继续使用，但不会启用篇幅范围核对。完整步骤和可复制请求见 [旧项目契约更新](docs/user/upgrade-backup.md#旧项目需要更新作品契约)。
 
@@ -50,15 +50,6 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 - **八维多模块严苛审读**：
   - 覆盖章节结构、人物塑造、情节节奏、世界观、主题情绪、伏笔悬念、文笔文风与文本规范八大维度，结合确定性正文汉字数统计，确保长篇连载质量稳定。
 
-## 选择版本
-
-| 产品线 | 运行环境 | 入口 |
-| --- | --- | --- |
-| v6 | Claude Code 插件 | 历史产品线，文档与安装见原仓库 webnovel-writer 的 master 分支 |
-| v8（本分支） | DeepSeek Harness 工作台 | [安装教程](docs/user/install.md) |
-
-两个版本安装方式不同。当前没有经过验证的 v6/v7 书仓直接迁移方案。`v8` 是产品线名称，`0.0.4` 是工作台安装包版本。
-
 ## 能做什么
 
 - 从开放式灵感探索逐步收敛到作品契约、世界书和卷章大纲。
@@ -73,11 +64,16 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 
 ## 开始使用
 
+安装分两条口径：
+
+- **当前（私有自用）**：从源码本地构建 tgz，用 `dsh plugin add <tgz路径>` 安装；构建与安装步骤见 [安装教程](docs/user/install.md)，命令行示例见 [插件包说明](packages/bundle/README.md)。
+- **公开发布后**：从 GitHub Release 下载对应版本 `abzu-0.0.7.tgz` 式的发行件与校验和，再按同一方式安装；发布入口在公开发布时公布。
+
 1. 安装配套的 **DSH 0.2.0-rc.2** 桌面端，打开侧栏 **插件 → 添加插件**。
-2. 输入 `abzu@0.0.7`，核对预览并安装，按提示应用变更。
+2. 安装本地构建的 tgz 发行件（包名 `abzu`，本版对应 `abzu@0.0.7`），核对预览并安装，按提示应用变更。
 3. 配置聊天模型与凭据，选择作品工作区，按 [第一本书与第一章](docs/user/first-book.md) 开始。
 
-逐步说明见 [安装教程](docs/user/install.md) 和 [新手教程](docs/user/beginner.md)。正式版发布到 npm latest，教程使用精确版本便于核对宿主。
+逐步说明见 [安装教程](docs/user/install.md) 和 [新手教程](docs/user/beginner.md)。
 
 从 0.0.2 起只有一个安装入口：检索增强已并入主包，随主包一起更新，不再单独发版（0.0.4 起鲸鱼娘桌宠移除）。旧包（0.0.1 的 abzu-retrieval / abzu-companion / abzu-full 及更早的 webnovel-embedding-provider、@linfengqaqtat/dsh-whale-companion）迁移与备份见 [升级说明](docs/user/upgrade-backup.md)，不要让旧入口与新包同时启用。
 
@@ -98,6 +94,4 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 
 本项目为内部自用项目，不设公开交流渠道。安全问题按 [SECURITY.md](SECURITY.md) 私下处理，不公开粘贴密钥或作品。
 
-项目继承 [GPL-3.0-only](LICENSE)，可依照许可证使用、修改及分发，包括商用；保留必要声明，并在分发时履行相应源码等义务。仅使用本工具创作不会自动要求你的小说采用 GPL。模型服务及第三方素材适用各自条款。
-
-本项目基于 GPL-3.0 的 webnovel-writer v8 代码库修改，私有自用；若将来分发须遵循 GPL-3.0 并保留第三方声明（packages/*/licenses/ 与 THIRD_PARTY_NOTICES.md）。
+项目继承 [GPL-3.0-only](LICENSE)，可依照许可证使用、修改及分发，包括商用；保留必要声明，并在分发时履行相应源码等义务（第三方声明见 packages/*/licenses/ 与 THIRD_PARTY_NOTICES.md）。仅使用本工具创作不会自动要求你的小说采用 GPL。模型服务及第三方素材适用各自条款。

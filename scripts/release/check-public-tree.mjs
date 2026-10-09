@@ -4,14 +4,19 @@ import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const rootFiles = new Set(['.gitattributes', '.gitignore', '.npmrc', '.node-version', 'LICENSE', 'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CODE_OF_CONDUCT.md', 'CONTEXT.md', 'dsh-baseline.json', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'vitest.config.ts', 'eslint.config.mjs'])
+const rootFiles = new Set(['.gitattributes', '.gitignore', '.npmrc', '.node-version', 'LICENSE', 'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CONTEXT.md', 'dsh-baseline.json', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'vitest.config.ts', 'eslint.config.mjs'])
 export function checkPublicPath(file) {
   assert.ok(!file.includes('\\') && !file.includes(':') && !file.startsWith('/') && !file.split('/').includes('..'), `Unsafe public path: ${file}`)
-  assert.ok(rootFiles.has(file) || /^(packages|scripts\/release|docs\/(user|maintenance|design)|examples|site|\.github)\//.test(file)
+  assert.ok(rootFiles.has(file) || /^(packages|scripts\/release|docs\/(user|maintenance|design)|examples|\.github)\//.test(file)
     || /^docs\/(development|book-format)\.md$/.test(file) || /^scripts\/(benchmark-(derive|impact|search)|strip-types-loader)\.mjs$/.test(file), `File outside public allowlist: ${file}`)
   assert.ok(!/(^|\/)(\.trellis|\.credentials[^/]*|session[^/]*\.jsonl|node_modules|\.env(?:\..*)?|\.abzu)(\/|$)/.test(file), `Private content path: ${file}`)
   assert.notEqual(file, 'packages/bundle/dsh-local.yml', 'Local instance config is private')
 }
+
+// History-only paths: deleted from the current tree but still present in past commits.
+const historyFiles = new Set(['CODE_OF_CONDUCT.md'])
+const historyPrefixes = ['site/']
+const isHistoryOnly = file => historyFiles.has(file) || historyPrefixes.some(prefix => file.startsWith(prefix))
 export function checkPublicText(file, data) {
   const text = data.toString('utf8')
   assert.ok(!/-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9_-]{30,}/.test(text), `Possible credential in ${file}; value withheld`)
@@ -50,7 +55,7 @@ export function checkTree(root, history = true) {
         const meta = line.slice(0, separator)
         const file = line.slice(separator + 1)
         const [mode, kind, oid] = meta.split(' ')
-        checkPublicPath(file)
+        if (!isHistoryOnly(file)) checkPublicPath(file)
         assert.ok(kind === 'blob' && ['100644', '100755'].includes(mode), `Non-regular history entry: ${file}`)
         if (!blobs.has(oid)) blobs.set(oid, file)
       }
