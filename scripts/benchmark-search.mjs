@@ -10,7 +10,7 @@ register('./strip-types-loader.mjs', import.meta.url)
 const { searchFinalized } = await import('../packages/core/src/retrieval/search.ts')
 const { syncFinalizedIndex } = await import('../packages/core/src/retrieval/sync.ts')
 const { SearchCache } = await import('../packages/core/src/retrieval/cache.ts')
-const { HttpEmbeddingProvider } = await import('../packages/embedding-provider/src/http.ts')
+const { HttpEmbeddingProvider } = await import('../packages/bundle/src/retrieval/http.ts')
 const { removeSync } = await import('../packages/core/src/repo/remove.ts')
 
 const outputArg = process.argv.indexOf('--out')

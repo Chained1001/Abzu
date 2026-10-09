@@ -23,10 +23,21 @@ import indexStyles from './indexing.css'
 import { installIndexSidebar } from './indexing'
 import { installNovelToolCards } from './tool-result-card'
 import resultStyles from './tool-result.css'
+import { apply as applyRetrievalClient, inject as retrievalClientInject } from '../retrieval/client'
+import { apply as applyCompanionClient, inject as companionClientInject } from '../companion/client'
 
-export const inject = ['slots', 'sidebarRight', 'sidebarRightTabs', 'conversation', 'sessions', 'uiWorkspace', 'remote', 'remote.workspaceFiles']
+const workbenchInject = ['slots', 'sidebarRight', 'sidebarRightTabs', 'conversation', 'sessions', 'uiWorkspace', 'remote', 'remote.workspaceFiles']
 
-export function apply(host: ClientHost) {
+/** 检索与桌宠客户端并入同一产物：inject 取三组并集，apply 依次调用。 */
+export const inject = [...new Set([...workbenchInject, ...retrievalClientInject, ...companionClientInject])]
+
+export function apply(host: ClientHost & Parameters<typeof applyRetrievalClient>[0] & Parameters<typeof applyCompanionClient>[0]) {
+  applyWorkbench(host)
+  applyRetrievalClient(host)
+  applyCompanionClient(host)
+}
+
+function applyWorkbench(host: ClientHost) {
   installNovelToolCards(host)
   const store = createEditorStore(id => openWritingDocument(host, store, id))
   const openIndex = installIndexSidebar(host)

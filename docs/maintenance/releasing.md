@@ -13,8 +13,8 @@
 - 从 8.0.0 起仅发布正式 SemVer，兼容修复递增 patch，功能更新递增 minor；每份公开安装包版本唯一。
 - 兼容修复递增 patch；0.x 的新增能力/不兼容变化递增 minor，并说明迁移影响。
 - 1.x 后按 SemVer 承诺：破坏兼容递增 major，兼容功能 minor，修复 patch。
-- 纯文档修改不必发包。内部 workspace 包不独立发版。当前发行器要求主包、full、检索、桌宠四包同版；每次发布逐组件注明实际变化，无功能变化的组件标为兼容发行。安装仍可选，用户无需为主包升级新增不使用的组件；推荐组合是经过本批验证的同版本。
-- 若未来改为组件独立发版，须同时修改 version/build/publish、manifest、full 的精确依赖、同版本原件复用和兼容安装矩阵；不能只改版本号或文案。本次 0.0.1 保留现有四包同版机制。
+- 纯文档修改不必发包。内部 workspace 包不独立发版。0.0.2 起四包合一：`abzu` 是唯一安装包，工作台、检索增强与桌宠随它同版发行，不再有可选组件组合与"四包同版"约束。
+- 0.0.1 及更早的四包同版机制（abzu / abzu-retrieval / abzu-companion / abzu-full）已废止；若将来拆回组件发版，须同时修改 version/build、manifest 与兼容安装矩阵，不能只改版本号或文案。
 
 tag、CHANGELOG、包版本和附件必须对应。不得替换已发布同版本的字节；有错误就发布新版本。源码/打包位级可复现未作保证，验收和上传必须使用同一份生成的 tgz。
 
@@ -35,13 +35,13 @@ pnpm test:release
 pnpm release:build
 ```
 
-`release:build` 拒绝脏源码、非公开文件和非空输出目录；构建后核对声明，pack 一次，检查主包和可选包，生成对应源码、第三方源码材料、公开版本清单与 SHA256SUMS。输出默认在 `.tmp/release/<version>/`。
+`release:build` 拒绝脏源码、非公开文件和非空输出目录；构建后核对声明，pack 一次并实包检查主包，生成对应源码、第三方源码材料、公开版本清单与 SHA256SUMS。输出默认在 `.tmp/release/<version>/`。
 
-标签创建后只修复发行工具时，可从已审阅的新公共工具 checkout 运行 `pnpm release:build -- --source <干净的原标签目录> --out <新空目录>`，并设置 `RELEASE_TAG`。源码 HEAD 必须等于该标签，版本与 manifest.publicCommit 仍来自原源码。若前次打包已完成、仅源码附件收集失败，额外传 `--packages <原四包目录>` 复用原 tgz，重新执行实包检查；禁止用它替换已发布附件或绕过源码/安装验收。
+标签创建后只修复发行工具时，可从已审阅的新公共工具 checkout 运行 `pnpm release:build -- --source <干净的原标签目录> --out <新空目录>`，并设置 `RELEASE_TAG`。源码 HEAD 必须等于该标签，版本与 manifest.publicCommit 仍来自原源码。若前次打包已完成、仅源码附件收集失败，额外传 `--packages <原包目录>` 复用原主包 tgz，重新执行实包检查；禁止用它替换已发布附件或绕过源码/安装验收。
 
 第三方源码定位来自已审阅工具中的 upstream-sources.json。默认必须提供准确上游提交；个别旧包确实只提供随 npm 分发的 TypeScript 源码时，只能按确切版本显式记录 registry 原件 integrity、源码文件数量和内容摘要。缺文件、内容或字节不符仍拒绝，清单明确 sourceKind 和无上游提交，不伪造 gitHead。
 
-对生成的同一主包、可选包和完整版执行 `pnpm release:smoke -- <main.tgz> <embedding.tgz> <full.tgz>`。它新装固定 DSH，分别创建主包和完整版的独立 Web profile，在源目录不可读的权限环境运行真实 Loader，再核对卸载/重装。首次 npm 发布前，临时本地 registry 提供完整版两个确切依赖的同批 tarball，其他公开依赖转向 npmjs；发布后的 `--registry` 验收全程使用 npmjs。需要 npm 随 Node 提供的 CLI；输出目录保留供故障调查，报告不能冒充真实模型创作验收。
+对生成的同一主包执行 `pnpm release:smoke -- <main.tgz>`。它新装固定 DSH，创建独立 Web profile，在源目录不可读的权限环境运行真实 Loader，再核对卸载/重装；发布后的 `--registry` 验收全程使用 npmjs。需要 npm 随 Node 提供的 CLI；输出目录保留供故障调查，报告不能冒充真实模型创作验收。
 
 人工再核对浏览器入口、配置与合成首章教程。模型服务的调用费用单独记录；不以程序回归替代模型质量判断。
 
@@ -55,29 +55,29 @@ Issue/PR 模板在默认 master 生效。v8 的 CI 使用 push/pull_request；�
 
 ## npm 正式包发布
 
-从 8.0.0 起，写作、检索增强、鲸鱼娘、完整版四个公开包同步版本，publishConfig 固定 public/latest/npmjs。根 workspace 与 @webnovel/* 不发布。旧 preview 标签保留历史，不再更新。
+从 8.0.0 起的四个公开包（写作、检索增强、鲸鱼娘、完整版）已在 0.0.2 合一为 `abzu` 单包发布，publishConfig 固定 public/latest/npmjs。根 workspace 与 @webnovel/* 不发布。旧 preview 标签保留历史，不再更新。
 
-Release 草稿生成时，发布器核对公共 SHA、tag、四包身份、版本、校验和、许可证与 full 精确依赖，对所有待发布包先 dry-run，再允许上传。同版本只能接受字节一致的重试，不能重新打包覆盖。
+Release 草稿生成时，发布器核对公共 SHA、tag、包身份、版本、校验和与许可证，对待发布包先 dry-run，再允许上传。同版本只能接受字节一致的重试，不能重新打包覆盖。
 
-正式 Release 设 prerelease=false、latest=true。发布使用 v8-npm-publish.yml，由仓库 NPM_TOKEN secret 在发布步骤中注入 NODE_AUTH_TOKEN；setup-node 为 npmjs 配置认证。token 须允许四包直接发布，并满足包的 2FA 要求，不能使用仅暂存权限的 token。id-token: write 仅用于 provenance 来源证明。验证 npm latest 与 SHA512 后，再跑空白 profile 的 registry 安装、卸载与重装验收。token 缺失、过期或无权限时保留发行草稿和产物，不能宣布发布完成。
+正式 Release 设 prerelease=false、latest=true。发布使用 v8-npm-publish.yml，由仓库 NPM_TOKEN secret 在发布步骤中注入 NODE_AUTH_TOKEN；setup-node 为 npmjs 配置认证。token 须允许 `abzu` 直接发布，并满足包的 2FA 要求，不能使用仅暂存权限的 token。id-token: write 仅用于 provenance 来源证明。验证 npm latest 与 SHA512 后，再跑空白 profile 的 registry 安装、卸载与重装验收。token 缺失、过期或无权限时保留发行草稿和产物，不能宣布发布完成。
 
 本地默认只预检：node scripts/release/publish-npm.mjs --assets <附件目录>。--verify-only 检查 registry；--publish 只在 Actions 中可用。
 
-发布工作流的 `phase=publish` 提交四包原件，随后检查主包、检索和完整版的 registry 可见性。npm 接收上传后可能继续处理近一小时；必需三包的版本或 latest 尚未就绪时，摘要显示 **Release pending registry processing**，安装与公开草稿步骤跳过。桌宠独立处理，不轮询它来阻塞主发布；发布说明必须明确未等待桌宠 registry 安装验证。上传完成不等于必需三包已完成发行验证。
+发布工作流的 `phase=publish` 提交主包原件，随后检查 `abzu` 的 registry 可见性。npm 接收上传后可能继续处理近一小时；版本或 latest 尚未就绪时，摘要显示 **Release pending registry processing**，安装与公开草稿步骤跳过。上传完成不等于已完成发行验证。
 
 确认版本已可见后，以同一标签运行 `phase=verify`：
 
 ```text
-gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v0.0.1 -f phase=verify
+gh workflow run v8-npm-publish.yml --ref v8 -f release_tag=abzu-v0.0.2 -f phase=verify
 ```
 
-verify 阶段不运行 npm publish、不携带 npm token。四包附件及 manifest 仍完整校验；registry 核对通过 `--exclude-companion` 只检查主包、检索、完整版的版本、latest 与 SHA512，再对这三包做独立 registry 安装验收，成功才公开草稿。任何必需包缺失、哈希不符、HTTP 错误或安装失败仍使流程失败。该排除选项不能用于上传模式，已提交的桌宠不重传。新 Release 标题为 `Abzu v<version>`，标签仍为 `abzu-v<version>`。
+verify 阶段不运行 npm publish、不携带 npm token。附件及 manifest 仍完整校验；registry 核对 `abzu` 的版本、latest 与 SHA512，再做独立 registry 安装验收，成功才公开草稿。任何缺失、哈希不符、HTTP 错误或安装失败仍使流程失败。新 Release 标题为 `Abzu v<version>`，标签仍为 `abzu-v<version>`。
 
 CI 的分片、诊断与历史失败分析见 [CI 维护说明](ci.md)。
 
 手动流程需要下载未公开的 draft 附件，因此 publish 和 installation job 的 GITHUB_TOKEN 需要 contents: write（只有读取权限会报 release not found）。这与 npm token 分开：NPM_TOKEN 仍仅注入 publish 的上传步骤，installation 不携带 npm 凭据；安装验证通过后 finalize 才公开 draft。
 
-安装验收必须传入 --companion <同批桌宠.tgz>。full 只依赖写作与检索，桌宠独立安装。用户通过侧栏插件页安装，进阶命令见 [CLI 维护说明](cli-install.md)。
+用户通过侧栏插件页安装，进阶命令见 [CLI 维护说明](cli-install.md)。
 
 ### 早期 preview 发行记录
 

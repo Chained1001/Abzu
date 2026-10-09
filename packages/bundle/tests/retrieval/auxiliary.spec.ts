@@ -3,9 +3,9 @@ import { createServer, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { Context, Service } from '@deepseek-ai/cordis'
-import { AuxiliaryService } from '../src/auxiliary'
-import { HostSceneProvider, HttpRerankingProvider } from '../src/auxiliary-models'
-import { resolveSceneSettings, resolveRerankSettings } from '../src/auxiliary-config'
+import { AuxiliaryService } from '../../src/retrieval/auxiliary'
+import { HostSceneProvider, HttpRerankingProvider } from '../../src/retrieval/auxiliary-models'
+import { resolveSceneSettings, resolveRerankSettings } from '../../src/retrieval/auxiliary-config'
 
 const cleanups: Array<() => Promise<unknown>> = []
 afterEach(async () => { for (const close of cleanups.splice(0).reverse()) await close() })

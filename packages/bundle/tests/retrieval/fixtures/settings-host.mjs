@@ -4,7 +4,7 @@ import * as path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createServer } from 'node:http'
 import * as appBoot from '@deepseek-ai/dsh-app-boot'
-import { createSettingsProfile } from '../../../bundle/tests/fixtures/settings-profile.mjs'
+import { createSettingsProfile } from '../../fixtures/settings-profile.mjs'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 
 const root = process.argv[2]

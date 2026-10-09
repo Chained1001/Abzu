@@ -25,7 +25,7 @@ async function download(url) {
 /** Publish package distributions and pinned upstream sources, never local paths. */
 export async function collectDependencySources(root, output) {
   const components = new Map()
-  for (const pkg of ['bundle', 'embedding-provider']) {
+  for (const pkg of ['bundle']) {
     const entries = JSON.parse(fs.readFileSync(path.join(root, 'packages', pkg, 'lib/third-party-inputs.json'), 'utf8'))
     for (const entry of entries) components.set(`${entry.name}@${entry.version}`, entry)
   }

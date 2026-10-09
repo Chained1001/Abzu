@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import manifest from '../assets/manifest.json'
+import manifest from '../../assets/manifest.json'
 import { actions, labels, sizes, constrain, type CompanionStore, type Position } from './state'
 import { PetPlayer } from './player'
 

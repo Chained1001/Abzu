@@ -1,21 +1,21 @@
 # Abzu v8
 
-> Abzu 0.0.1 正式版配套 **DSH 0.2.0-rc.2**，三个功能插件与完整版均为 0.0.1。旧版升级先备份，参阅安装与升级说明。
+> Abzu 0.0.2 正式版配套 **DSH 0.2.0-rc.2**，单包 `abzu` 集成工作台、检索增强与鲸鱼娘桌宠。旧版升级先备份，参阅安装与升级说明。
 
 基于 [DeepSeek Harness](https://www.deepseek.com/harness/) 的长篇小说写作工作台。把构想、设定、大纲、写章、审读、修改、定稿、记忆与导出放进一个能够暂停和继续的工作流程，作品以本地文件保存。
 
-**正式版：0.0.1。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
+**正式版：0.0.2。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
 
 [![Abzu 项目介绍视频](docs/user/images/video-poster.png)](docs/user/media/intro.mp4)
 
 > 📹 **2 分钟视频快速了解 Abzu**：[点击播放或下载视频 (1080P/MP4)](docs/user/media/intro.mp4) · [字幕文件](docs/user/media/intro.srt)  
 > 视频演示了核心设计理念、全流程写作闭环、断更无损恢复以及书稿编辑器的交互操作。
 
-Abzu is a local-first fiction writing workspace for DeepSeek Harness. Version 0.0.1 is the first Abzu release, based on webnovel-writer 8.2.0; it includes a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
+Abzu is a local-first fiction writing workspace for DeepSeek Harness. Version 0.0.2 merges the retrieval add-ons and the desktop companion into a single package; it includes a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
 
-**0.0.1 旧项目升级须知：请补充并确认作品契约中的“章节篇幅”。** 先备份并保留原契约内容，再约定目标汉字数与宽松上下限。未配置的旧书仍可继续使用，但不会启用篇幅范围核对。完整步骤和可复制请求见 [旧项目契约更新](docs/user/upgrade-backup.md#旧项目需要更新作品契约)。
+**旧项目升级须知（0.0.1 起）：请补充并确认作品契约中的“章节篇幅”。** 先备份并保留原契约内容，再约定目标汉字数与宽松上下限。未配置的旧书仍可继续使用，但不会启用篇幅范围核对。完整步骤和可复制请求见 [旧项目契约更新](docs/user/upgrade-backup.md#旧项目需要更新作品契约)。
 
-本版带来新的书稿编辑器：直接编辑正文，选区或右键发起润色、扩写、精简、续写与审读，逐条决定是否采纳，再保存。详见 [新编辑器图文教程](docs/user/editor.md)。
+书稿编辑器（0.0.1 引入）：直接编辑正文，选区或右键发起润色、扩写、精简、续写与审读，逐条决定是否采纳，再保存。详见 [新编辑器图文教程](docs/user/editor.md)。
 
 ## 创作工作流程
 
@@ -50,7 +50,7 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
   - 创作进度完全从书仓 Markdown 实际文件与 Git 提交记录推导，不依赖易丢失的会话聊天上下文。无论停更数天还是数月，回到主对话说一句“继续”，即刻准确定位进度与当前待办。
 - **AI 辅助创作，作者牢牢掌舵**：
   - 主控严守“不代写正文、不伪造审查结论、不代作者批准”原则。正文起草与润色交由专注子代理；最终定稿与情节走向的裁决权始终留给作者。
-- **0.0.1 全新书稿编辑器**：
+- **书稿编辑器（0.0.1 引入）**：
   - 原地可视化选区：右键或快捷键（Ctrl+K）发起润色、扩写、精简、续写或审读批注；行内建议支持逐条采纳、拒绝或换一版，修改即时预览。
 - **八维多模块严苛审读**：
   - 覆盖章节结构、人物塑造、情节节奏、世界观、主题情绪、伏笔悬念、文笔文风与文本规范八大维度，结合确定性正文汉字数统计，确保长篇连载质量稳定。
@@ -62,7 +62,7 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 | v6 | Claude Code 插件 | 历史产品线，文档与安装见原仓库 webnovel-writer 的 master 分支 |
 | v8（本分支） | DeepSeek Harness 工作台 | [安装教程](docs/user/install.md) |
 
-两个版本安装方式不同。当前没有经过验证的 v6/v7 书仓直接迁移方案。`v8` 是产品线名称，`0.0.1` 是工作台安装包版本。
+两个版本安装方式不同。当前没有经过验证的 v6/v7 书仓直接迁移方案。`v8` 是产品线名称，`0.0.2` 是工作台安装包版本。
 
 ## 能做什么
 
@@ -71,28 +71,20 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 - 生成章节草稿，执行审读、修改与定稿流程；关键写入保留作者确认。
 - 从实际文件校准进度，暂停后继续，记录故事账本和本书记忆。
 - 在书房查看、编辑和引用材料，浏览章节、故事图谱及当前会话的写作流程状态。
-- 检索已定稿内容；可选安装嵌入/场景/重排提供方。
+- 检索已定稿内容；嵌入/场景/重排提供方内置于同一安装包，默认关闭。
 - 生成卷摘要候选、核对卷末状态、导出定稿合集和来源清单。
 
-主包包含 11 个运行技能和 7 个脚本入口。嵌入提供方是独立可选包，基础写作无需先配置向量服务。模型创作质量、长篇一致性和费用会随模型与操作方式变化，不承诺无人值守完成整本书。
+单包包含 11 个运行技能、7 个脚本入口以及嵌入/场景/重排提供方与鲸鱼娘桌宠；检索与桌宠默认关闭，基础写作无需先配置向量服务。模型创作质量、长篇一致性和费用会随模型与操作方式变化，不承诺无人值守完成整本书。
 
 ## 开始使用
 
 1. 安装配套的 **DSH 0.2.0-rc.2** 桌面端，打开侧栏 **插件 → 添加插件**。
-2. 输入 `abzu@0.0.1`，核对预览并安装，按提示应用变更。
+2. 输入 `abzu@0.0.2`，核对预览并安装，按提示应用变更。
 3. 配置聊天模型与凭据，选择作品工作区，按 [第一本书与第一章](docs/user/first-book.md) 开始。
 
 逐步说明见 [安装教程](docs/user/install.md) 和 [新手教程](docs/user/beginner.md)。正式版发布到 npm latest，教程使用精确版本便于核对宿主。
 
-| 可选插件 | 安装标识 | 用途 |
-| --- | --- | --- |
-| 检索增强 | `abzu-retrieval@0.0.1` | 嵌入、场景识别、重排，分别配置和启用 |
-| 鲸鱼娘 | `abzu-companion@0.0.1` | 窗口内陪伴与会话状态反馈，不调用模型 |
-| 完整版 | `abzu-full@0.0.1` | 聚合写作和检索，不含桌宠；与单独安装二选一 |
-
-旧包迁移与备份见 [升级说明](docs/user/upgrade-backup.md)，不要同时启用旧检索包和新检索包。
-
-本次四包统一发行 0.0.1；检索增强与鲸鱼娘仅同步兼容版本，没有新增功能。只更新你实际使用的组件；不用检索或桌宠就无需安装它们。已验证的推荐组合为同版本，full 的主包与检索由依赖一起更新，桌宠始终独立。
+从 0.0.2 起只有一个安装入口：检索增强与鲸鱼娘桌宠已并入主包，随主包一起更新，不再单独发版。旧包（0.0.1 的 abzu-retrieval / abzu-companion / abzu-full 及更早的 webnovel-embedding-provider、@linfengqaqtat/dsh-whale-companion）迁移与备份见 [升级说明](docs/user/upgrade-backup.md)，不要让旧入口与新包同时启用。
 
 ## 文档
 

@@ -10,7 +10,7 @@ assert.throws(() => fs.readFileSync(blockedSource), { code: 'ERR_ACCESS_DENIED' 
 const require = createRequire(hostAnchor)
 const checkEmbedding = process.argv.includes('--embedding')
 const packageRequire = checkEmbedding
-  ? createRequire(require.resolve('abzu-full/package.json', { paths: [profile] }))
+  ? createRequire(require.resolve('abzu/package.json', { paths: [profile] }))
   : createRequire(path.join(profile, 'package.json'))
 const packageEntry = packageRequire.resolve('abzu')
 const { boot, PluginPackages } = await import(pathToFileURL(require.resolve('@deepseek-ai/dsh-app-boot')).href)
@@ -24,8 +24,8 @@ if (checkEmbedding) {
   config.unshift({ id: 'llm', name: pathToFileURL(require.resolve('@deepseek-ai/dsh-llm')).href })
   config.unshift({ id: 'credentials', name: pathToFileURL(require.resolve('@deepseek-ai/dsh-credentials-local')).href,
     config: { path: path.join(path.dirname(reportPath), 'full-credentials.yaml'), watch: false } })
-  for (const [id, subpath] of [['webnovel-embeddings', ''], ['webnovel-scenes', '/scenes'], ['webnovel-reranking', '/reranking']]) {
-    config.push({ id, name: pathToFileURL(packageRequire.resolve(`abzu-retrieval${subpath}`)).href })
+  for (const [id, subpath] of [['webnovel-embeddings', '/embeddings'], ['webnovel-scenes', '/scenes'], ['webnovel-reranking', '/reranking']]) {
+    config.push({ id, name: pathToFileURL(packageRequire.resolve(`abzu${subpath}`)).href })
   }
 }
 fs.writeFileSync(configPath, JSON.stringify(config))

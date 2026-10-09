@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { MODEL_DIMENSIONS } from '../src/model-dimensions'
-import { dimensionGuidance, knownDimensions, shouldSendDimensions } from '../src/models'
+import { MODEL_DIMENSIONS } from '../../src/retrieval/model-dimensions'
+import { dimensionGuidance, knownDimensions, shouldSendDimensions } from '../../src/retrieval/models'
 
 describe('常用模型维度表', () => {
   it('名称唯一、维度合法，每项有来源和核对日期', () => {

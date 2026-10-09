@@ -5,7 +5,6 @@ import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { root as toolingRoot, releaseVersion } from './version.mjs'
 import { checkTree } from './check-public-tree.mjs'
-import { checkEmbeddingPackage, checkMetaPackage } from './tar.mjs'
 import { collectDependencySources } from './dependency-sources.mjs'
 import { restoreNoticeLineEndings } from './release-source.mjs'
 
@@ -40,18 +39,6 @@ assert.equal(git(['status', '--porcelain']), '', 'Build changed tracked notices 
 pack('packages/bundle', info.filename)
 const main = path.join(output, info.filename)
 pnpm(['--filter', info.packageName, 'pack-check', main])
-const embedding = JSON.parse(fs.readFileSync(path.join(root, 'packages/embedding-provider/package.json'), 'utf8'))
-const embeddingTarball = `abzu-retrieval-${embedding.version}.tgz`
-pack('packages/embedding-provider', embeddingTarball)
-checkEmbeddingPackage(path.join(output, embeddingTarball), embedding.version)
-const meta = JSON.parse(fs.readFileSync(path.join(root, 'packages/meta/package.json'), 'utf8'))
-const metaTarball = `abzu-full-${meta.version}.tgz`
-pack('packages/meta', metaTarball)
-checkMetaPackage(path.join(output, metaTarball), info.version, embedding.version)
-const companion = JSON.parse(fs.readFileSync(path.join(root, 'packages/companion/package.json'), 'utf8'))
-const companionTarball = `abzu-companion-${companion.version}.tgz`
-pack('packages/companion', companionTarball)
-pnpm(['--filter', companion.name, 'pack-check', path.join(output, companionTarball)])
 const source = `abzu-${info.version}-source.tar.gz`
 git(['archive', '--format=tar.gz', '--prefix=abzu-source/', `--output=${path.join(output, source)}`, 'HEAD'])
 // 自用构建可 ABZU_SKIP_SOURCES=1 跳过第三方源码材料拉取（GPL 分发合规件，网络易超时；将来对外分发时去掉此开关恢复）
@@ -61,11 +48,7 @@ const assets = fs.readdirSync(output).filter(file => fs.statSync(path.join(outpu
 const manifest = { schemaVersion: 1, ...info, publicCommit: git(['rev-parse', 'HEAD']), node: process.version,
   pnpm: JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).packageManager.split('@').pop(),
   dsh: JSON.parse(fs.readFileSync(path.join(root, 'dsh-baseline.json'), 'utf8')).registry.version,
-  optionalPackages: [
-    { name: embedding.name, version: embedding.version, tarball: embeddingTarball },
-    { name: meta.name, version: meta.version, tarball: metaTarball },
-    { name: companion.name, version: companion.version, tarball: companionTarball }
-  ], dependencyCount: dependencies.length,
+  dependencyCount: dependencies.length,
   assets: assets.map(file => ({ file, sha256: hash(file) })) }
 fs.writeFileSync(path.join(output, 'release-manifest.json'), JSON.stringify(manifest, null, 2) + '\n')
 assets.push('release-manifest.json')

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { CompanionStore, constrain, readPreferences } from '../src/state'
+import { CompanionStore, constrain, readPreferences } from '../../src/companion/state'
 
 afterEach(() => vi.useRealTimers())
 describe('companion presentation', () => {

@@ -17,7 +17,15 @@ await new Promise((resolve, reject) => {
 const root = path.join(packageRoot, '.webnovel', 'local-server')
 fs.mkdirSync(root, { recursive: true })
 const patch = path.join(root, 'cordis.patch.yml')
-fs.writeFileSync(patch, JSON.stringify([{ insert: [{ id: 'webnovel', name: pathToFileURL(path.join(packageRoot, 'lib/index.js')).href }] }], null, 2) + '\n')
+// 本地开发 patch 与正式 cordis.patch.yml 同构:五条 insert,只是 name 指向本机 lib 产物。
+const localInserts = [
+  ['webnovel', 'lib/index.js'],
+  ['webnovel-embeddings', 'lib/embeddings.js'],
+  ['webnovel-scenes', 'lib/scenes.js'],
+  ['webnovel-reranking', 'lib/reranking.js'],
+  ['whale-companion', 'lib/companion.js'],
+].map(([id, file]) => ({ id, name: pathToFileURL(path.join(packageRoot, file)).href }))
+fs.writeFileSync(patch, JSON.stringify([{ insert: localInserts }], null, 2) + '\n')
 const stdout = fs.openSync(path.join(root, 'stdout.log'), 'w')
 const stderr = fs.openSync(path.join(root, 'stderr.log'), 'w')
 const child = spawn(process.execPath, [path.resolve(cli), '--profile', 'web', '--patch', patch, '--host', '127.0.0.1', '--port', String(port), '--no-open'], {

@@ -2,6 +2,24 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.2] — 2026-10-09
+
+四包合一：`abzu-retrieval`、`abzu-companion`、`abzu-full` 并入主包 `abzu`，单包 **0.0.2** 发行，继续配套 **DSH 0.2.0-rc.2**。
+
+### Changed
+
+- 单包统一：宿主侧五入口随主包提供——`abzu`（工作台）、`abzu/embeddings`、`abzu/scenes`、`abzu/reranking`（检索）与 `abzu/companion`（桌宠）；客户端合并为一个产物，桌宠媒体以 dataurl 内嵌。
+- 五条 insert id 逐字不变（`webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`）：用户 profile 里的设置命名空间、凭据引用与禁用状态升级后原样生效，零迁移成本；仅模块名从旧包名换为 `abzu/*` 子路径。
+- 检索增强与桌宠默认关闭，随主包一起安装与更新；不再有可选组件组合与“四包同版”约束。
+
+### Removed
+
+- 删除 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包及其独立构建/打包链；发行产物只剩 `abzu-0.0.2.tgz` 与源码附件。
+
+### Upgrade
+
+从 0.0.1 升级：停会话，卸载单独安装过的 `abzu-retrieval` / `abzu-companion` / `abzu-full`，更新 `abzu` 到 0.0.2；自定义 profile 覆盖里的模块引用按维护文档换成 `abzu/*` 子路径，条目 id 与凭据引用不动。步骤见 [安装教程](docs/user/install.md) 与 [备份与升级](docs/user/upgrade-backup.md)。
+
 ## [0.0.1] — 2026-10-09
 
 Abzu 首个自有版本：基于 webnovel-writer v8.2.0（上游 2b585f3）fork，四包版本归零为 **0.0.1**，继续配套 **DSH 0.2.0-rc.2**。下方 8.x 及更早条目为上游历史记录。

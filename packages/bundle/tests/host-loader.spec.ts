@@ -83,9 +83,9 @@ beforeAll(async () => {
     entryPoints: {
       'lib/webnovel': path.join(packageRoot, 'src', 'index.ts'),
       'native-write-core': path.join(packageRoot, 'tests/fixtures/native-write-core.ts'),
-      'embedding-provider': path.join(packageRoot, '../embedding-provider/src/index.ts'),
-      scenes: path.join(packageRoot, '../embedding-provider/src/scenes.ts'),
-      reranking: path.join(packageRoot, '../embedding-provider/src/reranking.ts'),
+      'embedding-provider': path.join(packageRoot, 'src', 'retrieval', 'index.ts'),
+      scenes: path.join(packageRoot, 'src', 'retrieval', 'scenes.ts'),
+      reranking: path.join(packageRoot, 'src', 'retrieval', 'reranking.ts'),
     },
     outdir: root,
     outExtension: { '.js': '.mjs' },

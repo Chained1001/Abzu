@@ -1,9 +1,0 @@
-- insert:
-    - id: webnovel
-      name: 'abzu'
-    - id: webnovel-embeddings
-      name: 'abzu-retrieval'
-    - id: webnovel-scenes
-      name: 'abzu-retrieval/scenes'
-    - id: webnovel-reranking
-      name: 'abzu-retrieval/reranking'

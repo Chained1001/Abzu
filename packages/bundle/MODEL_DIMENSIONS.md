@@ -1,6 +1,6 @@
 # 常用向量模型维度表
 
-由 `src/model-dimensions.ts` 生成；更新后运行 `pnpm --filter @webnovel/embedding-provider docs:dimensions`。
+由 `src/retrieval/model-dimensions.ts` 生成；更新后运行 `pnpm --filter abzu docs:dimensions`。
 
 排行榜参考：[MTEB](https://huggingface.co/spaces/mteb/leaderboard)。逐项使用官方模型卡、接口说明或固定版本的 MTEB 元数据复核；不按排名自动替换条目。
 

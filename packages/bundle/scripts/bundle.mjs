@@ -1,13 +1,14 @@
 /**
  * 打成单文件 ESM 产物,供 dsh 以原生 ESM 直接加载。
  *
- * 只构建插件入口 lib/index.js 一份产物；技能脚本（skills 下各 scripts 目录的 .mjs）
- * 是手写薄入口（R21／裁决 A1,2026-09-05）——运行能力经相对引 lib/index.js,构建尾部
- * 只做接缝校验,不再内联任何 core 副本进 skills/。
+ * 宿主侧五入口:lib/index.js(工作台)、lib/embeddings.js / lib/scenes.js / lib/reranking.js(检索)
+ * 与 lib/companion.js(桌宠)。五个 insert id 沿用四包时代取值,迁移零成本。
+ * 技能脚本(skills 下各 scripts 目录的 .mjs)是手写薄入口(R21／裁决 A1,2026-09-05)
+ * ——运行能力经相对引 lib/index.js,构建尾部只做接缝校验,不再内联任何 core 副本进 skills/。
  *
  * 为什么必须打包(2026-09-01 真机冒烟实证):
  * dsh 用原生 ESM `import()` 吃插件入口,而 Node 的 ESM 解析器不补全扩展名;
- * 本仓 tsconfig 走 moduleResolution: "Bundler",源码里 229 处相对导入都无扩展名,
+ * 本仓 tsconfig 走 moduleResolution: "Bundler",源码里相对导入都无扩展名,
  * 且 `@webnovel/core` 是源码直引 —— dsh 端没有 node_modules/@webnovel/*。
  * 直接把 dsh-local.yml 指向 src/index.ts 会以 ERR_MODULE_NOT_FOUND 加载失败。
  * 单文件产物同时解掉这两条:相对导入全部内联,跨包依赖一并内联。
@@ -74,19 +75,32 @@ async function buildEntry(entry, outfile) {
   return result
 }
 
-const hostBuild = await buildEntry(path.join(packageRoot, 'src', 'index.ts'), path.join(packageRoot, 'lib', 'index.js'))
+const hostBuilds = []
+// 宿主五入口:工作台 + 检索三入口 + 桌宠。入口文件与 exports/cordis.patch.yml 五条 insert 一一对应。
+for (const [entry, outfile] of [
+  ['src/index.ts', 'lib/index.js'],
+  ['src/retrieval/index.ts', 'lib/embeddings.js'],
+  ['src/retrieval/scenes.ts', 'lib/scenes.js'],
+  ['src/retrieval/reranking.ts', 'lib/reranking.js'],
+  ['src/companion/index.ts', 'lib/companion.js'],
+]) {
+  hostBuilds.push(await buildEntry(path.join(packageRoot, ...entry.split('/')), path.join(packageRoot, ...outfile.split('/'))))
+}
 
 // DSH's native client module loader supplies the shared React runtime.
+// 合并入口:工作台 + 检索设置卡片 + 桌宠(媒体素材以 dataurl 内联,随 client.js 自包含分发)。
 const clientBuild = await esbuild.build({
   entryPoints: [path.join(packageRoot, 'src', 'client', 'index.tsx')],
   outfile: path.join(packageRoot, 'lib', 'client.js'),
   platform: 'browser', format: 'cjs', bundle: true, external: ['react'], target: 'chrome110',
-  loader: { '.css': 'text' }, minify: true, legalComments: 'inline', metafile: true,
+  loader: { '.css': 'text', '.webm': 'dataurl', '.png': 'dataurl' }, minify: true, legalComments: 'inline', metafile: true,
   banner: { js: `window.__ModuleLoader__.load({ id: ${JSON.stringify(manifest.name)}, factory: (require) => { const module = { exports: {} }; const exports = module.exports;` },
   footer: { js: 'return module.exports; } });' },
 })
 checkDependencies(clientBuild)
-console.log('[bundle] lib/client.js ok (DSH native client module)')
+const clientBytes = fs.statSync(path.join(packageRoot, 'lib', 'client.js')).size
+if (clientBytes > 12 * 1024 * 1024) throw new Error(`合并 Client 超过 12 MiB(${(clientBytes / 1048576).toFixed(2)} MiB);先优化媒体素材再发行`)
+console.log(`[bundle] lib/client.js ok (DSH native client module, ${(clientBytes / 1048576).toFixed(2)} MiB 含内嵌媒体)`)
 
 /**
  * 技能脚本薄入口接缝校验（R21／裁决 A1）。
@@ -105,6 +119,6 @@ for (const [rel, fn] of THIN_SCRIPTS) {
 }
 console.log(`[bundle] 脚本薄入口接缝校验 ok (${THIN_SCRIPTS.length} 个薄入口 -> lib/index.js)`)
 
-writeNotices(packageRoot, [hostBuild, clientBuild])
+writeNotices(packageRoot, [...hostBuilds, clientBuild])
 // Vendored diagram artwork is source input rather than an npm dependency.
 fs.appendFileSync(path.join(packageRoot, 'THIRD_PARTY_NOTICES.md'), '\n## Archify artwork\n\nWriting workflow geometry and semantic styling derive from Archify 3.0.1 (MIT).\nCopyright (c) 2026 tt-a1i (Archify); Copyright (c) 2025 Cocoon AI.\n[Original notice](licenses/archify.txt). Source: https://github.com/tt-a1i/archify\n')

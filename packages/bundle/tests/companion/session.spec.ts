@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { SessionHost } from '../src/session'
-import { watchSession } from '../src/session'
-import { CompanionStore } from '../src/state'
+import type { SessionHost } from '../../src/companion/session'
+import { watchSession } from '../../src/companion/session'
+import { CompanionStore } from '../../src/companion/state'
 
 function source<T>(initial: T) {
   let value = initial

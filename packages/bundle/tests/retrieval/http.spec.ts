@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { HttpEmbeddingProvider, parseRetryAfter } from '../src/http'
-import { resolveSettings, type EmbeddingSettings } from '../src/config'
+import { HttpEmbeddingProvider, parseRetryAfter } from '../../src/retrieval/http'
+import { resolveSettings, type EmbeddingSettings } from '../../src/retrieval/config'
 
 const cleanups: Array<() => Promise<void>> = []
 afterEach(async () => { for (const close of cleanups.splice(0).reverse()) await close() })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { afterClip, isCurrentAction, returnSpeed } from '../src/transitions'
+import { afterClip, isCurrentAction, returnSpeed } from '../../src/companion/transitions'
 
 describe('gesture return before action changes', () => {
   it('puts the pen away before celebration, waiting or interaction', () => {

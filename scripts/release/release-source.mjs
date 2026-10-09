@@ -7,7 +7,7 @@ export function restoreNoticeLineEndings(root) {
   const git = args => execFileSync('git', args, { cwd: root, windowsHide: true })
   const files = git(['ls-files', '--modified', '-z']).toString('utf8').split('\0').filter(Boolean)
   for (const filename of files) {
-    if (!/^packages\/(bundle|embedding-provider)\/licenses\/[^/]+\.txt$/.test(filename)) continue
+    if (!/^packages\/bundle\/licenses\/[^/]+\.txt$/.test(filename)) continue
     const target = path.join(root, filename)
     if (!fs.existsSync(target) || !fs.lstatSync(target).isFile()) continue
     const original = git(['show', `HEAD:${filename}`])

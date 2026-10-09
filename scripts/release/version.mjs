@@ -7,31 +7,24 @@ export const root = path.resolve(fileURLToPath(new URL('../../', import.meta.url
 export function releaseVersion(directory = root, tag) {
   const bundle = JSON.parse(fs.readFileSync(path.join(directory, 'packages/bundle/package.json'), 'utf8'))
   const workspace = JSON.parse(fs.readFileSync(path.join(directory, 'package.json'), 'utf8'))
-  const meta = JSON.parse(fs.readFileSync(path.join(directory, 'packages/meta/package.json'), 'utf8'))
   assert.match(bundle.version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)
   assert.equal(workspace.version, bundle.version, 'Workspace and main release version must agree')
-  assert.equal(meta.version, bundle.version, 'Full and main release version must agree')
-  for (const name of ['embedding-provider', 'companion']) {
-    const optional = JSON.parse(fs.readFileSync(path.join(directory, `packages/${name}/package.json`), 'utf8'))
-    assert.equal(optional.version, bundle.version, 'All Abzu release versions must agree')
-  }
   assert.equal(bundle.name, 'abzu')
   const expectedTag = `abzu-v${bundle.version}`
   if (tag) assert.equal(tag, expectedTag, 'Release tag must match the package version')
   const changelog = fs.readFileSync(path.join(directory, 'CHANGELOG.md'), 'utf8')
   assert.ok(changelog.includes(`## [${bundle.version}]`), 'Missing versioned changelog entry')
-  const documents = ['README.md', 'packages/bundle/README.md', 'packages/meta/README.md', 'packages/meta/RELEASE_NOTES.md',
-    'packages/embedding-provider/README.md', 'packages/companion/README.md',
+  const documents = ['README.md', 'packages/bundle/README.md',
     ...fs.readdirSync(path.join(directory, 'docs/user')).filter(file => file.endsWith('.md')).map(file => `docs/user/${file}`)]
   for (const file of documents) {
     const text = fs.readFileSync(path.join(directory, file), 'utf8')
-    for (const match of text.matchAll(/abzu-(?:(?:full|retrieval|companion)-)?([\d][\w.-]*)\.tgz/g)) {
+    for (const match of text.matchAll(/abzu-([\d][\w.-]*)\.tgz/g)) {
       assert.equal(match[1], bundle.version, `Stale installation example in ${file}`)
     }
     for (const match of text.matchAll(/releases\/tag\/abzu-v([\d][\w.-]*)/g)) {
       assert.equal(match[1], bundle.version, `Stale download link in ${file}`)
     }
-    for (const match of text.matchAll(/abzu(?:-(?:full|retrieval|companion))?@(\d+[\w.-]*)/g)) {
+    for (const match of text.matchAll(/abzu@(\d+[\w.-]*)/g)) {
       assert.equal(match[1], bundle.version, `Stale registry installation example in ${file}`)
     }
   }

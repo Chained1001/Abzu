@@ -23,10 +23,9 @@ test('release version binds exact tag, package and changelog', () => {
   assert.throws(() => releaseVersion(undefined, 'v6.2.1'))
 })
 
-test('version checks every user tutorial and optional package installation example', () => {
+test('version checks every user tutorial and package installation example', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scriptor-doc-versions-'))
-  const files = ['package.json', 'CHANGELOG.md', 'README.md', 'packages/meta/RELEASE_NOTES.md',
-    ...['bundle', 'meta', 'embedding-provider', 'companion'].flatMap(name => [`packages/${name}/package.json`, `packages/${name}/README.md`])]
+  const files = ['package.json', 'CHANGELOG.md', 'README.md', 'packages/bundle/package.json', 'packages/bundle/README.md']
   try {
     for (const file of files) {
       fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true })
@@ -34,9 +33,9 @@ test('version checks every user tutorial and optional package installation examp
     }
     fs.mkdirSync(path.join(root, 'docs/user'), { recursive: true })
     const tutorial = path.join(root, 'docs/user/another-tutorial.md')
-    for (const sample of ['abzu-retrieval@1.0.0', 'abzu-companion-1.0.0.tgz']) {
+    for (const sample of ['abzu@1.0.0', 'abzu-1.0.0.tgz', 'releases/tag/abzu-v0.9.9']) {
       fs.writeFileSync(tutorial, sample)
-      assert.throws(() => releaseVersion(root), /Stale.*example/)
+      assert.throws(() => releaseVersion(root), /Stale/)
     }
   } finally {
     const remove = dir => { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const target = path.join(dir, entry.name); if (entry.isDirectory()) remove(target); else fs.unlinkSync(target) }; fs.rmdirSync(dir) }
