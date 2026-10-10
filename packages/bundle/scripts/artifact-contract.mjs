@@ -9,6 +9,11 @@ export const referenceDocs = [
   'skills/novel-settle/agents/沉淀对账.md',
   'skills/novel-outline/agents/写前十查.md',
   'skills/novel-design/references/参考标尺.md',
+  'skills/novel-design/references/雷点清单.md',
+  ...['人物档案', '世界规则', '力量体系', '组织', '地图'].map(name => `skills/novel-design/templates/世界书/${name}条目模板.md`),
+  'skills/novel-design/templates/对手梯队子表规格.md',
+  'skills/novel-design/templates/卷纲固定段规格.md',
+  'skills/novel-outline/templates/章细纲固定小节规格.md',
   ...['01_开书', '02_人物设计', '03_世界观设计', '04_大纲', '05_卷纲', '0A_第一性原理层']
     .map(name => `skills/novel-design/references/${name}.md`),
   'skills/novel-outline/references/06_章纲.md',

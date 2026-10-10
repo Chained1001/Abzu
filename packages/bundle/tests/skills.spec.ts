@@ -387,6 +387,160 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(inspiration).toContain('再生成一轮')
   })
 
+  it('0.0.14 世界书模板批：三模板落位＋三端接线＋认知节独立于事实切片', () => {
+    // A. 三模板存在：人物档案/世界规则/力量体系——只管正文骨架,frontmatter 约定不变,留白合法
+    const tplDir = path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '世界书')
+    const tpl: Record<string, string> = {}
+    for (const name of ['人物档案', '世界规则', '力量体系']) {
+      const p = path.join(tplDir, `${name}条目模板.md`)
+      expect(fs.existsSync(p), `novel-design/templates/世界书/${name}条目模板.md 应存在`).toBe(true)
+      tpl[name] = fs.readFileSync(p, 'utf8')
+      expect(tpl[name], `${name}模板: 应声明 frontmatter 约定不变`).toContain('frontmatter 照世界书既有约定')
+      expect(tpl[name], `${name}模板: 应声明留白合法`).toContain('留白合法')
+    }
+    // B. 人物档案：三支柱判据词（欲望根/外在目标/致命弱点）＋声线＋认知节四行
+    expect(tpl['人物档案']).toContain('欲望根')
+    expect(tpl['人物档案']).toContain('外在目标')
+    expect(tpl['人物档案']).toContain('致命弱点')
+    expect(tpl['人物档案']).toContain('口癖')
+    expect(tpl['人物档案']).toContain('### 认知')
+    for (const line of ['知道：', '怀疑：', '隐瞒：', '称呼：']) {
+      expect(tpl['人物档案'], `人物档案认知节应含「${line}」行`).toContain(line)
+    }
+    // 认知节是独立小节,标题不得与沉淀事实切片标记（### 事实@第N章）冲突
+    expect(tpl['人物档案']).not.toContain('### 事实@')
+    // C. 世界规则：铁则表行与写前十查②「规则行」语义对齐＋暗面四行（「打破条件」列名对齐参考标尺）
+    expect(tpl['世界规则']).toContain('铁则表')
+    expect(tpl['世界规则']).toContain('规则行')
+    for (const line of ['谁在受害：', '成本：', '例外：', '打破条件：']) {
+      expect(tpl['世界规则'], `世界规则暗面应含「${line}」行`).toContain(line)
+    }
+    // D. 力量体系：境界表四列＋金手指轨道位＋对手梯队映射；台阶数值只引标尺不内联
+    expect(tpl['力量体系']).toContain('| 台阶 | 名称 | 能力边界 | 越级条件 |')
+    expect(tpl['力量体系']).toContain('金手指轨道位')
+    expect(tpl['力量体系']).toContain('对手梯队映射')
+    expect(tpl['力量体系']).toContain('references/参考标尺.md')
+    expect(tpl['力量体系'], '力量体系模板不得内联标尺台阶数值（单源在参考标尺）').not.toContain('8-10')
+    // E. 三端接线：design 双路径引用三模板；settle 认知节增量维护；写前十查②数据源指明
+    const design = readSkill('novel-design')
+    expect(design).toContain('[人物档案条目模板](templates/世界书/人物档案条目模板.md)')
+    expect(design).toContain('[世界规则条目模板](templates/世界书/世界规则条目模板.md)')
+    expect(design).toContain('[力量体系条目模板](templates/世界书/力量体系条目模板.md)')
+    expect(design).toContain('留白合法，不强制填满')
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('### 认知')
+    expect(settle).toContain('新知道、称呼变化、新隐瞒')
+    expect(settle).toContain('novel_confirm_worldbook_entry')
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    expect(checks).toContain('世界书/力量体系/')
+    expect(checks).toContain('境界表与金手指轨道位')
+    expect(checks).toContain('世界书/世界规则/')
+    expect(checks).toContain('铁则表')
+  })
+
+  it('0.0.15 补强批：时间行＋核心情绪前→后＋激励事件三问＋反派正当性两问＋待回填协议', () => {
+    // A1. 时间行：细纲固定行含时间行（起止＋上章末衔接）；写前十查④接钩预检带时间衔接核对
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('时间行')
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    expect(checks).toContain('时间行的上章末时间衔接')
+    // A2. 核心情绪前→后：情绪节固定行（SKILL＋规格模板）＋⑨与落点行的分工区分
+    expect(outline).toContain('核心情绪前→后')
+    const sect = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    expect(sect).toContain('核心情绪前→后')
+    expect(checks).toContain('前→后是位移')
+    expect(checks).toContain('落点是读者离开时带什么')
+    // A3. 激励事件三问：KB 锚 §4.12（04_大纲.md 标题存在由引用一致性测试另守），三要素措辞对齐
+    const design = readSkill('novel-design')
+    expect(design).toContain('激励事件三问')
+    expect(design).toContain('时机压力')
+    expect(design).toContain('命中必然')
+    expect(design).toContain('无法回避')
+    expect(design).toContain('§4.12')
+    // A4. 反派正当性两问：KB 锚 §2.10（02_人物设计.md 标题存在由引用一致性测试另守）
+    expect(design).toContain('立场正当性')
+    expect(design).toContain('体量正当性')
+    expect(design).toContain('§2.10')
+    // A5. 待回填协议：design 条目起稿处＋settle 认知节维护处——不强制回填、写入时补缺节、不重写未变动条目
+    expect(design).toContain('不强制回填旧条目')
+    expect(design).toContain('不为回填主动重写未变动条目')
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('不强制回填旧条目')
+    expect(settle).toContain('按当版模板补齐缺节')
+    expect(settle).toContain('不为回填重写未变动内容')
+  })
+
+  it('0.0.17 模板拆出批：组织/地图条目模板＋三份规格模板拆位＋SKILL 引用＋注册单源', () => {
+    // A. 组织/地图条目模板存在：风格对齐既有三份（frontmatter 约定不变＋留白合法）
+    const tplDir = path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '世界书')
+    for (const name of ['组织', '地图']) {
+      const p = path.join(tplDir, `${name}条目模板.md`)
+      expect(fs.existsSync(p), `novel-design/templates/世界书/${name}条目模板.md 应存在`).toBe(true)
+      const t = fs.readFileSync(p, 'utf8')
+      expect(t).toContain('frontmatter 照世界书既有约定')
+      expect(t).toContain('留白合法')
+    }
+    // 组织模板承接反派两问词汇；地图模板喂换图 SOP（只引标尺不重写数值）
+    const org = fs.readFileSync(path.join(tplDir, '组织条目模板.md'), 'utf8')
+    expect(org).toContain('立场正当性')
+    expect(org).toContain('体量正当性')
+    const map = fs.readFileSync(path.join(tplDir, '地图条目模板.md'), 'utf8')
+    expect(map).toContain('换图 SOP')
+    expect(map).toContain('references/参考标尺.md')
+    expect(map).toContain('人物、关系、地点、组织、规则、物件')
+    // B. design 条目起稿处五份模板列全（含路径 A 的五份计数行）
+    const design = readSkill('novel-design')
+    expect(design).toContain('[组织条目模板](templates/世界书/组织条目模板.md)')
+    expect(design).toContain('[地图条目模板](templates/世界书/地图条目模板.md)')
+    expect(design).toContain('人物档案/世界规则/力量体系/组织/地图五份')
+    // C. 规格模板拆位：三份存在＋规格细节在模板（表列/取数算式/四核对项）＋双 SKILL 各带一行引用
+    const ladder = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '对手梯队子表规格.md'), 'utf8')
+    expect(ladder).toContain('取数：标尺·固定层＋比例层×衰减×题材')
+    expect(ladder).toContain('| 层级 | 存活周期 | 代表对手 | 出牌与去向 |')
+    expect(design).toContain('[对手梯队子表规格](templates/对手梯队子表规格.md)')
+    const vol = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '卷纲固定段规格.md'), 'utf8')
+    expect(vol).toContain('压力升级检查')
+    expect(vol).toContain('终局暗手')
+    expect(vol).toContain('方向选择')
+    expect(design).toContain('[卷纲固定段规格](templates/卷纲固定段规格.md)')
+    const sect = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    expect(sect, '章细纲固定小节规格：四固定小节＋时间行＋前→后＋既有断言词全量在位').toContain('### 冲突与爽点')
+    expect(sect).toContain('### 章末双钩')
+    expect(sect).toContain('信息预算四行')
+    expect(sect).toContain('本章新埋：零')
+    expect(sect).toContain('时间行')
+    // D. 注册单源：artifact-contract 登记五份条目模板（世界书模板经名字数组拼路径）＋三份规格模板
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("['人物档案', '世界规则', '力量体系', '组织', '地图']")
+    for (const rel of [
+      'skills/novel-design/templates/对手梯队子表规格.md',
+      'skills/novel-design/templates/卷纲固定段规格.md',
+      'skills/novel-outline/templates/章细纲固定小节规格.md',
+    ]) {
+      expect(contract, `artifact-contract 应登记 ${rel}`).toContain(`'${rel}'`)
+    }
+  })
+
+  it('雷点清单批：清单落位＋契约第六部候选菜单＋写前十查内联快扫', () => {
+    const p = path.join(__dirname, '..', 'skills', 'novel-design', 'references', '雷点清单.md')
+    expect(fs.existsSync(p), '雷点清单.md 应存在').toBe(true)
+    const text = fs.readFileSync(p, 'utf8')
+    for (const cat of ['感情线', '人设', '爽点战力', '剧情', '叙事信息', '节奏兑现', '文笔']) {
+      expect(text, `雷点清单应含「${cat}」类节`).toContain(cat)
+    }
+    expect(text).toContain('绿帽')
+    expect(text).toContain('圣母')
+    expect(text).toContain('多源共识')
+    expect(text).toContain('知识库§')
+    const design = readSkill('novel-design')
+    expect(design).toContain('[雷点清单](references/雷点清单.md)')
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    expect(checks).toContain('雷点快扫')
+    expect(checks).toContain('references/雷点清单.md')
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('雷点快扫行')
+  })
+
   it('细纲备料：含定位段/细纲段 + 材料包十段 + 事实播报', () => {
     const text = readSkill('novel-outline')
     expect(text).toContain('定位段')
