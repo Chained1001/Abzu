@@ -1,13 +1,13 @@
 export const skills = ['novel-director', 'novel-inspiration', 'novel-design', 'novel-outline', 'novel-drafting', 'novel-review', 'novel-polish', 'novel-revision', 'novel-settle', 'novel-export', 'novel-analyze']
 /** Dispatch references must travel with the skills that consume them. */
 export const referenceDocs = [
-  ...['导入与覆盖', '事实提取', '机制与灵感'].map(name => `skills/novel-analyze/工序/${name}.md`),
+  ...['导入与覆盖', '事实提取', '机制与灵感'].map(name => `skills/novel-analyze/references/${name}.md`),
   ...['全量', '章节结构', '人物与关系', '情节与因果', '信息披露', '线索与伏笔', '节奏与张力', '读者承诺', '文风与表达']
-    .map(name => `skills/novel-review/底本/${name}审读.md`),
-  ...['1-表达清理', '2-节奏与重塑', '3-平台格式'].map(name => `skills/novel-polish/工序/${name}.md`),
-  'skills/novel-revision/底本/改稿章程.md',
-  'skills/novel-settle/底本/沉淀对账.md',
-  'skills/novel-outline/底本/写前十查.md',
+    .map(name => `skills/novel-review/agents/${name}审读.md`),
+  ...['1-表达清理', '2-节奏与重塑', '3-平台格式'].map(name => `skills/novel-polish/references/${name}.md`),
+  'skills/novel-revision/agents/改稿章程.md',
+  'skills/novel-settle/agents/沉淀对账.md',
+  'skills/novel-outline/agents/写前十查.md',
   'skills/novel-design/references/参考标尺.md',
   ...['01_开书', '02_人物设计', '03_世界观设计', '04_大纲', '05_卷纲', '0A_第一性原理层']
     .map(name => `skills/novel-design/references/${name}.md`),

@@ -2,6 +2,16 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.12] — 2026-10-10
+
+技能内部目录统一英文化：`底本/` → `agents/`（子代理任务包基文本，与生态 agents/ 语义一致）、`工序/` 并入 `references/`（方法论文档，与生态 references/ 语义一致）。纯目录改名＋全链路引用同步，文件内容零改动（写前十查的 `../references/06_章纲.md` 相对链接因 agents/ 与 references/ 仍为同级目录而不变），SKILL 行为、脚本、schema 一行未动。
+
+### Changed
+
+- 目录改名（git mv 保留历史）：novel-review `底本/` 9 件、novel-revision `底本/改稿章程.md`、novel-settle `底本/沉淀对账.md`、novel-outline `底本/写前十查.md` → 各自 `agents/`；novel-polish `工序/` 3 件、novel-analyze `工序/` 3 件 → 各自 `references/`。
+- 全链路引用同步：7 份 SKILL.md 的 `底本/`、`工序/` 路径引用改指新目录（novel-review／novel-revision／novel-settle／novel-outline／novel-polish／novel-analyze 六份本体＋novel-director 跨技能引用行，后者"底本目录共 9 个文件"同批改"agents 目录"）；artifact-contract.mjs referenceDocs 六条路径模板同步；skills.spec.ts 十处 path.join 路径段＋novel-settle 断言串＋"零机器味"测试标题与工具覆盖注释同步。
+- 版本 0.0.11→0.0.12（根＋bundle），README/docs 版本示例同步（主 README、bundle README、install/beginner/upgrade-backup；install.md 历史"提供方 0.0.8"字样为旧提供方版本，不动；bundle README"0.0.5 正式版"字样沿旧例不动）。历史文档（CHANGELOG 旧条目、docs/design/增强实施计划.md）中的 `底本/`、`工序/` 字样为当时口径，保留。
+
 ## [0.0.11] — 2026-10-09
 
 规范审查 P1 两项修复：novel-director SKILL 常驻体量瘦身（渐进披露下沉）＋全表 invocation 字段断言锁定。全部改动在技能文本层与测试层，derive 状态机/账本结构/工具 schema 一行未动。

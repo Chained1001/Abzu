@@ -151,7 +151,7 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     // 分卷主战层级表行绝不进「故事阶段分配」——那是 parseVolumeAllocations 的进度解析位
     expect(design).toContain('绝不写进「故事阶段分配」')
     // 审读侧：分档区间在底本定用法（候选不是及格线）,数值随派发材料动态摘录
-    const pacing = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', '底本', '节奏与张力审读.md'), 'utf8')
+    const pacing = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '节奏与张力审读.md'), 'utf8')
     expect(pacing).toContain('分档参考区间')
     expect(pacing).toContain('候选，不是及格线')
   })
@@ -249,14 +249,14 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     // 接线防回退：三 SKILL 判据行＋排障索引入口＋改稿章程内联摘要（跨包引用不可达，走内联方案）
     expect(readSkill('novel-outline')).toContain('判据：读 [06_章纲](references/06_章纲.md)')
     expect(readSkill('novel-outline')).toContain('按 `## §x.y` 标题定位后只读该节，不整文件读入')
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', '底本', '写前十查.md'), 'utf8')
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
     expect(checks).toContain('判据延伸：读 [06_章纲](../references/06_章纲.md) §6.1')
     expect(readSkill('novel-drafting')).toContain('判据：读 [07_正文写作](references/07_正文写作.md) §7.1')
     expect(readSkill('novel-drafting')).toContain('按当前场景选择性引用')
     expect(readSkill('novel-drafting')).toContain('§7.13（中文行文怎么不怪异')
     expect(readSkill('novel-director')).toContain('[08_修订排障](references/08_修订排障.md) 的 **§8.0 排障索引**')
     expect(readSkill('novel-director')).toContain('「中期崩盘」→§8.8')
-    const charter = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-revision', '底本', '改稿章程.md'), 'utf8')
+    const charter = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-revision', 'agents', '改稿章程.md'), 'utf8')
     expect(charter).toContain('改稿方向判据（内联摘要）')
     expect(charter).toContain('完整判据在 novel-director 技能包的 references/08_修订排障.md')
     // 跨包相对链接在 DSH resourceBase 解析语义下不可达（技能基目录的 ../../ 逃出 skills 树）且章程整体内联进隔离子代理——禁用链接形态
@@ -265,7 +265,7 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
 
   it('E3 写作管线批：写前十查底本＋细纲固定小节＋连写三档＋热回看＋篇幅三岔＋四级扫描', () => {
     // 写前十查：底本存在，机器四查＋过目单六查＋「呈确认前的检查不是门禁」纪律
-    const tenChecks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', '底本', '写前十查.md'), 'utf8')
+    const tenChecks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
     expect(tenChecks).toContain('机器四查')
     expect(tenChecks).toContain('过目单六查')
     expect(tenChecks).toContain('不是门禁')
@@ -298,23 +298,23 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(review).toContain('篇幅处置建议分级')
     expect(review).toContain('事件膨胀法')
     expect(review).toContain('一次净删')
-    const sweep = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', '底本', '全量审读.md'), 'utf8')
+    const sweep = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '全量审读.md'), 'utf8')
     expect(sweep).toContain('主角＋处境＋钩')
     expect(sweep).toContain('章末双钩')
     expect(sweep).toContain('契约四问')
     expect(sweep).toContain('证伪式检查')
-    const infoDim = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', '底本', '信息披露审读.md'), 'utf8')
+    const infoDim = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '信息披露审读.md'), 'utf8')
     expect(infoDim).toContain('多给了')
     expect(infoDim).toContain('漏给了')
     expect(infoDim).toContain('应忘锚点')
     // polish 四级扫描定位表＋段长方差检查
-    const clean = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-polish', '工序', '1-表达清理.md'), 'utf8')
+    const clean = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-polish', 'references', '1-表达清理.md'), 'utf8')
     expect(clean).toContain('tier1')
     expect(clean).toContain('tier2')
     expect(clean).toContain('tier3')
     expect(clean).toContain('tier4')
     expect(clean).toContain('命中≠错误，不打分，不为清零改稿')
-    const reshape = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-polish', '工序', '2-节奏与重塑.md'), 'utf8')
+    const reshape = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-polish', 'references', '2-节奏与重塑.md'), 'utf8')
     expect(reshape).toContain('段长方差检查')
     expect(reshape).toContain('脚本未实装')
   })
@@ -432,10 +432,10 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     }
     expect(readSkill('novel-drafting')).toContain('作者手写')
     expect(readSkill('novel-revision')).toContain('novel_apply_revision_batch')
-    expect(readSkill('novel-settle')).toContain('底本/沉淀对账.md')
+    expect(readSkill('novel-settle')).toContain('agents/沉淀对账.md')
   })
 
-  it('零机器味：SKILL 与底本/工序全部不含黑名单词', () => {
+  it('零机器味：SKILL 与 agents/references 全部不含黑名单词', () => {
     const walkMd = (dir: string): string[] =>
       fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
         const p = path.join(dir, e.name)
@@ -480,7 +480,7 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
   })
 
   it('工具文档覆盖：作者环境注册的每个工具名至少在一篇技能 .md 中出现（边界匹配）', () => {
-    // 递归收集 skills/ 下全部 .md（SKILL.md、底本/、工序/、scripts/ 等）
+    // 递归收集 skills/ 下全部 .md（SKILL.md、agents/、references/、scripts/ 等）
     const walkMd = (dir: string): string[] =>
       fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
         const p = path.join(dir, e.name)
