@@ -11,6 +11,10 @@ export const referenceDocs = [
   'skills/novel-design/agents/作家评审.md',
   'skills/novel-design/agents/读者评审.md',
   'skills/novel-inspiration/agents/采风检索.md',
+  // 灵感库种子：十类框架八册（历史事实/现实生活待采不建册，见种子索引.md）
+  ...['文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '命名词语', '设定概念']
+    .map(name => `skills/novel-inspiration/assets/灵感库种子/${name}/零件卡.md`),
+  'skills/novel-inspiration/assets/灵感库种子/索引.md',
   'skills/novel-drafting/agents/写作卡.md',
   'skills/novel-design/references/参考标尺.md',
   'skills/novel-design/references/雷点清单.md',
