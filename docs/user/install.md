@@ -1,4 +1,4 @@
-# 安装 Abzu 0.0.12
+# 安装 Abzu 0.0.13
 
 本版配套 **DSH 0.2.0-rc.2**。先安装这个桌面端，再安装插件。
 
@@ -16,7 +16,7 @@
 2. 在仓库根执行 `pnpm install --frozen-lockfile`，然后依次运行 `pnpm lint`、`pnpm test`、`pnpm test:release`。
    成功时，全部检查通过。
 3. 执行 `pnpm release:build`。
-   成功时，`.tmp/release/0.0.12/` 下生成 `abzu-0.0.12.tgz`，以及 SHA256SUMS 与 release-manifest.json。
+   成功时，`.tmp/release/0.0.13/` 下生成 `abzu-0.0.13.tgz`，以及 SHA256SUMS 与 release-manifest.json。
 
 ### 2. 安装
 
@@ -28,7 +28,7 @@
 
 ```powershell
 dsh --profile abzu --from-default-profile web --dump-config
-dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.12.tgz
+dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.13.tgz
 dsh --profile abzu --host 127.0.0.1 --port 6104 --no-open
 ```
 
@@ -46,7 +46,7 @@ tarball 放在无空格目录；安装后按 SHA256SUMS 核对校验和。通过
 2. 应用变更。如果页面要求重启，按上面的方式完全退出后再打开。
    成功时，已安装列表符合下面的结果。
 
-- **写作工作台**：包名正确，版本为 0.0.12。启用后可以打开书房。
+- **写作工作台**：包名正确，版本为 0.0.13。启用后可以打开书房。
 - **检索增强**：可以找到嵌入、场景识别和重排配置。它们默认关闭。基础写作不必先填写这些项目。
 
 设置中的内置插件列表只用来查看状态。安装和卸载都使用侧栏“插件”页面。
@@ -63,11 +63,11 @@ tarball 放在无空格目录；安装后按 SHA256SUMS 核对校验和。通过
 
 ## GitHub Release 下载（公开发布后）
 
-公开发布后，可从 GitHub Release 下载对应版本的 tgz 发行件（`abzu-0.0.12.tgz` 式命名）与 SHA256SUMS，再按上面的安装与启用步骤操作。本节在公开发布时改为具体入口与链接。
+公开发布后，可从 GitHub Release 下载对应版本的 tgz 发行件（`abzu-0.0.13.tgz` 式命名）与 SHA256SUMS，再按上面的安装与启用步骤操作。本节在公开发布时改为具体入口与链接。
 
 ## 为什么要固定 DSH 版本
 
-插件只针对一个 DSH 版本验证。0.0.12 配套 **DSH 0.2.0-rc.2**。旧版 preview.6 / 提供方 0.0.8 对应 0.1.5-rc.2。
+插件只针对一个 DSH 版本验证。0.0.13 配套 **DSH 0.2.0-rc.2**。旧版 preview.6 / 提供方 0.0.8 对应 0.1.5-rc.2。
 
 DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
 
@@ -81,7 +81,7 @@ DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
 
 1. 停用正在使用的会话。
 2. 卸载旧入口：单独安装过 `abzu-retrieval`、`abzu-companion` 或 `abzu-full` 的，逐个移除。
-3. 安装 `abzu@0.0.12`（已安装 `abzu` 的直接更新）。
+3. 安装 `abzu@0.0.13`（已安装 `abzu` 的直接更新）。
 4. 应用变更并按提示重启。
    成功时，已安装列表只剩 `abzu` 一个入口。
 5. 如果自定义 profile 覆盖（cordis.patch.yml）里写有旧模块名或旧条目 id，按 [维护者命令行安装](../maintenance/cli-install.md) 更新为 `abzu/*` 子路径与 abzu 系条目 id；凭据引用名称一并换成 `ABZU_` 前缀。
@@ -99,7 +99,7 @@ DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
    成功时，没有会话还在写入作品。
 4. 在插件管理页卸载旧检索包、旧桌宠或旧 full 入口。
 5. 按提示重启。保留备份，不要删除作品。
-6. 安装 `abzu@0.0.12`。
+6. 安装 `abzu@0.0.13`。
 7. 核对原有配置和启用状态。
    如果自定义 profile 覆盖里仍写着旧模块名称，按维护文档更新模块引用与条目 id 为 0.0.4 现行值；凭据引用名称一并换成 `ABZU_` 前缀。
 8. 确认只剩 `abzu` 一个有效入口，然后再继续写作。

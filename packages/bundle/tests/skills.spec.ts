@@ -339,6 +339,54 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(drafting).toContain('角色自决')
   })
 
+  it('0.0.13 方法论提卡批：标尺触发时机重映射＋四判据接线＋呈报表合并＋路径 A 适用面＋旧格式降级＋灵感域接线＋体感回灌', () => {
+    // A. 标尺触发时机列：CC 仓坐标词零命中（fork 不存在的消费位），新消费位逐行在位
+    const scale = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md'), 'utf8')
+    for (const cc of ['批1 A.3', '编辑评审 E1', '卷纲评审']) {
+      expect(scale, `参考标尺不应残留 CC 仓坐标「${cc}」`).not.toContain(cc)
+    }
+    expect(scale).toContain('章纲·写前十查⑥爽点铺垫＋审读·节奏与张力维')
+    expect(scale).toContain('卷纲·卷级交叉思考（伏笔兑现×读者期待）')
+    expect(scale).toContain('章纲·写前十查⑤平章检查')
+    expect(scale).toContain('卷纲·卷级交叉思考（换图×世界观扩展）')
+    expect(scale).toContain('审读·线索与伏笔维（对照账本线索到期）')
+    expect(scale).toContain('卷纲·卷级交叉思考；章级脚本未实装（未接线）')
+    // B. 四处缺失判据引用接线（§x.y 逐一反查由既有引用一致性测试自动扩展覆盖）
+    expect(readSkill('novel-outline')).toContain('§6.7（信息怎么分配')
+    expect(readSkill('novel-design')).toContain('§5.3（本卷大高潮怎么设')
+    expect(readSkill('novel-drafting')).toContain('§7.5（叙述视角技术')
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    expect(checks).toContain('02_人物设计 §2.18')
+    expect(checks).toContain('03_世界观设计 §3.9')
+    expect(checks).toContain('完整版在《定调设计》技能包')
+    expect(checks, '写前十查不得用跨包相对链接（02/03 在 novel-design 包）').not.toContain('](../novel-design')
+    // C1. 呈确认件统一格式：门槛＋十查双轨合并一张表
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('呈确认件统一格式')
+    expect(outline).toContain('失败＝工具必拒，改完再呈')
+    expect(outline).toContain('两类检查一张表呈报，别分成两轮')
+    expect(checks).toContain('别分成两轮')
+    // C2. 路径 A 增强件适用面
+    expect(readSkill('novel-design')).toContain('路径 A 同样执行')
+    // C3. 旧细纲格式降级规则
+    const sweep = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '全量审读.md'), 'utf8')
+    expect(sweep).toContain('节缺失（旧格式）')
+    expect(sweep).toContain('不为格式差异产出伪缺陷')
+    // C5. 卷末体感回灌
+    expect(readSkill('novel-settle')).toContain('本卷写作过程有什么踩坑或方法论不对的地方')
+    expect(readSkill('novel-settle')).toContain('下次开卷时对齐')
+    // D. 灵感域两处轻接线（可选判据不阻塞＋书名候选步）
+    const inspiration = readSkill('novel-inspiration')
+    expect(inspiration).toContain('收敛时可参考（可选）')
+    expect(inspiration).toContain('§1.2（读者画像三空')
+    expect(inspiration).toContain('§1.9（一句话故事四要素')
+    expect(inspiration).toContain('§1.7（元素组合出新意')
+    expect(inspiration).toContain('未加载不阻塞')
+    expect(inspiration).toContain('（可选）作者需要起书名时')
+    expect(inspiration).toContain('三条路各 1-2 个（反差公式/堆标签/动词情绪）')
+    expect(inspiration).toContain('再生成一轮')
+  })
+
   it('细纲备料：含定位段/细纲段 + 材料包十段 + 事实播报', () => {
     const text = readSkill('novel-outline')
     expect(text).toContain('定位段')
