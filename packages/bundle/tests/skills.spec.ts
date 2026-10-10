@@ -753,7 +753,7 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
       expect(inspiration, `古词古句·意象应含「${sub}」子标`).toContain(sub)
     }
     expect(inspiration).toContain('建库初始化')
-    expect(inspiration).toContain('八个类别子目录')
+    expect(inspiration).toContain('十个类别子目录')
     // B. 零件卡九列：骨/魂显式两列＋化用启示＋已用于回写；「层级（骨/魂）」列退役防回退
     for (const col of ['关键词（2-4个）', '一句话（骨）', '为什么好（魂·原理一句）', '化用启示', '反例（何时不可信/不可用）', '已用于']) {
       expect(inspiration, `零件卡字段应含「${col}」列`).toContain(col)
@@ -774,9 +774,9 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(inspiration).toContain('有原文＝拆书机制卡')
     expect(inspiration).toContain('最近更新')
     expect(inspiration).toContain('计数对账')
-    // D. researcher 底本：八类路由＋触发源⑤存量盘点＋红线两例外＋范围句扩两句＋参考书去重（可选）
+    // D. researcher 底本：十类路由＋触发源⑤存量盘点＋红线两例外＋范围句扩两句＋参考书去重（可选）
     const researcher = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md'), 'utf8')
-    expect(researcher).toContain('八类')
+    expect(researcher).toContain('十类')
     expect(researcher).toContain('存量盘点')
     expect(researcher).toContain('跳过网络源')
     expect(researcher).toContain('公有领域语料（诗词古文/雅称谚典）逐字入库合法')
@@ -829,6 +829,134 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     expect(reconcile).toContain('「G 代价已结·第N章」')
     expect(reconcile).toContain('持有型不逐章登记（持有即持续状态）')
     expect(reconcile).toContain('先报缺不编')
+  })
+
+  it('0.0.16 修复批：篇幅三连＋反推四件＋P1 九项——回炉扩写/字数前置/章型浮动/结构类型/本卷升级位/出场注记/出场频率/采风红线/判级保守/八项对齐/防撞名/POV 序列/情绪基调/章名风格/速查表/第四来源', () => {
+    const drafting = readSkill('novel-drafting')
+    const review = readSkill('novel-review')
+    const design = readSkill('novel-design')
+    const outline = readSkill('novel-outline')
+    const settle = readSkill('novel-settle')
+    const vol = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '卷纲固定段规格.md'), 'utf8')
+    const scale = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md'), 'utf8')
+    const ladder = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '对手梯队子表规格.md'), 'utf8')
+    const sect = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    const researcher = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md'), 'utf8')
+    // 1. F24 回炉扩写档：review 篇幅处置显式档＋drafting 处置枚举照抄（两文件都在位）
+    for (const t of [drafting, review]) {
+      expect(t, '回炉扩写应为两技能共用的显式处置档').toContain('回炉扩写')
+      expect(t).toContain('一次为限')
+    }
+    // 2. F25 字数验收前置：drafting 收稿即机械数＋判据单源（事件膨胀法全文只在 drafting）
+    expect(drafting).toContain('收稿即机械数正文字数')
+    expect(drafting).toContain('不拖到审读')
+    expect(drafting).toContain('事件膨胀法')
+    expect(drafting).toContain('零信息假拍不算数')
+    expect(drafting).toContain('0-2 件卫星事件但不引新冲突')
+    // 3. F26 章型浮动条款：design 契约节＋review 核对按浮动档判
+    expect(design).toContain('章型浮动')
+    expect(design).toContain('过渡章下浮、高潮章上浮')
+    for (const t of [design, review, drafting]) {
+      expect(t, '三处篇幅消费位都应认章型浮动档').toContain('浮动档')
+    }
+    // 4. 卷纲结构类型行：枚举单源在规格文件
+    expect(vol).toContain('结构类型')
+    for (const kw of ['层层递进引爆型', '旋涡式', '高峰夹平原式', '游历爆发型', '连续高潮余韵型']) {
+      expect(vol, `结构类型枚举应含「${kw}」`).toContain(kw)
+    }
+    expect(design).toContain('结构类型行')
+    // 5. 升级间隔：压力升级检查第⑤核对项＋标尺【待校准】行
+    expect(vol).toContain('本卷升级位')
+    expect(vol).toContain('世界书/力量体系/')
+    expect(design).toContain('五核对项')
+    expect(scale).toContain('升级间隔')
+    expect(scale).toContain('【待校准】')
+    expect(scale).toContain('卷内至少一处升级位')
+    expect(scale).toContain('跨卷不宜空转')
+    // 6. 对手梯队出场注记：出场密度＋情绪积累，留白合法
+    expect(ladder).toContain('出场注记')
+    expect(ladder).toContain('出场密度')
+    expect(ladder).toContain('情绪积累')
+    // 7. 角色出场频率预警（防神隐）：备料段自查距上次出场
+    expect(outline).toContain('距上次出场')
+    expect(outline).toContain('超 10 章未出场')
+    expect(outline).toContain('防神隐')
+    // 8. 采风红线对齐现实工具（F6/F7/F8）：新口径在位＋旧口径零命中防回退
+    expect(researcher).toContain('国内域名优先，内容必须中文')
+    expect(researcher).toContain('能进页时补核')
+    expect(researcher).toContain('不同域名才计')
+    expect(researcher, 'F6 旧含糊口径应退役').not.toContain('国内站与中文站方可入库')
+    // 9. 判级保守默认＋简章安全行：拿不准按关键章＋核心节六名含起止边界
+    expect(outline).toContain('判定拿不准时按关键章走')
+    expect(sect).toContain('六个')
+    expect(sect).toContain('「起止边界」')
+    expect(sect).toContain('至少保留承上行')
+    // 10. 任务包输出要求对齐草稿契约八项：首稿四项之外的注明由流程补
+    expect(drafting).toContain('来源快照')
+    expect(drafting).toContain('保真风险')
+    expect(drafting).toContain('由流程各阶段补')
+    // 11. 建档门防撞名＋文风条目措辞统一（作者层/本书记忆两通道）
+    expect(drafting).toContain('文风画像·{书名}')
+    expect(drafting).toContain('记忆文风条目（作者层')
+    expect(drafting).toContain('本书记忆文风条目')
+    expect(settle).toContain('带书名后缀')
+    // 12. POV 接力章合法态：序列写法（主 POV＋接力副 POV）
+    expect(sect).toContain('序列写法')
+    expect(sect).toContain('接力副 POV')
+    // 13. 卷级情绪基调行
+    expect(vol).toContain('情绪基调')
+    expect(vol).toContain('溺水感')
+    // 14. 章名风格进画像手法层
+    expect(drafting).toContain('章名风格')
+    expect(drafting).toContain('梗化情绪式')
+    // 15. 取数速查表补 200 万字·都市算例行
+    expect(scale).toContain('200 万字·都市')
+    // 16. 升级关系第四来源：三来源扩四
+    expect(design).toContain('四来源之一')
+    expect(design).toContain('同层内变')
+  })
+
+  it('灵感库扩展批：类别八→十＋生产通道三条＋起名翻库双册——命名词语/设定概念/三子标/日常暂存/类简称扩/防回退旧八类零命中', () => {
+    const inspiration = readSkill('novel-inspiration')
+    const researcher = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md'), 'utf8')
+    // A. 十类在位：原八类不动＋命名词语/设定概念，两文件同步（SKILL 建库初始化＋researcher 路由表）
+    for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活', '命名词语', '设定概念']) {
+      expect(inspiration, `灵感库应含「${cat}」类`).toContain(cat)
+      expect(researcher, `采风检索路由表应含「${cat}」类`).toContain(cat)
+    }
+    expect(inspiration).toContain('十个类别子目录')
+    // B. 命名词语三子标＋原理/反例口径＋设定概念边界句
+    for (const sub of ['人名', '地名', '组织·器物·功法名']) {
+      expect(inspiration, `命名词语应含「${sub}」子标`).toContain(sub)
+    }
+    for (const kw of ['罕见真实姓氏', '公有领域事实可逐字', '声韵搭配法', '人物气质与名字气质的匹配法', '构词法', '真实古地名雅称', '构词模式与用字库', '音韵/字形/联想原理', '拗口组合/歧义谐音/气质错配']) {
+      expect(inspiration, `命名词语定义应含「${kw}」`).toContain(kw)
+    }
+    for (const kw of ['可跨书复用', '换个故事还能用', '池库分工不破']) {
+      expect(inspiration, `设定概念边界句应含「${kw}」`).toContain(kw)
+    }
+    // 类别总数 10 封顶（防碎片化原则句保留）
+    expect(inspiration).toContain('类别总数 10 封顶')
+    expect(inspiration).toContain('不开第十一类')
+    // C. 日常积累第三生产通道：三条明示＋日常暂存件＋来源口径＋不经采风代理
+    expect(inspiration).toContain('生产通道三条')
+    expect(inspiration).toContain('日常随手积累')
+    expect(inspiration).toContain('_待裁决_日常_')
+    expect(inspiration).toContain('日常积累·')
+    expect(inspiration).toContain('作者口述出处')
+    expect(inspiration).toContain('不经采风代理')
+    // D. 类简称表扩：两文件枚举加「命名/设定」
+    for (const t of [inspiration, researcher]) {
+      expect(t, '类简称枚举应含「命名/设定」').toContain('命名/设定')
+    }
+    // E. 起名翻库双册：翻库句扩为古词古句·意象＋命名词语两册取词
+    expect(inspiration).toContain('古词古句·意象/零件卡.md')
+    expect(inspiration).toContain('命名词语/零件卡.md')
+    expect(inspiration).toContain('两册零件卡取词')
+    // F. 防回退：类别清单旧八类表述零命中（两文件）
+    expect(inspiration, '不应残留「八个类别」旧表述').not.toContain('八个类别')
+    expect(inspiration, '不应残留「八类」旧表述').not.toContain('八类')
+    expect(researcher, '不应残留「八类」旧表述').not.toContain('八类')
   })
 
   it('雷点清单批：清单落位＋契约第六部候选菜单＋写前十查内联快扫', () => {
