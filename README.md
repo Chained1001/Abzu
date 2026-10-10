@@ -1,10 +1,10 @@
 # Abzu v8
 
-> Abzu 0.0.14 配套 **DSH 0.2.0-rc.2**，单包 `abzu` 集成工作台与检索增强。旧版升级先备份，参阅安装与升级说明。
+> Abzu 0.0.15 配套 **DSH 0.2.0-rc.2**，单包 `abzu` 集成工作台与检索增强。旧版升级先备份，参阅安装与升级说明。
 
 基于 [DeepSeek Harness](https://www.deepseek.com/harness/) 的长篇小说写作工作台。把构想、设定、大纲、写章、审读、修改、定稿、记忆与导出放进一个能够暂停和继续的工作流程，作品以本地文件保存。
 
-**当前版本：0.0.14。私有自用开发，将来可能公开发布；基于 webnovel-writer v8.2.0 深度改造。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
+**当前版本：0.0.15。私有自用开发，将来可能公开发布；基于 webnovel-writer v8.2.0 深度改造。** Windows 首发；重要作品使用前请备份。模型服务由你配置，调用可能产生费用。
 
 Abzu is a local-first fiction writing workspace for DeepSeek Harness. It includes a focused editor with inline AI suggestions, deterministic manuscript counts, and chapter-length agreements. Runtime prompts and skills are included; model services are configured by the user.
 
@@ -67,10 +67,10 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 安装分两条口径：
 
 - **当前（私有自用）**：从源码本地构建 tgz，用 `dsh plugin add <tgz路径>` 安装；构建与安装步骤见 [安装教程](docs/user/install.md)，命令行示例见 [插件包说明](packages/bundle/README.md)。
-- **公开发布后**：从 GitHub Release 下载对应版本 `abzu-0.0.14.tgz` 式的发行件与校验和，再按同一方式安装；发布入口在公开发布时公布。
+- **公开发布后**：从 GitHub Release 下载对应版本 `abzu-0.0.15.tgz` 式的发行件与校验和，再按同一方式安装；发布入口在公开发布时公布。
 
 1. 安装配套的 **DSH 0.2.0-rc.2** 桌面端，打开侧栏 **插件 → 添加插件**。
-2. 安装本地构建的 tgz 发行件（包名 `abzu`，本版对应 `abzu@0.0.14`），核对预览并安装，按提示应用变更。
+2. 安装本地构建的 tgz 发行件（包名 `abzu`，本版对应 `abzu@0.0.15`），核对预览并安装，按提示应用变更。
 3. 配置聊天模型与凭据，选择作品工作区，按 [第一本书与第一章](docs/user/first-book.md) 开始。
 
 逐步说明见 [安装教程](docs/user/install.md) 和 [新手教程](docs/user/beginner.md)。

@@ -521,6 +521,316 @@ describe('聚合 skills 体系（渐进式披露与 Subagent 协同）', () => {
     }
   })
 
+  it('0.0.15 提卡与缺口批：写作卡八卡＋drafting 改线＋文风建档门二支四层＋趣味层＋读者在场心智与自评行＋拆书消费接线＋语态样本行＋卷纲心动位＋KB 节级健康断言', () => {
+    // A. 写作卡：文件存在＋frontmatter 式样＋八卡卡名与卡头节源在位
+    const cardsPath = path.join(__dirname, '..', 'skills', 'novel-drafting', 'agents', '写作卡.md')
+    expect(fs.existsSync(cardsPath), 'novel-drafting/agents/写作卡.md 应存在').toBe(true)
+    const cards = fs.readFileSync(cardsPath, 'utf8')
+    for (const card of ['推进卡 ←§7.1＋§7.7', '塑造卡 ←§7.2＋§7.9', '动作卡 ←§7.3', '环境卡 ←§7.4', '开场卡 ←§7.10', '趣味卡 ←§7.12', 'POV 自查卡 ←§7.5', '行文自查卡 ←§7.13']) {
+      expect(cards, `写作卡应含「${card}」卡头`).toContain(`## ${card}`)
+    }
+    // 趣味卡只留 §7.12 幽默机制（例子型机械不设：梗三问/梗密度档零命中防回退——玩梗供给走灵感库热梗通道，写作时刻原则由心智「找乐子」条承担）
+    expect(cards).toContain('笑点从人物身上长出来')
+    expect(cards).not.toContain('梗三问')
+    // B. drafting SKILL 改线：写作卡引用＋卡原文内联措词＋深挖句保留
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('[写作卡](agents/写作卡.md)')
+    expect(drafting).toContain('**原文内联**任务包')
+    expect(drafting).toContain('深挖时按 §x.y 只读该节（07_正文写作.md），不整文件读入')
+    expect(drafting).toContain('卡原文随任务包')
+    // B2. 趣味层接线：写作心智找乐子条＋趣味卡按场景标签带卡（幽默/轻松/玩梗单元）
+    expect(drafting).toContain('找乐子')
+    expect(drafting).toContain('幽默/轻松/玩梗标签的单元时带趣味卡')
+    // B3. 作家思维原则化：心智「读者在场＋主动性」条（一气呵成之前）＋热回看自愿自评行＋润色复核接线
+    expect(drafting).toContain('读者在场')
+    expect(drafting).toContain('吊他胃口')
+    expect(drafting).toContain('自评：最得意')
+    expect(readSkill('novel-polish')).toContain('没劲段')
+    // C. 首章文风建档门二支＋四层画像：文风默认化（不留参考书学习口子）＋关键词与入档工具实接
+    expect(drafting).toContain('首章文风建档门')
+    expect(drafting, '文风默认化裁定：不留从其他作品学习文风的口子').not.toContain('从已导入的参考书归纳')
+    expect(drafting).toContain('自带满意段')
+    expect(drafting).toContain('默认推导')
+    expect(drafting).toContain('这是兜底不是建议')
+    expect(drafting).toContain('句法层')
+    expect(drafting).toContain('手法层')
+    expect(drafting).toContain('逻辑层')
+    expect(drafting).toContain('语态层')
+    expect(drafting, '梗密度档不设（例子型机械不入产品）').not.toContain('梗密度档')
+    expect(drafting).toContain('保留技法采集')
+    expect(drafting).toContain('novel_record_memory')
+    expect(drafting).toContain('书房/开书/<书名>/种子底子.md')
+    expect(drafting).toContain('矛盾项呈作者裁决')
+    // C2. 拆书消费接线：细纲期机制卡参照（借魂不借形＋novel_reference_query）＋重推演四步（机制与灵感.md＋analyze SKILL）
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('借魂不借形')
+    expect(outline).toContain('novel_reference_query')
+    const mech = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-analyze', 'references', '机制与灵感.md'), 'utf8')
+    expect(mech).toContain('重推演四步')
+    expect(readSkill('novel-analyze')).toContain('重推演四步')
+    // D. 语态样本行：settle SKILL＋沉淀对账底本同步，且末行位保留给章末状态
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('语态样本：')
+    expect(settle).toContain('语态样本不得占末行')
+    expect(settle).toContain('从本章挑一段满意的收进文风锚点吗')
+    const reconcile = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-settle', 'agents', '沉淀对账.md'), 'utf8')
+    expect(reconcile).toContain('语态样本：<本章自认最佳一句正文>')
+    expect(reconcile).toContain('放在章末状态行之前')
+    // E. 卷纲心动位：规格＋design SKILL 步骤 6＋章细纲规格与 SKILL 的 ★ 可选行
+    const volSpec = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '卷纲固定段规格.md'), 'utf8')
+    expect(volSpec).toContain('心动位')
+    expect(volSpec).toContain('情绪锚不是顺序锚')
+    expect(volSpec).toContain('源出 B 仓章循环设计')
+    expect(readSkill('novel-design')).toContain('心动位行')
+    const sectSpec = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    expect(sectSpec).toContain('单元行标 `★`')
+    expect(sectSpec).toContain('卷纲「心动位」')
+    expect(readSkill('novel-outline')).toContain('标 `★`')
+    // F. 注册单源：artifact-contract 登记写作卡
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("'skills/novel-drafting/agents/写作卡.md'")
+    // G. KB 节级健康断言：九件分发件逐二级节行跨度 ≤ 上限。
+    // 实测依据（2026-10-10，0.0.15 批前测量）：九件全部二级节最大行跨度 103 行
+    // （08_修订排障.md §8.5 毒点怎么查），向上取整到十位＝110。0A_第一性原理层无
+    // § 节但「原语」同为二级节，一并受上限约束。目的＝拦知识库升版导致的节膨胀，
+    // 不是改现有文件。
+    const kbFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
+      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '0A_第一性原理层.md']
+        .map((file) => ({ skill: 'novel-design', file })),
+      { skill: 'novel-outline', file: '06_章纲.md' },
+      { skill: 'novel-drafting', file: '07_正文写作.md' },
+      { skill: 'novel-director', file: '08_修订排障.md' },
+    ]
+    const SECTION_LINE_CAP = 110
+    for (const { skill, file } of kbFiles) {
+      const text = fs.readFileSync(path.join(__dirname, '..', 'skills', skill, 'references', file), 'utf8')
+      const lines = text.replace(/\r\n/g, '\n').split('\n')
+      const starts: number[] = []
+      lines.forEach((line, i) => { if (/^## /.test(line)) starts.push(i) })
+      expect(starts.length, `${file}: 二级节数应大于零`).toBeGreaterThan(0)
+      for (let s = 0; s < starts.length; s += 1) {
+        const end = s + 1 < starts.length ? starts[s + 1]! : lines.length
+        const span = end - starts[s]!
+        expect(span, `${file} ${lines[starts[s]!]!.trim()}: 节行跨度 ${span} 超上限 ${SECTION_LINE_CAP}（知识库升版节膨胀）`).toBeLessThanOrEqual(SECTION_LINE_CAP)
+      }
+    }
+  })
+
+  it('0.0.15 评审采风批：评审两席底本＋采风代理＋灵感库结构＋双 SKILL 接线＋注册单源', () => {
+    // A. 三底本存在＋frontmatter name（agents 目录惯例：英文 kebab name＋中文 description）
+    const writerPath = path.join(__dirname, '..', 'skills', 'novel-design', 'agents', '作家评审.md')
+    const readerPath = path.join(__dirname, '..', 'skills', 'novel-design', 'agents', '读者评审.md')
+    const researcherPath = path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md')
+    for (const p of [writerPath, readerPath, researcherPath]) {
+      expect(fs.existsSync(p), `${p} 应存在`).toBe(true)
+    }
+    const writer = fs.readFileSync(writerPath, 'utf8')
+    const reader = fs.readFileSync(readerPath, 'utf8')
+    const researcher = fs.readFileSync(researcherPath, 'utf8')
+    expect(writer).toContain('name: writer-reviewer')
+    expect(reader).toContain('name: reader-reviewer')
+    expect(researcher).toContain('name: researcher')
+    // B. 作家评审：引证纪律（逐字引文）＋对象-判据路由（04_大纲/05_卷纲 相关节）＋根因三选一＋待采风标记＋首评声明
+    expect(writer).toContain('逐字引文')
+    expect(writer).toContain('04_大纲')
+    expect(writer).toContain('05_卷纲')
+    expect(writer).toContain('§4.15')
+    expect(writer).toContain('§5.1')
+    for (const root of ['设定根源', '主线根源', '规格根源']) {
+      expect(writer, `作家评审根因三选一应含「${root}」`).toContain(root)
+    }
+    expect(writer).toContain('【待采风：查询词】')
+    expect(writer).toContain('只做首评')
+    expect(writer).toContain('书房/评审/')
+    // C. 读者评审：弃书点预测＋雷点清单逐类＋读者语言/判据双要求＋画像来源
+    expect(reader).toContain('弃书点预测')
+    expect(reader).toContain('雷点清单')
+    expect(reader).toContain('结论说人话、判据走格式')
+    expect(reader).toContain('读者画像')
+    expect(reader).toContain('§5.4')
+    expect(reader).toContain('只做首评')
+    // D. 采风代理：三源顺序＋孤证＋永不存原文＋热梗半衰期例外＋只写暂存＋站点经验
+    expect(researcher).toContain('三源')
+    expect(researcher).toContain('孤证')
+    expect(researcher).toContain('永不存原文')
+    expect(researcher).toContain('半衰期')
+    expect(researcher).toContain('热梗例外')
+    expect(researcher).toContain('_待裁决_采风_')
+    expect(researcher).toContain('_采风站点经验')
+    expect(researcher).toContain('只采国内源')
+    // E. design SKILL 接线：确认前评审（可选）节＋书房/评审/＋待采风转《灵感与立项》＋步骤 3/4/6 各半句（节＋三处接线≥4 次命中）
+    const design = readSkill('novel-design')
+    expect(design).toContain('确认前评审（可选）')
+    expect(design).toContain('书房/评审/')
+    expect(design).toContain('【待采风：查询词】')
+    expect(design).toContain('两席独立互不通气')
+    expect(design).toContain('评审不是新门禁')
+    expect((design.match(/确认前评审（可选）/g) ?? []).length,
+      '「确认前评审（可选）」应≥4 次命中（节＋步骤 3/4/6 接线）').toBeGreaterThanOrEqual(4)
+    expect(design).toContain('[作家评审](agents/作家评审.md)')
+    expect(design).toContain('[读者评审](agents/读者评审.md)')
+    // F. inspiration SKILL：灵感库八类（0.0.15 批内六→八扩容，升级批详断言见灵感库升级批）＋一类一册＋池库分工＋暂存与归档纪律＋Off-limits 放行采风子代理
+    const inspiration = readSkill('novel-inspiration')
+    for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活']) {
+      expect(inspiration, `灵感库应含「${cat}」类`).toContain(cat)
+    }
+    expect(inspiration).toContain('一类一册')
+    expect(inspiration).toContain('两库互不合并')
+    expect(inspiration).toContain('_待裁决_采风_')
+    expect(inspiration).toContain('[采风检索](agents/采风检索.md)')
+    expect(inspiration).toContain('除采风检索')
+    // G. 注册单源：artifact-contract 登记三份 agents（pack-check 按 referenceDocs 校验打包面）
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    for (const rel of [
+      'skills/novel-design/agents/作家评审.md',
+      'skills/novel-design/agents/读者评审.md',
+      'skills/novel-inspiration/agents/采风检索.md',
+    ]) {
+      expect(contract, `artifact-contract 应登记 ${rel}`).toContain(`'${rel}'`)
+    }
+  })
+
+  it('0.0.15 认知调研批：写作心智四改＋章纲分级简章＋段级刷新＋人物自决类轻量通道', () => {
+    // A. 写作心智四改（novel-drafting 任务包第 0 件，依据 2026-10-10 认知调研）：
+    // 写前重读居首＋入戏双位（两把椅子）＋读者在场博弈（假烟雾弹）＋找乐子主动面（生个事）
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('写前重读')
+    expect(drafting).toContain('近期正文衔接')
+    expect(drafting).toContain('入戏（双位）')
+    expect(drafting).toContain('操控者视角')
+    expect(drafting).toContain('两把椅子都要坐')
+    expect(drafting).toContain('假烟雾弹')
+    expect(drafting).toContain('生个事')
+    expect(drafting).toContain('过渡不是班车是路')
+    expect(drafting).toContain('给没意思的制造意思')
+    // 写前重读必须是心智块第一条（在「入戏」之前）
+    const mind = drafting.indexOf('## 写作心智')
+    expect(mind).toBeGreaterThanOrEqual(0)
+    expect(drafting.indexOf('**写前重读**', mind), '写前重读应居心智块条目首位').toBeLessThan(drafting.indexOf('**入戏（双位）**', mind))
+    // B. 章纲分级三文件同步：判据词在 outline SKILL；简章细则在规格模板；十查放宽在写前十查底本
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('章纲分级')
+    for (const kw of ['关键章', '过渡章', '简章', '卷首章', '卷内高潮章', '心动位', '换图章', '卷末兑现', '主战层级']) {
+      expect(outline, `章纲分级判据应含「${kw}」`).toContain(kw)
+    }
+    expect(outline).toContain('一行带过或显式留白')
+    expect(outline).toContain('确认协议不变')
+    expect(outline).toContain('隔章跑')
+    const sectSpec = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    expect(sectSpec).toContain('简章')
+    expect(sectSpec).toContain('过渡章')
+    for (const kw of ['视角与焦点', '信息边界', '情绪与节奏目标', '冲突与爽点', '章末双钩']) {
+      expect(sectSpec, `简章核心节应含「${kw}」`).toContain(kw)
+    }
+    expect(sectSpec).toContain('一行带过或显式留白')
+    expect(sectSpec).toContain('留白合法')
+    expect(sectSpec).toContain('六字段照抄不省')
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    expect(checks).toContain('过渡章')
+    expect(checks).toContain('机器四查照常')
+    expect(checks).toContain('隔章跑')
+    // C. 段级刷新：outline 重入节＋design 重入·卷纲修订处各一段（对齐细纲一段一段节律）
+    expect(outline).toContain('滚动窗口段级刷新')
+    expect(outline).toContain('不是每章滚一次')
+    expect(outline).toContain('novel_roll_window')
+    const design = readSkill('novel-design')
+    expect(design).toContain('卷内段级滚窗')
+    expect(design).toContain('不是每章滚一次')
+    // D. 人物自决类轻量通道：勘误通道旁——单章行动/冲突字段、无下游承诺变更、不跑影响分析
+    expect(outline).toContain('人物自决类')
+    expect(outline).toContain('人物不会这么做')
+    expect(outline).toContain('不跑影响分析')
+    expect(outline).toContain('有下游影响则仍走影响分析前置呈报')
+  })
+
+  it('0.0.15 灵感库升级批：八类＋零件卡九列＋翻库三式三去向＋存量盘点＋红线两例外＋outline 双参照与补充来源', () => {
+    // A. 八类在位（原六类不动＋新增台词金句/古词古句·意象）＋古词三子标＋建库初始化
+    const inspiration = readSkill('novel-inspiration')
+    for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活']) {
+      expect(inspiration, `灵感库应含「${cat}」类`).toContain(cat)
+    }
+    for (const sub of ['诗词古文', '雅称谚典', '意象母题']) {
+      expect(inspiration, `古词古句·意象应含「${sub}」子标`).toContain(sub)
+    }
+    expect(inspiration).toContain('建库初始化')
+    expect(inspiration).toContain('八个类别子目录')
+    // B. 零件卡九列：骨/魂显式两列＋化用启示＋已用于回写；「层级（骨/魂）」列退役防回退
+    for (const col of ['关键词（2-4个）', '一句话（骨）', '为什么好（魂·原理一句）', '化用启示', '反例（何时不可信/不可用）', '已用于']) {
+      expect(inspiration, `零件卡字段应含「${col}」列`).toContain(col)
+    }
+    expect(inspiration, '「层级（骨/魂）」列应退役（信息显式化为骨/魂两列）').not.toContain('层级（骨/魂）')
+    expect(inspiration).toContain('消费后回写')
+    // C. 翻库三式＋三去向＋过期软提示＋裁决交互＋池库互转＋拆书边界＋索引对账
+    for (const way of ['按类翻', '按关键词 grep', '按场景需求问']) {
+      expect(inspiration, `翻库三式应含「${way}」`).toContain(way)
+    }
+    for (const dest of ['入材料包', '固化进人物档案', '激发新点子入灵感池']) {
+      expect(inspiration, `翻库三去向应含「${dest}」`).toContain(dest)
+    }
+    expect(inspiration).toContain('采集已逾')
+    expect(inspiration).toContain('建议复核')
+    expect(inspiration).toContain('入/弃/改道')
+    expect(inspiration).toContain('池库互转')
+    expect(inspiration).toContain('有原文＝拆书机制卡')
+    expect(inspiration).toContain('最近更新')
+    expect(inspiration).toContain('计数对账')
+    // D. researcher 底本：八类路由＋触发源⑤存量盘点＋红线两例外＋范围句扩两句＋参考书去重（可选）
+    const researcher = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md'), 'utf8')
+    expect(researcher).toContain('八类')
+    expect(researcher).toContain('存量盘点')
+    expect(researcher).toContain('跳过网络源')
+    expect(researcher).toContain('公有领域语料（诗词古文/雅称谚典）逐字入库合法')
+    expect(researcher).toContain('单句例证 ≤1 句且必标出处')
+    expect(researcher).toContain('含设定脑洞与桥段实例')
+    expect(researcher).toContain('名场面解析归此类')
+    expect(researcher).toContain('有原文＝拆书机制卡')
+    expect(researcher, '沉淀提案字段表应退役「层级（骨/魂）」列').not.toContain('层级（骨/魂）')
+    expect(researcher).toContain('书房/参考书/*/机制')
+    // E. outline 双参照（机制卡之外 grep 灵感库零件卡）＋备料补充来源句
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('双参照（可选）')
+    expect(outline).toContain('灵感库/*/零件卡.md')
+    expect(outline).toContain('「化用启示」读作写法参照')
+    expect(outline).toContain('借骨不借皮')
+    expect(outline).toContain('「翻灵感库」')
+  })
+
+  it('0.0.15 金手指管理批：轨道位四行＋design 落四行指针＋写前十查②三查＋settle 落账行', () => {
+    // A. 档案位：力量体系模板金手指轨道位四行（枚举单源在模板）——代价分型两型＋反制＋代劳边界＋可见度牌
+    const tpl = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '世界书', '力量体系条目模板.md'), 'utf8')
+    for (const kw of ['代价分型', '使用型', '持有型', '反制方式', '代劳边界', '可见度牌']) {
+      expect(tpl, `金手指轨道位应含「${kw}」行`).toContain(kw)
+    }
+    expect(tpl).toContain('每次动用即付/累积')
+    expect(tpl).toContain('持有即招祸')
+    expect(tpl).toContain('两型可并存各记')
+    expect(tpl).toContain('无＋理由')
+    expect(tpl).toContain('只给伴奏不给成品')
+    expect(tpl).toContain('没有反制的金手指没有戏')
+    // B. 设计期追问：design SKILL 四轨道追问尾接落位句（只带四行名指针，枚举值不重述——单源防回退）
+    const design = readSkill('novel-design')
+    expect(design).toContain('金手指轨道位落四行（代价分型/反制方式/代劳边界/可见度牌')
+    expect(design).toContain('想不出的行留白不编')
+    expect(design, '分型枚举值单源在模板，SKILL 不得重述').not.toContain('每次动用即付')
+    expect(design, '分型枚举值单源在模板，SKILL 不得重述').not.toContain('持有即招祸')
+    // C. 写前查：检查②「本章动用金手指时三查」——代价已结否/越档/泄底（认知对照可见度牌）
+    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    expect(checks).toContain('本章动用金手指时三查')
+    for (const kw of ['代价已结否', '越档', '泄底']) {
+      expect(checks, `写前十查②三查应含「${kw}」`).toContain(kw)
+    }
+    expect(checks).toContain('当场落账')
+    expect(checks).toContain('不知道的人表现出知道')
+    // D. 写后账：settle SKILL＋沉淀对账底本同步落账行——使用型逐章落账、持有型状态变化才记
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('「G 代价已结·第N章」')
+    expect(settle).toContain('持有型代价不逐章落账（持有即持续状态），状态变化时才记')
+    const reconcile = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-settle', 'agents', '沉淀对账.md'), 'utf8')
+    expect(reconcile).toContain('「G 代价已结·第N章」')
+    expect(reconcile).toContain('持有型不逐章登记（持有即持续状态）')
+    expect(reconcile).toContain('先报缺不编')
+  })
+
   it('雷点清单批：清单落位＋契约第六部候选菜单＋写前十查内联快扫', () => {
     const p = path.join(__dirname, '..', 'skills', 'novel-design', 'references', '雷点清单.md')
     expect(fs.existsSync(p), '雷点清单.md 应存在').toBe(true)
