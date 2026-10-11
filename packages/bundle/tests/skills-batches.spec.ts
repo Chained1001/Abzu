@@ -228,7 +228,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('不为回填主动重写未变动条目')
     const settle = readSkill('novel-settle')
     expect(settle).toContain('不强制回填旧条目')
-    expect(settle).toContain('按当版模板补齐缺节')
+    expect(settle).toContain('按《定调设计》技能包 templates/世界书/ 对应条目模板补齐缺节')
     expect(settle).toContain('不为回填重写未变动内容')
   })
 
@@ -298,7 +298,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const drafting = readSkill('novel-drafting')
     expect(drafting).toContain('[写作卡](agents/写作卡.md)')
     expect(drafting).toContain('**原文内联**任务包')
-    expect(drafting).toContain('深挖时按 §x.y 只读该节（07_正文写作.md），不整文件读入')
+    expect(drafting).toContain('深挖时按 §x.y 只读该节（[07_正文写作](references/07_正文写作.md)），不整文件读入')
     expect(drafting).toContain('卡原文随任务包')
     // B2. 趣味层接线：写作心智找乐子条＋趣味卡按场景标签带卡（幽默/轻松/玩梗单元）
     expect(drafting).toContain('找乐子')
@@ -790,10 +790,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // F38 自评行落位＋字数口径：热回查/自评行固定属候选事实段末尾（正文区之外），验收口径四不计
     expect(drafting).toContain('热回查行与自评行固定属候选事实段末尾')
     expect(drafting).toContain('不含 frontmatter、候选事实段、热回查行与自评行')
-    // F39 ⑧隔章定义：比对序列重启的首章与孤立过渡章照常比对，不隔（SKILL 与底本措辞一致）
-    for (const t of [outline, checks]) {
-      expect(t).toContain('比对序列重启的首章与孤立过渡章（前后皆关键章）照常比对，不隔')
-    }
+    // F39 ⑧隔章定义：口径单源在写前十查底本（0.0.21 批改 SKILL 侧重复口径为指针，断言随裁同步）
+    expect(checks).toContain('比对序列重启的首章与孤立过渡章（前后皆关键章）照常比对，不隔')
+    expect(outline).toContain('放宽口径见 [写前十查](agents/写前十查.md) 章纲分级放宽节')
     // F40 简章核心节七节：前置条件核对结果一句话版入简章（SKILL＋规格同步）
     expect(sect).toContain('七个')
     for (const kw of ['视角与焦点', '信息边界', '情绪与节奏目标', '起止边界', '前置条件核对结果', '冲突与爽点', '章末双钩']) {
@@ -923,6 +922,108 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
         expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.19`).not.toContain('0.0.19')
+      }
+    }
+  })
+
+  it('0.0.21 行文清晰度批：路径基准三式＋术语四处归一＋书名号违例修正＋序号对齐＋--校验 用法行＋ev 双名＋版本零残留', () => {
+    const director = readSkill('novel-director')
+    const outline = readSkill('novel-outline')
+    const drafting = readSkill('novel-drafting')
+    const design = readSkill('novel-design')
+    const settle = readSkill('novel-settle')
+    const inspiration = readSkill('novel-inspiration')
+    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
+    const mech = fs.readFileSync(skillFile('novel-analyze', 'references/机制与灵感.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    const sectSpec = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    // A. 路径引用基准三式落 director「文件纪律」
+    expect(director).toContain('引用路径基准（三式）')
+    expect(director).toContain('技能包文件＝链接式')
+    expect(director).toContain('书仓根文件＝裸相对路径')
+    expect(director).toContain('`<工作范围>/` 前缀')
+    // A2. 裸书房路径与 {工作范围根} 旧记法清零（五文件）
+    for (const [label, text] of [['novel-drafting', drafting], ['novel-design', design], ['novel-inspiration', inspiration], ['采风检索', researcher], ['机制与灵感', mech]] as const) {
+      expect(text, `${label}: 不应残留裸书房路径`).not.toContain('`书房/')
+      expect(text, `${label}: 不应残留 {工作范围根} 旧记法`).not.toContain('{工作范围根}')
+    }
+    expect(drafting).toContain('<工作范围>/书房/开书/<书名>/种子底子.md')
+    expect(design).toContain('<工作范围>/书房/开书/<书名>/种子底子.md')
+    // A3. 构想快照孤例改裸书仓式（书仓根工件不带 <书仓>/ 前缀）
+    expect(inspiration).toContain('| 构想快照 | `构想/构想快照.md` |')
+    // A4. 规格模板判据位改包根语境式
+    expect(sectSpec).toContain('本技能包 references/06_章纲.md')
+    // A5. 书名号违例四处修正后形态（书名号只用于书/文章名，技能包引用用链接式或技能包路径）
+    expect(outline).toContain('按 [写前十查](agents/写前十查.md) 底本文末的高发雷点内联判据快扫')
+    expect(settle).toContain('《细纲备料》技能包 agents/写前十查.md ④接钩预检的末行读取位')
+    const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
+    expect(clean).toContain('novel-review 技能包 agents/文风与表达审读.md')
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
+    expect(reshape).toContain('总判据是契约「叙事方式与文风基调」分部')
+    // A6. director 排障入口跨包定位句＋改稿章程加载名（全表唯一断点修复）
+    expect(director).toContain('§4.x＝《定调设计》技能包 references/04_大纲.md')
+    expect(director).toContain('§6.x＝《细纲备料》技能包 references/06_章纲.md')
+    const charter = fs.readFileSync(skillFile('novel-revision', 'agents/改稿章程.md'), 'utf8')
+    expect(charter).toContain('完整判据在《工作台总控》技能包 references/08_修订排障.md')
+    // B. 术语四处归一：新词在位
+    expect(outline).toContain('确认细纲落真源')
+    expect(checks).toContain('候选细纲落盘后')
+    expect(sectSpec).toContain('候选细纲正文')
+    expect(readSkill('novel-review')).toContain('**全量审读（默认）**')
+    // B2. 记忆文风条目：两处改口＋条目名不变
+    expect(outline).toContain('本书记忆有记忆文风条目时')
+    expect(sectSpec).toContain('本书记忆有记忆文风条目时')
+    expect(drafting).toContain('文风画像·{书名}')
+    // B3. CONTEXT 术语表追加两行
+    const context = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'CONTEXT.md'), 'utf8')
+    expect(context).toContain('| 标尺 | 参考标尺的简称')
+    expect(context).toContain('| 记忆文风条目 | 文风建档门产物类名')
+    // B4. 旧词全树清零（确认章细纲/细纲候选/全量体检/全量章程）
+    const skillsRoot = path.join(__dirname, '..', 'skills')
+    const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walkMd(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+      .filter((p) => p.endsWith('.md'))
+    for (const f of walkMd(skillsRoot)) {
+      const text = fs.readFileSync(f, 'utf8')
+      for (const old of ['确认章细纲', '细纲候选', '全量体检', '全量章程']) {
+        expect(text, `${path.relative(skillsRoot, f)}: 归一旧词「${old}」应清零`).not.toContain(old)
+      }
+    }
+    // C. 序号＝类简称＋采集日期＋两位序（对齐零件卡字段定义，消数据漂移）
+    expect(researcher).toContain('序号＝类简称＋采集日期＋两位序（同日顺延）')
+    // D. 最小导出用法行补 --校验（须与 --目标 同传）
+    const exportCli = fs.readFileSync(skillFile('novel-export', 'scripts/最小导出.mjs'), 'utf8')
+    expect(exportCli).toContain('[--目标 目录] [--校验 true]（须与 --目标 同传）')
+    // E. ev 双名（证据（ev）身份）
+    expect(readSkill('novel-analyze')).toContain('证据（ev）身份')
+    // F. 呈确认件五名归一（outline＋写前十查）
+    for (const [label, text] of [['novel-outline', outline], ['写前十查', checks]] as const) {
+      expect(text, `${label}: 呈确认件旧名「呈确认播报」应清零`).not.toContain('呈确认播报')
+      expect(text, `${label}: 呈确认件旧名「呈报表」应清零`).not.toContain('呈报表')
+      expect(text, `${label}: 呈确认件旧名「作者过目件」应清零`).not.toContain('作者过目件')
+    }
+    expect(checks).toContain('呈确认件＝一张表（与《细纲备料》SKILL 步骤 5 同格式）')
+    // G. 幽灵节点退役（建议返回节点只剩真实两值）
+    const styleReview = fs.readFileSync(skillFile('novel-review', 'agents/文风与表达审读.md'), 'utf8')
+    expect(styleReview).toContain('| 建议返回节点 | 润色 / 改稿 |')
+    expect(styleReview).not.toContain('润色（重生成）')
+    // H. 收尾域五文件弯引号清零（半角分号随行文同步，协议串/代码块豁免）
+    for (const [label, p] of [
+      ['settle SKILL', skillFile('novel-settle', 'SKILL.md')],
+      ['沉淀对账', skillFile('novel-settle', 'agents/沉淀对账.md')],
+      ['revision SKILL', skillFile('novel-revision', 'SKILL.md')],
+      ['改稿章程', skillFile('novel-revision', 'agents/改稿章程.md')],
+      ['export SKILL', skillFile('novel-export', 'SKILL.md')],
+    ] as const) {
+      const text = fs.readFileSync(p, 'utf8')
+      expect(text, `${label}: 弯引号应清零`).not.toContain('“')
+      expect(text, `${label}: 弯引号应清零`).not.toContain('”')
+    }
+    // I. 版本零残留：docs/user＋docs/maintenance 当前口径 0.0.20 清零（历史叙事在 CHANGELOG/蓝图，不在用户文档）
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.20`).not.toContain('0.0.20')
       }
     }
   })

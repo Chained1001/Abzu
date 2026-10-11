@@ -230,7 +230,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(readSkill('novel-director')).toContain('「中期崩盘」→§8.8')
     const charter = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-revision', 'agents', '改稿章程.md'), 'utf8')
     expect(charter).toContain('改稿方向判据（内联摘要）')
-    expect(charter).toContain('完整判据在 novel-director 技能包的 references/08_修订排障.md')
+    expect(charter).toContain('完整判据在《工作台总控》技能包 references/08_修订排障.md')
     // 跨包相对链接在 DSH resourceBase 解析语义下不可达（技能基目录的 ../../ 逃出 skills 树）且章程整体内联进隔离子代理——禁用链接形态
     expect(charter, '改稿章程不得用跨包相对链接').not.toContain('](../')
   })
