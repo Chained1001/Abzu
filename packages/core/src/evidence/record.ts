@@ -3,12 +3,11 @@
  */
 
 import { createHash } from 'node:crypto'
-import * as fs from 'node:fs'
 import * as path from 'node:path'
 import type { ChapterKey } from '../derive/scan'
 import { writeFileAtomic } from '../repo/atomic'
 import { paths } from '../repo/paths'
-import { MACHINE_SCHEMA_VERSION, parseMachineJson, serializeMachineJson } from '../repo/schema'
+import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { bookWriter } from '../repo/atomic'
 
 export const 处置状态列表 = ['待处理', '已接受修改', '已解决', '作者保留', '已驳回', '无法判断'] as const
@@ -119,7 +118,8 @@ export function isReviewIncomplete(record: ReviewRecord): boolean {
 
 function readText(root: string, rel: string): string | null {
   try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
+    // 修复(0.0.20 批 bug7):审核记录是机器态 JSON,读取统一走 readMachineText(剥 BOM)——原先不剥,外部编辑器存 BOM 即解析失败回退空记录
+    return readMachineText(path.join(root, rel))
   } catch {
     return null
   }
@@ -251,7 +251,8 @@ export function readReviewRecordForUpdate(bookRoot: string, key: Pick<ChapterKey
   | { readonly ok: true; readonly record: ReviewRecord; readonly hash: string }
   | { readonly ok: false; readonly reason: string } {
   let text: string
-  try { text = fs.readFileSync(path.join(bookRoot, paths.审核记录(key.卷, key.章名)), 'utf8') }
+  // 修复(0.0.20 批 bug7):与 loadReviewRecord 同口径,机器态读取统一剥 BOM(readMachineText)
+  try { text = readMachineText(path.join(bookRoot, paths.审核记录(key.卷, key.章名))) }
   catch (error) {
     return { ok: false, reason: (error as NodeJS.ErrnoException).code === 'ENOENT' ? '无审核记录' : '审核记录读取失败' }
   }

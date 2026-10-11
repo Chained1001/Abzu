@@ -43,8 +43,8 @@ function captureRun(argv: string[]): { code: number; out: string } {
   }
 }
 
-describe('卷摘要候选薄入口退出码(F21-2)', () => {
-  it('账本缺失/损坏 → exit 1(前置不满足);正常与如实报缺 → exit 0', () => {
+describe('卷摘要候选薄入口退出码(F21-2;0.0.20 批 bug6 统一失败模式红:!ok 一律 exit 1)', () => {
+  it('正常 → exit 0;缺章摘要/账本缺失/账本损坏 → 一律 exit 1', () => {
     // 正常:账本在线索有卷内条目
     const okBook = mkBook()
     finalize(okBook, 3)
@@ -53,13 +53,14 @@ describe('卷摘要候选薄入口退出码(F21-2)', () => {
     expect(okRun.code).toBe(0)
     expect(JSON.parse(okRun.out).ok).toBe(true)
 
-    // 如实报缺:缺第2章摘要(账本在线索空) → exit 0,ok:false
+    // 如实报缺:缺第2章摘要(账本在线索空) → exit 1,ok:false＋缺章清单在 JSON 呈报
     const lackBook = mkBook()
     finalize(lackBook, 3, { 缺摘要: [2] })
     writeFileAtomic(lackBook, paths.账本('线索'), '# 线索\n')
     const lackRun = captureRun(['--book', lackBook, '--卷', '1'])
-    expect(lackRun.code).toBe(0)
+    expect(lackRun.code).toBe(1)
     expect(JSON.parse(lackRun.out).ok).toBe(false)
+    expect(JSON.parse(lackRun.out).缺章摘要).toEqual([2])
 
     // 账本缺失:不创建线索账本 → exit 1
     const missingBook = mkBook()
@@ -75,5 +76,16 @@ describe('卷摘要候选薄入口退出码(F21-2)', () => {
     const badRun = captureRun(['--book', badBook, '--卷', '1'])
     expect(badRun.code).toBe(1)
     expect(JSON.parse(badRun.out).ok).toBe(false)
+  })
+
+  it('无定稿章 → exit 1(ok:false 全失败模式红)', () => {
+    const root = mkBook()
+    for (const name of ['故事线', '人物弧线', '承诺', '时间线', '线索'] as const) {
+      writeFileAtomic(root, paths.账本(name), `# ${name}\n`)
+    }
+    const run = captureRun(['--book', root, '--卷', '1'])
+    expect(run.code).toBe(1)
+    expect(JSON.parse(run.out).ok).toBe(false)
+    expect(JSON.parse(run.out).reason).toContain('无定稿章')
   })
 })

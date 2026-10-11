@@ -162,6 +162,21 @@ describe('卷摘要事实边界与账本失败(F21-1/F21-2)', () => {
     expect(r.候选).toContain('账目存疑')
   })
 
+  it('③b已兑现终态线索必须进入候选(0.0.20 批 bug2:过滤集漏计兑现类终态)', () => {
+    const root = mkBook()
+    mkLedgerBook(root, 3, [
+      '# 线索', '',
+      '## 铜符', '状态：已兑现', '埋设点：第0001章', '实际落点：定稿/卷01/0003-第3案.md', '',
+      '### 正文', '铜符之谜本章揭晓。', '',
+    ].join('\n'))
+    const r = computeVolumeSummaryCandidate(root, 1)
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.候选).toContain('铜符〔已兑现〕')
+    expect(r.候选).toContain('铜符之谜本章揭晓')
+    expect(r.线索条数).toBe(1)
+  })
+
   it('④无法判定发生时点的条目报边界不明,不静默当作卷内事实', () => {
     const root = mkBook()
     mkLedgerBook(root, 1, '# 线索\n\n## 无根线索\n状态：已埋\n计划来源：大纲/分卷布局.md@1\n\n### 正文\n无时点。\n')
@@ -209,7 +224,7 @@ describe('卷摘要事实边界与账本失败(F21-1/F21-2)', () => {
     const r = computeVolumeSummaryCandidate(root, 1)
     expect(r.ok).toBe(true)
     if (!r.ok) return
-    expect(r.候选).toContain('无已收或进行中线索')
+    expect(r.候选).toContain('无已收、进行中或已兑现线索')
     expect(r.线索边界不明).toEqual([])
   })
 })

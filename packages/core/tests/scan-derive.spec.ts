@@ -41,7 +41,7 @@ describe('扫描器→推导端到端(真实文件树)', () => {
     put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('写作备料')
 
-    // 材料包可写
+    // 材料包段齐备
     put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('写稿')
 

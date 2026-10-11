@@ -42,7 +42,7 @@ export interface PolishResult {
   readonly reason?: string
 }
 
-const DRAFT_KEYS = ['身份', '版本', '父版本', '生成模块', '来源快照', '角色', '选定', '保真风险'] as const
+// 修复(0.0.20 批 bug4):8 键本地副本已是死代码(写侧实际用下方 import 的 草稿字段序)——删除,单源在 core repo/drafts.ts。
 
 function readText(root: string, rel: string): string | null {
   try {

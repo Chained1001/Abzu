@@ -111,16 +111,29 @@ describe('写稿门槛(R1 落码:播报不拒绝)', () => {
     if (d.kind === 'deny') expect(d.reason).toMatch(/章节键/)
   })
 
-  it('确认细纲+材料包可写→允许写草稿,readiness 全绿', () => {
+  it('确认细纲+材料包段齐备→允许写草稿,readiness 全绿(说明不含材料包段)', () => {
     const root = mkBook()
     put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
-    put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '可写' }))
+    put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     const rel = '草稿区/草稿/卷01-初见/稿1.md'
     const d = decidePreExecute(root, write(path.join(root, rel)))
     expect(d).toEqual({ kind: 'allow' })
     const r = reportDraftReadiness(root, rel)
     expect(r?.细纲已确认).toBe(true)
-    expect(r?.材料包状态).toBe('可写')
+    expect(r?.材料包状态).toBe('段齐备')
+    expect(r?.说明).not.toMatch(/材料包/)
+  })
+
+  it('对照:材料包段有缺→仍放行写入(R1 播报不拒绝),readiness 追加播报材料包段有缺', () => {
+    const root = mkBook()
+    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
+    put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段有缺' }))
+    const rel = '草稿区/草稿/卷01-初见/稿1.md'
+    const d = decidePreExecute(root, write(path.join(root, rel)))
+    expect(d).toEqual({ kind: 'allow' })
+    const r = reportDraftReadiness(root, rel)
+    expect(r?.材料包状态).toBe('段有缺')
+    expect(r?.说明).toBe('细纲已确认;材料包段有缺')
   })
 })
 

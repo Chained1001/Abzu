@@ -4,6 +4,7 @@ import * as path from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { NOVEL_TOOL_NAMES, NOVEL_TEST_TOOL_NAMES } from '../src/novel-tools'
 import { REFERENCE_TOOL_NAMES } from '../src/reference/tools'
+import { readSkill, skillPath } from './skill-test-helpers'
 
 /**
  * 主控+节点+聚合技能（全生命周期 11 份）。
@@ -24,14 +25,6 @@ const EXPECTED_SKILLS: ReadonlyArray<{ readonly name: string; readonly 中文名
 ]
 
 const BLACKLIST = ['家位', '门控', '闭环', '抓手', '世代']
-
-function skillPath(name: string): string {
-  return path.join(__dirname, '..', 'skills', name, 'SKILL.md')
-}
-
-function readSkill(name: string): string {
-  return fs.readFileSync(skillPath(name), 'utf8')
-}
 
 const SKILL_NAME_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 

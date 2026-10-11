@@ -2,12 +2,23 @@
  * 机器态 JSON 版本纪律(机制 B8):必须带 schemaVersion,遇未知即拒绝。
  */
 
+import * as fs from 'node:fs'
 import type { ReadResult } from './frontmatter'
 
 export const MACHINE_SCHEMA_VERSION = 1
 export const KNOWN_SCHEMA_VERSIONS = [MACHINE_SCHEMA_VERSION] as const
 
 export type MachineRecord = Record<string, unknown> & { readonly schemaVersion: number }
+
+/**
+ * 机器态文本统一读取(0.0.20 批 bug7):utf8 读取＋剥首部 BOM,一处定义四处消费
+ * (审核记录 loadReviewRecord/readReviewRecordForUpdate、待定稿包清单、材料清单 manifest)。
+ * 修复依据:readFileSync('utf8') 保留 BOM 而 JSON.parse 不容忍——原先这四处各读各的不剥,
+ * 外部编辑器给机器态文件存 BOM 即解析失败;derive/scan 与 assembly/read 早有同款剥除,读侧口径合一。
+ */
+export function readMachineText(absPath: string): string {
+  return fs.readFileSync(absPath, 'utf8').replace(/^\uFEFF/, '')
+}
 
 export function isKnownSchemaVersion(version: number): boolean {
   return (KNOWN_SCHEMA_VERSIONS as readonly number[]).includes(version)

@@ -5,7 +5,7 @@
  * （<插件根>/skills/novel-settle/scripts/）上溯三级动态引 lib，调其中的 `volumeSummaryCli`。
  * 只算不写：纯算零写盘；调用方式（SKILL.md）：
  *   node <resourceBase>/scripts/卷摘要候选.mjs --book <bookRoot> --卷 <卷>
- * 退出码：0 成功（含如实报缺）；1 参数缺失；2 运行异常；3 无法加载插件运行库。
+ * 退出码：0 成功；1 参数缺失或结果 ok:false（缺章摘要/账本失败/无定稿章等，失败明细在 JSON 如实呈报）；2 运行异常；3 无法加载插件运行库。
  */
 const libUrl = new URL('../../../lib/index.js', import.meta.url)
 try {

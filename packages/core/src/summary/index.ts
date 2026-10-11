@@ -1,6 +1,6 @@
 /**
  * 卷摘要候选生成(任务21, 件一;格式规格 §3.4):
- * 只算不写——读本卷已定稿章的章摘要全文、账本已收/进行中线索、卷纲「卷末兑现」段,
+ * 只算不写——读本卷已定稿章的章摘要全文、账本已收/已兑现/进行中线索、卷纲「卷末兑现」段,
  * 汇编为候选正文供作者确认;不发明散文,不设上限、不截断。
  * 章摘要不齐时如实报缺,不产候选、不落盘。
  */
@@ -114,12 +114,14 @@ export function computeVolumeSummaryCandidate(bookRoot: string, 卷: number): Vo
     const kindText = ledger.kind === 'missing' ? '缺失' : '解析失败'
     return { ok: false, reason: `账本${kindText}：${ledger.reason}，不产候选不落盘`, 缺章摘要: [], 账本失败: true }
   }
-  const 命中 = ledger.entries.filter((e) => ['已收', '已埋', '已示'].includes(e.字段['状态'] ?? ''))
+  // 修复(0.0.20 批 bug2):账本读侧不校验状态值,兑现类终态「已兑现」实见在线索账本(settlement
+  // 对非线索类即产已兑现),旧过滤集 [已收,已埋,已示] 漏计已收束线索——并入「已兑现」终态。
+  const 命中 = ledger.entries.filter((e) => ['已收', '已埋', '已示', '已兑现'].includes(e.字段['状态'] ?? ''))
   const 边界不明 = 命中.filter((e) => entryChapterNo(e) === null).map((e) => e.名称)
   const 卷内线索 = 命中.filter((e) => entryChapterNo(e) !== null)
   const 线索段Parts: string[] = []
   if (卷内线索.length === 0 && 边界不明.length === 0) {
-    线索段Parts.push('（无已收或进行中线索）')
+    线索段Parts.push('（无已收、进行中或已兑现线索）')
   } else {
     if (卷内线索.length > 0) {
       线索段Parts.push(卷内线索.map((e) => `- ${e.名称}〔${e.字段['状态'] ?? ''}〕${e.正文 === '' ? '' : `：${e.正文}`}`).join('\n'))

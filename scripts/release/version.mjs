@@ -15,7 +15,8 @@ export function releaseVersion(directory = root, tag) {
   const changelog = fs.readFileSync(path.join(directory, 'CHANGELOG.md'), 'utf8')
   assert.ok(changelog.includes(`## [${bundle.version}]`), 'Missing versioned changelog entry')
   const documents = ['README.md', 'packages/bundle/README.md',
-    ...fs.readdirSync(path.join(directory, 'docs/user')).filter(file => file.endsWith('.md')).map(file => `docs/user/${file}`)]
+    ...fs.readdirSync(path.join(directory, 'docs/user')).filter(file => file.endsWith('.md')).map(file => `docs/user/${file}`),
+    ...fs.readdirSync(path.join(directory, 'docs/maintenance')).filter(file => file.endsWith('.md')).map(file => `docs/maintenance/${file}`)]
   for (const file of documents) {
     const text = fs.readFileSync(path.join(directory, file), 'utf8')
     for (const match of text.matchAll(/abzu-([\d][\w.-]*)\.tgz/g)) {

@@ -1,5 +1,5 @@
 /**
- * 写稿门槛(R1 落码,2026-08-29 拍板 7):「未确认细纲 / 材料包非可写」不再拒绝写入——
+ * 写稿门槛(R1 落码,2026-08-29 拍板 7):「未确认细纲 / 材料包非段齐备」不再拒绝写入——
  * 它们属「视野丢失/跑偏编造」,靠喂料与审读治,不靠拒绝;该不该开写由主 Agent 判断,
  * 代码只如实播报(reportDraftReadiness)。草稿路径形状校验保留:草稿必须落在可解析的
  * 卷/章键路径下,否则推导看不见(格式规格 §8 的输入面)。
@@ -65,6 +65,8 @@ export function reportDraftReadiness(bookRoot: string, relPath: string): DraftRe
   const 材料包状态 = facts.材料包状态
   const parts: string[] = [细纲已确认 ? '细纲已确认' : '细纲未确认(播报,不阻断)']
   if (材料包状态 === null) parts.push('材料包未组装')
-  else if (材料包状态 !== '可写') parts.push(`材料包${材料包状态}`)
+  // 修复(0.0.20 批 bug1):「可写」不在材料包状态词表(assembly/sections.ts 六值),旧守卫恒真——
+  // 连段齐备也追加播报;就绪判断对齐词表真值「段齐备」。
+  else if (材料包状态 !== '段齐备') parts.push(`材料包${材料包状态}`)
   return { 细纲已确认, 材料包状态, 说明: parts.join(';') }
 }

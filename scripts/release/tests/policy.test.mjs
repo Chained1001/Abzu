@@ -32,11 +32,14 @@ test('version checks every user tutorial and package installation example', () =
       fs.copyFileSync(path.join(sourceRoot, file), path.join(root, file))
     }
     fs.mkdirSync(path.join(root, 'docs/user'), { recursive: true })
+    fs.mkdirSync(path.join(root, 'docs/maintenance'), { recursive: true })
     const tutorial = path.join(root, 'docs/user/another-tutorial.md')
     for (const sample of ['abzu@1.0.0', 'abzu-1.0.0.tgz', 'releases/tag/abzu-v0.9.9']) {
       fs.writeFileSync(tutorial, sample)
       assert.throws(() => releaseVersion(root), /Stale/)
     }
+    fs.writeFileSync(path.join(root, 'docs/maintenance/another-guide.md'), 'dsh plugin add abzu@1.0.0')
+    assert.throws(() => releaseVersion(root), /Stale/)
   } finally {
     const remove = dir => { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const target = path.join(dir, entry.name); if (entry.isDirectory()) remove(target); else fs.unlinkSync(target) }; fs.rmdirSync(dir) }
     remove(root)

@@ -13,7 +13,7 @@ import { extractVersionFields } from '../provenance'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument } from '../repo/frontmatter'
 import { paths } from '../repo/paths'
-import { MACHINE_SCHEMA_VERSION, parseMachineJson, serializeMachineJson } from '../repo/schema'
+import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { parseSourceRef } from '../repo/sourceRef'
 import { 材料预算 } from './budget'
 import { 材料包十段, sectionFileName, type 材料包段名, type 材料包状态, type SectionRecord, type MaterialSectionRecord, type SupplementEdit } from './sections'
@@ -644,8 +644,14 @@ export function assembleMaterials(bookRoot: string, input: AssembleInput): Assem
 }
 
 export function readManifest(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): MaterialManifest | null {
-  const text = readText(bookRoot, path.posix.join(paths.材料包目录(key.卷, key.章名), '材料清单.json'))
-  if (text === null) return null
+  // 修复(0.0.20 批 bug7):材料清单是机器态 JSON,读取统一走 readMachineText(剥 BOM)——
+  // 原先经本文件通用 readText 不剥 BOM,与 assembly/read.ts 的清单读侧双口径,存 BOM 即判 null
+  let text: string
+  try {
+    text = readMachineText(path.join(bookRoot, paths.材料包目录(key.卷, key.章名), '材料清单.json'))
+  } catch {
+    return null
+  }
   const r = parseMachineJson(text, MACHINE_SCHEMA_VERSION)
   if (!r.ok) return null
   const 状态 = typeof r.data['状态'] === 'string' ? r.data['状态'] as 材料包状态 : '组装中'

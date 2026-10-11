@@ -20,6 +20,7 @@ import {
   serializeDocument,
   splitCandidateFacts,
   writeFileAtomic,
+  草稿字段序,
   type ChapterKey,
 } from '@abzu/core'
 import { bookWriter } from '@abzu/core'
@@ -52,7 +53,7 @@ export interface DraftInfo {
   readonly 版本: number | null
 }
 
-const DRAFT_KEYS = ['身份', '版本', '父版本', '生成模块', '来源快照', '角色', '选定'] as const
+// 修复(0.0.20 批 bug4):本地 7 键副本缺「保真风险」且与 core 双源漂移——删除,改用 import 的 草稿字段序(8 键单源)。
 
 function readText(root: string, rel: string): string | null {
   try {
@@ -136,7 +137,7 @@ function selectDraftLocked(
     const doc = parseDocument(text)
     if (!doc.ok) continue
     const fields = { ...doc.data.fields, 选定: file === target }
-    writeFileAtomic(bookRoot, rel, serializeDocument(fields, doc.data.body, DRAFT_KEYS))
+    writeFileAtomic(bookRoot, rel, serializeDocument(fields, doc.data.body, 草稿字段序))
   }
   return { ok: true }
 }
@@ -168,7 +169,7 @@ function writeDraftLocked(bookRoot: string, input: WriteDraftInput): WriteDraftR
     },
     ver,
   )
-  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(prose, facts), DRAFT_KEYS))
+  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(prose, facts), 草稿字段序))
 
   if (input.选定 === true) {
     const sel = selectDraft(bookRoot, { 卷: input.卷, 章名: input.章名, file })
@@ -229,7 +230,7 @@ function importAuthorDraftLocked(bookRoot: string, input: ImportAuthorDraftInput
     },
     { ...ver, 生成模块: input.生成模块 },
   )
-  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(prose, facts), DRAFT_KEYS))
+  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(prose, facts), 草稿字段序))
   return { ok: true, relPath, 播报 }
 }
 

@@ -2,6 +2,65 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.20] — 2026-10-11
+
+代码 bug 批（core 审查发现七项真缺陷——幽灵状态值/枚举漂移/死基准脚本/双源键序/退出码约定/BOM 读侧口径，全部为审查实锤后修复）＋文档批（审查修复续——双写消歧、双词表映射、术语漂移、蓝图四处）＋版本纪律。core 冻结面其余单源收拢发现（九项）本批不动代码，进蓝图遗留台账候解冻批收拢（见 Changed 蓝图条）。
+
+### Fixed（代码 bug 批七项）
+
+- **bug1 幽灵状态值「可写」**：`gate/writeDraft.ts` 材料包就绪播报守卫 `!== '可写'` 恒真——「可写」不在材料包状态词表（assembly/sections.ts 六值），连段齐备也被追加「材料包段齐备」播报；对齐词表真值「段齐备」（gates.ts 同款注释、schema/scan-derive 测试与 benchmark 里的幽灵值一并清理）。
+- **bug2 线索枚举漂移漏「已兑现」**：`summary/index.ts` 卷摘要候选的线索过滤集 [已收,已埋,已示] 漏计已收束线索——账本读侧不校验状态值，兑现类终态「已兑现」实见在线索账本（settlement 对非线索类即产已兑现）；过滤集并入「已兑现」，产品输出串「（无已收或进行中线索）」同步改「（无已收、进行中或已兑现线索）」（volume-summary.spec.ts 锚定断言同步改），novel-settle SKILL 卷摘要候选步的读侧措辞对齐（账本已收/进行中/已兑现线索）。
+- **bug3 benchmark-derive 自 fork 起跑不起来**：`deriveChapter` 已更名 `deriveChapterFacts`（core derive.ts），旧 import 名与 `.row` 直取（Derivation 无该字段）双坏；对齐现签名取 `建议.row`、材料包状态取词表真值「段齐备」、补 `审核证据过期` 字段。
+- **bug4 DRAFT_KEYS 双源漂移**：drafting/write.ts 本地 7 键副本缺「保真风险」（与 core 键序漂移）、polish/run.ts 8 键副本已死代码（写侧实际用 import 的 `草稿字段序`）——两处副本删除，单源收敛到 core repo/drafts.ts `草稿字段序`（8 键）。
+- **bug5 影响分析 exit 约定**：`analyzeImpactCli` 书仓/变更路径不存在时空闭包静默 exit 0 形似成功——前置校验指名报错＋exit 1（式样对齐确定性检查 deterministic-checks.ts）；新建 impact-cli.spec.ts 断言（错路径 stderr 指名＋exit 1，无空闭包 exit 0）；novel-design/novel-outline 两份 `scripts/影响分析.mjs` 薄入口头注补「书仓/变更路径不存在→exit 1」退出码说明。
+- **bug6 卷摘要候选 exit 约定**：`volumeSummaryCli` 原仅账本失败（账本失败===true）才 exit 1，缺章摘要/无定稿章等 ok:false 仍 exit 0 形似成功——统一 !ok 一律 exit 1（全失败模式红，失败明细仍在 JSON 如实呈报）；volume-summary-cli.spec.ts 断言同步（缺章摘要/无定稿→exit 1＋明细在 JSON）；`novel-settle/scripts/卷摘要候选.mjs` 头注退出码说明更新（原「0 成功（含如实报缺）」作废）。
+- **bug7 机器态 BOM 四读点统一＋哈希口径**：审核记录（loadReviewRecord/readReviewRecordForUpdate）、待定稿包清单（settlement/decision.ts）、材料清单 manifest（assembly/assemble.ts readManifest）四读点原先各 `readFileSync('utf8')` 不剥 BOM——外部编辑器给机器态文件存 BOM 即解析失败回退空记录/误判缺清单；新增 `repo/schema.ts readMachineText`（utf8＋剥首部 BOM）一处定义四处消费（derive/scan 与 assembly/read 早有同款剥除，读侧口径合一）；readReviewRecordForUpdate 的记录哈希随读侧口径修正（哈希与解析作用于同一剥 BOM 文本）；schema.spec.ts 新增四读点带 BOM 行为一致断言组。
+
+### Fixed（文档批）
+
+- **「G 代价已结」双写消歧（裁定：落账单源＝主 Agent 走 worldbook 确认路径）**：novel-settle/agents/沉淀对账.md 对账方法 5 改为核对职责——子代理对账时核对本章金手指动用与代价结清状态（该结未结的列入对账差异呈报，不硬记已结），落账不在事实变更段写「G 代价已结」行、由主 Agent 按技能步骤 4 的 worldbook 路径（`novel_confirm_worldbook_entry`）执行；novel-settle/SKILL.md 步骤 4 落账路径不动，措辞互指单源（「候选事实对账（子代理按对账底本对账方法 5 只核对不落账）后」）。
+- **严重程度双词表显式映射（裁定：不并轨，补映射）**：机器轨（确定性脚本回写载荷）低/中/高 ↔ 模型轨（审读底本）硬伤/建议/仅供参考——novel-review/SKILL.md 处置步＋agents/全量审读.md 发现项字段表各加一行映射（低↔仅供参考、中↔建议、高↔硬伤），两路发现项汇入同一审核记录时按此表对应读，各自原词回写不改写。
+- **CONTEXT.md 术语漂移**：「压力升级检查」定义四核对项→五核对项（含本卷升级位——0.0.16 已扩第⑤核对项，术语表漏同步）；skills-batches.spec.ts 加断言钉住（CONTEXT 与 novel-design SKILL 双文件「五核对项」一致，防再漂）。
+- **采风检索.md 标题口径**：「可信度三态」→「可信度四态」（表格本就四行：已证实/孤证/推测/归纳——归纳行为 0.0.16 十类化时所加，标题漏同步）。
+- **蓝图四处（增强实施计划 v1.4 未发布，就地修订不另开版本行）**：①头部 v1.3 摘要「复原 Scriptor 原样受管拆解」按 v1.4 勘误口径同步（复原为原样受管单通道＋0.0.15/0.0.16 两批措辞修订）；②变更记录排序修正为严格降序（原 v1.2/v1.3 两行错位）；③E5′ 余件状态刷新——采风纪律/灵感库（八类→十类）/设计侧评审两席标已落地（0.0.15-0.0.17，见 CHANGELOG），差异生成法保持按需后落；④「core 解冻批候选（单源收拢清单）」三行扩至十二项——并入 core 审查发现：卷纲四段四写（volume.ts:30 单源已在，derive/design.ts:199／assembly/assemble.ts:447／book/scaffold.ts:36 内联）、待定稿包文件清单三写（prepare/pack.ts:27 vs derive/scan.ts:96 vs settlement/index.ts:42-47）、`'## 窗口覆盖'`/`'## 窗口外锚点'` 三处、`'（无摘要沉淀）'` 三处、事实块头正则两版（`\d{1,4}` vs `\d+`）、记忆类别四值双定义（repo/paths.ts:14 vs memory/author.ts:13）、无分隔符卷行正则漂移（design/content.ts:31 vs derive/design.ts:264）、recovery 环节键双写、草稿角色枚举三处重复（drafting/polish/core repo/drafts——代码侧未收，一并记）。
+
+### Added
+
+- **「0.0.20 审查修复批」spec 断言组（skills-batches.spec.ts）**：G 单源消歧措辞（沉淀对账含「由主 Agent」与「novel_confirm_worldbook_entry」、不含事实变更段写 G 行的旧指示——负断言）；严重程度映射行双文件（低↔仅供参考/高↔硬伤）；CONTEXT.md 与 novel-design SKILL「五核对项」一致；采风「可信度四态」；蓝图 E5′ 已落地标记（已落地＋按需后落并存）与解冻清单新行关键词（卷纲四段四写/事实块头正则/草稿角色枚举）；settle SKILL 已兑现措辞与输出串锚定；docs/user 0.0.19 零残留（负断言，含 docs/maintenance）。
+
+### Changed
+
+- 版本 0.0.19→0.0.20（根＋bundle），README×2（9 处）＋docs/user 全目录（31 处）＋docs/maintenance（2 处）版本口径同步，共 42 处（grep 0.0.19 清零，历史叙事除外——CHANGELOG 各版本条目与蓝图头部批次归属句保留）。
+
+## [0.0.19] — 2026-10-11
+
+审查修复批（整体项目双轴审查——文档口径轴＋代码卫生轴——发现的修复，四类）：①docs/user 裸版本号陈旧值全量同步（31 处，构成见 Fixed）＋版本同步例行面扩为 docs/user/ 全目录（纪律修订，见 Changed）；②profile 名 de-brand 收尾（10 处 scriptor→abzu，迁移/旧 profile 语境合法保留面核对为零残留）；③测试 helper 单源提取（新建 skill-test-helpers.ts，两 spec 删重复副本，batches 46 处路径拼接机械替换——纯机械零语义变化，替换前后全量测试同数全绿 1156 passed｜2 skipped）；④蓝图（docs/design/增强实施计划.md）v1.3→v1.4——三处漂移勘误＋横切纪律 4 落地形态澄清＋遗留台账追加 core 解冻批候选三行。全部为文档＋测试改动，core 冻结面零改动、技能文本层零改动。
+
+### Fixed
+
+- **docs/user 裸版本号同步（31 处，全部为「当前口径」陈述；历史叙事不动）**：0.0.5→0.0.19 共 8 处（beginner×2——版本要求句与配套声明、reference-analysis、result-cards×2、ui-reference、workflows、upgrade-backup 升级标题）；0.0.4→0.0.19 共 9 处（editor 适用版、troubleshooting×6——升级建议/版本对应/重装对应/混装警告/更新指引、install「现行值」句、upgrade-backup 更新步骤）；0.0.18→0.0.19 共 12 处（install×9——标题/release 产物/tgz 引用/版本核对/配套句/`abzu@` 两处、beginner×2、upgrade-backup 更新命令）；0.0.1→0.0.19 共 2 处（install 版本对应行——版本归零批留下的旧当前口径、first-book 逐部路径句）。保留不动的历史叙事：「0.0.1 已修复/0.0.1 时代」「0.0.2 起四包合一」「0.0.4 起鲸鱼娘桌宠移除」等。
+- **profile 名统一（scriptor→abzu 共 10 处，de-brand 收尾）**：新装/日常示例统一 `--profile abzu`——beginner 概念表例名 1 处＋排障表 2 处、troubleshooting DSH 修复步骤 1 处、upgrade-backup 更新/卸载示例 6 处；判断规则＝示例性命令一律新品牌名，profile 名本就是用户自起的示例值（0.0.3 起 install/README 已全量 abzu，本批收尾残留在 beginner/troubleshooting/upgrade-backup 的尾巴）。迁移/旧 profile 语境保留核对：docs/maintenance/cli-install.md 无 scriptor 残留（0.0.3 已换）；upgrade-backup「旧包名迁移」节的 `@linfengqaqtat/dsh-scriptor-*` 是 8.0.0 时代 npm 包名（历史事实、非 profile 名），原样保留。
+- **蓝图三处漂移（增强实施计划 v1.3→v1.4）**：E1 落点「新建根 CONTEXT.md」勘误为实装路径 `docs/CONTEXT.md`（根目录清爽化批 e994d01 已将其移入 docs/）；E6「复原 Scriptor 原样」更新为「复原为原样受管单通道（0.0.15 增重推演四步与 0.0.16 采风红线三处措辞修订，见 CHANGELOG 对应条目）」——「原样」一词与后续两批措辞修订的事实不符；变更记录补 v1.4 行。
+
+### Added
+
+- **横切纪律 4（成本可见性）落地形态澄清（蓝图 v1.4，2026-10-11）**：原文「每批冒烟记录 token 用量；回归简报带用量行」与实装背离，诚实收口为——每批（含沙盘/采集/调研）的子代理用量记录在**批报告与会话用量统计**（执行侧已天然产生）；产品内回归简报**不加**用量行——宿主不向技能暴露会话 token 计数，加了即是伪数据。变更记录注明这是澄清不是删纪律。
+- **遗留台账追加「core 解冻批候选（单源收拢清单）」三行（蓝图 v1.4）**：①BOM 剥离三处合一（derive/scan.ts＋assembly/read.ts）；②`'# 近期窗口'` 字面量读写双侧单源化（scan.ts:80＋design/volume.ts:76——写侧改标题会致读侧误回写，latent bug）；③markdown 目录列举 helper 跨包合一（drafting/write.ts＋polish/run.ts）——均涉 core 冻结面，本批不动，解冻时收拢。
+- **「0.0.19 审查修复批」spec 断言组（skills-batches.spec.ts）**：docs/user 无 0.0.5/0.0.18 残留、0.0.4 仅存「起/移除」历史叙事句式（负断言）；`--profile scriptor` 在 docs/user 零命中（grep 计数断言——迁移语境唯一合法保留面是 docs/maintenance）；共享 helper 文件存在且两 spec 文件导入（grep import 断言）；蓝图含 v1.4 与澄清句关键词（批报告与会话用量统计/不加用量行/宿主不向技能暴露）；遗留台账含三行单源收拢清单关键词（BOM 剥离/近期窗口/目录列举）。
+
+### Changed
+
+- **测试 helper 提取（Duplicated Code 收敛）**：新建 `packages/bundle/tests/skill-test-helpers.ts`（导出 `skillFile(name, rel)`／`skillPath`／`readSkill`），skills-core.spec.ts 与 skills-batches.spec.ts 删除各自副本改为导入共享；batches 内 46 处手写 `path.join(__dirname, '..', 'skills', …)` 机械替换为 `skillFile` 调用（含 tplDir/seedDir 目录形态与 skill/file 变量形态，均由 `skillFile(name, rel)` 一个形态覆盖）——纯机械替换零语义变化，替换前后全量测试同数全绿。
+- **版本同步例行面扩展（纪律修订）**：自本批起从「README×2＋install/beginner/upgrade-backup」扩为 **README×2＋docs/user/ 全目录**——此前 `check:version`（scripts/release/version.mjs）只扫 tgz 式引用（`abzu-X.tgz`／`abzu@X`／Release tag 链接），裸版本号（「适用于 Abzu 0.0.4」式）扫不到，本批 31 处陈旧值即由此漏网；今后版本批逐处过目 docs/user/ 全目录裸版本号。**追加（同批）**：`check:version` 扫描清单扩入 **docs/maintenance/ 全目录**，修复 cli-install.md 两处 `abzu@0.0.7` 陈旧示例（0.0.7 起连续 12 版漏网——maintenance 面此前不在任何扫描清单内）；policy.test.mjs 的版本 fixture 同步补 docs/maintenance 目录并加 maintenance 陈旧用例（`dsh plugin add abzu@1.0.0` 必抛 Stale）；第 17 行"0.0.1 的 abzu-retrieval"等为裸版本历史叙事，不匹配扫描模式无误伤。
+- 版本 0.0.18→0.0.19（根＋bundle），README/docs 版本示例同步（主 README 4 处、bundle README 5 处含两处 0.0.5、docs/user 31 处）。
+
+### 仓库卫生（未随版本，补记）
+
+以下两笔为 0.0.19 审查发现的卫生提交——CHANGELOG 与版本条目双无记载，补记留痕；均未随任何版本号。
+
+- e994d01（2026-10-09）：根目录清爽化——根级条目 23→17（CONTEXT→docs/、SECURITY→README、CONTRIBUTING→docs/dev、.node-version 删、dsh-baseline→bundle、examples→docs、benchmark→scripts/benchmarks），`.tmp/` 清空 526MB。
+- 043b1d3（2026-10-09）：仓库清扫批 1+2（公开就绪定位）——删孤儿 18 件（含 ledger 整包与 4 死图，−1.15MB）、CI 转休眠态保留、文档适配（README 双口径/CONTRIBUTING 精简/SECURITY 占位/install.md 本地 tgz 流/releasing.md 裁 npm 补 GitHub 骨架）、release 链本地化（剥源码附件族 5 件、notices LF 根治）、改造对比与河埠旧事归档 B 仓、新增发布检查单。
+
 ## [0.0.18] — 2026-10-10
 
 修复批（F34-F42 九项，沙盘续批二《夜典》章 4-6 实测，报告在写作测试 1-1 工作区 `_测试发现.md` 第七节）：核心是 F36 设计-实现断链的定位与裁定——确定性检查篇幅核对的解析与核对代码（`parseChapterLength`／`checkChapterLength`）核实落在 core 冻结面（`packages/core/src/design/chapter-length.ts`，review 侧只调用、bundle 的 `lib/index.js` 是内联 core 的构建产物），本批零改动；SKILL 侧按作者裁定落「目标句＋现状注记」：章型浮动条款语义钉死（各档独立——过渡档允许低于主区间下限、高潮档允许高于主上限；审读按本章章型的档判差额，脚本篇幅核对按全带核对）＋真实现状注记（core 契约解析器接受浮动行落地前，确定性脚本遇浮动行报「配置错误」、篇幅核对整节失效，差额由人工按本章章型的档判）——不再有描述不存在脚本行为的句子。其余七小改：关键章枚举补「段内（章组）高潮章」（判据源＝卷纲叙事结构段的章组排期）与「伏笔/线索到期兑现章」（判据源＝写前十查③线索到期过滤命中）；回炉后处置枚举补第四形态「细纲没错只是写得薄：写足再交」（零新卫星事件、纯信息加密补写一轮，排在三选之前，判据单源在《正文起草》验收步、审读侧引用）；热回查/自评行落位钉死（固定属候选事实段末尾、正文区之外，字数口径同步四不计）；写前十查⑧隔章定义补齐（比对序列重启的首章与孤立过渡章照常比对，不隔，两底本措辞统一）；简章核心节六→七（补「前置条件核对结果」一句话版）；章型浮动数值建议句（按本书已发稿实测产出分布拟——回炉扩写可拉 30-50%，档目标高出常态产出分布过多必然反复走作者保留）。F42 种子治理：沙盘灵感库基础版两册零件卡的 dev 仓绝对路径（22 处）与沙盘路径（1 处）中性化为仓内相对引用（`dev仓 docs/design/…` 式），全部八册零件卡＋索引重同步到 `novel-inspiration/assets/灵感库种子/`（Buffer.equals 逐字节验证，种子从此＝抽审批裁决后权威版）。全部为 skills 文本层＋种子资产＋测试改动，core 冻结面零改动。

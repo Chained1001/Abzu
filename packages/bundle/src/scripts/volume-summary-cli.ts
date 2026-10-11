@@ -1,8 +1,8 @@
 /**
  * 卷摘要候选脚本的 CLI 逻辑（任务21, 件一；R21：只算不写，薄入口经 lib 调用）。
  *
- * 读本卷已定稿章的章摘要全文、账本已收/进行中线索、卷纲「卷末兑现」段，汇编候选；
- * 章摘要不齐时如实报缺（exit 0＝检查完成，报缺非异常）。argv 进、退出码出，顶层零副作用。
+ * 读本卷已定稿章的章摘要全文、账本已收/已兑现/进行中线索、卷纲「卷末兑现」段，汇编候选；
+ * argv 进、退出码出，顶层零副作用。
  */
 
 import { computeVolumeSummaryCandidate } from '@abzu/core'
@@ -25,10 +25,11 @@ export function volumeSummaryCli(argv: readonly string[]): number {
   }
   try {
     const result = computeVolumeSummaryCandidate(book, 卷)
-    // 统一 JSON 输出（候选在 候选 字段）;账本缺失/解析失败属操作性失败,exit 1 呈报(F21-2);
-    // 如实报缺(缺章摘要/无定稿)与成功保持 exit 0(检查完成)
+    // 统一 JSON 输出（候选在 候选 字段）。
+    // 修复(0.0.20 批 bug6):原仅账本失败(账本失败===true)才 exit 1,缺章摘要/无定稿等 ok:false
+    // 仍 exit 0 形似成功——统一为 !ok 一律 exit 1(全失败模式红),失败明细仍在 JSON 里如实呈报。
     console.log(JSON.stringify(result, null, 2))
-    return !result.ok && result.账本失败 === true ? 1 : 0
+    return result.ok ? 0 : 1
   } catch (err) {
     console.error(`卷摘要候选生成异常：${err instanceof Error ? err.message : String(err)}`)
     return 2

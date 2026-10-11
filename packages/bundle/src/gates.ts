@@ -146,7 +146,7 @@ export function decideTargetForFile(target: string, deps: GateDeps): PreToolDeci
 function gateBookRoot(bookRoot: string, target: string): PreToolDecision {
   const access = gateFileAccess(bookRoot, target)
   if (!access.allow) return { kind: 'deny', reason: access.reason }
-  // 草稿区路径形状校验(R1 落码:未确认细纲/材料包非可写改为播报,不再拒绝)
+  // 草稿区路径形状校验(R1 落码:未确认细纲/材料包非段齐备改为播报,不再拒绝)
   const resolved = resolveInsideBook(bookRoot, target)
   if (resolved.ok) {
     const draft = gateWriteDraft(bookRoot, resolved.relPath)

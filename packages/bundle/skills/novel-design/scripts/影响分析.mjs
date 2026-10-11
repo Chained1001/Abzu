@@ -5,7 +5,7 @@
  * （<插件根>/skills/novel-design/scripts/）上溯三级动态引 lib，调其中的 `analyzeImpactCli`。
  * 只算不写：反向闭包纯读；调用方式（SKILL.md）：
  *   node <resourceBase>/scripts/影响分析.mjs --book <bookRoot> --变更路径 <相对路径> [--最大跳数 N] [--止于已定稿 false]
- * 退出码：0 成功；1 参数缺失；2 运行异常；3 无法加载插件运行库。
+ * 退出码：0 成功；1 参数缺失或书仓/变更路径不存在；2 运行异常；3 无法加载插件运行库。
  */
 const libUrl = new URL('../../../lib/index.js', import.meta.url)
 try {

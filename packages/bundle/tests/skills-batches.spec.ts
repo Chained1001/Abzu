@@ -1,19 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-
-function skillPath(name: string): string {
-  return path.join(__dirname, '..', 'skills', name, 'SKILL.md')
-}
-
-function readSkill(name: string): string {
-  return fs.readFileSync(skillPath(name), 'utf8')
-}
+import { readSkill, skillFile } from './skill-test-helpers'
 
 describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   it('E1 标尺批：参考标尺单源资产落位 + 三消费视图接线 + 审读分档区间', () => {
     // 标尺单源资产：文件存在、头部含单源声明（数值只存标尺,SKILL 与底本不内联）
-    const scalePath = path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md')
+    const scalePath = skillFile('novel-design', 'references/参考标尺.md')
     expect(fs.existsSync(scalePath), 'novel-design/references/参考标尺.md 应存在').toBe(true)
     const scale = fs.readFileSync(scalePath, 'utf8')
     expect(scale).toContain('反派体系单源声明')
@@ -27,14 +20,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // 分卷主战层级表行绝不进「故事阶段分配」——那是 parseVolumeAllocations 的进度解析位
     expect(design).toContain('绝不写进「故事阶段分配」')
     // 审读侧：分档区间在底本定用法（候选不是及格线）,数值随派发材料动态摘录
-    const pacing = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '节奏与张力审读.md'), 'utf8')
+    const pacing = fs.readFileSync(skillFile('novel-review', 'agents/节奏与张力审读.md'), 'utf8')
     expect(pacing).toContain('分档参考区间')
     expect(pacing).toContain('候选，不是及格线')
   })
 
   it('E3 写作管线批：写前十查底本＋细纲固定小节＋连写三档＋热回看＋篇幅三岔＋四级扫描', () => {
     // 写前十查：底本存在，机器四查＋过目单六查＋「呈确认前的检查不是门禁」纪律
-    const tenChecks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    const tenChecks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(tenChecks).toContain('机器四查')
     expect(tenChecks).toContain('过目单六查')
     expect(tenChecks).toContain('不是门禁')
@@ -67,23 +60,23 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(review).toContain('篇幅处置建议分级')
     expect(review).toContain('事件膨胀法')
     expect(review).toContain('一次净删')
-    const sweep = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '全量审读.md'), 'utf8')
+    const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
     expect(sweep).toContain('主角＋处境＋钩')
     expect(sweep).toContain('章末双钩')
     expect(sweep).toContain('契约四问')
     expect(sweep).toContain('证伪式检查')
-    const infoDim = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '信息披露审读.md'), 'utf8')
+    const infoDim = fs.readFileSync(skillFile('novel-review', 'agents/信息披露审读.md'), 'utf8')
     expect(infoDim).toContain('多给了')
     expect(infoDim).toContain('漏给了')
     expect(infoDim).toContain('应忘锚点')
     // polish 四级扫描定位表＋段长方差检查
-    const clean = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-polish', 'references', '1-表达清理.md'), 'utf8')
+    const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
     expect(clean).toContain('tier1')
     expect(clean).toContain('tier2')
     expect(clean).toContain('tier3')
     expect(clean).toContain('tier4')
     expect(clean).toContain('命中≠错误，不打分，不为清零改稿')
-    const reshape = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-polish', 'references', '2-节奏与重塑.md'), 'utf8')
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
     expect(reshape).toContain('段长方差检查')
     expect(reshape).toContain('脚本未实装')
   })
@@ -110,7 +103,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.13 方法论提卡批：标尺触发时机重映射＋四判据接线＋呈报表合并＋路径 A 适用面＋旧格式降级＋灵感域接线＋体感回灌', () => {
     // A. 标尺触发时机列：CC 仓坐标词零命中（fork 不存在的消费位），新消费位逐行在位
-    const scale = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md'), 'utf8')
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     for (const cc of ['批1 A.3', '编辑评审 E1', '卷纲评审']) {
       expect(scale, `参考标尺不应残留 CC 仓坐标「${cc}」`).not.toContain(cc)
     }
@@ -124,7 +117,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(readSkill('novel-outline')).toContain('§6.7（信息怎么分配')
     expect(readSkill('novel-design')).toContain('§5.3（本卷大高潮怎么设')
     expect(readSkill('novel-drafting')).toContain('§7.5（叙述视角技术')
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks).toContain('02_人物设计 §2.18')
     expect(checks).toContain('03_世界观设计 §3.9')
     expect(checks).toContain('完整版在《定调设计》技能包')
@@ -138,7 +131,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // C2. 路径 A 增强件适用面
     expect(readSkill('novel-design')).toContain('路径 A 同样执行')
     // C3. 旧细纲格式降级规则
-    const sweep = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-review', 'agents', '全量审读.md'), 'utf8')
+    const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
     expect(sweep).toContain('节缺失（旧格式）')
     expect(sweep).toContain('不为格式差异产出伪缺陷')
     // C5. 卷末体感回灌
@@ -158,7 +151,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.14 世界书模板批：三模板落位＋三端接线＋认知节独立于事实切片', () => {
     // A. 三模板存在：人物档案/世界规则/力量体系——只管正文骨架,frontmatter 约定不变,留白合法
-    const tplDir = path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '世界书')
+    const tplDir = skillFile('novel-design', 'templates/世界书')
     const tpl: Record<string, string> = {}
     for (const name of ['人物档案', '世界规则', '力量体系']) {
       const p = path.join(tplDir, `${name}条目模板.md`)
@@ -200,7 +193,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('### 认知')
     expect(settle).toContain('新知道、称呼变化、新隐瞒')
     expect(settle).toContain('novel_confirm_worldbook_entry')
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks).toContain('世界书/力量体系/')
     expect(checks).toContain('境界表与金手指轨道位')
     expect(checks).toContain('世界书/世界规则/')
@@ -211,11 +204,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // A1. 时间行：细纲固定行含时间行（起止＋上章末衔接）；写前十查④接钩预检带时间衔接核对
     const outline = readSkill('novel-outline')
     expect(outline).toContain('时间行')
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks).toContain('时间行的上章末时间衔接')
     // A2. 核心情绪前→后：情绪节固定行（SKILL＋规格模板）＋⑨与落点行的分工区分
     expect(outline).toContain('核心情绪前→后')
-    const sect = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sect).toContain('核心情绪前→后')
     expect(checks).toContain('前→后是位移')
     expect(checks).toContain('落点是读者离开时带什么')
@@ -241,7 +234,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.14 模板拆出批：组织/地图条目模板＋三份规格模板拆位＋SKILL 引用＋注册单源', () => {
     // A. 组织/地图条目模板存在：风格对齐既有三份（frontmatter 约定不变＋留白合法）
-    const tplDir = path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '世界书')
+    const tplDir = skillFile('novel-design', 'templates/世界书')
     for (const name of ['组织', '地图']) {
       const p = path.join(tplDir, `${name}条目模板.md`)
       expect(fs.existsSync(p), `novel-design/templates/世界书/${name}条目模板.md 应存在`).toBe(true)
@@ -263,16 +256,16 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('[地图条目模板](templates/世界书/地图条目模板.md)')
     expect(design).toContain('人物档案/世界规则/力量体系/组织/地图五份')
     // C. 规格模板拆位：三份存在＋规格细节在模板（表列/取数算式/四核对项）＋双 SKILL 各带一行引用
-    const ladder = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '对手梯队子表规格.md'), 'utf8')
+    const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
     expect(ladder).toContain('取数：标尺·固定层＋比例层×衰减×题材')
     expect(ladder).toContain('| 层级 | 存活周期 | 代表对手 | 出牌与去向 |')
     expect(design).toContain('[对手梯队子表规格](templates/对手梯队子表规格.md)')
-    const vol = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(vol).toContain('压力升级检查')
     expect(vol).toContain('终局暗手')
     expect(vol).toContain('方向选择')
     expect(design).toContain('[卷纲固定段规格](templates/卷纲固定段规格.md)')
-    const sect = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sect, '章细纲固定小节规格：四固定小节＋时间行＋前→后＋既有断言词全量在位').toContain('### 冲突与爽点')
     expect(sect).toContain('### 章末双钩')
     expect(sect).toContain('信息预算四行')
@@ -292,7 +285,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.15 提卡与缺口批：写作卡八卡＋drafting 改线＋文风建档门二支四层＋趣味层＋读者在场心智与自评行＋拆书消费接线＋语态样本行＋卷纲心动位＋KB 节级健康断言', () => {
     // A. 写作卡：文件存在＋frontmatter 式样＋八卡卡名与卡头节源在位
-    const cardsPath = path.join(__dirname, '..', 'skills', 'novel-drafting', 'agents', '写作卡.md')
+    const cardsPath = skillFile('novel-drafting', 'agents/写作卡.md')
     expect(fs.existsSync(cardsPath), 'novel-drafting/agents/写作卡.md 应存在').toBe(true)
     const cards = fs.readFileSync(cardsPath, 'utf8')
     for (const card of ['推进卡 ←§7.1＋§7.7', '塑造卡 ←§7.2＋§7.9', '动作卡 ←§7.3', '环境卡 ←§7.4', '开场卡 ←§7.10', '趣味卡 ←§7.12', 'POV 自查卡 ←§7.5', '行文自查卡 ←§7.13']) {
@@ -334,7 +327,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const outline = readSkill('novel-outline')
     expect(outline).toContain('借魂不借形')
     expect(outline).toContain('novel_reference_query')
-    const mech = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-analyze', 'references', '机制与灵感.md'), 'utf8')
+    const mech = fs.readFileSync(skillFile('novel-analyze', 'references/机制与灵感.md'), 'utf8')
     expect(mech).toContain('重推演四步')
     expect(readSkill('novel-analyze')).toContain('重推演四步')
     // D. 语态样本行：settle SKILL＋沉淀对账底本同步，且末行位保留给章末状态
@@ -342,16 +335,16 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('语态样本：')
     expect(settle).toContain('语态样本不得占末行')
     expect(settle).toContain('从本章挑一段满意的收进文风锚点吗')
-    const reconcile = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-settle', 'agents', '沉淀对账.md'), 'utf8')
+    const reconcile = fs.readFileSync(skillFile('novel-settle', 'agents/沉淀对账.md'), 'utf8')
     expect(reconcile).toContain('语态样本：<本章自认最佳一句正文>')
     expect(reconcile).toContain('放在章末状态行之前')
     // E. 卷纲心动位：规格＋design SKILL 步骤 6＋章细纲规格与 SKILL 的 ★ 可选行
-    const volSpec = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '卷纲固定段规格.md'), 'utf8')
+    const volSpec = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(volSpec).toContain('心动位')
     expect(volSpec).toContain('情绪锚不是顺序锚')
     expect(volSpec).toContain('源出 B 仓章循环设计')
     expect(readSkill('novel-design')).toContain('心动位行')
-    const sectSpec = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    const sectSpec = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sectSpec).toContain('单元行标 `★`')
     expect(sectSpec).toContain('卷纲「心动位」')
     expect(readSkill('novel-outline')).toContain('标 `★`')
@@ -372,7 +365,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     ]
     const SECTION_LINE_CAP = 110
     for (const { skill, file } of kbFiles) {
-      const text = fs.readFileSync(path.join(__dirname, '..', 'skills', skill, 'references', file), 'utf8')
+      const text = fs.readFileSync(skillFile(skill, `references/${file}`), 'utf8')
       const lines = text.replace(/\r\n/g, '\n').split('\n')
       const starts: number[] = []
       lines.forEach((line, i) => { if (/^## /.test(line)) starts.push(i) })
@@ -387,9 +380,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.15 评审采风批：评审两席底本＋采风代理＋灵感库结构＋双 SKILL 接线＋注册单源', () => {
     // A. 三底本存在＋frontmatter name（agents 目录惯例：英文 kebab name＋中文 description）
-    const writerPath = path.join(__dirname, '..', 'skills', 'novel-design', 'agents', '作家评审.md')
-    const readerPath = path.join(__dirname, '..', 'skills', 'novel-design', 'agents', '读者评审.md')
-    const researcherPath = path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md')
+    const writerPath = skillFile('novel-design', 'agents/作家评审.md')
+    const readerPath = skillFile('novel-design', 'agents/读者评审.md')
+    const researcherPath = skillFile('novel-inspiration', 'agents/采风检索.md')
     for (const p of [writerPath, readerPath, researcherPath]) {
       expect(fs.existsSync(p), `${p} 应存在`).toBe(true)
     }
@@ -485,7 +478,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('一行带过或显式留白')
     expect(outline).toContain('确认协议不变')
     expect(outline).toContain('隔章跑')
-    const sectSpec = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    const sectSpec = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sectSpec).toContain('简章')
     expect(sectSpec).toContain('过渡章')
     for (const kw of ['视角与焦点', '信息边界', '情绪与节奏目标', '冲突与爽点', '章末双钩']) {
@@ -494,7 +487,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(sectSpec).toContain('一行带过或显式留白')
     expect(sectSpec).toContain('留白合法')
     expect(sectSpec).toContain('六字段照抄不省')
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks).toContain('过渡章')
     expect(checks).toContain('机器四查照常')
     expect(checks).toContain('隔章跑')
@@ -544,7 +537,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(inspiration).toContain('最近更新')
     expect(inspiration).toContain('计数对账')
     // D. researcher 底本：十类路由＋触发源⑤存量盘点＋红线两例外＋范围句扩两句＋参考书去重（可选）
-    const researcher = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md'), 'utf8')
+    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
     expect(researcher).toContain('十类')
     expect(researcher).toContain('存量盘点')
     expect(researcher).toContain('跳过网络源')
@@ -566,7 +559,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.15 金手指管理批：轨道位四行＋design 落四行指针＋写前十查②三查＋settle 落账行', () => {
     // A. 档案位：力量体系模板金手指轨道位四行（枚举单源在模板）——代价分型两型＋反制＋代劳边界＋可见度牌
-    const tpl = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '世界书', '力量体系条目模板.md'), 'utf8')
+    const tpl = fs.readFileSync(skillFile('novel-design', 'templates/世界书/力量体系条目模板.md'), 'utf8')
     for (const kw of ['代价分型', '使用型', '持有型', '反制方式', '代劳边界', '可见度牌']) {
       expect(tpl, `金手指轨道位应含「${kw}」行`).toContain(kw)
     }
@@ -583,20 +576,22 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design, '分型枚举值单源在模板，SKILL 不得重述').not.toContain('每次动用即付')
     expect(design, '分型枚举值单源在模板，SKILL 不得重述').not.toContain('持有即招祸')
     // C. 写前查：检查②「本章动用金手指时三查」——代价已结否/越档/泄底（认知对照可见度牌）
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks).toContain('本章动用金手指时三查')
     for (const kw of ['代价已结否', '越档', '泄底']) {
       expect(checks, `写前十查②三查应含「${kw}」`).toContain(kw)
     }
     expect(checks).toContain('当场落账')
     expect(checks).toContain('不知道的人表现出知道')
-    // D. 写后账：settle SKILL＋沉淀对账底本同步落账行——使用型逐章落账、持有型状态变化才记
+    // D. 写后账：settle SKILL 落账（主 Agent worldbook 路径）＋沉淀对账底本核对职责——使用型逐章、持有型状态变化才记
+    //（0.0.20 批 G 单源消歧：落账单源＝主 Agent，子代理只核对不落账，断言随裁定更新）
     const settle = readSkill('novel-settle')
     expect(settle).toContain('「G 代价已结·第N章」')
     expect(settle).toContain('持有型代价不逐章落账（持有即持续状态），状态变化时才记')
-    const reconcile = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-settle', 'agents', '沉淀对账.md'), 'utf8')
-    expect(reconcile).toContain('「G 代价已结·第N章」')
-    expect(reconcile).toContain('持有型不逐章登记（持有即持续状态）')
+    const reconcile = fs.readFileSync(skillFile('novel-settle', 'agents/沉淀对账.md'), 'utf8')
+    expect(reconcile, '对账方法 5 应核对代价结清状态').toContain('核对代价是否在正文确已落地')
+    expect(reconcile, '子代理不落 G 行——G 行字样只出现在禁写指示里').toContain('不在事实变更段写「G 代价已结」行')
+    expect(reconcile).toContain('持有型不逐章核对（持有即持续状态）')
     expect(reconcile).toContain('先报缺不编')
   })
 
@@ -606,11 +601,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const design = readSkill('novel-design')
     const outline = readSkill('novel-outline')
     const settle = readSkill('novel-settle')
-    const vol = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '卷纲固定段规格.md'), 'utf8')
-    const scale = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md'), 'utf8')
-    const ladder = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-design', 'templates', '对手梯队子表规格.md'), 'utf8')
-    const sect = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
-    const researcher = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
     // 1. F24 回炉扩写档：review 篇幅处置显式档＋drafting 处置枚举照抄（两文件都在位）
     for (const t of [drafting, review]) {
       expect(t, '回炉扩写应为两技能共用的显式处置档').toContain('回炉扩写')
@@ -687,7 +682,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('灵感库扩展批：类别八→十＋生产通道三条＋起名翻库双册——命名词语/设定概念/三子标/日常暂存/类简称扩/防回退旧八类零命中', () => {
     const inspiration = readSkill('novel-inspiration')
-    const researcher = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-inspiration', 'agents', '采风检索.md'), 'utf8')
+    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
     // A. 十类在位：原八类不动＋命名词语/设定概念，两文件同步（SKILL 建库初始化＋researcher 路由表）
     for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活', '命名词语', '设定概念']) {
       expect(inspiration, `灵感库应含「${cat}」类`).toContain(cat)
@@ -731,7 +726,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   it('0.0.17 种子随包批：种子落位（八册零件卡＋索引）＋初始化全量展开＋库已存在不动＋残缺补拷＋注册单源', () => {
     // A. 种子落位：assets/灵感库种子/——历史事实/现实生活为种子空类（索引计数 0，不建册）；
     //    只断结构性事实与宽松下限，不硬编码总数——种子将来升级不应红测试
-    const seedDir = path.join(__dirname, '..', 'skills', 'novel-inspiration', 'assets', '灵感库种子')
+    const seedDir = skillFile('novel-inspiration', 'assets/灵感库种子')
     const indexPath = path.join(seedDir, '索引.md')
     expect(fs.existsSync(indexPath), 'assets/灵感库种子/索引.md 应存在').toBe(true)
     const index = fs.readFileSync(indexPath, 'utf8')
@@ -769,8 +764,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const design = readSkill('novel-design')
     const drafting = readSkill('novel-drafting')
     const review = readSkill('novel-review')
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
-    const sect = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'templates', '章细纲固定小节规格.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     // F34 关键章枚举两新档：档词＋判据源（SKILL 枚举与底本③同步——到期命中即关键章定级）
     expect(outline).toContain('段内（章组）高潮章')
     expect(outline).toContain('伏笔/线索到期兑现章')
@@ -810,7 +805,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // 仓内不得硬编码个人绝对路径（check:public 红闸）；未注入时本断言跳过，注入时逐字节校验同步纪律。
     const sandboxRoot = process.env.ABZU_SEED_SANDBOX
     if (sandboxRoot !== undefined && sandboxRoot !== '') {
-      const seedDir = path.join(__dirname, '..', 'skills', 'novel-inspiration', 'assets', '灵感库种子')
+      const seedDir = skillFile('novel-inspiration', 'assets/灵感库种子')
       for (const [seedRel, sandboxRel] of [['人物原型', '人物原型'], ['剧情结构', '剧情结构']] as const) {
         const seed = fs.readFileSync(path.join(seedDir, seedRel, '零件卡.md'))
         const sandbox = fs.readFileSync(path.join(sandboxRoot, sandboxRel, '零件卡.md'))
@@ -820,7 +815,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   })
 
   it('雷点清单批：清单落位＋契约第六部候选菜单＋写前十查内联快扫', () => {
-    const p = path.join(__dirname, '..', 'skills', 'novel-design', 'references', '雷点清单.md')
+    const p = skillFile('novel-design', 'references/雷点清单.md')
     expect(fs.existsSync(p), '雷点清单.md 应存在').toBe(true)
     const text = fs.readFileSync(p, 'utf8')
     for (const cat of ['感情线', '人设', '爽点战力', '剧情', '叙事信息', '节奏兑现', '文笔']) {
@@ -832,7 +827,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(text).toContain('知识库§')
     const design = readSkill('novel-design')
     expect(design).toContain('[雷点清单](references/雷点清单.md)')
-    const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks).toContain('雷点快扫')
     expect(checks).toContain('references/雷点清单.md')
     const outline = readSkill('novel-outline')
@@ -845,5 +840,90 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const settle = readSkill('novel-settle')
     expect(settle, '首章末升格问应在位').toContain('挑一段满意的收进文风锚点吗')
     expect(settle, '升格问应限定首章').toContain('首章呈报时加问一句')
+  })
+
+  it('0.0.19 审查修复批：docs/user 裸版本号零残留＋profile 名统一＋共享测试 helper＋蓝图 v1.4 与单源收拢台账', () => {
+    const docsUser = path.join(__dirname, '..', '..', '..', 'docs', 'user')
+    const userDocs = fs.readdirSync(docsUser).filter((name) => name.endsWith('.md'))
+    expect(userDocs.length, 'docs/user 应收集到教程 .md').toBeGreaterThan(0)
+    // A. 版本口径：0.0.5/0.0.18 零残留；0.0.4 仅允许「0.0.4 起/0.0.4 移除」历史叙事（鲸鱼娘桌宠沿革句）；当前口径随版本走，0.0.19 起由各版批组的零残留负断言接力（0.0.20 组断言 0.0.19 清零）
+    for (const f of userDocs) {
+      const text = fs.readFileSync(path.join(docsUser, f), 'utf8')
+      expect(text, `${f}: 不应残留陈旧当前口径 0.0.5`).not.toContain('0.0.5')
+      expect(text, `${f}: 不应残留上一版 0.0.18`).not.toContain('0.0.18')
+      const stale4 = [...text.matchAll(/0\.0\.4(?! 起| 移除)/g)].map((m) => m[0])
+      expect(stale4, `${f}: 0.0.4 只允许出现在「0.0.4 起/0.0.4 移除」历史叙事里`).toHaveLength(0)
+    }
+    // B. profile 名：--profile scriptor 在 docs/user 零命中（de-brand 收尾；迁移/旧 profile 语境唯一合法保留面是 docs/maintenance，现无残留）
+    let scriptorFlags = 0
+    for (const f of userDocs) {
+      scriptorFlags += (fs.readFileSync(path.join(docsUser, f), 'utf8').match(/--profile scriptor/g) ?? []).length
+    }
+    expect(scriptorFlags, 'docs/user 不应残留 --profile scriptor 示例（新装/日常示例统一 --profile abzu）').toBe(0)
+    expect(fs.readFileSync(path.join(docsUser, 'install.md'), 'utf8'), '安装示例应使用 --profile abzu').toContain('--profile abzu')
+    // C. 共享测试 helper：文件存在且两 spec 均导入（防回退回各自副本）
+    expect(fs.existsSync(path.join(__dirname, 'skill-test-helpers.ts')), 'tests/skill-test-helpers.ts 应存在').toBe(true)
+    expect(fs.readFileSync(path.join(__dirname, 'skills-batches.spec.ts'), 'utf8')).toContain("from './skill-test-helpers'")
+    expect(fs.readFileSync(path.join(__dirname, 'skills-core.spec.ts'), 'utf8')).toContain("from './skill-test-helpers'")
+    // D. 蓝图 v1.4：勘误与澄清关键词（E1 落点/E6 复原表述/横切纪律 4 成本可见性落地形态）
+    const blueprint = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'design', '增强实施计划.md'), 'utf8')
+    expect(blueprint).toContain('v1.4')
+    expect(blueprint, 'E1 落点应为实装路径 docs/CONTEXT.md').toContain('docs/CONTEXT.md')
+    expect(blueprint, 'E6 复原表述应按实装更新').toContain('复原为原样受管单通道')
+    expect(blueprint, '纪律 4 澄清：用量记录在批报告与会话用量统计').toContain('批报告与会话用量统计')
+    expect(blueprint, '纪律 4 澄清：宿主不向技能暴露 token 计数').toContain('宿主不向技能暴露会话 token 计数')
+    expect(blueprint).toContain('2026-10-11 澄清')
+    // E. 遗留台账：core 解冻批候选（单源收拢清单）三行关键词
+    expect(blueprint).toContain('core 解冻批候选')
+    expect(blueprint).toContain('BOM 剥离三处合一')
+    expect(blueprint).toContain("'# 近期窗口'")
+    expect(blueprint).toContain('目录列举 helper 跨包合一')
+  })
+
+  it('0.0.20 审查修复批：G 代价已结单源消歧＋严重程度双词表映射＋CONTEXT 五核对项＋采风四态＋蓝图 E5′ 已落地与解冻清单扩容＋settle 已兑现＋版本零残留', () => {
+    // A. G 代价已结落账单源＝主 Agent 走 worldbook 确认路径：子代理只核对不落账（旧指示「在事实变更…附一行 G 行」不得回潮）
+    const reconcile = fs.readFileSync(skillFile('novel-settle', 'agents/沉淀对账.md'), 'utf8')
+    expect(reconcile, '对账方法 5 应交回主 Agent 落账').toContain('由主 Agent')
+    expect(reconcile, '落账路径应指到 worldbook 确认工具').toContain('novel_confirm_worldbook_entry')
+    expect(reconcile, '子代理不得在事实变更段写 G 行').not.toContain('在事实变更对应力量体系条目内容末附一行')
+    const settleSkill = readSkill('novel-settle')
+    expect(settleSkill, '技能步骤 4 应指回子代理核对职责（互指单源）').toContain('只核对不落账')
+    // B. 严重程度双词表不并轨、显式映射：两文件各带一行（低↔仅供参考、中↔建议、高↔硬伤）
+    const reviewSkill = readSkill('novel-review')
+    const fullReview = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
+    for (const [label, text] of [['SKILL', reviewSkill], ['全量审读', fullReview]] as const) {
+      expect(text, `${label}: 低↔仅供参考`).toContain('低↔仅供参考')
+      expect(text, `${label}: 中↔建议`).toContain('中↔建议')
+      expect(text, `${label}: 高↔硬伤`).toContain('高↔硬伤')
+    }
+    // C. CONTEXT 术语与技能层一致：五核对项（含本卷升级位），四核对项不得回潮
+    const context = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'CONTEXT.md'), 'utf8')
+    expect(context).toContain('五核对项')
+    expect(context).toContain('本卷升级位')
+    expect(context, 'CONTEXT 不得回潮四核对项旧口径').not.toContain('四核对项')
+    expect(readSkill('novel-design'), 'novel-design SKILL 五核对项应在位').toContain('五核对项')
+    // D. 采风可信度四态：表格四行（已证实/孤证/推测/归纳），三态标题不得回潮
+    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
+    expect(researcher).toContain('可信度四态')
+    expect(researcher, '三态标题不得回潮（表本就四行）').not.toContain('可信度三态')
+    // E. 蓝图：E5′ 余件状态刷新（已落地标记＋差异生成法保持按需后落）＋解冻清单扩容新行关键词
+    const blueprint = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'design', '增强实施计划.md'), 'utf8')
+    expect(blueprint).toContain('余件（状态刷新')
+    expect(blueprint).toContain('**按需后落**')
+    for (const kw of ['采风纪律——**已落地**', '灵感库——**已落地**', '设计侧评审——**已落地**']) {
+      expect(blueprint, `E5′ 余件应含「${kw}」`).toContain(kw)
+    }
+    for (const kw of ['卷纲四段四写', '事实块头正则', '草稿角色枚举']) {
+      expect(blueprint, `core 解冻批候选扩容应含「${kw}」`).toContain(kw)
+    }
+    // F. settle 卷摘要候选读侧措辞与产品输出串对齐（已兑现并入）
+    expect(settleSkill).toContain('账本已收/进行中/已兑现线索')
+    // G. 版本零残留：docs/user＋docs/maintenance 当前口径 0.0.19 清零（历史叙事在 CHANGELOG/蓝图，不在用户文档）
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.19`).not.toContain('0.0.19')
+      }
+    }
   })
 })
