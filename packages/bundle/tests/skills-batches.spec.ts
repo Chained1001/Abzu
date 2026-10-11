@@ -183,7 +183,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(tpl['力量体系']).toContain('金手指轨道位')
     expect(tpl['力量体系']).toContain('对手梯队映射')
     expect(tpl['力量体系']).toContain('references/参考标尺.md')
-    expect(tpl['力量体系'], '力量体系模板不得内联标尺台阶数值（单源在参考标尺）').not.toContain('8-10')
+    // 0.0.25 独立审查 O3：升级节点行排期示例「2-3/8-10」为落砣章段非台阶数——旧全文件「8-10」负断言收窄为台阶定位行数值负断言
+    const powerStepLine = tpl['力量体系'].split('\n').find((l) => l.startsWith('- 台阶定位：'))
+    expect(powerStepLine, '力量体系模板应有「- 台阶定位：」行').toBeDefined()
+    expect(powerStepLine!, '力量体系模板台阶定位行不得内联台阶数值（单源在参考标尺）').not.toMatch(/\d/)
     // E. 三端接线：design 双路径引用三模板；settle 认知节增量维护；写前十查②数据源指明
     const design = readSkill('novel-design')
     expect(design).toContain('[人物档案条目模板](templates/世界书/人物档案条目模板.md)')
@@ -1041,8 +1044,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(context).not.toContain('简称')
     expect(context).toContain('| 记忆文风条目 | 文风建档门产物类名')
     // C. 参考标尺.md 内部自指全称化（未校准标注×2＋卡是法句＋校准流程＋下一轮校准）
+    //    （0.0.25 批裁定同步：每章字数行改 3500 基准后「卡是法参考标尺是默认」句废止，改钉新句「快节奏短章型须作者显式下调才可用」——作者裁定压过校准默认）
     expect(scale).toContain('该题材参考标尺未校准')
-    expect(scale).toContain('卡是法参考标尺是默认')
+    expect(scale).toContain('快节奏短章型须作者显式下调才可用')
     expect(scale).toContain('待参考标尺校准流程定')
     expect(scale).toContain('下一轮参考标尺校准')
     // D. 全 skills prose 与 CONTEXT 独立「标尺」零命中（负向断言，排除参考标尺子串与 assets/）
@@ -1211,5 +1215,212 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     expect(controllerRows, '三列表对撞：主控动作行应恰一行（作者裁决），且须带非返回节点标注').toBe(1)
     expect(reviewSkill.slice(tableStart, tableEnd), '三列表对撞：主控动作行的停止条件应引用步骤 6 五值单源（无法判断不算）').toContain('五值之一')
+  })
+
+  it('0.0.24 反推落地首批：钩型配比两层制＋双钩三列＋调剂行＋升级四件＋悼亡法双挂＋定格问号＋信息边界判据＋篇幅双模式＋版本零残留', () => {
+    // A1 标尺行：追读力量化区「章末钩型配比」两层制——硬红线/参考区间/待校准/双书实测数（诡秘 62、大奉约 78，泄压 6.4%/5%——出处两书报告，区间并陈不平均）
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    expect(scale).toContain('| 章末钩型配比 |')
+    expect(scale).toContain('【待校准】两层制')
+    expect(scale).toContain('硬红线（任何尺度适用）')
+    expect(scale).toContain('危机钩（即时威胁型）兑现章号距钩章 ≤5 章')
+    expect(scale).toContain('泄压钩只居高潮余波位')
+    expect(scale).toContain('参考区间（仅 ≥50 章窗口适用')
+    // 0.0.25 独立审查 R3：参考区间改出处可溯式（张力 60-80 取整自双书 62/78、泄压 ≤10 上浮留余）；无出处的 55-70 清零——负断言只钉配比行，变更记录 v0.4-D 历史记述保留
+    expect(scale).toContain('张力类 60-80%（双书实测 62%/78% 并陈取整区间）')
+    expect(scale).toContain('泄压类 ≤10%（双书 5%-6.4% 上浮留余）')
+    const hookRatioRow = scale.split('\n').find((l) => l.includes('| 章末钩型配比 |'))
+    expect(hookRatioRow, '参考标尺应有「章末钩型配比」行').toBeDefined()
+    expect(hookRatioRow!, '配比行不得残留无出处的 55-70 区间').not.toContain('55-70')
+    expect(scale).toContain('诡秘张力类 62%')
+    expect(scale).toContain('大奉约 78%')
+    expect(scale).toContain('泄压类 6.4%/5%')
+    // A1 判据①：章末双钩节三列口径（钩型｜承诺｜兑现章号）＋定格即问号（A3 协同技法）
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    expect(sect).toContain('**承诺列**＋**兑现章号列**')
+    expect(sect).toContain('三列口径：钩型｜承诺（下章拿什么还）｜兑现章号')
+    expect(sect).toContain('危机类即时威胁钩〔多为断点钩〕≤5 章')
+    expect(sect).toContain('定格即问号——泄压与牵引兼得')
+    expect(sect).toContain('「章末钩型配比」行')
+    // A1 判据②：写前十查⑩兑现章号半句＋标尺行指引
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    expect(checks).toContain('兑现章号是否 5 章内（危机钩红线')
+    expect(checks).toContain('承诺列或兑现章号列缺失＝补写再呈')
+    expect(checks).toContain('「章末钩型配比」行')
+    // A4 调剂行：高潮后 2 章内必回低烈度＋三式＋与 §6.1 分工（防同规则双源）
+    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    expect(vol).toContain('## 高潮后调剂（弧线段内固定核对行）')
+    expect(vol).toContain('高潮章后 2 章内**必须**回低烈度')
+    expect(vol).toContain('日常（生活线回稳）/喜剧（社交喜剧章）/清算（余债收拾）')
+    expect(vol).toContain('全卷不连续两章钝收')
+    expect(vol).toContain('§6.1 管单章怎么收束')
+    expect(vol).toContain('本行管卷级调剂节奏')
+    // A5 升级节点：模板行事件化四件＋写前十查②核对（两处互指）
+    const tpl = fs.readFileSync(skillFile('novel-design', 'templates/世界书/力量体系条目模板.md'), 'utf8')
+    expect(tpl).toContain('- 升级节点：')
+    expect(tpl).toContain('事件化四件')
+    expect(tpl).toContain('有对手或见证在场，不闭关数值跳')
+    expect(tpl).toContain('验证 ≤3 章')
+    expect(tpl).toContain('代价三笔强度正相关')
+    expect(tpl).toContain('《细纲备料》技能包 agents/写前十查.md 检查②')
+    expect(checks).toContain('时核对事件化四件')
+    expect(checks).toContain('「升级节点」行')
+    expect(checks).toContain('缺件＝🔴 呈报')
+    // A11 悼亡法双挂：备料段自查（补埋窗口）＋写作卡死亡章判据（两处互指）
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('死亡预埋自查（悼亡法）')
+    expect(outline).toContain('死前 3 章内是否已埋 ≥2 处日常细节')
+    expect(outline).toContain('不等到死亡章才发现无物可收')
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    expect(cards).toContain('本章写人物死亡时：回收死前埋设的日常细节至少一处')
+    expect(cards).toContain('不给大段独白补设定')
+    expect(cards).toContain('「死亡预埋自查」')
+    // A3 信息边界两条：揭示 ≤70%＋末尾新问号＋钝·定格豁免（定格即问号协同）
+    expect(sect).toContain('揭示量 ≤70%')
+    expect(sect).toContain('章末留一个指向下层真相的新问号')
+    expect(sect).toContain('钝·定格章豁免强问号')
+    // P16 篇幅双模式：浮动式/恒定式＋内容承担节奏为纲＋标尺变更记录
+    expect(scale).toContain('篇幅双模式皆合法（内容承担节奏为纲）')
+    expect(scale).toContain('浮动式＝章长作事件烈度放大器')
+    expect(scale).toContain('恒定式＝章长收窄恒定、节奏全部由内容承担')
+    expect(scale).toContain('v0.4-D')
+    // 版本零残留：docs/user＋docs/maintenance 当前口径 0.0.23 清零（历史叙事在 CHANGELOG，不在用户文档）
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.23`).not.toContain('0.0.23')
+      }
+    }
+  })
+
+  it('0.0.25 配给与台账批：信息释放台账三接线＋信息释放行＋钩型双轴＋调剂对连钝＋③伏笔/验证到期＋3500 基准＋单元配给＋版本零残留', () => {
+    // B3 信息释放台账：结构单源在 novel-design 建账行（书房路径＋揭示域清单＋登记行式＋状态枚举）；工件契约表加行
+    const design = readSkill('novel-design')
+    expect(design).toContain('信息释放台账建账')
+    expect(design).toContain('`<工作范围>/书房/信息释放/<书名>.md`')
+    expect(design).toContain('揭示域清单')
+    expect(design).toContain('未知/部分/已释')
+    expect(design).toContain('累计已释 x/y＝z%｜新问号一句')
+    expect(design).toContain('累计为信息行不作案据')
+    expect(design).toContain('本章可释集')
+    expect(design).toContain('力量体系条目同批')
+    expect(design).toContain('| 信息释放台账 |')
+    expect(design).toContain('种子底子先例')
+    expect(design).toContain('卷02 起不开新账')
+    // 接线②：outline 备料段读台账规划本章揭示量（未建账如实注明，不编造清单）
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('信息释放规划（读台账）')
+    expect(outline).toContain('「未建账」')
+    // 接线③：写前十查信息释放行（固定行，接雷点快扫行后——揭示登记＋累计 ≤70% 核对＋零揭示预警）＋配给合计半句
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    expect(checks).toContain('信息释放行')
+    expect(checks).toContain('连续 2 章零揭示＝信息饥渴预警（呈报不拦卡）')
+    expect(checks).toContain('配给合计核对（呈确认件半句）')
+    expect(outline).toContain('**信息释放行**（固定行，接雷点快扫行后）')
+    expect(outline).toContain('信息饥渴预警')
+    expect(outline).toContain('**配给合计核对**（半句）')
+    // 信息边界 ≤70% 判据＝本章口径（0.0.25 独立审查 R2：累计 x/y＝z% 只是信息行不作案据），未建账退回弱判据，终卷收束豁免
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    expect(sect).toContain('本章计划释出条目占本章可释集')
+    expect(sect).toContain('台账累计 x/y＝z% 为信息行不作案据')
+    expect(sect).toContain('终卷收束章豁免上限——收束期允许满释，如实登记')
+    expect(sect).toContain('退回「仍不知道」行非空才算预算守住的弱判据并注明')
+    expect(sect, '累计口径旧判据应清零（改本章口径）').not.toContain('按信息释放台账累计核对')
+    // 接线④：settle 沉淀更新台账（状态流转＋登记行追加，无账跳过不开新账）
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('信息释放台账')
+    expect(settle).toContain('未知→部分→已释')
+    expect(settle).toContain('无账跳过不开新账')
+    // A1 钩型双轴：形态×动机两轴枚举（七动机词单源在章细纲规格——0.0.25 独立审查 O1 补第七值「情绪」）＋行式；标尺映射句；写前十查⑩示例
+    expect(sect).toContain('收束形态轴枚举：信息/断点/钝·定格/宣言/反讽')
+    expect(sect).toContain('功能动机轴枚举：危机/升级/验证/揭示/泄压/日常/情绪')
+    expect(sect).toContain('章末双钩的情绪钩落「情绪」')
+    expect(sect).toContain('两轴枚举单源在本规格')
+    expect(sect).toContain('钩型：断点·危机｜承诺：…｜兑现章号：…')
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    expect(scale).toContain('双轴映射')
+    expect(scale).toContain('张力类＝形态×动机组合中带威胁/期待供给的组合')
+    expect(scale).toContain('泄压类＝功能动机轴为泄压')
+    expect(scale).toContain('日常·中性不参与张力/泄压计量')
+    expect(checks).toContain('钩型：断点·危机｜承诺：…｜兑现章号：…')
+    // M13 调剂对连钝：相连钝收＝调剂组成部分，红线按章整体烈度判
+    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    expect(vol).toContain('调剂对（高潮章＋调剂章）相连钝收＝调剂的组成部分')
+    expect(vol).toContain('不计入「不连续两钝」红线')
+    expect(vol).toContain('红线按章整体烈度判')
+    // R4 ③扩词：伏笔/验证到期——核对对象加力量体系升级节点验证窗口与排期（双记位兜底）；备料段自查行点名双记位
+    expect(checks).toContain('**伏笔/验证到期**')
+    expect(checks).toContain('验证 ≤3 章窗口与本书落砣排期')
+    expect(checks).toContain('近期窗口条目＋账本双记位漏写时本查兜底')
+    expect(outline).toContain('**验证到期自查**')
+    expect(outline).toContain('近期窗口条目＋`账本/线索.md`')
+    // 字数 3500 基准：标尺行＋v0.4-E 留痕＋design 示例新数值＋outline 四千字示例（旧两千字示例清零）
+    expect(scale).toContain('**3500-4500 字**')
+    expect(scale).toContain('作者裁定 2026-10-11：基准与下限抬至 3500')
+    expect(scale).toContain('快节奏短章型须作者显式下调才可用')
+    expect(scale).toContain('过渡档下浮例外照旧')
+    expect(scale).toContain('v0.4-E')
+    expect(design).toContain('- 目标汉字数: 4000')
+    expect(design).toContain('- 下限汉字数: 3500')
+    expect(design).toContain('- 上限汉字数: 4500')
+    expect(design).not.toContain('- 目标汉字数: 2000')
+    expect(outline).toContain('四千字示例')
+    expect(outline).not.toContain('两千字示例')
+    expect(outline).not.toContain('预计汉字数')
+    // 单元配给：预期字数增补行＋「加单元（加事）不硬堆字」＋drafting 配给表＋写作卡判据
+    expect(sect).toContain('`- 预期字数：{正整数}`')
+    expect(sect).toContain('加单元（加事）不硬堆字')
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('逐单元预期字数配给表')
+    expect(drafting).toContain('细纲未带该行时按各单元目标自拟配给并注明自拟')
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    expect(cards).toContain('单元没写够配给先查有没有漏拍的戏（缺拍补拍），不是加描写凑数')
+    // 独立审查修复批（0.0.24/0.0.25 两批审查 R1-R4 必修＋O1-O3＋两 Nit；版本保持 0.0.25）
+    // R4① review 侧钩型兑现接线：全量审读维度 1 章末双钩核对处回查兑现章号登记与红线
+    const sweepReview = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
+    expect(sweepReview).toContain('回查本章双钩的兑现章号登记与红线（危机类 ≤5 章）')
+    expect(sweepReview).toContain('上一次呈报的钩是否按期兑现')
+    // R4② 卷纲调剂行补 A4 两判据（大战/高潮段禁泄压钩插入；大战前可排纯喜剧章作蓄压调剂）
+    expect(vol).toContain('大战/高潮段禁泄压钩插入')
+    expect(vol).toContain('大战前可排纯喜剧章作蓄压调剂')
+    // R2 写前十查信息释放行同步本章口径句
+    expect(checks).toContain('本章计划释出条目占本章可释集')
+    expect(checks).toContain('是信息行不作案据')
+    // O2 配给核对回退：细纲未带配给行＝呈报「未配给」不判红
+    expect(checks).toContain('细纲未带配给行＝呈报「未配给」，不判红')
+    // O3 排期落位：力量体系升级节点行带排期取数位（写前十查③与备料验证到期自查）
+    const powerTpl = fs.readFileSync(skillFile('novel-design', 'templates/世界书/力量体系条目模板.md'), 'utf8')
+    expect(powerTpl).toContain('排期＝各阶预计落砣章段（如 2-3/8-10）')
+    expect(powerTpl).toContain('写前十查③与备料验证到期自查的取数位')
+    // Nit① ⑩钩诺呈报行示例带兑现章号；Nit② 「加单元不加字」旧措辞清零（统一为「加单元（加事）不硬堆字」）
+    expect(checks).toContain('情绪钩承诺…｜兑现章号：…')
+    expect(checks).not.toContain('加单元不加字')
+    // R3 标尺变更记录 v0.4-F 留痕（参考区间出处可溯改版）
+    expect(scale).toContain('v0.4-F')
+    // R1 docs 旧两千字示例零残留：upgrade-backup 含 3500/4000 新值＋不含 2000/1600/2400，docs 全目录旧数值清零
+    const upgradeBackup = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'user', 'upgrade-backup.md'), 'utf8')
+    for (const v of ['- 目标汉字数: 4000', '- 下限汉字数: 3500', '- 上限汉字数: 4500']) {
+      expect(upgradeBackup, `upgrade-backup 应含 3500 基准新值「${v}」`).toContain(v)
+    }
+    for (const staleNum of ['2000', '1600', '2400']) {
+      expect(upgradeBackup, `upgrade-backup 不应残留旧两千字示例数值「${staleNum}」`).not.toContain(staleNum)
+    }
+    const docsRoot = path.join(__dirname, '..', '..', '..', 'docs')
+    const walkDocs = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walkDocs(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+      .filter((p) => p.endsWith('.md'))
+    for (const f of walkDocs(docsRoot)) {
+      const text = fs.readFileSync(f, 'utf8')
+      for (const staleNum of ['2000', '1600', '2400']) {
+        expect(text, `docs 全目录不应残留旧篇幅数值「${staleNum}」：${path.relative(docsRoot, f)}`).not.toContain(staleNum)
+      }
+    }
+    // 版本零残留：docs/user＋docs/maintenance 当前口径 0.0.24 清零（历史叙事在 CHANGELOG，不在用户文档）
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.24`).not.toContain('0.0.24')
+      }
+    }
   })
 })
