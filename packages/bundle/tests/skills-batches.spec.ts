@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { 材料包十段, 待定稿包七件 } from '@abzu/core'
 import { readSkill, skillFile } from './skill-test-helpers'
 
 describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
@@ -257,7 +258,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('人物档案/世界规则/力量体系/组织/地图五份')
     // C. 规格模板拆位：三份存在＋规格细节在模板（表列/取数算式/四核对项）＋双 SKILL 各带一行引用
     const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
-    expect(ladder).toContain('取数：标尺·固定层＋比例层×衰减×题材')
+    expect(ladder).toContain('取数：参考标尺·固定层＋比例层×衰减×题材')
     expect(ladder).toContain('| 层级 | 存活周期 | 代表对手 | 出牌与去向 |')
     expect(design).toContain('[对手梯队子表规格](templates/对手梯队子表规格.md)')
     const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
@@ -974,9 +975,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('本书记忆有记忆文风条目时')
     expect(sectSpec).toContain('本书记忆有记忆文风条目时')
     expect(drafting).toContain('文风画像·{书名}')
-    // B3. CONTEXT 术语表追加两行
+    // B3. CONTEXT 术语表追加两行（0.0.22 简称清理批裁定删「标尺」简称行，断言随裁定更新——剩记忆文风条目行）
     const context = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'CONTEXT.md'), 'utf8')
-    expect(context).toContain('| 标尺 | 参考标尺的简称')
     expect(context).toContain('| 记忆文风条目 | 文风建档门产物类名')
     // B4. 旧词全树清零（确认章细纲/细纲候选/全量体检/全量章程）
     const skillsRoot = path.join(__dirname, '..', 'skills')
@@ -1026,5 +1026,190 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
         expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.20`).not.toContain('0.0.20')
       }
     }
+  })
+
+  it('0.0.22 简称清理批：独立「标尺」全称化（取数算式行/模板/审读/参考标尺自指）＋CONTEXT 简称行删除＋类简称标识符保留＋版本零残留', () => {
+    const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    const context = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'CONTEXT.md'), 'utf8')
+    // A. 取数算式行协议串全称化后在位（规格模板＋CONTEXT 术语表两处同串），旧串清零
+    expect(ladder).toContain('取数：参考标尺·固定层＋比例层×衰减×题材')
+    expect(context).toContain('取数：参考标尺·固定层＋比例层×衰减×题材')
+    expect(ladder).not.toContain('取数：标尺·')
+    expect(context).not.toContain('取数：标尺·')
+    // B. CONTEXT 简称行删除（术语表不立缩略词）；记忆文风条目行保留（类名/条目名两层命名，非简称）
+    expect(context).not.toContain('简称')
+    expect(context).toContain('| 记忆文风条目 | 文风建档门产物类名')
+    // C. 参考标尺.md 内部自指全称化（未校准标注×2＋卡是法句＋校准流程＋下一轮校准）
+    expect(scale).toContain('该题材参考标尺未校准')
+    expect(scale).toContain('卡是法参考标尺是默认')
+    expect(scale).toContain('待参考标尺校准流程定')
+    expect(scale).toContain('下一轮参考标尺校准')
+    // D. 全 skills prose 与 CONTEXT 独立「标尺」零命中（负向断言，排除参考标尺子串与 assets/）
+    //    白名单两处豁免：标尺校准_六书.json＝仓库外校准产物文件名（文件名不改名）；
+    //    KB 净版 02_人物设计.md「存在本身就是标尺」＝弧光行比喻用法（非参考标尺简称），净版纪律只报告待作者裁定
+    const skillsRoot = path.join(__dirname, '..', 'skills')
+    const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() && e.name !== 'assets' ? walkMd(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+      .filter((p) => p.endsWith('.md'))
+    for (const f of [...walkMd(skillsRoot), path.join(__dirname, '..', '..', '..', 'docs', 'CONTEXT.md')]) {
+      const text = fs.readFileSync(f, 'utf8')
+        .split('标尺校准_六书.json').join('')
+        .split('存在本身就是标尺').join('')
+      expect(text, `${path.relative(skillsRoot, f)}: 独立「标尺」应全称化为「参考标尺」`).not.toMatch(/(?<!参考)标尺/)
+    }
+    // E. 类简称表＝序号前缀标识符协议，保留不动（防误伤）
+    expect(readSkill('novel-inspiration')).toContain('类简称＝古词/台词/剧情/人物/历史/文化/影动/现实/命名/设定')
+    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
+    expect(researcher).toContain('序号＝类简称＋采集日期＋两位序')
+    // F. 版本零残留：docs/user＋docs/maintenance 当前口径 0.0.21 清零（历史叙事在 CHANGELOG/蓝图，不在用户文档）
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.21`).not.toContain('0.0.21')
+      }
+    }
+  })
+
+  it('0.0.23 狗头军师吸收批：判据落点规则＋三处行为化示范＋发现项处置三列表＋评审主问题行＋版本零残留', () => {
+    // A. 判据落点规则落在写前十查纪律段；⑦动机三问第一问行为化（内核欲望→可观察问句）
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    expect(checks).toContain('判据落点规则：引用知识库判据时，把抽象概念转成对本章工件的可观察问句')
+    expect(checks).toContain('有不使劲的选择吗」式）')
+    expect(checks).toContain('主角为什么非干不可——他在本章的每个选择，往哪个欲望上使劲？有不使劲的选择吗？')
+    expect(checks).not.toContain('（内核欲望没变吗）？')
+    // B. 结局镜像卡「完成了变化」行为化示范（novel-design SKILL）
+    expect(readSkill('novel-design')).toContain('结局处他的哪个具体选择，是开头那个他不会做的？指不出这个选择，变化就还停在宣告')
+    // C. 读者评审弃书点预测判断落点行为化（划走行为定位）
+    const reader = fs.readFileSync(skillFile('novel-design', 'agents/读者评审.md'), 'utf8')
+    expect(reader).toContain('用读者行为问自己：读到哪一行我会划走')
+    // D. 发现项处置三列表：三列列名＋六处置各一行＋停止条件可检验纪律＋篇幅条款衔接
+    const review = readSkill('novel-review')
+    expect(review).toContain('发现项处置三列表')
+    expect(review).toContain('| 信号（发现类型/严重度） | 动作（返回节点或主控动作） | 停止条件（修完的可检验状态） |')
+    expect(review).toContain('不写「改好为止」式空话')
+    expect(review).toContain('篇幅类发现项按上方「篇幅处置建议分级」走')
+    for (const node of ['| 润色 |', '| 改稿 |', '| 细纲 |', '| 备料 |', '| 沉淀（账本更正） |', '| 作者裁决（主控动作，非返回节点） |']) {
+      expect(review, `处置三列表应覆盖处置行「${node}」`).toContain(node)
+    }
+    // E. 两席评审报告：主问题行（总评前）＋问题清单 ★ 标＋复评回归句；互指纪律不变
+    const writer = fs.readFileSync(skillFile('novel-design', 'agents/作家评审.md'), 'utf8')
+    for (const [label, text] of [['作家评审', writer], ['读者评审', reader]] as const) {
+      expect(text, `${label}: 报告头主问题行应在位`).toContain('**主问题（仅一个）**：{全部发现')
+      expect(text, `${label}: 主问题行应紧邻总评之前`).toMatch(/\*\*主问题（仅一个）\*\*：\{全部发现[^\n]*\}\n\n## 总评/)
+      expect(text, `${label}: 问题清单 ★ 标规则在位`).toContain('# 列行首标 ★')
+      expect(text, `${label}: 复评回归句在位`).toContain('复评优先回归主问题——主问题未解不改次要项结论')
+      expect(text, `${label}: 两席互指纪律不变`).toContain('两席互不通气，各自独立出具')
+    }
+    // F. 版本零残留：docs/user＋docs/maintenance 当前口径 0.0.22 清零（历史叙事在 CHANGELOG/蓝图，不在用户文档）
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.22`).not.toContain('0.0.22')
+      }
+    }
+  })
+
+  it('协议串对齐批（铁律 7 机器化）：运行时文本点名的脚本协议串与脚本源码实际字符串逐字对撞——五组', () => {
+    // 对撞① 材料包十段名：novel-outline SKILL 备料段列的十段 vs core/src/assembly/sections.ts 段名数组逐字
+    const outline = readSkill('novel-outline')
+    const segLine = outline.split('\n').find((l) => l.startsWith('本章任务与确认细纲／'))
+    expect(segLine, 'novel-outline/SKILL.md 应有十段名列表行（本章任务与确认细纲／…）').toBeDefined()
+    const skillSegs = segLine!.split('。')[0]!.trim().split('／')
+    expect(skillSegs.length, `材料包段名对撞：novel-outline/SKILL.md 列了 ${skillSegs.length} 段，packages/core/src/assembly/sections.ts 材料包十段为 ${材料包十段.length} 段`).toBe(材料包十段.length)
+    for (const [i, name] of [...材料包十段].entries()) {
+      expect(skillSegs[i], `材料包段名对撞失败（第 ${i + 1} 段）：SKILL 侧 novel-outline/SKILL.md=「${skillSegs[i]}」 vs core 侧 packages/core/src/assembly/sections.ts=「${name}」`).toBe(name)
+    }
+    // 对撞② 章摘要固定行：语态样本：/章末状态： 在 novel-settle SKILL 与 agents/沉淀对账.md 双侧同串＋末行纪律同口径＋写前十查④消费末行
+    //    core 侧现实（0.0.23 批 grep 核验）：core 生产源码（读侧 summary/index.ts、写侧 prepare/pack.ts）零内联此二串——
+    //    固定行是沉淀子代理协议串，core 以章摘要整文件为传输单元；core 侧仅在测试侧出现（tests/helpers/fixture-book.ts 的「章末状态」与 settlement-candidates.spec.ts 的夹具）
+    const settle = readSkill('novel-settle')
+    const reconcile = fs.readFileSync(skillFile('novel-settle', 'agents/沉淀对账.md'), 'utf8')
+    for (const [label, text] of [['novel-settle/SKILL.md', settle], ['novel-settle/agents/沉淀对账.md', reconcile]] as const) {
+      expect(text, `${label}: 章摘要固定行「语态样本：」缺失`).toContain('语态样本：')
+      expect(text, `${label}: 章摘要固定行「章末状态：」缺失`).toContain('章末状态：')
+    }
+    expect(settle, 'novel-settle/SKILL.md: 末行纪律口径应与沉淀对账一致').toContain('语态样本不得占末行')
+    expect(reconcile, 'novel-settle/agents/沉淀对账.md: 末行纪律口径应与 settle SKILL 一致').toContain('末行位留给章末状态')
+    const checksTenQian = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    expect(checksTenQian, 'novel-outline/agents/写前十查.md ④接钩预检应是章末状态末行的消费位').toContain('末行＋上一章定稿末段')
+    // 对撞③ 七件文件名：settle SKILL 落盘七件列表 vs core/src/prepare/pack.ts 待定稿包七件逐字（强化既有 contains 级断言）
+    const packLine = settle.split('\n').find((l) => l.includes('落盘七件到'))
+    expect(packLine, 'novel-settle/SKILL.md 应有「落盘七件到」列表行').toBeDefined()
+    const skillFiles = packLine!.slice(packLine!.indexOf('——') + 2).split('。')[0]!.split(' / ').map((s) => s.trim())
+    expect(skillFiles.length, `七件文件名对撞：novel-settle/SKILL.md 列了 ${skillFiles.length} 件，packages/core/src/prepare/pack.ts 待定稿包七件为 ${待定稿包七件.length} 件`).toBe(待定稿包七件.length)
+    for (const [i, name] of [...待定稿包七件].entries()) {
+      expect(`${skillFiles[i]}.md`, `七件文件名对撞失败（第 ${i + 1} 件）：SKILL 侧 novel-settle/SKILL.md=「${skillFiles[i]}」 vs core 侧 packages/core/src/prepare/pack.ts=「${name}」`).toBe(name)
+    }
+    // 对撞④ 灵感库九列表头：novel-inspiration SKILL 零件卡字段行 vs assets 种子册表头行（基础名逐字逐序，带注列「一句话（骨）」全形逐字）
+    const inspiration = readSkill('novel-inspiration')
+    const fieldLine = inspiration.split('\n').find((l) => l.includes('**零件卡字段**'))
+    expect(fieldLine, 'novel-inspiration/SKILL.md 应有「**零件卡字段**」行').toBeDefined()
+    const baseName = (s: string): string => s.replace(/（[^）]*）/g, '').trim()
+    const skillCols = fieldLine!.slice(fieldLine!.indexOf('：`') + 2).split('`')[0]!.split('｜').map(baseName)
+    const seed = fs.readFileSync(skillFile('novel-inspiration', 'assets/灵感库种子/人物原型/零件卡.md'), 'utf8')
+    const headerRow = seed.split('\n').find((l) => l.startsWith('| 序号'))
+    expect(headerRow, 'assets/灵感库种子/人物原型/零件卡.md 应有表头行（| 序号 …）').toBeDefined()
+    const seedCols = headerRow!.split('|').slice(1, -1).map((c) => baseName(c.trim()))
+    expect(skillCols.length, `灵感库表头对撞：novel-inspiration/SKILL.md 列了 ${skillCols.length} 列，assets 种子册表头为 ${seedCols.length} 列`).toBe(seedCols.length)
+    expect(seedCols.length, '灵感库表头对撞：assets 种子册表头应为九列').toBe(9)
+    for (const [i, name] of seedCols.entries()) {
+      expect(skillCols[i], `灵感库表头对撞失败（第 ${i + 1} 列）：SKILL 侧 novel-inspiration/SKILL.md=「${skillCols[i]}」 vs 种子侧 assets/灵感库种子/人物原型/零件卡.md=「${name}」`).toBe(name)
+    }
+    expect(fieldLine!, '带注列全形：SKILL 侧「一句话（骨）」应与种子表头逐字一致').toContain('一句话（骨）')
+    expect(headerRow!, '带注列全形：种子表头「一句话（骨）」应与 SKILL 逐字一致').toContain('一句话（骨）')
+    // 对撞⑤ 脚本用法行 vs 参数解析代码实际接受的 flag（三份 .mjs 头注 ↔ bundle/src/scripts 三个 CLI；抽 --校验/--book/--变更路径 三例）
+    const usageFlags = (text: string): string[] => {
+      const usage = text.split('\n').find((l) => l.includes('node <resourceBase>/scripts/'))
+      expect(usage, '薄入口头注应有「node <resourceBase>/scripts/…」用法行').toBeDefined()
+      return [...new Set(usage!.match(/--[\p{L}]+/gu) ?? [])]
+    }
+    const cliSrc = (name: string): string => fs.readFileSync(path.join(__dirname, '..', 'src', 'scripts', name), 'utf8')
+    // ⑤-a 最小导出.mjs ↔ export-cli.ts（allowed 白名单集合）；样例 --校验
+    const exportEntry = fs.readFileSync(skillFile('novel-export', 'scripts/最小导出.mjs'), 'utf8')
+    const exportCli = cliSrc('export-cli.ts')
+    const allowedMatch = exportCli.match(/new Set\(\[((?:\s*'[^']+',?)+)\]\)/)
+    expect(allowedMatch, 'packages/bundle/src/scripts/export-cli.ts 应有 allowed 选项集合字面量').toBeDefined()
+    const allowed = allowedMatch![1]!.match(/'([^']+)'/g)!.map((s) => s.slice(1, -1))
+    expect(new Set(usageFlags(exportEntry)), '用法行 flag 对撞失败：skills/novel-export/scripts/最小导出.mjs 头注用法行 vs packages/bundle/src/scripts/export-cli.ts allowed 集合').toEqual(new Set(allowed))
+    expect(exportEntry, '--校验 样例：用法行应有同传条款').toContain('[--校验 true]（须与 --目标 同传）')
+    expect(exportCli, '--校验 样例：解析侧白名单应含 --校验').toContain("'--校验'")
+    expect(exportCli, '--校验 样例：解析侧错误信息应与用法行口径一致').toContain('校验须传 --校验 true 和 --目标 目录')
+    // ⑤-b 影响分析.mjs ↔ impact-cli.ts（argValue 名全集）；样例 --变更路径
+    const impactEntry = fs.readFileSync(skillFile('novel-outline', 'scripts/影响分析.mjs'), 'utf8')
+    const impactCli = cliSrc('impact-cli.ts')
+    const impactFlags = [...new Set([...impactCli.matchAll(/argValue\(argv, '([^']+)'\)/g)].map((m) => `--${m[1]!}`))]
+    expect(impactFlags.length, 'packages/bundle/src/scripts/impact-cli.ts 应解析至少一个命名选项').toBeGreaterThan(0)
+    expect(new Set(usageFlags(impactEntry)), '用法行 flag 对撞失败：skills/novel-outline/scripts/影响分析.mjs 头注用法行 vs packages/bundle/src/scripts/impact-cli.ts argValue 名全集').toEqual(new Set(impactFlags))
+    expect(impactEntry, '--变更路径 样例：用法行应有占位说明').toContain('--变更路径 <相对路径>')
+    expect(impactCli, '--变更路径 样例：解析侧应取同名参数').toContain("argValue(argv, '变更路径')")
+    expect(impactCli, '--变更路径 样例：解析侧错误信息应与用法行口径一致').toContain('必须传 --变更路径 书仓内相对路径')
+    // ⑤-c 材料备料.mjs ↔ materials-cli.ts；样例 --book
+    const materialsEntry = fs.readFileSync(skillFile('novel-outline', 'scripts/材料备料.mjs'), 'utf8')
+    const materialsCli = cliSrc('materials-cli.ts')
+    const materialsFlags = [...new Set([...materialsCli.matchAll(/argValue\(argv, '([^']+)'\)/g)].map((m) => `--${m[1]!}`))]
+    expect(new Set(usageFlags(materialsEntry)), '用法行 flag 对撞失败：skills/novel-outline/scripts/材料备料.mjs 头注用法行 vs packages/bundle/src/scripts/materials-cli.ts argValue 名全集').toEqual(new Set(materialsFlags))
+    expect(materialsEntry, '--book 样例：用法行应有占位说明').toContain('--book <bookRoot>')
+    expect(materialsCli, '--book 样例：解析侧应取同名参数').toContain("argValue(argv, 'book')")
+    expect(materialsCli, '--book 样例：解析侧错误信息应与用法行口径一致').toContain('必须传 --book 书仓路径')
+    // 对撞⑥ 发现项处置三列表的动作列 ↔ 九份审读底本「建议返回节点」枚举单源（0.0.23 审查批补：新增枚举表自身要有单源保护）
+    const reviewSkill = readSkill('novel-review')
+    const tableStart = reviewSkill.indexOf('**发现项处置三列表**')
+    expect(tableStart, 'novel-review/SKILL.md 应有「发现项处置三列表」').toBeGreaterThanOrEqual(0)
+    const tableEnd = reviewSkill.indexOf('派发前核对', tableStart)
+    const tableRows = reviewSkill.slice(tableStart, tableEnd).split('\n').filter((l) => l.startsWith('| ') && !l.startsWith('| 信号') && !l.startsWith('|---'))
+    expect(tableRows.length, `三列表对撞：应有 6 行数据行，实得 ${tableRows.length}`).toBe(6)
+    const fullSweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
+    const nodeEnumLine = fullSweep.split('\n').find((l) => l.includes('| 建议返回节点 |'))
+    expect(nodeEnumLine, 'novel-review/agents/全量审读.md 应有「建议返回节点」枚举行（九底本单源）').toBeDefined()
+    const nodeEnum = nodeEnumLine!.split('|')[2]!.split('/').map((s) => s.trim()).filter(Boolean)
+    let controllerRows = 0
+    for (const row of tableRows) {
+      const action = row.split('|')[2]!.trim()
+      if (action.includes('主控动作')) { controllerRows += 1; continue }
+      expect(nodeEnum, `三列表动作列对撞失败：「${action}」不在 agents/全量审读.md 建议返回节点枚举 ${JSON.stringify(nodeEnum)} 内`).toContain(action)
+    }
+    expect(controllerRows, '三列表对撞：主控动作行应恰一行（作者裁决），且须带非返回节点标注').toBe(1)
+    expect(reviewSkill.slice(tableStart, tableEnd), '三列表对撞：主控动作行的停止条件应引用步骤 6 五值单源（无法判断不算）').toContain('五值之一')
   })
 })
