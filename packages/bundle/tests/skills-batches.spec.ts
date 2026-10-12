@@ -254,11 +254,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(map).toContain('换图 SOP')
     expect(map).toContain('references/参考标尺.md')
     expect(map).toContain('人物、关系、地点、组织、规则、物件')
-    // B. design 条目起稿处五份模板列全（含路径 A 的五份计数行）
+    // B. design 条目起稿处模板列全（含路径 A 的计数行；0.0.26 流程首波批：世界书模板五→六，加局规则）
     const design = readSkill('novel-design')
     expect(design).toContain('[组织条目模板](templates/世界书/组织条目模板.md)')
     expect(design).toContain('[地图条目模板](templates/世界书/地图条目模板.md)')
-    expect(design).toContain('人物档案/世界规则/力量体系/组织/地图五份')
+    expect(design).toContain('人物档案/世界规则/力量体系/组织/地图/局规则六份')
     // C. 规格模板拆位：三份存在＋规格细节在模板（表列/取数算式/四核对项）＋双 SKILL 各带一行引用
     const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
     expect(ladder).toContain('取数：参考标尺·固定层＋比例层×衰减×题材')
@@ -275,9 +275,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(sect).toContain('信息预算四行')
     expect(sect).toContain('本章新埋：零')
     expect(sect).toContain('时间行')
-    // D. 注册单源：artifact-contract 登记五份条目模板（世界书模板经名字数组拼路径）＋三份规格模板
+    // D. 注册单源：artifact-contract 登记条目模板（世界书模板经名字数组拼路径；0.0.26 流程首波批：数组加局规则）＋三份规格模板
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
-    expect(contract).toContain("['人物档案', '世界规则', '力量体系', '组织', '地图']")
+    expect(contract).toContain("['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则']")
     for (const rel of [
       'skills/novel-design/templates/对手梯队子表规格.md',
       'skills/novel-design/templates/卷纲固定段规格.md',
@@ -1218,23 +1218,27 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   })
 
   it('0.0.24 反推落地首批：钩型配比两层制＋双钩三列＋调剂行＋升级四件＋悼亡法双挂＋定格问号＋信息边界判据＋篇幅双模式＋版本零残留', () => {
-    // A1 标尺行：追读力量化区「章末钩型配比」两层制——硬红线/参考区间/待校准/双书实测数（诡秘 62、大奉约 78，泄压 6.4%/5%——出处两书报告，区间并陈不平均）
+    // A1 标尺行：追读力量化区「章末钩型配比」两层制——硬红线/参考区间/双书实测数（诡秘 62、大奉约 78，泄压 6.4%/5%——出处两书报告，区间并陈不平均）
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     expect(scale).toContain('| 章末钩型配比 |')
-    expect(scale).toContain('【待校准】两层制')
+    // 0.0.26 标尺 v0.5 批裁定同步：配比行改驱动类型分带后【待校准】前缀退役（两带均有五书实证），断言改钉两层制本体（分带详断言见 0.0.26 组）
+    expect(scale).toContain('两层制')
     expect(scale).toContain('硬红线（任何尺度适用）')
     expect(scale).toContain('危机钩（即时威胁型）兑现章号距钩章 ≤5 章')
     expect(scale).toContain('泄压钩只居高潮余波位')
     expect(scale).toContain('参考区间（仅 ≥50 章窗口适用')
     // 0.0.25 独立审查 R3：参考区间改出处可溯式（张力 60-80 取整自双书 62/78、泄压 ≤10 上浮留余）；无出处的 55-70 清零——负断言只钉配比行，变更记录 v0.4-D 历史记述保留
-    expect(scale).toContain('张力类 60-80%（双书实测 62%/78% 并陈取整区间）')
-    expect(scale).toContain('泄压类 ≤10%（双书 5%-6.4% 上浮留余）')
+    // 0.0.26 标尺 v0.5 批裁定同步：区间按驱动类型前缀分裂（张力驱动档 60-80% 三书并陈/情感驱动档 25-40%），旧「双书并陈」区间串随三书实证退役，断言随裁同步
+    expect(scale).toContain('张力类 60-80%')
+    expect(scale).toContain('三书并陈取整区间')
+    expect(scale).toContain('张力档 ≤10%（双书 5%-6.4% 上浮留余）')
     const hookRatioRow = scale.split('\n').find((l) => l.includes('| 章末钩型配比 |'))
     expect(hookRatioRow, '参考标尺应有「章末钩型配比」行').toBeDefined()
     expect(hookRatioRow!, '配比行不得残留无出处的 55-70 区间').not.toContain('55-70')
     expect(scale).toContain('诡秘张力类 62%')
     expect(scale).toContain('大奉约 78%')
-    expect(scale).toContain('泄压类 6.4%/5%')
+    // 0.0.26 独立审查 R2 同步：情感档泄压 ≤15% 出处改引重生啊（原误挂张力档双书 6.4%/5% 数据），断言随出处改钉重生啊口径串
+    expect(scale).toContain('情感档 ≤15%（重生啊单书口径：泄压类＝温情收束')
     // A1 判据①：章末双钩节三列口径（钩型｜承诺｜兑现章号）＋定格即问号（A3 协同技法）
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sect).toContain('**承诺列**＋**兑现章号列**')
@@ -1422,5 +1426,187 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
         expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.24`).not.toContain('0.0.24')
       }
     }
+  })
+
+  it('0.0.26 标尺 v0.5 五书校准批：驱动类型分带＋新四行＋五题材修正＋末卷扩＋v0.5 变更＋版本零残留', () => {
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    // 1. 冲突①裁决（最大冲突）：钩型配比驱动类型分带——两带前缀＋硬红线不动＋情感重场替代张力钩＋泄压分档
+    expect(scale).toContain('两层制·驱动类型分带（五书实证 2026-10-11）')
+    expect(scale).toContain('张力驱动档〔玄幻/悬疑/无限流〕')
+    expect(scale).toContain('情感驱动档〔都市情感/女频〕')
+    expect(scale).toContain('张力类 25-40%（重生啊实测 25-35% 取整上浮）＋情绪类 40-60%＋情感重场替代张力钩')
+    expect(scale).toContain('情感档 ≤15%')
+    expect(scale).toContain('分带不改')
+    // 2. 冲突②裁决：大爽点三口径分驱
+    expect(scale).toContain('口径分驱（五书实证 2026-10-11，三口径并列）')
+    expect(scale).toContain('每 15 章（≈7-9 万字）章制')
+    expect(scale).toContain('间隔容忍至 25-30 万字')
+    expect(scale).toContain('大会战间隔 75-100 章（卷单位）')
+    // 3. 冲突③④裁决：首高潮分档＋末卷弹性扩
+    expect(scale).toContain('前置至 ≤2 万字')
+    expect(scale).toContain('都市情感慢热档 ×1.7≈**25 万字**')
+    expect(scale).toContain('历史文极端慢热档 **50 万字位**')
+    expect(scale).toContain('终卷收束期 60-110 万')
+    expect(scale).toContain('重生啊末卷 107 万＝常态卷 3.5 倍')
+    expect(scale).toContain('非终卷仍守 40 万')
+    // 4. 新四行（每行五书证据标注＋【部分校准】或实测标注）：单元循环节拍/前传章型/终卷通胀律/信息释放分级
+    expect(scale).toContain('| 单元循环节拍 |')
+    expect(scale).toContain('颁布→战术→执行意外→翻解→结算→间歇')
+    expect(scale).toContain('起手 2-9 章→中后期可涨至 30-60 章、极值 60')
+    expect(scale).toContain('| 前传章型·篇幅曲线 |')
+    expect(scale).toContain('篇幅随位格递增（4-83 章）且与情感权重正相关')
+    expect(scale).toContain('死亡/终局前的前史揭底＝情绪蓄满装置')
+    expect(scale).toContain('| 终卷通胀律 |')
+    expect(scale).toContain('常态 +19%-34%；极端峰值 2-5 倍')
+    expect(scale).toContain('放量渐次（终卷前 10-15 章起）不突变')
+    expect(scale).toContain('| 信息释放分级 |')
+    expect(scale).toContain('核心真相（题眼）置**倒数 5%**')
+    expect(scale).toContain('悬念型信息:期待型信息配比——悬疑型 ≈7:3（n=1，十日钩型口径移植、仅参考）；情感型待证')
+    expect(scale).toContain('信息释放台账的方法论母行')
+    // 5. 冲突⑤⑥裁决＋固定层/比例层五书实证替换
+    expect(scale).toContain('平面谱＝0 阶特例')
+    expect(scale).toContain('事业台阶型 3-4 阶')
+    expect(scale).toContain('终局层允许非人格化承担者')
+    expect(scale).toContain('出场频率自查口径限核心圈 8-10 人')
+    expect(scale).toContain('情感线计第二主线')
+    expect(scale).toContain('口径分事件型/关系型两栏')
+    // 6. 冲突⑦裁决：三线断档互为替身豁免
+    expect(scale).toContain('「互为替身」豁免口径')
+    expect(scale).toContain('线族合计在场')
+    // 7. 题材修正表五题材＋合并规则（历史新增＋都市情感子档＋子档优先）
+    expect(scale).toContain('| 都市情感（都市子档） |')
+    expect(scale).toContain('| 历史（历史穿越） |')
+    expect(scale).toContain('地图（战线）×1.3')
+    expect(scale).toContain('会战间隔 ×5（卷单位——大会战 75-100 章）')
+    expect(scale).toContain('小爽点 ×0.7')
+    expect(scale).toContain('章长长档强制（5500+）')
+    expect(scale).toContain('子档优先于父档')
+    // 8. 每章字数三档锚点＋快档口径钉死＋恒定式三例外（3500 基准不动）
+    expect(scale).toContain('快节奏档 2100-2500')
+    expect(scale).toContain('口径必须钉死「正文汉字数」脚本口径')
+    expect(scale).toContain('恒定式三例外')
+    expect(scale).toContain('基准裁定不动')
+    expect(scale).toContain('**3500-4500 字**')
+    // 9. v0.5 变更行＋校准计划五书批留痕
+    expect(scale).toContain('v0.5 2026-10-12：0.0.26 五书校准批')
+    expect(scale).toContain('2026-10-11 五书校准批（v0.5）已完成')
+    // 版本零残留：docs/user＋docs/maintenance 当前口径 0.0.25 清零（历史叙事在 CHANGELOG，不在用户文档）
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.25`).not.toContain('0.0.25')
+      }
+    }
+  })
+
+  it('0.0.26 流程首波批：局规则条目模板＋史实基线资产位＋情感主线槽位族＋台账扩列＋伏笔账本升级＋设计案文档', () => {
+    const design = readSkill('novel-design')
+    const outline = readSkill('novel-outline')
+    const settle = readSkill('novel-settle')
+    // N1 局规则条目模板：文件存在＋风格两签＋六字段关键词＋规则设计学枚举单源在模板
+    const tplDir = skillFile('novel-design', 'templates/世界书')
+    const gameTplPath = path.join(tplDir, '局规则条目模板.md')
+    expect(fs.existsSync(gameTplPath), 'novel-design/templates/世界书/局规则条目模板.md 应存在').toBe(true)
+    const gameTpl = fs.readFileSync(gameTplPath, 'utf8')
+    expect(gameTpl).toContain('frontmatter 照世界书既有约定')
+    expect(gameTpl).toContain('留白合法')
+    for (const kw of ['## 表面规则（角色所知）', '## 隐藏层（真规则，可多层）', '## 漏洞空间（可被利用处）', '## 反制与代价', '## 与情节的咬合点', '颁布原句', '字面缝隙即解法空间', '主持者人格＝规则纹理', '惩罚求生直觉', '可加注/可篡改', '夺取规则颁布权']) {
+      expect(gameTpl, `局规则模板应含「${kw}」`).toContain(kw)
+    }
+    // N1 接线：design 世界书步骤声明「局规则」模块＋模板链接；工件契约注册（见下方 contract 断言）
+    expect(design).toContain('[局规则条目模板](templates/世界书/局规则条目模板.md)')
+    expect(design).toContain('模块「局规则」登记（首次确认条目时自动登记进 `世界书/模块声明.md`）')
+    // N2 史实基线资产位：世界书步骤建账行＋工件契约表加行＋五律/轨道清单/现实依据回指
+    expect(design).toContain('**史实基线（历史文用，可选）**')
+    expect(design).toContain('`<工作范围>/书房/史实基线/<书名>.md`')
+    expect(design).toContain('小史实保真换大史实自由五律')
+    for (const kw of ['小史实保真（官制/地理/死法内核）', '大史实可破（战役/存亡）', '破轨必配锚（改写处配史实细节背书，改越大锚越密）', '史实污点人物优先清算', '未来文本按四式注入（前移/反用/保留原话/提前入场）']) {
+      expect(design, `史实基线五律应含「${kw}」`).toContain(kw)
+    }
+    expect(design).toContain('史实事件｜默认结局｜改写方向｜锚点保真点')
+    expect(design).toContain('现实依据：<书房/史实基线/<书名>.md 的轨道条目名>')
+    expect(design).toContain('| 史实基线 |')
+    // N4 情感主线槽位族：骨架子位（双线/单线＋收束形态）＋契约六部挂点＋卷纲情感线节拍行
+    expect(design).toContain('**情感主线（可选子位）**')
+    expect(design).toContain('`### 情感主线`')
+    expect(design).toContain('双线（事业线＋情感线并行，情感线计主线不计支线）')
+    expect(design).toContain('单线（情感线即唯一主线）')
+    expect(design).toContain('渐近线式（永远逼近永不官宣——不解决而共存，收束落在行为互认不落在名分）')
+    expect(design).toContain('**情感主线声明（可选）**')
+    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    expect(vol).toContain('## 情感线节拍（弧线段内可选行）')
+    expect(vol).toContain('误会-和解循环周期 {N-M 章}')
+    expect(vol).toContain('情感重场：{章组}')
+    expect(vol).toContain('重生啊实测 10-15 章')
+    expect(vol).toContain('不因情绪类豁免调剂')
+    // 上下文升级：台账清单扩「载体」「知情圈」两列——design 建账行单源＋outline 备料消费＋settle 更新同步
+    expect(design).toContain('载体｜知情圈｜释放章')
+    expect(design).toContain('同一信息再次释放须换载体（日记/对话/通灵/古迹式为参照，自报载体亦可）')
+    expect(design).toContain('知情圈＝哪些角色已知（角色间信息差')
+    expect(outline).toContain('同一信息再次释放须换载体（对照清单「载体」列）')
+    expect(outline).toContain('对照「知情圈」列——谁知道谁不知道')
+    expect(settle).toContain('实际载体与知情圈变化随同次更新（「载体」/「知情圈」列）')
+    // N6 伏笔账本升级：沉淀对账线索行式扩口径＋保温强化＋对账方法第 6 条；outline 备料保温自查接线
+    const reconcile = fs.readFileSync(skillFile('novel-settle', 'agents/沉淀对账.md'), 'utf8')
+    expect(reconcile).toContain('- 口径：事件型 | 关系型')
+    expect(reconcile).toContain('- 保温强化：第NNNN章 | 无')
+    expect(reconcile).toContain('兑现前必有强化触点')
+    expect(reconcile).toContain('无强化触点就兑现的列入对账差异呈报，不默默收线')
+    expect(outline).toContain('**伏笔保温自查**')
+    expect(outline).toContain('对照 `账本/线索.md` 该条的保温强化行')
+    expect(outline).toContain('先在本章或邻章排一次闲笔式强化触点再兑现')
+    // 新工件提案落设计侧：因果链图与穿帮防御设计案存在且标注待实装裁定（不进运行时件）
+    const designDoc = path.join(__dirname, '..', '..', '..', 'docs', 'design', '因果链图与穿帮防御.md')
+    expect(fs.existsSync(designDoc), 'docs/design/因果链图与穿帮防御.md 应存在（设计侧设计案）').toBe(true)
+    const proposal = fs.readFileSync(designDoc, 'utf8')
+    expect(proposal).toContain('待实装裁定')
+    expect(proposal).toContain('依赖闭包')
+    expect(proposal).toContain('孤悬节点')
+    expect(proposal).toContain('主角语自洽')
+    expect(proposal).toContain('叙述者预叙红线')
+    expect(proposal).toContain('记忆错乱自觉豁免')
+    expect(proposal).toContain('时代锚点登记表')
+    // 注册单源：artifact-contract 登记局规则条目模板（经名字数组拼路径——完整数组断言在 0.0.14 模板拆出批 D 节，本组钉数组含「局规则」）
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("', '地图', '局规则']")
+  })
+
+  it('0.0.26 独立审查修复批：C1/C2 口径修正＋R1-R4 必修＋O1-O2＋Nit——卷体量 3.5 倍口径/情感档 25-40/前传 4-83/泄压出处改引/单元循环型枚举/7:3 标注/对话上限 0.45/口径注与区间收敛＋v0.5-F 留痕', () => {
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    // C1 单卷体量行：章长峰值 5.3 倍口径退役、卷体量 3.5 倍口径落位——行内零残留（变更记录 v0.5 行历史记述保留，O2 核到的诡秘半句保留）
+    const volumeRow = scale.split('\n').find((l) => l.includes('| 单卷体量 |'))
+    expect(volumeRow, '参考标尺应有「单卷体量」行').toBeDefined()
+    expect(volumeRow!).not.toContain('5.3 倍')
+    expect(volumeRow!).toContain('章长峰值另见终卷通胀律行')
+    expect(volumeRow!).toContain('诡秘后三部章数递减而单卷体量上浮')
+    // C1 终卷通胀律行：警戒与章长峰值关系句＋打破条件情感峰例外
+    expect(scale).toContain('章长极端峰值可超警戒，卷体量口径 3.5 倍为常态参考')
+    expect(scale).toContain('重生啊番外婚礼章 5.3 倍')
+    // C2 情感档张力类上缘 40%：行内 25-50 零残留（变更记录 v0.5 行历史记述保留）
+    const hookRow = scale.split('\n').find((l) => l.includes('| 章末钩型配比 |'))
+    expect(hookRow, '参考标尺应有「章末钩型配比」行').toBeDefined()
+    expect(hookRow!).not.toContain('25-50')
+    expect(hookRow!).toContain('25-40%（重生啊实测 25-35% 取整上浮）')
+    // R1 前传章型最小 4 章：行内 3-83 零残留
+    const prequelRow = scale.split('\n').find((l) => l.includes('| 前传章型·篇幅曲线 |'))
+    expect(prequelRow, '参考标尺应有「前传章型·篇幅曲线」行').toBeDefined()
+    expect(prequelRow!).not.toContain('3-83')
+    // R2 情感档泄压出处改引重生啊（原误挂张力档双书数据）
+    expect(hookRow!).toContain('情感档 ≤15%（重生啊单书口径：泄压类＝温情收束')
+    // R3 卷纲结构类型枚举补单元循环型（十日报告点名缺口——枚举单源在模板）＋与标尺单元循环节拍行互指闭合
+    expect(vol).toContain('单元循环型（单元六段循环：颁布→战术→执行意外→翻解→结算→间歇')
+    expect(vol).toContain('源出成品反推报告·十日终焉')
+    expect(scale).toContain('卷纲结构类型选单元循环型时本行生效')
+    // R4 信息释放分级行：5/5 归属钉在分级排期方法论（配比句 n=1 不在此实证内）
+    expect(scale).toContain('分级排期方法论 ✅五书实证 2026-10-11')
+    // O1 历史行对话占比上限＋都市情感 2300-3000 恒定带弃置留痕（变更记录）
+    expect(scale).toContain('对话占比上限 0.45（绍宋实测对话段占比 0.32-0.41 上浮）')
+    expect(scale).toContain('2300-3000 恒定带」弃置留痕')
+    // Nit：诡秘 3144 字符口径注＋支线双口径注
+    expect(scale).toContain('诡秘 3144 系**字符口径**')
+    expect(scale).toContain('4＝在用支线口径，含 1 弃线则 5-6')
+    // v0.5-F 变更留痕
+    expect(scale).toContain('v0.5-F 2026-10-12：0.0.26 独立审查修复批')
   })
 })

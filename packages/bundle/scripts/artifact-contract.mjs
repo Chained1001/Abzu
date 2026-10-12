@@ -18,7 +18,7 @@ export const referenceDocs = [
   'skills/novel-drafting/agents/写作卡.md',
   'skills/novel-design/references/参考标尺.md',
   'skills/novel-design/references/雷点清单.md',
-  ...['人物档案', '世界规则', '力量体系', '组织', '地图'].map(name => `skills/novel-design/templates/世界书/${name}条目模板.md`),
+  ...['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则'].map(name => `skills/novel-design/templates/世界书/${name}条目模板.md`),
   'skills/novel-design/templates/对手梯队子表规格.md',
   'skills/novel-design/templates/卷纲固定段规格.md',
   'skills/novel-outline/templates/章细纲固定小节规格.md',
