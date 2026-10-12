@@ -48,6 +48,7 @@ export const name = 'abzu-bundle'
  * 运行能力与插件运行时同属一份产物，不再内联 core 副本。
  */
 export { runChecksCli } from './scripts/deterministic-checks'
+export { draftLengthCli } from './scripts/draft-length-cli'
 /** 影响分析／材料备料／定稿备包／最小导出脚本的 CLI 能力（R21 切割）：只算不写，薄入口经 lib 调用。 */
 export { analyzeImpactCli } from './scripts/impact-cli'
 export { materialsCli } from './scripts/materials-cli'

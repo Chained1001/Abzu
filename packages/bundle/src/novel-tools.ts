@@ -1261,7 +1261,8 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
           发现项编号: { type: 'string', description: '审核记录中的发现项编号' },
           审核记录哈希: { type: 'string', description: '状态查询或上次处置返回的记录 SHA-256；不一致时拒绝写入' },
           改动说明: { type: 'string', description: '本条处置说明（可选，省略保留已有说明）' },
-          处置: { type: 'string', enum: ['待处理', '已接受修改', '已解决', '作者保留', '已驳回', '无法判断'], description: '处置状态' },
+          提案编号: { type: 'string', pattern: '^\\d{4}$', description: '已转提案时传已通过且关联本发现项的四位提案编号' },
+          处置: { type: 'string', enum: ['待处理', '已接受修改', '已解决', '作者保留', '已驳回', '无法判断', '已转提案'], description: '处置状态。已转提案：影响真源的发现项已登记提案且作者已通过，必须传四位提案编号，提案须关联本章本发现项' },
           补丁旧文: { type: 'string', description: '补丁 old（可选；与补丁新文成对）' },
           补丁新文: { type: 'string', description: '补丁 new（可选）' },
         },
@@ -1295,6 +1296,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
             处置: String(args['处置']) as 处置状态,
             ...(args['审核记录哈希'] === undefined ? {} : { 审核记录哈希: String(args['审核记录哈希']) }),
             ...(args['改动说明'] === undefined ? {} : { 改动说明: String(args['改动说明']) }),
+            ...(args['提案编号'] === undefined ? {} : { 提案编号: String(args['提案编号']) }),
             ...(hasPatch ? { 补丁: { old: String(args['补丁旧文']), new: String(args['补丁新文']) } } : {}),
           })
           if (!res.ok) return { ok: false, reason: res.reason }
@@ -1325,8 +1327,9 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
               type: 'object',
               properties: {
                 发现项编号: { type: 'string', description: '审核记录中的发现项编号' },
-                处置: { type: 'string', enum: ['待处理', '已接受修改', '已解决', '作者保留', '已驳回', '无法判断'], description: '处置状态' },
+                处置: { type: 'string', enum: ['待处理', '已接受修改', '已解决', '作者保留', '已驳回', '无法判断', '已转提案'], description: '处置状态。已转提案：影响真源的发现项已登记提案且作者已通过，必须传四位提案编号，提案须关联本章本发现项' },
                 改动说明: { type: 'string', description: '该条对应的改动说明（可选）' },
+                提案编号: { type: 'string', pattern: '^\\d{4}$', description: '已转提案时传已通过且关联本发现项的四位提案编号' },
               },
               required: ['发现项编号', '处置'],
             },
@@ -1360,6 +1363,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
           return {
             发现项编号: String(o['发现项编号'] ?? '').trim(),
             处置: String(o['处置'] ?? '') as 处置状态,
+            ...(o['提案编号'] === undefined ? {} : { 提案编号: String(o['提案编号']) }),
             ...(改动说明 === undefined ? {} : { 改动说明 }),
           }
         })
@@ -1543,6 +1547,9 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
           内容: { type: 'string', description: '提案正文：改什么、为什么、影响面摘要' },
           来源: { type: 'string', description: '提案来源（如「第3章审核发现项 2 条」「作者对话指示」）' },
           影响分析: { type: 'string', description: '影响分析脚本输出的摘要（可登记后补）' },
+          关联发现项: { type: 'array', description: '从审核转交的提案须登记原发现项身份', items: { type: 'object', properties: {
+            卷: { type: 'integer', minimum: 1 }, 章: { type: 'integer', minimum: 1 }, 章名: { type: 'string' }, 发现项编号: { type: 'string' },
+          }, required: ['卷', '章', '章名', '发现项编号'] } },
         },
         required: ['bookId', '域', '类型', '内容', '来源'],
       },
@@ -1568,6 +1575,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
             类型: (['补充设计', '修改计划', '事实更正', '吃书'] as const).includes(args['类型'] as never) ? (args['类型'] as '补充设计' | '修改计划' | '事实更正' | '吃书') : '修改计划',
             内容: String(args['内容'] ?? ''),
             来源: String(args['来源'] ?? '作者对话指示'),
+            ...(args['关联发现项'] === undefined ? {} : { 关联发现项: args['关联发现项'] as NonNullable<Parameters<typeof registerProposal>[1]['关联发现项']> }),
             ...(args['影响分析'] === undefined ? {} : { 影响分析: String(args['影响分析']) }),
           })
           return { ...r, message: `提案 ${r.编号} 已登记：${r.relPath}。先跑影响分析脚本补「影响分析」，再呈作者裁决（novel_resolve_proposal）。` }
@@ -1782,7 +1790,7 @@ ${摘要现文}`,
     },
     {
       name: 'novel_record_memory',
-      description: '写作者层记忆条目（落书房/作者记忆/，一事一文件+索引同步重建；标签必填）。作者层资产不进书仓、不走 design: 提交。对话产生的决策/建议/解法值得记就当场写。',
+      description: '写作者层记忆条目（落书房/作者记忆/，一事一文件+索引同步重建；标签必填）。作者层资产不进书仓、不走 design: 提交。对话产生的决策/建议/解法值得记就当场写。同名条目已存在时新增被拒；更新必须先读原文并传「操作: 更新」与完整「原文」，原文已变化时拒绝，不得改名绕过。',
       parameters: {
         type: 'object',
         properties: {
@@ -1793,6 +1801,8 @@ ${摘要现文}`,
           标签: { type: 'array', items: { type: 'string' }, description: '书名/卷/题材/维度标签（至少一条）' },
           来源: { type: 'string', description: '章号或「对谈」' },
           正文: { type: 'string', description: '条目正文（可用 [[条目名]] 互链）' },
+          操作: { type: 'string', enum: ['新增', '更新'], description: '写入门类：同名已存在时新增被拒，须以更新并提供原文' },
+          原文: { type: 'string', description: '操作为更新时必传：调用前读到的该条目完整原文（含 frontmatter），与盘上不一致即拒绝' },
         },
         required: ['bookId', '名称', '描述', '类', '标签', '来源', '正文'],
       },
@@ -1821,6 +1831,8 @@ ${摘要现文}`,
           标签: Array.isArray(args['标签']) ? (args['标签'] as unknown[]).map(String) : [],
           来源: String(args['来源']),
           正文: String(args['正文']),
+          ...(args['操作'] === undefined ? {} : { 操作: args['操作'] as '新增' | '更新' }),
+          ...(args['原文'] === undefined ? {} : { 原文: String(args['原文']) }),
         })
       },
     },

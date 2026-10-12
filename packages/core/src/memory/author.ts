@@ -24,11 +24,20 @@ export interface AuthorMemoryInput {
   /** 章号或「对谈」。 */
   readonly 来源: string
   readonly 正文: string
+  /** 显式写入门类:同名已存在时,新增拒绝、更新须提供完整原文比对(0.0.30 守卫)。 */
+  readonly 操作?: '新增' | '更新'
+  /** 更新时调用方读到的完整原文;与盘上现文不一致即拒绝,防过期版本静默覆盖。 */
+  readonly 原文?: string
 }
 
 export type AuthorMemoryResult =
   | { readonly ok: true; readonly relPath: string; readonly updated: boolean }
   | { readonly ok: false; readonly reason: string }
+
+/** 记忆文本比对口径:换行归一＋去尾空行,外部编辑器的行尾差异不算「已变化」。 */
+function normalizeMemoryText(text: string): string {
+  return text.replace(/\r\n/g, '\n').replace(/\n+$/, '')
+}
 
 export function writeAuthorMemory(workspaceRoot: string, input: AuthorMemoryInput): AuthorMemoryResult {
   const 名称 = input.名称.trim()
@@ -44,14 +53,35 @@ export function writeAuthorMemory(workspaceRoot: string, input: AuthorMemoryInpu
   }
   const 标签 = input.标签.map((t) => t.trim()).filter((t) => t !== '')
   if (标签.length === 0) return { ok: false, reason: '标签必填(书名/卷/题材/维度,供召回过滤)' }
+  const 操作 = input.操作 ?? '新增'
+  if (操作 !== '新增' && 操作 !== '更新') return { ok: false, reason: '操作必须为新增或更新' }
+  if (操作 === '新增' && input.原文 !== undefined) return { ok: false, reason: '新增记忆不接受更新原文' }
 
   const dir = 作者记忆目录(workspaceRoot)
   fs.mkdirSync(dir, { recursive: true })
   const rel = `${作者记忆相对目录}/${名称}.md`
   const abs = path.join(dir, `${名称}.md`)
-  const updated = fs.existsSync(abs)
+  let current: string | undefined
+  try {
+    current = fs.readFileSync(abs, 'utf-8')
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+  }
+  const updated = current !== undefined
+  let priorFields: Readonly<Record<string, unknown>> | undefined
+  if (updated) {
+    const parsed = parseDocument(current!)
+    if (!parsed.ok || parsed.data.fields['名称'] !== 名称 || parsed.data.fields['类'] !== input.类) {
+      return { ok: false, reason: `记忆目标与旧格式或未知条目冲突，保留原文件：${rel}` }
+    }
+    priorFields = parsed.data.fields
+  }
+  if (操作 === '更新' && !updated) {
+    return { ok: false, reason: `更新目标不存在：${rel}；不能把更新改成新增` }
+  }
   const text = serializeDocument(
     {
+      ...priorFields,
       名称,
       描述: input.描述.trim(),
       类: input.类,
@@ -61,6 +91,21 @@ export function writeAuthorMemory(workspaceRoot: string, input: AuthorMemoryInpu
     },
     input.正文,
   )
+  if (updated) {
+    if (normalizeMemoryText(current!) === normalizeMemoryText(text)) {
+      return { ok: true, relPath: rel, updated: true }
+    }
+    if (操作 === '更新') {
+      if (input.原文 === undefined) {
+        return { ok: false, reason: `更新记忆须先读取并提供完整原文：${rel}` }
+      }
+      if (normalizeMemoryText(current!) !== normalizeMemoryText(input.原文)) {
+        return { ok: false, reason: `记忆原文已变化：${rel}；请重读并核对后更新，不得改名绕过` }
+      }
+    } else {
+      return { ok: false, reason: `记忆「${名称}」已存在；先读取原文，再以操作「更新」提供完整原文，不得用新增覆盖` }
+    }
+  }
   fs.writeFileSync(abs, text, 'utf-8')
   rebuildIndex(dir)
   return { ok: true, relPath: rel, updated }

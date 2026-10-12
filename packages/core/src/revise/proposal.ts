@@ -27,6 +27,7 @@ export interface ProposalInput {
   readonly 来源: string
   /** 影响分析脚本的输出摘要（可选，登记后也可补）。 */
   readonly 影响分析?: string
+  readonly 关联发现项?: readonly { readonly 卷: number; readonly 章: number; readonly 章名: string; readonly 发现项编号: string }[]
 }
 
 function 提案目录(bookRoot: string): string {
@@ -82,6 +83,11 @@ function registerProposalLocked(
   bookRoot: string,
   input: ProposalInput,
 ): { readonly ok: true; readonly 编号: string; readonly relPath: string } {
+  if (input.关联发现项 !== undefined && (!Array.isArray(input.关联发现项) || input.关联发现项.some(item => item === null || typeof item !== 'object'
+    || !Number.isSafeInteger(item.卷) || item.卷 < 1 || !Number.isSafeInteger(item.章) || item.章 < 1
+    || typeof item.章名 !== 'string' || !item.章名.trim() || typeof item.发现项编号 !== 'string' || !item.发现项编号.trim()))) {
+    throw new Error('关联发现项必须包含有效的卷、章、章名和发现项编号')
+  }
   const num = nextProposalNumber(bookRoot)
   const 编号 = pad4(num)
   const relPath = `草稿区/提案/${编号}-${input.类型}.md`
@@ -91,6 +97,7 @@ function registerProposalLocked(
     类型: input.类型,
     状态: '待裁决' as 提案状态,
     来源: input.来源,
+    ...(input.关联发现项 === undefined ? {} : { 关联发现项: input.关联发现项 }),
   }
   const body = [
     input.内容.trim(),
@@ -116,14 +123,14 @@ export function loadProposal(
   编号: string,
 ): { readonly ok: true; readonly text: string; readonly relPath: string } | { readonly ok: false; readonly reason: string } {
   try {
-    for (const f of fs.readdirSync(提案目录(bookRoot))) {
-      if (!f.startsWith(`${编号}-`) || !isMarkdownFileName(f)) continue
-      const relPath = `草稿区/提案/${f}`
-      return { ok: true, text: fs.readFileSync(nodePath.join(提案目录(bookRoot), f), 'utf-8'), relPath }
-    }
-    return { ok: false, reason: `提案不存在:${编号}` }
+    const matches = fs.readdirSync(提案目录(bookRoot)).filter(f => f.startsWith(`${编号}-`) && isMarkdownFileName(f))
+    if (matches.length === 0) return { ok: false, reason: `提案不存在：${编号}` }
+    if (matches.length !== 1) return { ok: false, reason: `提案编号存在多份文件：${编号}。请作者核对，不能任选一份` }
+    const file = matches[0]!
+    const relPath = `草稿区/提案/${file}`
+    return { ok: true, text: fs.readFileSync(nodePath.join(提案目录(bookRoot), file), 'utf-8'), relPath }
   } catch {
-    return { ok: false, reason: `提案不存在:${编号}` }
+    return { ok: false, reason: `提案不存在：${编号}` }
   }
 }
 

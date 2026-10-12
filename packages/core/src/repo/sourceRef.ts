@@ -8,6 +8,8 @@
  *   来源:知识库/<库>/<条目路径>@<版本>   ← 只允许引用;正文仅可进草稿区材料包切片
  */
 
+import { relPathProblem } from './rel-path'
+
 export type SourceRef =
   | { readonly kind: '仓内'; readonly path: string; readonly version: string }
   | { readonly kind: '作者自定义' }
@@ -28,11 +30,11 @@ export function parseSourceRef(line: string): SourceRef | null {
     if (!km) return null
     return { kind: '知识库', library: km[1]!, entry: km[2]!, version: km[3]! }
   }
-  // 同仓路径@版本(路径含正斜杠;禁止 .. 与盘符)
+  // 同仓路径@版本(路径含正斜杠;按路径段禁止 ..,禁止盘符与绝对路径)
   const pm = /^(.+?)@([^/@]+)$/.exec(value)
   if (!pm) return null
   const p = pm[1]!
-  if (p.includes('..') || /^[a-zA-Z]:/.test(p) || p.startsWith('/')) return null
+  if (relPathProblem(p) !== null || p.startsWith('/')) return null
   return { kind: '仓内', path: p, version: pm[2]! }
 }
 
