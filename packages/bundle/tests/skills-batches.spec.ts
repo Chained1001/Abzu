@@ -1752,19 +1752,108 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // J. F17 core 缺位族登记：增强计划解冻批候选第⑬项
     expect(plan).toContain('⑬运行时工件名带章号位')
     expect(plan).toContain('双撞名时-{NNNN} 章号后缀式（七楼-16 式）')
-    // K. 版本纪律全套：两 package.json 0.0.28＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.27 零残留
+    // K. 版本纪律全套钉随当前版走——0.0.29 收尾批起移入 0.0.29 组接力（本组原 0.0.28 钉同步退役；当前口径随版本走，见 0.0.19 组 A 注）
+  })
+
+  it('0.0.29 收尾批：像人写作第一批（预算四指标＋环境卡主物件＋类型学六条＋广域视野）＋效率首两项（审读前缀重排＋润色批2修订式）＋版本纪律全套', () => {
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    // A. AI 痕迹类型学六条合并行（独立审查 R2：预算四条并入——预算值嵌入行首括号；R1 出处改参照书章节；O5 待校准标注；连接词双限并入堆积行）
+    const selfCheckStart = cards.indexOf('## 行文自查卡')
+    const selfCheck = cards.slice(selfCheckStart)
+    const mergedRows = [
+      '段末格言化（≤2/章）：数「不是…（就）是／而是」式收尾',
+      '比喻超密且均匀（≤2/千字）：数「像／仿佛／犹如／宛如」',
+      '破折号解释装置（≤4/千字【待校准——1-4 实测 7-12/十日 0，中间值暂取 4，待真实写作校准】）',
+      '三连列举节奏：「A、B、C」三项式',
+      '清单式全景描写：每到新场景重新全要素清点',
+      '对白零冗余：句句是打磨过的信息位'
+    ]
+    for (const row of mergedRows) {
+      expect(selfCheck, `合并行应钉「${row.slice(0, 12)}…」`).toContain(row)
+    }
+    expect(selfCheck).toContain('AI 痕迹类型学六条')
+    expect(selfCheck).toContain('自查预算不是硬规则')
+    expect(selfCheck).toContain('参照书章节 0-2.1/千字（方向二抽样）')
+    expect(selfCheck).toContain('参照书章节近零（外推）')
+    expect(selfCheck).toContain('一句一词为上限、≥2.9/千字为下限——两个方向都超才是病')
+    expect(selfCheck).toContain('五书带 2.91-6.28/千字')
+    expect(selfCheck).toContain('模型倾向按固定间距均匀洒满')
+    expect(selfCheck).toContain('把自然黏合处补回来')
+    expect(selfCheck).toContain('文风画像句法层冲突时画像优先')
+    expect(selfCheck, '旧「修辞预算四条」独立节应退役').not.toContain('修辞预算四条')
+    expect(selfCheck, '旧出处「人类五书 0-2.1/千字」应退役').not.toContain('人类五书 0-2.1/千字')
+    expect(selfCheck, '旧出处「中文网文人类近零」应退役').not.toContain('中文网文人类近零')
+    expect(selfCheck, '旧「连接词下限」独立行式应退役').not.toContain('连接词下限 ≥2.9/千字')
+    // R3 塑造卡毛边豁免＋O1 主物件逐镜单点
+    expect(cards).toContain('毛边豁免：结巴／口癖／无信息量客套给对白留人味')
+    expect(cards).toContain('一「场」可有多件但逐镜单点——主物件随镜头切换，不锁全场景')
+    // B. 环境卡改写：主物件单一化＋POV 职业滤镜＋信息集中律；四作用判据保留、旧感官通道行退役
+    const envStart = cards.indexOf('## 环境卡')
+    const envEnd = cards.indexOf('## 开场卡')
+    expect(envStart, '写作卡应有环境卡').toBeGreaterThanOrEqual(0)
+    const env = cards.slice(envStart, envEnd)
+    expect(env).toContain('只选一件主物件')
+    expect(env).toContain('给文学化处理')
+    expect(env).toContain('判据只在主角会注意的那一件上执行')
+    expect(env).toContain('职业／执念会让他先看什么')
+    expect(env).toContain('信息集中律')
+    expect(env).toContain('同一信息只允许一个意象承载')
+    expect(env).toContain('四作用之一')
+    expect(env, '环境卡旧的场景级感官通道行应退役').not.toContain('按场景核心变化挑 1-2 条感官通道')
+    // C. AI 痕迹类型学六名全在位（selfCheck 切片见 A 节——合并后六名仍各领一行）
+    for (const kw of ['段末格言化', '比喻超密且均匀', '破折号解释装置', '三连列举节奏', '清单式全景描写', '对白零冗余']) {
+      expect(selfCheck, `类型学应含「${kw}」`).toContain(kw)
+    }
+    // D. 广域四件①②③：写前重读点亮语态样本行＋任务包广域视野节（卷末方向句＋情绪承诺句＋常量标注）
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('「语态样本：」行是跨章语态基准')
+    expect(drafting).toContain('**广域视野**')
+    expect(drafting).toContain('「卷末兑现」段取首句')
+    expect(drafting).toContain('「阅读体验与情绪承诺」分部取首句')
+    expect(drafting).toContain('只给方向句不给路线图')
+    expect(drafting).toContain('只给一句不给分部全文')
+    expect(drafting).toContain('卷级／书级常量')
+    expect(drafting, '广域行前缀缓存旁注应退役（Nit——设计说明不留运行时）').not.toContain('前缀缓存友好')
+    expect(drafting).toContain('不代拟')
+    // E. 开源判据吸收三条（润色侧）：三名＋来源标注
+    const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
+    for (const kw of ['表演式表达', '空洞拔高', '均匀节奏']) {
+      expect(clean, `开源吸收应含「${kw}」条`).toContain(kw)
+    }
+    expect(clean).toContain('源出方向二类型学——开源项目对照验证')
+    expect(clean, 'humanizer/de-slop 具体名不留运行时（O4——仓内无源）').not.toContain('humanizer')
+    // F. 审读派发模板前缀重排：固定件前置句＋底本节先于指纹行＋章别节名在位
+    const review = readSkill('novel-review')
+    expect(review).toContain('固定件前置、章别件后置')
+    expect(review).toContain('吃 provider 前缀缓存')
+    expect(review).toContain('只改排列顺序，材料内容不变')
+    expect(review).toContain('卷级常量（章别不变时缓存友好）')
+    expect(review, '缓存价说明不留运行时（O3）').not.toContain('缓存价约 1/10')
+    expect(review.indexOf('=== 第一部分：你的审读底本（固定件） ===')).toBeGreaterThanOrEqual(0)
+    expect(review.indexOf('=== 第二部分：判据参考（固定件） ===')).toBeGreaterThan(review.indexOf('=== 第一部分：你的审读底本（固定件） ==='))
+    expect(review.indexOf('=== 第三部分：本章任务与材料（章别件')).toBeGreaterThan(review.indexOf('=== 第二部分：判据参考（固定件） ==='))
+    expect(review.indexOf('审读指纹：<原样粘贴')).toBeGreaterThan(review.indexOf('=== 第三部分：本章任务与材料（章别件'))
+    // G. 润色批 2 修订指令集：参考文档输出形态节＋SKILL 流程句＋批 1 仍全文标注
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
+    expect(reshape).toContain('输出形态(修订指令集,不整篇重写)')
+    expect(reshape).toContain('定位(段落位置＋原句首几字)＋改法(往哪改、为什么)＋改后句段')
+    expect(reshape).toContain('批 1 仍输出全文')
+    const polish = readSkill('novel-polish')
+    expect(polish).toContain('批 2 输出修订指令集（定位＋改法，不重抄全文）')
+    expect(polish).toContain('批 1 输出全文中间版（表达清理是逐句工作，需完整上下文）')
+    // H. 版本纪律全套：两 package.json 0.0.29＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.28 零残留
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.28').toBe('0.0.28')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.28').toBe('0.0.28')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.28]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.29').toBe('0.0.29')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.29').toBe('0.0.29')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.29]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.28`).toContain('0.0.28')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.29`).toContain('0.0.29')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.27`).not.toContain('0.0.27')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.28`).not.toContain('0.0.28')
       }
     }
   })
