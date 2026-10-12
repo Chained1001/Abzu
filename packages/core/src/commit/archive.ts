@@ -6,7 +6,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
-import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
+import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText } from '../repo/schema'
 import { checkGitHealth } from './health'
 import { formatCommitMessage } from './message'
 import { checkCommitPath } from './paths'
@@ -64,7 +64,7 @@ function readManifest(packageAbs: string): { readonly ok: true; readonly files: 
   const p = path.join(packageAbs, '清单.json')
   let text: string
   try {
-    text = fs.readFileSync(p, 'utf-8')
+    text = readMachineText(p)
   } catch {
     return { ok: false, reason: '待定稿包缺清单.json,拒绝入档' }
   }
