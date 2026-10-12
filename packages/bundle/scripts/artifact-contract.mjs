@@ -38,4 +38,5 @@ export const thinScripts = [
   ['skills/novel-settle/scripts/定稿备包.mjs', 'packCli'],
   ['skills/novel-settle/scripts/卷摘要候选.mjs', 'volumeSummaryCli'],
   ['skills/novel-export/scripts/最小导出.mjs', 'exportCli'],
+  ['skills/novel-export/scripts/一键备份.mjs', 'backupCli'],
 ]

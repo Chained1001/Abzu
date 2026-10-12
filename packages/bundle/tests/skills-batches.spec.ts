@@ -1858,7 +1858,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(applySrc).toContain('function illegalDisposition')
     const proposalSrc = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'revise', 'proposal.ts'), 'utf8')
     expect(proposalSrc).toContain('关联发现项')
-    const tools = fs.readFileSync(path.join(__dirname, '..', 'src', 'novel-tools.ts'), 'utf8')
+    // 0.0.31 架构改进批：工具实现按域拆至 src/tools/，源码断言改读拆分后全目录
+    const tools = fs.readdirSync(path.join(__dirname, '..', 'src', 'tools'))
+      .filter((f) => f.endsWith('.ts'))
+      .map((f) => fs.readFileSync(path.join(__dirname, '..', 'src', 'tools', f), 'utf8')).join('\n')
     expect(tools).toContain("'已转提案']")
     expect(tools).toContain('已转提案时传已通过且关联本发现项的四位提案编号')
     expect(tools).toContain('从审核转交的提案须登记原发现项身份')
@@ -1903,21 +1906,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(fs.existsSync(path.join(__dirname, '..', '..', 'core', 'tests', spec)), `core/tests/${spec} 应存在`).toBe(true)
     }
     expect(fs.existsSync(path.join(__dirname, '..', 'tests', 'draft-length-cli.spec.ts')), 'bundle/tests/draft-length-cli.spec.ts 应存在').toBe(true)
-    // F. 版本纪律全套：两 package.json 0.0.30＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.29 零残留
-    const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
-    const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.30').toBe('0.0.30')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.30').toBe('0.0.30')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.30]')
-    for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.30`).toContain('0.0.30')
-    }
-    for (const dir of ['user', 'maintenance'] as const) {
-      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
-      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.29`).not.toContain('0.0.29')
-      }
-    }
+    // F. 版本纪律全套钉随当前版走——0.0.31 产品体验批起移入 0.0.31 组接力（本组原 0.0.30 钉同步退役；当前口径随版本走，见 0.0.19 组 A 注）
   })
 
   it('0.0.32 设计域补入批：骨架判据行补 §2.5/§2.14/§2.17＋弧光与关系三子弹＋天花板行＋配角八功能＋三次灾难节号＋D2-5 改挂 §4.7', () => {
@@ -1964,7 +1953,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(d25, 'D2-5 收线四件事应在位').toBeDefined()
     expect(d25!).toContain('§4.7')
     expect(d25!, 'D2-5 判据不得再挂 §4.8').not.toContain('§4.8')
-    // F. 版本不升：批号 0.0.32 同版本 0.0.30 内追加——版本件零改动，版本纪律全套断言仍在 0.0.30 组
+    // F. 版本不升：批号 0.0.32 同版本 0.0.30 内追加——版本件零改动，版本纪律全套断言在 0.0.31 产品体验批组（0.0.31 版起接力）
   })
 
   it('0.0.31 正文域补入批：转场卡双源＋四轴＋对白诊断 §7.8＋修辞上探卡＋情绪三表现＋开场钩型黄金三百字＋外貌行＋悬空指针清零', () => {
@@ -2036,6 +2025,100 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
         }
       }
     }
-    // H. 版本不升：批号 0.0.31 同版本 0.0.30 内追加——版本件零改动，版本纪律全套断言仍在 0.0.30 组
+    // H. 版本不升：批号 0.0.31 同版本 0.0.30 内追加——版本件零改动，版本纪律全套断言在 0.0.31 产品体验批组（0.0.31 版起接力）
+  })
+
+  it('0.0.31 产品体验批：新手路径 A 默认（beginner 触发话术＋路径 B 标进阶＋弹头人话）＋CONTEXT 术语表按旅程补全（≥30 条）＋浮动条款前置护栏＋版本纪律全套', () => {
+    const beginner = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'user', 'beginner.md'), 'utf8')
+    const firstBook = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'user', 'first-book.md'), 'utf8')
+    const context = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'CONTEXT.md'), 'utf8')
+    // A. 路径 A 默认：beginner 第 5 节含路径 A 触发话术（快速开写＋先跑起来再细化），路径 B 降级进阶小节且话术原文保留；两文件同款
+    for (const [label, doc] of [['beginner.md', beginner], ['first-book.md', firstBook]] as const) {
+      expect(doc, `${label}: 路径 A 触发话术应在位`).toContain('快速开写，先跑起来再细化')
+      expect(doc, `${label}: 路径 B 应标进阶`).toContain('进阶——逐部细聊')
+      expect(doc, `${label}: 路径 B 话术原文应保留`).toContain('使用逐部设计流程')
+      expect(doc.indexOf('快速开写，先跑起来再细化'), `${label}: 路径 A 话术应先于路径 B 话术出现`).toBeLessThan(doc.indexOf('使用逐部设计流程'))
+    }
+    // B. 首章前术语人话：确认点弹头不再用契约骨架式系统词（整包设计过目在位，旧弹头串清零）
+    expect(beginner).toContain('整包设计过目')
+    expect(beginner, '旧作品定调弹头串应清零').not.toContain('这里选择作品契约、故事骨架、分卷布局和卷规划')
+    expect(beginner, '旧章细纲弹头串应清零').not.toContain('场景推进、读者承诺和章尾悬念')
+    expect(beginner).toContain('增强索引')
+    expect(beginner, '嵌入/场景识别/重排序三行应并入增强索引一行').not.toContain('| **嵌入 API** |')
+    // C. CONTEXT 术语表按旅程补全：数据行 ≥30（7 条既有＋首章旅程 33 条）；旅程锚点术语在位
+    const contextRows = context.split('\n').filter((l) => l.startsWith('| ') && !l.startsWith('| 术语') && !l.startsWith('| ---')).length
+    expect(contextRows, 'CONTEXT.md 术语数据行应 ≥30').toBeGreaterThanOrEqual(30)
+    for (const term of ['| 快速开写（路径 A） |', '| 逐部设计流程（路径 B） |', '| 写前十查 |', '| 吃书补偿 |']) {
+      expect(context, `CONTEXT.md 应含旅程术语行「${term}」`).toContain(term)
+    }
+    // D. 浮动条款前置护栏：高级选项定位＋core 限制前置（护栏先于浮动示例行）；既有语义与现状注记不动（0.0.18/0.0.28 批断言继续成立）
+    const design = readSkill('novel-design')
+    expect(design).toContain('高级选项，非默认推荐')
+    expect(design).toContain('如需使用请知悉此限制')
+    expect(design.indexOf('高级选项，非默认推荐'), '护栏应前置于浮动示例行').toBeLessThan(design.indexOf('章型浮动: 常规 3500-4500'))
+    // E. 版本纪律全套：两 package.json 0.0.31＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.30 零残留
+    const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
+    const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.31').toBe('0.0.31')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.31').toBe('0.0.31')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.31]')
+    for (const readme of ['README.md', 'packages/bundle/README.md']) {
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.31`).toContain('0.0.31')
+    }
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.30`).not.toContain('0.0.30')
+      }
+    }
+  })
+
+  it('0.0.31 数据保护批：草稿区/书房独立仓版本化（ensureDraftGit/snapshotDraft＋tools/result 观察者）＋一键备份三件套（core＋CLI＋薄入口注册＋SKILL 表）＋status 快照复用防回退', () => {
+    // A. #2 draft-git 模块存在＋导出接线＋.abzu 排除
+    const draftGitPath = path.join(__dirname, '..', '..', 'core', 'src', 'repo', 'draft-git.ts')
+    expect(fs.existsSync(draftGitPath), 'core/src/repo/draft-git.ts 应存在').toBe(true)
+    const draftGit = fs.readFileSync(draftGitPath, 'utf8')
+    expect(draftGit).toContain('export function ensureDraftGit')
+    expect(draftGit).toContain('export function snapshotDraft')
+    expect(draftGit).toContain('export function ensureStudyGit')
+    expect(draftGit).toContain('export function snapshotStudy')
+    expect(draftGit).toContain(':(exclude).abzu')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'index.ts'), 'utf8'), 'core index 应导出 draft-git').toContain("./repo/draft-git")
+    // B. #2 接线：导入/记忆写后快照＋文件工具写后观察者（tools/result）
+    const novelTools = fs.readdirSync(path.join(__dirname, '..', 'src', 'tools'))
+      .filter((f) => f.endsWith('.ts'))
+      .map((f) => fs.readFileSync(path.join(__dirname, '..', 'src', 'tools', f), 'utf8')).join('\n')
+    expect(novelTools, '作者稿导入后应快照草稿区').toContain('快照: 作者稿导入')
+    expect(novelTools, '作者手改摄入后应快照草稿区').toContain('快照: 作者手改')
+    expect(novelTools, '作者记忆写入后应快照书房').toContain('快照: 作者记忆')
+    const gates = fs.readFileSync(path.join(__dirname, '..', 'src', 'gates.ts'), 'utf8')
+    expect(gates, '文件工具写后快照应挂 tools/result 观察者').toContain("'tools/result'")
+    expect(gates).toContain('attachDraftSnapshotToAgent')
+    // C. #3 一键备份三件套：core backup（哈希口径单源＋manifest 最后落盘）＋CLI＋薄入口注册＋SKILL 工具表
+    const backup = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'repo', 'backup.ts'), 'utf8')
+    expect(backup, '备份哈希口径应复用 materialHash（与 computeExport 同源）').toContain('materialHash')
+    expect(backup).toContain("'manifest.json'")
+    expect(backup).toContain('书名}-${localStamp()')
+    const thinEntry = path.join(__dirname, '..', 'skills', 'novel-export', 'scripts', '一键备份.mjs')
+    expect(fs.existsSync(thinEntry), 'novel-export/scripts/一键备份.mjs 薄入口应存在').toBe(true)
+    expect(fs.readFileSync(thinEntry, 'utf8')).toContain('backupCli')
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract, '一键备份薄入口应在 artifact-contract thinScripts 注册').toContain("['skills/novel-export/scripts/一键备份.mjs', 'backupCli']")
+    expect(fs.readFileSync(path.join(__dirname, '..', 'src', 'index.ts'), 'utf8'), 'bundle index 应导出 backupCli').toContain("export { backupCli } from './scripts/backup-cli'")
+    const exportSkill = readSkill('novel-export')
+    expect(exportSkill, 'SKILL 备份工具表应在位').toContain('## 备份工具表')
+    expect(exportSkill).toContain('替代手工备份流程')
+    expect(exportSkill).toContain('不替代网盘同步／异地容灾')
+    expect(exportSkill).toContain('scripts/一键备份.mjs --book')
+    // D. #7 status 优化防回退：复用 listResumable 已算好的快照，不逐章重调 renderStatusCard
+    expect(novelTools, 'statusCard 应复用 listResumable 快照（r.statusCard）').toContain('statusCard: r.statusCard')
+    expect(novelTools, '不得回退为每章重调 renderStatusCard').not.toContain('renderStatusCard(bookRoot, r.key)')
+    const bench = path.join(__dirname, '..', '..', '..', 'scripts', 'benchmarks', 'benchmark-status.mjs')
+    expect(fs.existsSync(bench), '长篇性能护栏基准 scripts/benchmarks/benchmark-status.mjs 应存在').toBe(true)
+    const benchText = fs.readFileSync(bench, 'utf8')
+    expect(benchText).toContain('listResumable')
+    expect(benchText).toContain('BUDGET_MS')
+    const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8')) as { scripts: Record<string, string> }
+    expect(rootPkg.scripts['benchmark:status'], 'npm 应有 benchmark:status 入口').toContain('benchmark-status.mjs')
   })
 })

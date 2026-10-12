@@ -2,6 +2,52 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.31] — 2026-10-12
+
+产品体验三件套批（#1 新手路径 A 默认＋#6 术语表按旅程补全＋#8 浮动条款前置护栏）。本批只动用户文档（docs/user×2＋docs/CONTEXT.md）＋novel-design SKILL 一段＋spec 断言＋CHANGELOG＋版本件；KB 分发件（references/01-08、0A）、assets/、core 零改动。
+
+### Changed（#1 新手默认路径 A——beginner.md 第 5 节话术与用户文档口径）
+
+- **beginner.md 第 5 节第二次发送话术从「使用逐部设计流程」（路径 B）改为「快速开写，先跑起来再细化……」（路径 A）**——对谈话术取自《定调设计》SKILL 路径 A 节（「先跑起来再细化」）与《灵感与立项》去向说明（「快速开写——《定调设计》路径 A」）；防占位句保留。原路径 B 话术不删，降级为 NOTE 进阶小节（「进阶——逐部细聊」），写明两条路线产物相同、逐部轮数更多控制更细、第一次用建议先走快速开写。
+- **确认点三弹头改人话**：作品定调弹头从「这里选择作品契约、故事骨架、分卷布局和卷规划」改为「整包设计过目」式；章细纲弹头从「场景推进、读者承诺和章尾悬念」改为「这一章写什么、给读者什么、章尾的钩子放哪」；构想确认弹头改「这本书写给谁、看点是什么，基本盘齐了才允许建书」。
+- **首章前术语砍到 10 个以内**：第 3 节四用途表收两行（嵌入 API／场景识别／重排序 API 三术语并入「增强索引」一行，指向增强索引专题文档），第 5 节弹头系统术语全部改人话；系统术语（契约六部／骨架九部／近期窗口／吃书补偿等）移入 docs/CONTEXT.md 作进阶参考。首章前保留的术语＝DSH、Abzu 插件、profile、模型 API（主模型）、工作区、书房、增强索引、构想七要素、细纲、快速开写／逐部设计流程，恰好 10 个。
+- **first-book.md 第 2 节同步翻转**：默认话术改「快速开写，先跑起来再细化……」（工件清单与防占位句保留），原逐部话术降级为「进阶——逐部细聊」小节原文保留；「这是 0.0.30 的逐部练习路径」句改「这是 0.0.31 的默认路径」。workflows.md 等其余用户文档全扫一遍，无路径 B 默认残留（仅 first-book.md 一处需翻）。
+
+### Added（#6 术语表按旅程补全）
+
+- **docs/CONTEXT.md 从 7 条扩至 40 条**：既有 7 条（对手梯队系）不动，按首章旅程阶段追加 33 条——安装与配置 5＋建书 4＋作品定调 11＋章细纲 4＋写稿与审读 4＋定稿与恢复 5；每条一句话人话定义并通过检测法（单独拿出来能照做——如「写前十查：确认细纲前的十项检查：机器四查自动跑、过目单六查进呈确认件」）。0.0.20 批 CONTEXT 断言（五核对项／本卷升级位在位、四核对项不回潮）继续成立。
+
+### Changed（#8 浮动条款前置护栏——novel-design SKILL 一段）
+
+- **章型浮动条款段开头从「可选」升格为「高级选项，非默认推荐——新手与依赖脚本篇幅核对的书不启用」**，并把 core 解析器限制前置到段首（「契约一旦写入浮动行，确定性脚本遇浮动行报『配置错误』、篇幅核对整节失效……如需使用请知悉此限制并经作者明示同意」）。处置裁定＝保留语义＋前置告知（而非移除待 core 解冻）：0.0.18／0.0.28 批钉死浮动语义与现状注记的十数条断言全数继续成立，移除方案要退役两批断言且概念已入 docs/design 技能步骤谱系表——前置护栏对新手同样安全（先见限制再见用法）。段末既有现状注记与全部浮动语义（区间式／±12.5% 容差带／各档独立／全带核对／数值按产出分布拟）不动。
+
+### Added（spec 断言）
+
+- **skills-batches.spec.ts 加「0.0.31 产品体验批」断言组**：beginner.md 路径 A 触发话术（「快速开写，先跑起来再细化」）在位且先于路径 B 话术出现＋「进阶——逐部细聊」小节含逐部话术原文；first-book.md 同款双钉；确认点旧弹头串负断言（契约骨架分卷卷规划旧句＋场景推进句清零）；CONTEXT.md 数据行 ≥30＋旅程锚点术语四钉；浮动条款护栏措辞（「高级选项，非默认推荐」＋「如需使用请知悉此限制」在位且先于浮动示例行）；版本纪律全套随版本钉接力（两 package.json 0.0.31／CHANGELOG 条目／README×2／docs/user＋docs/maintenance 0.0.30 零残留——0.0.30 组原钉同步退役，先例同款）。
+
+### Changed
+
+- 版本 0.0.30→0.0.31（根＋bundle），README×2（9 处）＋docs/user（30 处）＋docs/maintenance（2 处）版本口径同步共 41 处（grep -o 计次，0.0.30 在上述文档清零，历史叙事除外——CHANGELOG 各版本条目、docs/design 变更记录留痕不动）。
+
+### Added（数据保护三件套批——批号 0.0.31 内追加，同版本 0.0.31；版本件由产品体验批管，本批零改动）
+
+core 数据安全批（bug-fix/数据安全惯例）：#2 草稿区＋书房版本化、#3 一键备份、#7 长篇性能护栏。本批动 core（repo 两个新模块＋三处接线）＋bundle（CLI＋门禁观察者＋SKILL 工具表）＋spec 断言＋本 CHANGELOG；KB 分发件（references/01-08、0A）、assets/ 零改动，不执行 git。
+
+- **#2 草稿区/书房独立 git 仓版本化**：新增 `packages/core/src/repo/draft-git.ts`——`ensureDraftGit/snapshotDraft`（`草稿区/.git`）与 `ensureStudyGit/snapshotStudy`（`书房/.git`）。**架构决策＝独立嵌套仓而非真源 git 或事务快照**：书仓 `.gitignore` 本就排除 `草稿区/`、提交路径校验（commit/paths.ts REJECT_TOP）拒收草稿区——「真源 git 只含已确认内容」纪律结构性成立，嵌套仓对书仓 git 完全不可见、版本史彻底隔离；事务层快照无历史可回溯（只有最后状态），git 仓免实现地得到任意历史恢复。快照＝`add -A`（pathspec `:(exclude).abzu` 排除运行态）＋commit，无变化不提交（幂等）；git 不可用如实返回失败，绝不抛出中断写作主流程。
+- **#2 三处接线**：`novel_import_draft` 两条路径（作者手写/作者手改摄入）成功后 `snapshotDraft`（结果 message 附快照播报）；`novel_record_memory` 写入成功后 `snapshotStudy`（输出加可选 `快照` 字段，失败如实注明）；`gates.ts` 新增 `attachDraftSnapshotToAgent`——挂 dsh `tools/result` 观察者（只读回执，不改写结果、异常零外溢），文件工具（write/edit/str_replace_editor）成功写进草稿区或书房（参考书除外——拆书自带机器状态）时自动快照，覆盖正文起草子代理落稿与书房编辑器保存两条主机文件工具路径。
+- **#3 一键备份三件套**：`packages/core/src/repo/backup.ts`（`backupBook`：书仓含真源 git＋草稿区独立 git＋书房含 git＋profiles 全量只读复制到 `备份/{书名}-{YYYYMMDD-HHmmss}/` 目录；零依赖 zip 替代＝目录＋manifest.json 逐文件 SHA-256（复用 `materialHash` 原始字节口径，与 computeExport 清单同源）；manifest 最后落盘＋落盘后回读复验；输出目录名冲突追加序号只新增不覆盖；输出落在被备份目录内拒绝）＋`packages/bundle/src/scripts/backup-cli.ts`（`node <resourceBase>/skills/novel-export/scripts/一键备份.mjs --book <bookRoot> [--书房 <workspaceRoot>] [--目标 <输出目录>]`，退出码 0/1/2/3 与最小导出同形）＋artifact-contract thinScripts 注册（bundle.mjs 接缝校验覆盖）。novel-export SKILL 加「备份工具表」（何时用：替代手工备份流程／不要：不替代网盘同步与异地容灾）。
+- **#7 长篇性能护栏**：`novel_get_story_status` 章节面从每章重调 `renderStatusCard(bookRoot, r.key)`（重跑 scanChapter＋账本/记忆/对账整套）改为复用 `listResumable` 已算好的 `r.statusCard`（recovery/index.ts 每卷 BookStatus 缓存同源，输出逐字节一致）——**净改 1 行＋注释**，200 章合成书实测章节面 632.4ms→0.1ms（状态总耗时约 660ms→305ms，约减半；真实书账本/记忆更厚，旧路径开销随章数与账目线性放大，修复收益同向放大）。derive/ 复查：listResumable 内 bookStatus 已按卷缓存、reconcileLedger 每卷一次，无其他 O(章×卷) 模式；账本/记忆 mtime 缓存未加（无实测瓶颈，不做过早优化）。新增 `scripts/benchmarks/benchmark-status.mjs`（4 卷×50 章合成书→跑与工具同形的状态派生→探针校验章数与卡片形状→断言 <10s，`ABZU_STATUS_BUDGET_MS` 可覆盖；npm `benchmark:status`）＋package.json 脚本行。
+- **测试**：新增 `draft-git.spec.ts`（4：初始化＋幂等＋无变化不提交＋.abzu 不入快照＋空仓＋书房同口径）、`backup-cli.spec.ts`（6：打包完整性逐文件哈希/幂等两次新目录/书房可选/参数纪律/自我嵌套拒绝/core 直调同口径）、`draft-snapshot.spec.ts`（4：草稿区与书房触发建仓、非草稿目标与失败写不触发、参考书不触发、重复事件幂等、畸形事件零外溢）。
+- **spec**：skills-batches.spec.ts 加「0.0.31 数据保护批」断言组——draft-git 模块存在＋ensure/snapshot 四函数＋:(exclude).abzu＋core 导出；三处接线关键词（作者稿导入/作者手改/作者记忆快照＋tools/result 观察者）；备份 manifest 含 sha256 口径（materialHash＋manifest.json＋时间戳目录名）＋薄入口注册＋SKILL 表（替代手工备份流程/不替代网盘同步）；status 优化防回退（statusCard: r.statusCard 在位＋renderStatusCard(bookRoot, r.key) 负断言）＋benchmark-status.mjs 存在与 npm 入口。
+
+### Added（架构改进两件套批——批号 0.0.31 内追加，同版本 0.0.31；版本件由产品体验批管，本批零改动）
+
+0.0.31 架构改进两件套（#4 KB 分发自动化＋#5 novel-tools.ts 拆分）。本批动 bundle（脚本＋src/tools/）＋spec 断言＋本 CHANGELOG；KB 分发件（references/01-08、0A）零改动（#4 只建提取管线不改产物）、core/assets 零改动，不执行 git。
+
+- **#4 KB 分发提取管线**：新增 `packages/bundle/scripts/kb-extract.mjs`——读 KB 源目录（默认路径见 `ABZU_KB_SOURCE` 环境变量说明，`--source` 参数可覆盖）→ 净版处理 → 写对应技能 references/。分发映射表单源在脚本（01-05＋0A→novel-design、06→novel-outline、07→novel-drafting、08→novel-director；00 总目录/09 附录/0B 节级索引/0C 理论地基不分发）。跑法：`--check` 只比对不写（全部分发件与净版输出逐字节一致→退出码 0，漂移→1，逐件报首个差异行）／`--write` 实际写入／`--out` 重定向输出根（测试用）。**净版规则两层**：机械剥除（CRLF→LF；标题后插版本戳；整行删来源行、理论锚点注、编者归纳性质注、编者推断注、导航层注、并入/移出理由注、运营护栏注及其 `> ` 空行；括注平衡扫描剥 T 编号锚（整段（T数字开头或括内残段含【档位】限定）、编者推断、通用例标注、素材未给/素材原词标注、来源卡括注（含 # 编号；混合段只剥卡段留正文如「见 §4.5」）、写网文的老刘署名（纯署名整删、正文尾随署名只剥署名）、附录详见指针、编者归纳注；通用化表述前缀；共思行附.节引用；连续空行并一＋文末空行清零）＋改写表逐条钉死既定编辑裁定（0.0.7/0.0.9 净版批的逐字引语改判据句式、黑名单「闭环」按语境改写、附录指针改「附录不分发、运行时不可读」句式、0A 文件指针去留按包内可达性——01-05 留、06/07 去，共 54 条）。KB 升版后源句变动会使对应条目失配——`--check` 报漂移，人工重审后更新改写表。实测 9 件分发件与源经管线输出**逐字节一致**（--check 退出码 0）。
+- **#5 novel-tools.ts 按域拆分**：`packages/bundle/src/novel-tools.ts`（2,142 行）拆至 `src/tools/` 九件——`shared.ts`（公共类型 AgentLike/ToolExecContext/NovelToolDefinition/NovelToolsDeps＋跨域辅助 provenanceOf/snapshotNote/inheritNote/finishDesignCommit/HAN_CHAR 系＋执行底座 createToolShared：原生写/书仓解析/章键校验）、七个域文件（`reference-tools.ts` 参考书四件接线、`design-tools.ts` 选书/建书/契约/占位设计/骨架/分卷/窗口/世界书/卷纲/待补便签/进度卡 11 件、`outline-tools.ts` 细纲候选/确认/材料包 3 件、`drafting-tools.ts` 作者稿导入＋书房编辑器回传 2 件、`review-tools.ts` 状态推导/定稿检索/索引管理/发现项回写 4 件、`revision-tools.ts` 小改/处置批/提案登记裁决/吃书补偿 5 件、`settle-tools.ts` 定稿包/原子沉淀/作者记忆 3 件）＋`index.ts` 聚合（NOVEL_TOOL_NAMES/NOVEL_TEST_TOOL_NAMES 单一事实来源＋createNovelTools＋锁包装）。**零行为变化**：28 个工具对象逐字节不动（生成器按行机械切分后校验原条目区 1,784 行与拆分件重组逐字节相等）；工具 schema/handler 一行未改；注册顺序经 NOVEL_TOOL_NAMES 序还原（域文件按域分组收集后按名单序排序，novel-tools.spec 既有「注册表与名单逐项相等」断言继续成立，不在名单的测试工具 seed 保持收集序）；外部 import 路径不变——novel-tools.ts 改兼容薄壳（`export * from './tools/index'`＋公共类型经 index 再导出，12 个测试文件与 index.ts/gates/native-write/reference 引用零改动）。**导出域不设文件**：导出/备份无注册工具（最小导出/一键备份走 thinScripts 薄脚本），不造空壳文件。受影响旧断言同批声明：skills-batches.spec.ts 两处源码断言（已转提案三句、草稿区/书房快照播报句）从读 novel-tools.ts 单文件改读 src/tools/ 全目录拼接。
+- **spec**：skills-core.spec.ts 加「0.0.31 架构改进批」断言组——kb-extract.mjs 存在＋夹具源全链路（9 件夹具 `--write` 退出码 0→产物带版本戳且来源行/卡括注/T 锚剥净→`--check` 退出码 0→篡改一件退出码 1）；`ABZU_KB_SOURCE` 门控的「分发件与源逐字节一致」用例（KB 源在仓库外、CI 无源——未设环境变量时用例名注明跳过缘由不空转，设了才真比对退出码 0）；tools/ 九件存在＋薄壳 `export *`＋聚合入口真跑（createNovelTools 产出注册序与 NOVEL_TOOL_NAMES 逐项相等）。
+
 ## [0.0.30] — 2026-10-12
 
 上游同步批——从 Scriptor v8.2.2 语义重放四族核心增强（依据＝外部裁定案 `test2-6/上游跟入裁定.md` 六族裁定：四跟一 partial 跟一顺手落，裁定案不入本仓）。fork 的 lock/transaction 至 0.0.29 与上游 8.2.0 逐字同源，本批在零漂移窗口贴入 8.2.0→8.2.2 增量并复放 `.abzu` 改名；KB 分发件（references/01-08、0A）与 assets/ 零改动。执行顺序＝裁定案建议：族⑥→族⑤→（族①②③）→族④。

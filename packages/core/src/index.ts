@@ -1,5 +1,7 @@
 /* @abzu/core —— 核心服务(M0:书仓/推导/配置最小)。行为规格见 docs/book-format.md。 */
 export * from './repo/draft-length'
+export * from './repo/draft-git'
+export * from './repo/backup'
 export * from './repo/paths'
 export * from './repo/frontmatter'
 export * from './repo/atomic'

@@ -21,7 +21,7 @@ import * as skillFilesystem from '@deepseek-ai/dsh-skill-filesystem'
 import { fileURLToPath } from 'node:url'
 import { existsSync } from 'node:fs'
 import type { ToolExecutionToken, ToolRuntime } from '@deepseek-ai/dsh-tools'
-import { attachFileGateToAgent } from './gates'
+import { attachFileGateToAgent, attachDraftSnapshotToAgent } from './gates'
 import { uniqueBookRoot, scanBooks } from './bookshelf'
 import { attachStatusToAgent, type SystemPromptLike } from './status-context'
 import { canonicalizePath, isFullyQualifiedPath, isInsidePath } from '@abzu/core'
@@ -54,6 +54,7 @@ export { analyzeImpactCli } from './scripts/impact-cli'
 export { materialsCli } from './scripts/materials-cli'
 export { packCli } from './scripts/pack-cli'
 export { exportCli } from './scripts/export-cli'
+export { backupCli } from './scripts/backup-cli'
 /** 卷摘要候选脚本的 CLI 能力（任务21, 件一）：只算不写，薄入口经 lib 调用。 */
 export { volumeSummaryCli } from './scripts/volume-summary-cli'
 
@@ -574,6 +575,18 @@ export function apply(ctx: Context) {
       })
       if (offGate === undefined) ctx.logger.warn(`[abzu-bundle] 文件门禁未挂载（${agentId}）。`)
       else attached.push(offGate)
+
+      // 数据保护批 #2:文件工具写进草稿区/书房后自动版本化快照(tools/result 观察者)。
+      const offSnap = attachDraftSnapshotToAgent(agentCtx as unknown as { readonly on?: (event: string, listener: (...args: never[]) => unknown) => unknown }, {
+        bookRootForAbs: (abs) => {
+          const root = rootOf()
+          if (root === undefined) return undefined
+          return scanBooks(root).find((b) => inside(b.root, abs))?.root
+        },
+        workspaceRoot: rootOf,
+        logger: { warn: (message) => ctx.logger.warn(message) },
+      })
+      if (offSnap !== undefined) attached.push(offSnap)
     }
 
     const offCreated = host.on('agent/created', ((payload: { readonly agent?: AgentLike }) => {

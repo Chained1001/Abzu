@@ -24,6 +24,8 @@ import {
   isMutatingFileTool,
   extractToolPath,
   resolveInsideBook,
+  snapshotDraft,
+  snapshotStudy,
   type ToolCall,
   type PreToolDecision,
 } from '@abzu/core'
@@ -158,4 +160,63 @@ function gateBookRoot(bookRoot: string, target: string): PreToolDecision {
 /** 子路径判定(dsh 运行时对齐批:canonical 化后比较,junction/盘符大小写别名不再误判)。 */
 function inside(root: string, target: string): boolean {
   return isInsidePath(root, target)
+}
+
+/**
+ * 数据保护批 #2:文件工具写进草稿区/书房后自动版本化快照。
+ *
+ * 挂 `tools/result` 观察者(只读回执,不改写结果、异常零外溢):write/edit 落笔成功且目标
+ * 在草稿区(书仓内分区判定)或书房(参考书除外——拆书工具自带机器状态)时,对对应独立 git 仓
+ * 做一次 add-all+commit 快照;无变化不提交。快照失败只 warn,不影响工具结果。
+ */
+export function attachDraftSnapshotToAgent(
+  agentCtx: { readonly on?: (event: string, listener: (...args: never[]) => unknown) => unknown },
+  deps: {
+    readonly bookRootForAbs: (abs: string) => string | undefined
+    readonly workspaceRoot: () => string | undefined
+    readonly logger?: { readonly warn: (message: string) => void }
+  },
+): (() => void) | undefined {
+  if (typeof agentCtx.on !== 'function') return undefined
+  try {
+    const observer = (exec: unknown, result: unknown): void => {
+      try {
+        if (exec === null || typeof exec !== 'object') return
+        const name = (exec as { readonly name?: unknown }).name
+        if (typeof name !== 'string' || name === '') return
+        const args = (exec as { readonly arguments?: unknown }).arguments
+        if (args === null || typeof args !== 'object' || Array.isArray(args)) return
+        const toolCall: ToolCall = { name, arguments: args }
+        if (!isMutatingFileTool(toolCall)) return
+        if (result !== null && typeof result === 'object') {
+          const view = result as { readonly isError?: unknown; readonly kind?: unknown }
+          if (view.isError === true || view.kind === 'deny' || view.kind === 'ask') return
+        }
+        const target = extractToolPath(toolCall)
+        if (target === null) return
+        const ws = deps.workspaceRoot()
+        const abs = canonicalizePath(path.isAbsolute(target) ? target : ws !== undefined ? path.resolve(ws, target) : path.resolve(target))
+        if (abs === '') return
+        if (ws !== undefined) {
+          const studyAbs = path.join(ws, '书房')
+          if (inside(studyAbs, abs) && !inside(path.join(ws, '书房/参考书'), abs)) {
+            const snap = snapshotStudy(ws, `快照: 文件工具写入 ${path.relative(studyAbs, abs).split(path.sep).join('/')}`)
+            if (!snap.ok) deps.logger?.warn(`[abzu-bundle] 书房版本化快照失败:${snap.reason ?? '未知原因'}`)
+            return
+          }
+        }
+        const bookRoot = deps.bookRootForAbs(abs)
+        if (bookRoot === undefined) return
+        const access = gateFileAccess(bookRoot, abs)
+        if (access.zone === '草稿区') {
+          const snap = snapshotDraft(bookRoot, `快照: 文件工具写入 ${access.relPath ?? abs}`)
+          if (!snap.ok) deps.logger?.warn(`[abzu-bundle] 草稿区版本化快照失败:${snap.reason ?? '未知原因'}`)
+        }
+      } catch { /* 观察者零影响 */ }
+    }
+    const off = agentCtx.on('tools/result', observer as never)
+    return () => { if (typeof off === 'function') (off as () => void)() }
+  } catch {
+    return undefined
+  }
 }

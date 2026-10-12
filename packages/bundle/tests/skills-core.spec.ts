@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
+import * as os from 'node:os'
 import * as path from 'node:path'
+import { spawnSync } from 'node:child_process'
 import { parse as parseYaml } from 'yaml'
-import { NOVEL_TOOL_NAMES, NOVEL_TEST_TOOL_NAMES } from '../src/novel-tools'
+import { NOVEL_TOOL_NAMES, NOVEL_TEST_TOOL_NAMES, createNovelTools } from '../src/novel-tools'
 import { REFERENCE_TOOL_NAMES } from '../src/reference/tools'
 import { readSkill, skillPath } from './skill-test-helpers'
 
@@ -413,5 +415,62 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     const dangling = [...mentioned].filter((name) => !whitelist.has(name) && !registered.has(name))
     // 防前缀截断误报：提及串是注册名前缀（文档省略了后缀）也算悬空——逐条精确对表
     expect(dangling, `技能文档提及了不存在于注册表的工具：${dangling.join('、')}`).toEqual([])
+  })
+})
+
+describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域拆分）', () => {
+  const extractScript = path.join(__dirname, '..', 'scripts', 'kb-extract.mjs')
+  const stamp = '> 知识库净版 · 源版本 v2.0.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+  const kbFiles = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '06_章纲.md', '07_正文写作.md', '08_修订排障.md', '0A_第一性原理层.md']
+
+  it('kb-extract.mjs 存在且 --check 模式全链路可跑：夹具源 --write→--check 退出码 0，篡改→退出码 1', () => {
+    expect(fs.existsSync(extractScript), 'packages/bundle/scripts/kb-extract.mjs 应存在').toBe(true)
+    // 夹具源：9 件齐全（映射表全覆盖），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-extract-spec-'))
+    try {
+      for (const [i, f] of kbFiles.entries()) {
+        fs.writeFileSync(path.join(ws, f), `# 第${i + 1}章 测试\n\n正文一句（卡#1）与锚（T042）。\n\n**来源**：作家实战（卡#1）；内容：原话+归纳｜可信度：高\n\n---\n\n\n`)
+      }
+      const out = path.join(ws, 'out')
+      const run = (args: string[]) => spawnSync(process.execPath, [extractScript, ...args], { encoding: 'utf8' })
+      const w = run(['--source', ws, '--write', '--out', out])
+      expect(w.status, `--write 应退出码 0（stderr: ${w.stderr}）`).toBe(0)
+      // 净版产物：版本戳在位、来源行/卡括注/T 锚剥净、文末空行收一
+      const cleaned = fs.readFileSync(path.join(out, 'novel-design', 'references', '01_开书.md'), 'utf8')
+      expect(cleaned.startsWith('# 第1章 测试\n\n')).toBe(true)
+      expect(cleaned).toContain(stamp)
+      expect(cleaned).not.toContain('**来源**：')
+      expect(cleaned).not.toContain('卡#1')
+      expect(cleaned).not.toContain('T042')
+      expect(cleaned.endsWith('---\n')).toBe(true)
+      // --check 对刚写的产物＝逐字节一致（退出码 0）；篡改一件＝漂移（退出码 1）
+      expect(run(['--source', ws, '--check', '--out', out]).status).toBe(0)
+      fs.appendFileSync(path.join(out, 'novel-outline', 'references', '06_章纲.md'), 'x')
+      const drifted = run(['--source', ws, '--check', '--out', out])
+      expect(drifted.status, '--check 检出漂移应退出码 1').toBe(1)
+      expect(drifted.stdout).toContain('漂移')
+    } finally {
+      fs.rmSync(ws, { recursive: true, force: true })
+    }
+  })
+
+  const kbSource = process.env.ABZU_KB_SOURCE
+  it(`KB 分发件与源逐字节一致${kbSource === undefined ? '（已跳过：未设 ABZU_KB_SOURCE——KB 源目录在仓库外，CI 环境无源；本机设 ABZU_KB_SOURCE 后此用例真比对）' : ''}`, () => {
+    if (kbSource === undefined) return
+    const r = spawnSync(process.execPath, [extractScript, '--source', kbSource, '--check'], { encoding: 'utf8' })
+    expect(r.status, `分发件与 KB 源有漂移（stderr: ${r.stderr}）`).toBe(0)
+  })
+
+  it('novel-tools 按域拆分至 src/tools/，兼容薄壳聚合入口工作', () => {
+    const toolsDir = path.join(__dirname, '..', 'src', 'tools')
+    for (const f of ['shared.ts', 'reference-tools.ts', 'design-tools.ts', 'outline-tools.ts', 'drafting-tools.ts', 'review-tools.ts', 'revision-tools.ts', 'settle-tools.ts', 'index.ts']) {
+      expect(fs.existsSync(path.join(toolsDir, f)), `src/tools/${f} 应存在`).toBe(true)
+    }
+    // 兼容薄壳：外部 import 路径不变，只做再导出
+    const shell = fs.readFileSync(path.join(__dirname, '..', 'src', 'novel-tools.ts'), 'utf8')
+    expect(shell).toContain("export * from './tools/index'")
+    // 聚合入口真跑：注册表经薄壳产出且顺序与名单逐项相等（拆分零行为变化的防回退钉）
+    const tools = createNovelTools({ workspaceRoot: () => undefined, bookRootOfBookId: () => undefined })
+    expect(tools.map((t) => t.name)).toEqual([...NOVEL_TOOL_NAMES])
   })
 })
