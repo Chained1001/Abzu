@@ -1678,19 +1678,93 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(rootCause).toContain('provisional')
     expect(rootCause).toContain('五书人类参照带')
     expect(rootCause).toContain('筛卡记录')
-    // F. 版本纪律全套：两 package.json 0.0.27＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.26 零残留
+    // F. 版本纪律全套钉随当前版走——0.0.28 实测落地批起移入 0.0.28 组接力（本组原 0.0.27 钉同步退役；当前口径随版本走，见 0.0.19 组 A 注）
+  })
+
+  it('0.0.28 卷01 实测落地批：浮动档区间化＋画像卡组仲裁与长句配额＋前史隐喻行＋A 轴句＋对白章型子带＋格单源＋细则回写＋卷末契约三行＋画像名防漂移＋解冻批第⑬项＋版本纪律全套', () => {
+    const design = readSkill('novel-design')
+    const review = readSkill('novel-review')
+    const drafting = readSkill('novel-drafting')
+    const settle = readSkill('novel-settle')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    const power = fs.readFileSync(skillFile('novel-design', 'templates/世界书/力量体系条目模板.md'), 'utf8')
+    const game = fs.readFileSync(skillFile('novel-design', 'templates/世界书/局规则条目模板.md'), 'utf8')
+    const world = fs.readFileSync(skillFile('novel-design', 'templates/世界书/世界规则条目模板.md'), 'utf8')
+    const proseDoc = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'design', '散文卡组与AI味认知根源.md'), 'utf8')
+    const plan = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'design', '增强实施计划.md'), 'utf8')
+    // A. F9 浮动档区间化：design 示例改区间式＋±12.5% 容差带（独立审查 R1——沙盘工作口径与 F9 建议句原值）＋单值式清零；三消费位档区间口径；F36 现状注记措辞同步（core 未实装注记保留）；R4 起草验收句补含容差带
+    expect(design).toContain('章型浮动: 常规 3500-4500｜过渡 2800-3200｜高潮 4000-5500')
+    expect(design).toContain('各档写「低-高」区间、各档给 ±12.5% 容差带')
+    expect(review).toContain('各档 ±12.5% 容差带')
+    expect(design).not.toContain('常规 3500｜过渡 2800｜高潮 4500')
+    for (const t of [design, review, sect, drafting]) {
+      expect(t, '浮动档四个消费位都应改档区间口径').toContain('档区间')
+    }
+    expect(design).toContain('此时差额由人工按本章章型的档区间（含容差带）判')
+    expect(drafting).toContain('浮动档区间（含容差带）判')
+    expect(review).toContain('审读按本章章型的浮动档区间判差额')
+    expect(review).toContain('core 契约解析器接受浮动行落地前脚本遇浮动行报「配置错误」')
+    expect(sect).toContain('目标带＝作品契约「章节篇幅」主区间')
+    expect(sect).toContain('合计低于目标带下限＝细纲事件量不足')
+    // B. F11 仲裁句＋长句配额：画像优先、卡组兜底＋SD 带兜底下限＋句法层长句配额行（首次建档推导；独立审查 R2——示例改 M27 试运行原参数「每章 ≥3 处 ≥40 字」；Nit①——SD 三批批型事实句）
+    expect(drafting).toContain('画像优先、卡组兜底')
+    expect(drafting).toContain('散文卡组句长 SD 带作兜底下限、不低于带下缘')
+    expect(drafting).toContain('长句配额：每章 ≥3 处 ≥40 字')
+    expect(drafting).not.toContain('每段至少一句')
+    expect(drafting).toContain('批1 带下、批2-3 入带上行')
+    expect(drafting).toContain('首次建档时推导')
+    // C. F3 前史隐喻行：力量体系条目模板金手指轨道位
+    expect(power).toContain('前史隐喻：<能力与人物前史的呼应——能力形态即创伤/执念的具象')
+    expect(power).toContain('无呼应留白，不硬造')
+    // D. F14 A 轴句：章末双钩节——期待钩设计期排期＋S:A≈7:3 参照
+    expect(sect).toContain('期待钩（A 轴）在悬模式下应占双钩其一')
+    expect(sect).toContain('S:A≈7:3')
+    expect(sect).toContain('设计期排期期待钩，不是写时顺手')
+    // E. F12 对白占比章型子带：设计侧散文文档三档子带＋书级带只作书级参照（独立审查 R3——引谱改 1-4 全卷实测 3.3-36.7%；R2——长句配额参数单源行）
+    expect(proseDoc).toContain('对白占比章型子带')
+    for (const band of ['对白戏章 30-50%', '叙事章 10-25%', '独行章 3-10%']) {
+      expect(proseDoc, `对白子带应含「${band}」`).toContain(band)
+    }
+    expect(proseDoc).toContain('单章统计先分章型再对子带')
+    expect(proseDoc).toContain('3.3-36.7%')
+    expect(proseDoc).not.toContain('7.4-36.7')
+    expect(proseDoc).toContain('每章 ≥3 处 ≥40 字')
+    // F. F18 时限格单源：局规则条目模板（Optional——换算自定义须单源标注，1-4 文书格先例）
+    expect(game).toContain('时限单位统一用「格」')
+    expect(game).toContain('{N} 格＝{N}×12 小时')
+    expect(game).toContain('或自定义换算但全书一致')
+    expect(game).toContain('换算全书自定义但须单源')
+    // G. F20 细则回写：settle 沉淀步——复现 ≥2 次必须回写条目（独立审查 R5——两模板「程序细则（正文生长）」行落位＋settle 回写指向行名；Optional——阈值出处标注）
+    expect(settle).toContain('复现 ≥2 次的细则必须回写')
+    expect(settle).toContain('阈值出处：1-4 复现 3 次实录')
+    expect(settle).toContain('防设定漂移')
+    expect(settle).toContain('「程序细则（正文生长）」行登记')
+    expect(game).toContain('程序细则（正文生长）：<正文自创的程序条款——复现 ≥2 次必须回写此行，防设定漂移>')
+    expect(world).toContain('程序细则（正文生长）：<正文自创的程序条款——复现 ≥2 次必须回写此行，防设定漂移>')
+    // H. F19 卷末触发句＋契约三行（独立审查 C1——次序改先对账后摘要，对齐同节既有句与 F19 原文）
+    expect(settle).toContain('卷对账→卷摘要→段级刷新→体感回灌，四件一批')
+    expect(settle).toContain('| 卷摘要 | `大纲/卷规划/卷<NN>/卷摘要.md` |')
+    expect(settle).toContain('| 卷对账（卷级） | `大纲/卷规划/卷<NN>/卷对账.md` |')
+    expect(settle).toContain('| 段级刷新 | `大纲/卷规划/卷<NN>/段级刷新.md` |')
+    // I. F13/F1 文风画像文件名防漂移：间隔号·无空格＋漂移字形清单
+    expect(drafting).toContain('间隔符用间隔号「·」且两侧无空格')
+    expect(drafting).toContain('均为漂移字形')
+    // J. F17 core 缺位族登记：增强计划解冻批候选第⑬项
+    expect(plan).toContain('⑬运行时工件名带章号位')
+    expect(plan).toContain('双撞名时-{NNNN} 章号后缀式（七楼-16 式）')
+    // K. 版本纪律全套：两 package.json 0.0.28＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.27 零残留
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.27').toBe('0.0.27')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.27').toBe('0.0.27')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.27]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.28').toBe('0.0.28')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.28').toBe('0.0.28')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.28]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.27`).toContain('0.0.27')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.28`).toContain('0.0.28')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.26`).not.toContain('0.0.26')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.27`).not.toContain('0.0.27')
       }
     }
   })
