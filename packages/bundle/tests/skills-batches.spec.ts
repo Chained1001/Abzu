@@ -1609,4 +1609,89 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // v0.5-F 变更留痕
     expect(scale).toContain('v0.5-F 2026-10-12：0.0.26 独立审查修复批')
   })
+
+  it('0.0.27 文笔专项批：散文卡组七卡＋行文自查三 AI 味判据＋润色两密度定位＋设计侧认知根源＋版本纪律全套', () => {
+    // A. 散文卡组：组节在位（不走场景挑选/整组带/场景卡优先三纪律）＋七卡卡头与理论出处标注
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    expect(cards).toContain('## 散文卡组（文笔层七卡，随任务包整组带）')
+    expect(cards).toContain('不走场景功能挑选')
+    expect(cards).toContain('随任务包整组内联')
+    expect(cards).toContain('与场景卡判据冲突时场景卡优先')
+    for (const card of [
+      '### 句法节奏卡〔theory-cards T015/T017/T022〕',
+      '### 零回指卡〔theory-cards T019〕',
+      '### 对白工学卡〔theory-cards T020/T028/T021/T027〕',
+      '### 话题-述位卡〔theory-cards T026〕',
+      '### 前景化卡〔theory-cards T014〕',
+      '### 中心切换卡〔theory-cards T012〕',
+      '### 连接词卡〔theory-cards T030/T024〕',
+    ]) {
+      expect(cards, `散文卡组应含卡头「${card}」`).toContain(card)
+    }
+    // 散文卡组插位：场景八卡之后、POV/行文自查两卡之前（「末两卡」口径不破）
+    expect(cards.indexOf('## 趣味卡')).toBeLessThan(cards.indexOf('## 散文卡组'))
+    expect(cards.indexOf('## 散文卡组')).toBeLessThan(cards.indexOf('## POV 自查卡'))
+    // B. 每卡至少一句关键判据防漂移（含人类参照带判据与五类转移单源不重述）
+    expect(cards).toContain('整段一个长度＝节奏死')
+    expect(cards).toContain('标点即呼吸')
+    expect(cards).toContain('两连叙述句都以「他／她」起头＝机器感')
+    expect(cards).toContain('中断不锁死省略')
+    expect(cards).toContain('引号是提示不是许可证')
+    expect(cards).toContain('跨场景重复的才算人物声音')
+    expect(cards).toContain('已知信息前置、新信息置尾')
+    expect(cards).toContain('首提不省也不强造话题位')
+    expect(cards).toContain('打破常规句式处＝意义重点处')
+    expect(cards).toContain('满页破格＝没有前景化只有噪音')
+    expect(cards).toContain('无声滑换中心＝读者回溯')
+    expect(cards).toContain('隐式关系唯一可读时零连接词')
+    expect(cards).toContain('把每个隐含关系都显式化＝机器感')
+    // 五类转移枚举单源在行文自查卡标点条——散文卡组只引用不重述
+    const fiveShifts = (cards.match(/话题／人物／活动／时间／空间/g) ?? []).length
+    expect(fiveShifts, '五类转移枚举应单源在行文自查卡（散文卡组引用口径不重述枚举）').toBe(1)
+    // C. 行文自查卡三条 AI 味判据（各配一句判据＋T 出处）
+    expect(cards).toContain('零回指过度回避')
+    expect(cards).toContain('句句补全「他／她」起头＝机器感')
+    expect(cards).toContain('连接词堆积')
+    expect(cards).toContain('删到一句一词')
+    expect(cards).toContain('句长均质化')
+    expect(cards).toContain('整段句长挤在同一档＝机器感')
+    expect(cards).toContain('〔theory-cards T019〕')
+    expect(cards).toContain('〔theory-cards T030〕')
+    expect(cards).toContain('〔theory-cards T015〕')
+    // D. 润色 tier4 扫描补两密度定位（人类带数值＋T 出处＋跨包指针到散文卡组）
+    const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
+    expect(clean).toContain('主语重复密度')
+    expect(clean).toContain('相邻双代词起句 0-0.7%')
+    expect(clean).toContain('连接词密度')
+    expect(clean).toContain('3-6 处/千字')
+    expect(clean).toContain('theory-cards T019')
+    expect(clean).toContain('theory-cards T030')
+    expect(clean).toContain('《正文起草》技能包 agents/写作卡.md 散文卡组零回指卡')
+    // E. 设计侧认知根源：独立小文件＋T009/T010 假说层定位＋provisional 边界＋参照带＋筛卡记录
+    const designDoc = path.join(__dirname, '..', '..', '..', 'docs', 'design', '散文卡组与AI味认知根源.md')
+    expect(fs.existsSync(designDoc), 'docs/design/散文卡组与AI味认知根源.md 应存在（设计侧，不进运行时分发件）').toBe(true)
+    const rootCause = fs.readFileSync(designDoc, 'utf8')
+    expect(rootCause).toContain('knowledge-telling')
+    expect(rootCause).toContain('转述知识而非转化知识')
+    expect(rootCause).toContain('T009')
+    expect(rootCause).toContain('T010')
+    expect(rootCause).toContain('provisional')
+    expect(rootCause).toContain('五书人类参照带')
+    expect(rootCause).toContain('筛卡记录')
+    // F. 版本纪律全套：两 package.json 0.0.27＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.26 零残留
+    const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
+    const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.27').toBe('0.0.27')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.27').toBe('0.0.27')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.27]')
+    for (const readme of ['README.md', 'packages/bundle/README.md']) {
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.27`).toContain('0.0.27')
+    }
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.26`).not.toContain('0.0.26')
+      }
+    }
+  })
 })
