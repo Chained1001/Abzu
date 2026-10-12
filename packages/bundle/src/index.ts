@@ -52,6 +52,8 @@ export { draftLengthCli } from './scripts/draft-length-cli'
 /** 影响分析／材料备料／定稿备包／最小导出脚本的 CLI 能力（R21 切割）：只算不写，薄入口经 lib 调用。 */
 export { analyzeImpactCli } from './scripts/impact-cli'
 export { materialsCli } from './scripts/materials-cli'
+/** 写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）的 CLI 能力：只算不写，薄入口经 lib 调用。 */
+export { tenChecksCli } from './scripts/ten-checks-cli'
 export { packCli } from './scripts/pack-cli'
 export { exportCli } from './scripts/export-cli'
 export { backupCli } from './scripts/backup-cli'

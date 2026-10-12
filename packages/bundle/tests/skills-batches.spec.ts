@@ -1648,16 +1648,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // 五类转移枚举单源在行文自查卡标点条——散文卡组只引用不重述
     const fiveShifts = (cards.match(/话题／人物／活动／时间／空间/g) ?? []).length
     expect(fiveShifts, '五类转移枚举应单源在行文自查卡（散文卡组引用口径不重述枚举）').toBe(1)
-    // C. 行文自查卡三条 AI 味判据（各配一句判据＋T 出处）
-    expect(cards).toContain('零回指过度回避')
-    expect(cards).toContain('句句补全「他／她」起头＝机器感')
-    expect(cards).toContain('连接词堆积')
-    expect(cards).toContain('删到一句一词')
-    expect(cards).toContain('句长均质化')
-    expect(cards).toContain('整段句长挤在同一档＝机器感')
-    expect(cards).toContain('〔theory-cards T019〕')
-    expect(cards).toContain('〔theory-cards T030〕')
-    expect(cards).toContain('〔theory-cards T015〕')
+    // C. 行文自查卡三条 AI 味判据（0.0.33 判据瘦身批起改指针式——判据正文单源散文卡组，自查卡只留指针句；
+    //    断言随裁同步：旧六条判据正文断言退役，指针句＋负断言详版见 0.0.33 流程修复批组；
+    //    T 出处标注随自查卡三行删去——卡头出处断言由本组 A 节卡头循环承载）
+    expect(cards).toContain('句长均质化：按散文卡组句法节奏卡三判据自查')
     // D. 润色 tier4 扫描补两密度定位（人类带数值＋T 出处＋跨包指针到散文卡组）
     const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
     expect(clean).toContain('主语重复密度')
@@ -1775,10 +1769,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(selfCheck).toContain('自查预算不是硬规则')
     expect(selfCheck).toContain('参照书章节 0-2.1/千字（方向二抽样）')
     expect(selfCheck).toContain('参照书章节近零（外推）')
-    expect(selfCheck).toContain('一句一词为上限、≥2.9/千字为下限——两个方向都超才是病')
-    expect(selfCheck).toContain('五书带 2.91-6.28/千字')
+    // 0.0.33 判据瘦身批起：连接词上下限数值带三句随自查卡连接词条指针化退役（判据单源散文卡组连接词卡，
+    // 数值带另存润色 tier4「3-6 处/千字」），断言随裁同步——指针句详断言见 0.0.33 流程修复批组
     expect(selfCheck).toContain('模型倾向按固定间距均匀洒满')
-    expect(selfCheck).toContain('把自然黏合处补回来')
     expect(selfCheck).toContain('文风画像句法层冲突时画像优先')
     expect(selfCheck, '旧「修辞预算四条」独立节应退役').not.toContain('修辞预算四条')
     expect(selfCheck, '旧出处「人类五书 0-2.1/千字」应退役').not.toContain('人类五书 0-2.1/千字')
@@ -2056,21 +2049,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('高级选项，非默认推荐')
     expect(design).toContain('如需使用请知悉此限制')
     expect(design.indexOf('高级选项，非默认推荐'), '护栏应前置于浮动示例行').toBeLessThan(design.indexOf('章型浮动: 常规 3500-4500'))
-    // E. 版本纪律全套：两 package.json 0.0.31＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.30 零残留
-    const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
-    const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.31').toBe('0.0.31')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.31').toBe('0.0.31')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.31]')
-    for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.31`).toContain('0.0.31')
-    }
-    for (const dir of ['user', 'maintenance'] as const) {
-      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
-      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.30`).not.toContain('0.0.30')
-      }
-    }
+    // E. 版本纪律全套钉随当前版走——0.0.34 流程修复批（flow-fix 01-02）起移入 0.0.34 组接力（本组原 0.0.31 钉同步退役；当前口径随版本走，见 0.0.19 组 A 注）
   })
 
   it('0.0.31 数据保护批：草稿区/书房独立仓版本化（ensureDraftGit/snapshotDraft＋tools/result 观察者）＋一键备份三件套（core＋CLI＋薄入口注册＋SKILL 表）＋status 快照复用防回退', () => {
@@ -2120,5 +2099,160 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(benchText).toContain('BUDGET_MS')
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8')) as { scripts: Record<string, string> }
     expect(rootPkg.scripts['benchmark:status'], 'npm 应有 benchmark:status 入口').toContain('benchmark-status.mjs')
+  })
+
+  it('0.0.33 流程修复批（flow-fix 04-06）：卷纲偏差处理分档＋路径 A 摘要过目＋自查卡判据指针化——同版本 0.0.32，版本件由并行批管', () => {
+    const outline = readSkill('novel-outline')
+    const design = readSkill('novel-design')
+    // A. 工单 04 卷纲轻量演化：outline 侧分档定义全文＋design 侧指针引用（两 SKILL 各含分档关键词）
+    expect(outline).toContain('**卷纲偏差处理分档**')
+    expect(outline).toContain('小偏差（线索推进方向调整/弧线细节微调/心动位移位，不影响卷末兑现与主战层级）')
+    expect(outline).toContain('直接改候选卷纲→再确认（版本+1）')
+    expect(outline).toContain('不跑影响分析（与细纲人物自决轻量改纲同款通道）')
+    expect(outline).toContain('大偏差（卷末兑现变了/主战层级升了/分卷接口动了）')
+    expect(outline).toContain('仍走《定调设计》卷纲修订＋影响分析前置呈报')
+    expect(design).toContain('**卷纲偏差处理分档**')
+    expect(design).toContain('分档定义在《细纲备料》技能包「滚动窗口段级刷新」节')
+    expect(design, 'design 侧不得重述分档边界定义（单源在 outline 侧）').not.toContain('心动位移位，不影响卷末兑现与主战层级')
+    expect(outline, '旧单通道句应清零').not.toContain('卷纲要动先走')
+    expect(design, '旧单通道句应清零').not.toContain('卷纲要修订先走')
+    // B. 工单 05 路径 A 呈报减负：design 步骤 3 摘要过目＋看细节指引＋beginner 第 5 节同步
+    expect(design).toContain('**摘要过目**（默认第一步）')
+    expect(design).toContain('5-8 行人话摘要')
+    expect(design).toContain('「看细节」')
+    expect(design).toContain('想看任何一件的全文，点名即可')
+    expect(design).toContain('即视为确认整包（含留白）')
+    expect(design, '旧整份过目句应清零').not.toContain('整份呈作者过目')
+    const beginner = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'user', 'beginner.md'), 'utf8')
+    expect(beginner).toContain('先用几行人话摘要给你过目')
+    expect(beginner).toContain('想看哪件的全文，点名即可')
+    expect(beginner).toContain('说「看细节」或点名某件才展开全文')
+    // C. 工单 06 判据瘦身：自查卡三处指针句＋旧判据正文清零（判据单源散文卡组，七卡不动）
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    for (const ptr of [
+      '零回指：按散文卡组零回指卡三判据自查',
+      '连接词：按散文卡组连接词卡四判据自查',
+      '句长均质化：按散文卡组句法节奏卡三判据自查',
+    ]) {
+      expect(cards, `自查卡应含指针句「${ptr}」`).toContain(ptr)
+    }
+    for (const stale of ['零回指过度回避', '连接词堆积', '句句补全「他／她」起头＝机器感', '删到一句一词', '整段句长挤在同一档', '五书句长标准差 16-46 字', '2.91-6.28/千字']) {
+      expect(cards, `自查卡重复判据正文「${stale}」应清零（单源在散文卡组）`).not.toContain(stale)
+    }
+    for (const card of ['### 句法节奏卡〔theory-cards T015/T017/T022〕', '### 零回指卡〔theory-cards T019〕', '### 连接词卡〔theory-cards T030/T024〕']) {
+      expect(cards, `散文卡组卡头「${card}」应保留（写时判据不动）`).toContain(card)
+    }
+  })
+
+  it('0.0.34 流程修复批（flow-fix 01-02）：灵感库主动供给（outline 备料段自动匹配）＋写时发现登记位（drafting 可选交子段＋settle 分拣三去向）＋版本纪律全套', () => {
+    // A. 工单 01 灵感库主动供给：备料段「自主补充材料」节内自动匹配——关键词 grep 全路径＋不整卡内联只取两列 ≤3 条＋正式入包走补充通道＋未建跳过不提示
+    const outline = readSkill('novel-outline')
+    const supplement = outline.slice(outline.indexOf('## 备料段'), outline.indexOf('## 工件契约'))
+    expect(supplement, 'outline 备料段应含「灵感库自动匹配」小节').toContain('**灵感库自动匹配**')
+    expect(supplement).toContain('grep `<工作范围>/书房/灵感库/*/零件卡.md`')
+    expect(supplement).toContain('场景元素＋设定域＋情绪词')
+    expect(supplement).toContain('「化用启示」列＋「一句话（骨）」列')
+    expect(supplement).toContain('≤3 条')
+    expect(supplement).toContain('正式入包仍走既有补充通道')
+    expect(supplement).toContain('灵感库未建时直接跳过不提示')
+    // B1. 工单 02 写时发现登记位：drafting 候选事实段协议后接可选交子段——标题与前产行式＋三类示例＋宁少勿滥（本章已写走候选事实）
+    const drafting = readSkill('novel-drafting')
+    const candidateProtocol = drafting.slice(drafting.indexOf('**候选事实段（必交）**'), drafting.indexOf('2. 派发并等待完成'))
+    expect(candidateProtocol, 'drafting 候选事实段协议应含「写时发现（可选交）」子段').toContain('**写时发现（可选交）**')
+    expect(candidateProtocol).toContain('`## 写时发现`')
+    expect(candidateProtocol).toContain('`- 前瞻：<想到的东西→建议落到哪>`')
+    expect(candidateProtocol).toContain('只有留给后续的才进')
+    // B2. settle 沉淀步写时发现分拣：三去向（新伏笔/人物设定经 novel_note_pending＋改窗口卷纲记待改走影响分析）＋呈报不自动落盘＋无该节跳过
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('**写时发现分拣**')
+    expect(settle).toContain('`## 写时发现`')
+    expect(settle).toContain('记线索/承诺（标「写时发现」来源）')
+    expect(settle).toContain('作者确认后入账本')
+    expect(settle).toContain('作者确认后改世界书')
+    expect(settle).toContain('走影响分析前置呈报流程')
+    expect(settle).toContain('分拣结果呈报作者，不自动落盘')
+    // C. 版本纪律全套：两 package.json 0.0.32＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.31 零残留
+    const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
+    const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.32').toBe('0.0.32')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.32').toBe('0.0.32')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.32]')
+    for (const readme of ['README.md', 'packages/bundle/README.md']) {
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.32`).toContain('0.0.32')
+    }
+    for (const dir of ['user', 'maintenance'] as const) {
+      const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
+      for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.31`).not.toContain('0.0.31')
+      }
+    }
+  })
+
+  it('0.0.35 流程修复后沿批（flow-fix 03+07）：批量细纲＋连写叠加＋审读沉淀并行＋十查⑥⑧脚本化＋批量滚窗——同版本 0.0.32，版本件由前批管', () => {
+    const outline = readSkill('novel-outline')
+    const director = readSkill('novel-director')
+    // A. 工单 03 批量细纲：可选分支落位（章纲分级之后、标准流程步骤 1 之前）＋触发/跨章钩型排期/差异呈报/逐章确认四关键词
+    const batchStart = outline.indexOf('**批量细纲')
+    expect(batchStart, 'outline 应含「批量细纲」节').toBeGreaterThanOrEqual(0)
+    const batch = outline.slice(batchStart, outline.indexOf('1. **读窗口与卷纲**'))
+    expect(batchStart, '批量细纲节应在章纲分级之后').toBeGreaterThan(outline.indexOf('**章纲分级'))
+    for (const kw of [
+      '触发条件',
+      '「规划本章到第 N 章」「规划到本章+3」',
+      '默认一章一纲，批量是显式指令',
+      'N ≤5 章',
+      '场景卡选择跨章看',
+      '钩型配比跨章规划',
+      '危机钩兑现章号跨章排、张力类占比按 N 章窗口算而非单章',
+      '伏笔排期一批过',
+      '跨章保温触点同批排定',
+      '灵感库自动匹配一次跑 N 章',
+    ]) {
+      expect(batch, `批量细纲节应含「${kw}」`).toContain(kw)
+    }
+    // 批量呈报（首章全目/后续差异＋十查基线带后续章）＋逐章确认（core 协议不动）＋批量滚窗＋写时发现反馈闭环
+    for (const kw of [
+      '首章全目呈报（含十查全项）',
+      '后续章差异呈报',
+      '首章十查的基线带到后续章',
+      '确认仍逐章',
+      '`novel_confirm_outline` 逐章调用（core 协议不动——规划粒度变，确认粒度不变）',
+      '同步改再呈',
+      '批量滚窗',
+      '`novel_roll_window` 逐条调用补位（core 协议不动，只是组装时机变）',
+      '批量写时发现反馈',
+      '在下一章细纲组装时优先消化',
+    ]) {
+      expect(batch, `批量细纲节应含「${kw}」`).toContain(kw)
+    }
+    // B. director 连写授权档：叠加句＋审读沉淀并行（并行的是对账准备，不是入档）
+    const relay = director.slice(director.indexOf('2. **连写授权**'), director.indexOf('3. **到点收尾**'))
+    expect(relay, '连写授权档应含叠加句').toContain('批量细纲与连写可叠加')
+    expect(relay).toContain('先按《细纲备料》「批量细纲」一次组装 3 章细纲，再逐章走起草循环')
+    expect(relay, '连写授权档应含审读沉淀并行指引').toContain('**审读沉淀并行**')
+    for (const kw of ['读正文＋候选事实段做分拣准备', '补完剩余步骤（处置→定稿→入档）', '并行的是对账准备，不是入档', '审读发现项未处置完不得入档']) {
+      expect(relay, `审读沉淀并行应含「${kw}」`).toContain(kw)
+    }
+    // C. 工单 07 十查⑥⑧脚本化：SKILL 步骤 4 指引＋底本⑥⑧改「跑脚本读结果＋模型判断」＋脚本存在且注册
+    expect(outline, 'outline 步骤 4 应含脚本化⑥⑧指引').toContain('⑥⑧的机械部分先跑本技能包 `node <resourceBase>/scripts/十查机械.mjs')
+    expect(outline).toContain('读结果再叠模型判断')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    expect(checks, '写前十查⑥应改脚本化口径').toContain('机械部分先跑 `node <resourceBase>/scripts/十查机械.mjs')
+    expect(checks, '写前十查⑧应改脚本化口径').toContain('机械部分跑同一次 `node <resourceBase>/scripts/十查机械.mjs`')
+    expect(checks).toContain('一次输出⑥⑧两查的机械结果')
+    expect(checks).toContain('机械行是候选不是结论')
+    expect(checks, '旧口径「机械比对由你做」应清零').not.toContain('机械比对由你做')
+    expect(fs.existsSync(skillFile('novel-outline', 'scripts/十查机械.mjs')), 'novel-outline/scripts/十查机械.mjs 薄入口应存在').toBe(true)
+    expect(fs.readFileSync(skillFile('novel-outline', 'scripts/十查机械.mjs'), 'utf8')).toContain('tenChecksCli')
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract, '十查机械薄入口应在 artifact-contract thinScripts 注册').toContain("['skills/novel-outline/scripts/十查机械.mjs', 'tenChecksCli']")
+    const cliSrc = fs.readFileSync(path.join(__dirname, '..', 'src', 'scripts', 'ten-checks-cli.ts'), 'utf8')
+    expect(cliSrc, 'CLI 实现应只算不写').toContain('只算不写')
+    expect(fs.readFileSync(path.join(__dirname, '..', 'src', 'index.ts'), 'utf8'), 'bundle index 应导出 tenChecksCli').toContain("export { tenChecksCli } from './scripts/ten-checks-cli'")
+    // D. CHANGELOG 后沿批节＋「近五章机械比对」解冻声明（增强实施计划二期冻结面，本批落技能薄入口层）
+    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')
+    expect(changelog).toContain('流程修复后沿批 flow-fix 03+07')
+    expect(changelog, 'CHANGELOG 应声明「近五章机械比对」解冻实装').toContain('近五章机械比对')
+    expect(changelog).toContain('解冻')
   })
 })
