@@ -94,10 +94,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('规则连锁')
     // 章纲：步骤 2 落候选末尾的写时整合
     expect(readSkill('novel-outline')).toContain('写时整合')
-    // 起草：任务包第 0 件写作心智＋三条心智防回退
+    // 起草：任务包第 0 件写作心智＋三条心智防回退（0.0.38 心智批 R2 由「入戏（双位）」改名「双位视角」——断言随裁同步）
     const drafting = readSkill('novel-drafting')
     expect(drafting).toContain('写作心智')
-    expect(drafting).toContain('入戏')
+    expect(drafting).toContain('双位视角')
     expect(drafting).toContain('一气呵成')
     expect(drafting).toContain('角色自决')
   })
@@ -217,8 +217,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(checks).toContain('前→后是位移')
     expect(checks).toContain('落点是读者离开时带什么')
     // A3. 激励事件三问：KB 锚 §4.12（04_大纲.md 标题存在由引用一致性测试另守），三要素措辞对齐
+    //（0.0.40 心智批·设计：激励事件三问并入「首尾镜像」同场对照条目——断言随裁同步，三问本体未动）
     const design = readSkill('novel-design')
-    expect(design).toContain('激励事件三问')
+    expect(design).toContain('**首尾镜像**')
     expect(design).toContain('时机压力')
     expect(design).toContain('命中必然')
     expect(design).toContain('无法回避')
@@ -308,10 +309,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(drafting).toContain('找乐子')
     expect(cards).toContain('幽默/轻松/玩梗标签的单元时带趣味卡')
     // B3. 作家思维原则化：心智「读者在场＋主动性」条（一气呵成之前）＋热回看自愿自评行＋润色复核接线
+    //（0.0.38 心智批起草侧重写：自评行提示语改判据式、标签退役「没劲段」——0.0.41 润色批消费口径已同步改「读者会跳读的段」，本钉翻正为负断言）
     expect(drafting).toContain('读者在场')
     expect(drafting).toContain('吊他胃口')
     expect(drafting).toContain('自评：最得意')
-    expect(readSkill('novel-polish')).toContain('没劲段')
+    expect(readSkill('novel-polish'), '旧「没劲段」标签应全 polish 清零（0.0.41 翻正）').not.toContain('没劲段')
     // C. 首章文风建档门二支＋四层画像：文风默认化（不留参考书学习口子）＋关键词与入档工具实接
     expect(drafting).toContain('首章文风建档门')
     expect(drafting, '文风默认化裁定：不留从其他作品学习文风的口子').not.toContain('从已导入的参考书归纳')
@@ -458,21 +460,22 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.15 认知调研批：写作心智四改＋章纲分级简章＋段级刷新＋人物自决类轻量通道', () => {
     // A. 写作心智四改（novel-drafting 任务包第 0 件，依据 2026-10-10 认知调研）：
-    // 写前重读居首＋入戏双位（两把椅子）＋读者在场博弈（假烟雾弹）＋找乐子主动面（生个事）
+    // 写前重读居首＋双位视角＋读者在场博弈（假烟雾弹）＋找乐子主动面（生个事）
+    //（0.0.38 心智批起草 R1-R8 重写：旧句断言随裁同步——双位/找乐子旧措辞改钉新句，身份句改负断言；详组见 0.0.38）
     const drafting = readSkill('novel-drafting')
     expect(drafting).toContain('写前重读')
     expect(drafting).toContain('近期正文衔接')
-    expect(drafting).toContain('入戏（双位）')
-    expect(drafting).toContain('操控者视角')
-    expect(drafting).toContain('两把椅子都要坐')
+    expect(drafting).toContain('双位视角')
+    expect(drafting).toContain('切出来对信息差')
+    expect(drafting, '身份表述「两把椅子」应清零（0.0.38 删除句 4）').not.toContain('两把椅子')
     expect(drafting).toContain('假烟雾弹')
     expect(drafting).toContain('生个事')
-    expect(drafting).toContain('过渡不是班车是路')
-    expect(drafting).toContain('给没意思的制造意思')
-    // 写前重读必须是心智块第一条（在「入戏」之前）
+    expect(drafting).toContain('小意外/小冲突/小反转')
+    expect(drafting).toContain('能反的套路')
+    // 写前重读必须是心智块第一条（在「双位视角」之前）
     const mind = drafting.indexOf('## 写作心智')
     expect(mind).toBeGreaterThanOrEqual(0)
-    expect(drafting.indexOf('**写前重读**', mind), '写前重读应居心智块条目首位').toBeLessThan(drafting.indexOf('**入戏（双位）**', mind))
+    expect(drafting.indexOf('**写前重读**', mind), '写前重读应居心智块条目首位').toBeLessThan(drafting.indexOf('**双位视角**', mind))
     // B. 章纲分级三文件同步：判据词在 outline SKILL；简章细则在规格模板；十查放宽在写前十查底本
     const outline = readSkill('novel-outline')
     expect(outline).toContain('章纲分级')
@@ -1419,7 +1422,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       .filter((p) => p.endsWith('.md'))
     for (const f of walkDocs(docsRoot)) {
       const text = fs.readFileSync(f, 'utf8')
-      for (const staleNum of ['2000', '1600', '2400']) {
+      // 0.0.43 收口缩面：仅「模型写作机制调研.md」豁免 '2000'（LongWriter 研究引文，非篇幅示例），精确文件名匹配；其余数值全目录全量扫
+      const staleNums = path.basename(f) === '模型写作机制调研.md' ? ['1600', '2400'] : ['2000', '1600', '2400']
+      for (const staleNum of staleNums) {
         expect(text, `docs 全目录不应残留旧篇幅数值「${staleNum}」：${path.relative(docsRoot, f)}`).not.toContain(staleNum)
       }
     }
@@ -1761,7 +1766,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const mergedRows = [
       '段末格言化（≤2/章）：数「不是…（就）是／而是」式收尾',
       '比喻超密且均匀（≤2/千字）：数「像／仿佛／犹如／宛如」',
-      '破折号解释装置（≤4/千字【待校准——中间值暂取 4，待真实写作校准】）',
+      //（0.0.42 判据微修批：破折号行由单密度线改双判——位置判＋功能判＋密度参考带 0-1/千字，断言随裁同步；新句详钉见 0.0.42 判据微修批组）
+      '破折号解释装置（双判：位置判＋功能判，密度参考带 0-1/千字【待实测校准】）',
       '三连列举节奏：「A、B、C」三项式',
       '清单式全景描写：每到新场景重新全要素清点',
       '对白零冗余：句句是打磨过的信息位'
@@ -1772,7 +1778,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(selfCheck).toContain('AI 痕迹类型学六条')
     expect(selfCheck).toContain('自查预算不是硬规则')
     expect(selfCheck).toContain('参照书章节 0-2.1/千字')
-    expect(selfCheck).toContain('参照书章节近零（外推）')
+    //（0.0.42 判据微修批：破折号行改双判口径，旧参照句「参照书章节近零（外推）」随裁退役——改负断言防回退）
+    expect(selfCheck, '旧参照句「参照书章节近零（外推）」应退役（0.0.42 双判改写）').not.toContain('参照书章节近零（外推）')
     // 0.0.33 判据瘦身批起：连接词上下限数值带三句随自查卡连接词条指针化退役（判据单源散文卡组连接词卡，
     // 数值带另存润色 tier4「3-6 处/千字」），断言随裁同步——指针句详断言见 0.0.33 流程修复批组
     expect(selfCheck).toContain('模型倾向按固定间距均匀洒满')
@@ -1802,8 +1809,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(selfCheck, `类型学应含「${kw}」`).toContain(kw)
     }
     // D. 广域四件①②③：写前重读点亮语态样本行＋任务包广域视野节（卷末方向句＋情绪承诺句＋常量标注）
+    //（0.0.38 心智批起 R1 重写——语态样本点名读句随运行时形态改写，语态样本行同时改包尾注入，钉见 0.0.38 组）
     const drafting = readSkill('novel-drafting')
-    expect(drafting).toContain('「语态样本：」行是跨章语态基准')
+    expect(drafting).toContain('逐行点名读近三章「语态样本：」行')
     expect(drafting).toContain('**广域视野**')
     expect(drafting).toContain('「卷末兑现」段取首句')
     expect(drafting).toContain('「阅读体验与情绪承诺」分部取首句')
@@ -2179,19 +2187,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.33＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.32 零残留
+    // C. 版本纪律全套：两 package.json 0.0.34＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.33 零残留（0.0.43 心智批收口接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.33').toBe('0.0.33')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.33').toBe('0.0.33')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.33]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.34').toBe('0.0.34')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.34').toBe('0.0.34')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.34]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.33`).toContain('0.0.33')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.34`).toContain('0.0.34')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.32`).not.toContain('0.0.32')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.33`).not.toContain('0.0.33')
       }
     }
   })
@@ -2305,8 +2313,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('（审核完成后、组包前；审读子代理仍在跑时可先做候选事实段的写时发现分拣与对账准备——见《工作台总控》审读沉淀并行句）')
     expect(director).toContain('由主控沿《定稿沉淀》沉淀步骤 2-4 补完（处置→定稿→入档）')
     expect(director, '主控专属步骤不归子代理名下').not.toContain('沉淀子代理补完剩余步骤')
-    // D. R3 修辞预算指针改指 AI 痕迹六条（悬空指针修复——「修辞预算四条」节名已不存在）
-    expect(cards).toContain('密度上限同行文自查卡 AI 痕迹六条中三对带数值行（格言 ≤2/章、比喻 ≤2/千字、破折号 ≤4/千字）')
+    // D. R3 修辞预算指针改指 AI 痕迹六条（悬空指针修复——「修辞预算四条」节名已不存在；0.0.42 判据微修批：破折号数值随裁 ≤4/千字→0-1/千字，断言随裁同步）
+    expect(cards).toContain('密度上限同行文自查卡 AI 痕迹六条中三对带数值行（格言 ≤2/章、比喻 ≤2/千字、破折号 0-1/千字）')
     expect(cards, '悬空指针「修辞预算四条」应全文件清零').not.toContain('修辞预算四条')
     // E. M1 灵感库枚举指路（完整枚举单源在采风检索——单源侧正断言见 0.0.22 简称清理批 E 节）
     expect(inspiration).toContain('类简称十值与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
@@ -2349,5 +2357,256 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // D. CHANGELOG 挂账修复批节
     const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')
     expect(changelog).toContain('挂账修复批')
+  })
+
+  it('0.0.38 心智批·起草：R1-R8 重写＋删除句 8 句清零＋R4 改判＋双锚排位＋自评行判据式', () => {
+    const drafting = readSkill('novel-drafting')
+    // A. 新第 0 件八条句正钉（条名粗体短名＋各条运行时形态关键短语——条序 R1→R8）
+    const mindPins = [
+      '**写前重读**：开笔第一动作＝重读上章末尾与衔接段，逐行点名读近三章「语态样本：」行（位于任务包末尾）找回语感；首章改读文风基准',
+      '**双位视角**：场景内只写他能知道、感到、害怕的；埋伏笔挖钩放烟幕时切出来对信息差——读者读到而角色不知道的部分由你控制',
+      '**在场**：直接呈现画面（他看到的/听到的/闻到的），不写"这时他看到了..."',
+      '**节奏跟随**：按场景类型给节奏：打斗快、独白慢、对话跳；笔墨花在读者最关心的地方，不平均用力',
+      '**角色自决**：写到"他不会这么说"就跟角色走，候选事实段注明偏离与原因；牵动伏笔或窗口的停笔走轻量改纲，不硬掰',
+      '**找乐子**：开写前问哪里好玩：能埋会心的梗、能反的套路、能更活的人物就做；平淡过渡段生个事——小意外/小冲突/小反转；梗必须从人物嘴里长出来',
+      '**读者在场**：落笔前想一下：他此刻盼着什么、你在哪吊他胃口、他会猜到吗——会猜到就绕开或放假烟雾弹引他猜错',
+      '**一气呵成**：从第一句写到章末钩，不中断不查证不换语态——中断会把分析腔带进后文；不确定的先写过去标待定；禁入泄露/POV 漂当场自改，事实错对材料包核验再改',
+    ]
+    let prev = -1
+    for (const pin of mindPins) {
+      const at = drafting.indexOf(pin)
+      expect(at, `心智条应在位：「${pin.slice(0, 12)}…」`).toBeGreaterThanOrEqual(0)
+      expect(at, `心智条应按 R1→R8 排序：「${pin.slice(0, 12)}…」`).toBeGreaterThan(prev)
+      prev = at
+    }
+    // B. 删除句清单 8 句负断言（架构 §4.3——标题注/括注/身份句/比喻句/情绪化判据逐句清零）
+    for (const stale of [
+      '不是规则，是进入状态的方式',
+      '怎么接收信息',
+      '放下分析脑',
+      '你是他在经历这个场景',
+      '不是你在描述他经历',
+      '你是作家不是角色，两把椅子都要坐',
+      '场景自己有呼吸',
+      '这是你的场子',
+      '写得你自己都不想停',
+      '让这个场景活起来',
+      //（0.0.41 同步注：负断言关键词改全形锚「入戏（双位）」——裸词「入戏」会被「引入戏剧性」类正常文本假红）
+      '入戏（双位）',
+    ]) {
+      expect(drafting, `删除句应清零：「${stale}」`).not.toContain(stale)
+    }
+    // C. R4 改判（G1 两级改造落起草侧）：单元配给降参考带宽＋写时节奏赢＋误判落自评行＋章级合计带判
+    expect(drafting).toContain('单元级配给＝参考带宽（±50% 浮动【待实测分位定值】）')
+    expect(drafting).toContain('写时按场景类型给节奏赢过配给')
+    expect(drafting).toContain('误判的段落落自评行供润色复核')
+    expect(drafting).toContain('章级合计仍按目标字数区间判——合计不足加事不加字')
+    expect(drafting, '「配给赢」旧口径应不存在（本 SKILL 从未实装该句——防回退钉）').not.toContain('配给赢')
+    // D. 任务包排位双锚：第 0 件居首保持＋语态样本行包尾注入（生成点前最后一读）＋同型约束（0.0.42 判据微修批：「抽出，注入」改「移至」——包内唯一份，断言随裁同步）
+    expect(drafting).toContain('**任务包第 0 件·写作心智**（排所有其他件之前）')
+    expect(drafting).toContain('移至任务包最末——生成点前最后一读')
+    expect(drafting).toContain('样本选与本章场景功能同型的段落（打斗章锚打斗样本）')
+    expect(drafting.indexOf('生成点前最后一读'), '语态样本包尾注入应排在任务包清单最末（写时发现之后）').toBeGreaterThan(drafting.indexOf('**写时发现（可选交）**'))
+    // E. 自评行判据式改造：「没劲段」16/16 全空实证——改读者跳读判据自问，保留不返工句
+    expect(drafting).toContain('读者会跳读的段〈章内位置或「无」——按"删掉这段读者损失什么"判〉')
+    expect(drafting).toContain('不是错误项、不因它返工，供润色参考')
+    expect(drafting, '旧「没劲段」提示语应退役（起草侧）').not.toContain('没劲段')
+  })
+
+  it('0.0.39 心智批·细纲：写时整合 O1-O4 重写＋单元排布 U1-U3＋预期字数两级配给＋§6.6 漂移清理', () => {
+    const outline = readSkill('novel-outline')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    // A. 写时整合四条按架构 §4.2 O1-O4 运行时形态重写（总纲句保留＋条名短名＋条序 O1→O4 递增）
+    expect(outline).toContain('不是先写完再逐项查，而是写时就同时想')
+    const oPins = [
+      '**情绪接力**：写「情绪与节奏目标」时同时想——上章末读者带什么情绪走、本章转到什么情绪、本章在卷里是铺垫期、高潮期还是收束期',
+      '**信息边界推演**：写「信息边界」时同时想——读者此刻最渴望知道什么、最不想让他们知道什么、哪个信息给一半比全给更抓人',
+      '**冲突强度定位**：写「冲突与爽点」时同时想——冲突强度在卷里排第几、上一章是什么级别、读者看完这章够不够"想翻下一章"',
+      '**双钩还债预检**：写「章末双钩」时同时想——下章细纲已经排了什么（近期窗口可读）、这个钩下章拿什么还、下章没排时钩子够不够指引下章方向',
+    ]
+    let prevO = -1
+    for (const pin of oPins) {
+      const at = outline.indexOf(pin)
+      expect(at, `写时整合条应在位：「${pin.slice(0, 12)}…」`).toBeGreaterThanOrEqual(0)
+      expect(at, `O1→O4 条序递增：「${pin.slice(0, 12)}…」`).toBeGreaterThan(prevO)
+      prevO = at
+    }
+    // 停机条件句内短语（高频项：本卷首章改读卷摘要／过渡章简章降级×3／卷末章跨卷登记）
+    expect(outline).toContain('本卷首章无上章时改读卷摘要末段')
+    expect(outline).toContain('过渡章简章只跑前两问')
+    //（0.0.42 判据微修批：释放量对账补 ≤70% 口径锚指向章细纲固定小节规格「信息边界」行——断言随裁同步）
+    expect(outline).toContain('过渡章简章只跑「最不想让他们知道」＋释放量对账（≤70% 口径见章细纲固定小节规格『信息边界』行）两问')
+    expect(outline).toContain('过渡章简章降为强度一句判断')
+    expect(outline).toContain('卷末章（下章为下卷首章）兑现章号跨卷登记，不判兑现距离')
+    // B. 单元排布 U1-U3 三句钉（架构 §5.2 运行时形态列原文——挂细纲段条目后、判据行前）
+    expect(outline).toContain('**单元排布**（细纲段单元列表落笔时）')
+    const uAnchor = outline.indexOf('**细纲段**：叙事单元列表')
+    const uStart = outline.indexOf('**单元排布**（细纲段单元列表落笔时）')
+    const uEnd = outline.indexOf('   - 判据：读 [06_章纲]')
+    expect(uAnchor, '挂点锚（细纲段条目）应在位').toBeGreaterThanOrEqual(0)
+    expect(uStart, '单元排布应挂在细纲段条目之后').toBeGreaterThan(uAnchor)
+    expect(uEnd, '判据行锚应在位').toBeGreaterThanOrEqual(0)
+    expect(uStart, '单元排布应在判据行之前').toBeLessThan(uEnd)
+    const uPins = [
+      '**拆并**：拆单元时数维度：时空-POV-目标变了几个，全同且功能同就合并；情绪大转向同场也切；长跨度压成连排小条',
+      '**排序**：排单元先顺时间线；最大信息单元前后配铺垫和反应；大战中途可插一拍众生反应；末单元只开一个问号',
+      '**配字**：配字先问读者最想看哪一秒：那一秒给足，交接带过，钩一两句；合计不足加事不加字',
+    ]
+    let prevU = -1
+    for (const pin of uPins) {
+      const at = outline.indexOf(pin)
+      expect(at, `单元排布条应在位：「${pin.slice(0, 10)}…」`).toBeGreaterThanOrEqual(0)
+      expect(at, `U1→U3 条序递增：「${pin.slice(0, 10)}…」`).toBeGreaterThan(prevU)
+      prevU = at
+    }
+    // C. 预期字数两级配给（G1 两级改造落细纲侧——与 0.0.38 起草侧口径一致：参考带宽＋写时赢＋章级合计）
+    expect(sect).toContain('**单元级预期字数＝参考带宽**（±50% 浮动【待实测分位定值】')
+    expect(sect).toContain('写时按场景类型给节奏赢过配给')
+    expect(sect).toContain('**章级合计仍按本章目标带判**')
+    expect(sect).toContain('合计低于目标带下限＝细纲事件量不足→加单元（加事）不硬堆字')
+    expect(sect, '旧单级口径「各单元预期合计对照本章目标带判」应退役（两级改造后单元级不再判合计）').not.toContain('各单元预期合计对照本章目标带判')
+    // D. §6.6 漂移清理（0.0.33 审查发现 2——§6.6 通篇节奏密度无钩内容；钩判据单源＝参考标尺章末钩型配比行＋规格「章末双钩」节）
+    expect(outline, 'SKILL 判据行「章末钩相关判据」失实半句应清零').not.toContain('章末钩相关判据')
+    expect(outline, 'SKILL 不应残留 §6.6→章末双钩失实绑定').not.toContain('§6.6（节奏密度怎么控）')
+    expect(checks, '写前十查⑩判据延伸「章末留钩与钝收边界」失实半句应清零').not.toContain('章末留钩与钝收边界')
+    expect(checks).toContain('红线与配比区间取《定调设计》技能包 references/参考标尺.md 追读力量化区「章末钩型配比」行')
+  })
+
+  it('0.0.40 心智批·设计：D1-D8 调度索引化触发点八钉＋D5 首尾镜像合并＋追问句本体保留', () => {
+    const design = readSkill('novel-design')
+    // A. 触发点钉位八钉：各条运行时形态关键短语落在对应步骤区（架构 §4.1 运行时形态列——判据本体不动，只钉位与对齐）
+    const s2 = design.indexOf('2. **世界书**')
+    const s3 = design.indexOf('3. **故事骨架**')
+    const s4 = design.indexOf('4. **分卷布局**')
+    const s5 = design.indexOf('5. **强制多方向**')
+    const s6 = design.indexOf('6. **卷规划**')
+    const review = design.indexOf('**确认前评审（可选）**')
+    for (const [label, anchor] of [['步骤 2', s2], ['步骤 3', s3], ['步骤 4', s4], ['步骤 5', s5], ['步骤 6', s6], ['确认前评审', review]] as const) {
+      expect(anchor, `区锚 ${label} 应在位`).toBeGreaterThanOrEqual(0)
+    }
+    const inRegion = (pin: string, lo: number, hi: number, label: string) => {
+      const at = design.indexOf(pin)
+      expect(at, `${label} 应在位：「${pin.slice(0, 14)}…」`).toBeGreaterThanOrEqual(0)
+      expect(at, `${label} 应钉在对应步骤区：「${pin.slice(0, 14)}…」`).toBeGreaterThan(lo)
+      expect(at, `${label} 不得越出对应步骤区：「${pin.slice(0, 14)}…」`).toBeLessThan(hi)
+    }
+    // D1 规则连锁→世界规则条目写入前（致命冲突修掉半句＝运行时形态对齐补钉）
+    inRegion('**规则连锁**：写新世界规则条目前 read 本模块已有条目', s2, s3, 'D1 规则连锁')
+    inRegion('同一事实两说的致命冲突修掉', s2, s3, 'D1 致命冲突对齐句')
+    // D2 金手指四轨道→力量体系对谈期（追问句本体不动，只钉触发点）
+    inRegion('**金手指四轨道追问**（§2.4 力量体系对谈期过一遍）', s2, s3, 'D2 金手指四轨道')
+    // D3 暗面一问→铁则对谈处
+    inRegion('**暗面一问**（§3.1/§3.8 对谈时每条铁则问一次）：谁在规则下受害？', s2, s3, 'D3 暗面一问')
+    // D4 配角功能一问→人物档案起稿处
+    inRegion('**配角功能一问**（人物档案条目起稿时逐个常驻配角过一遍', s2, s3, 'D4 配角功能一问')
+    // D5 首尾镜像→骨架对谈开端与结局两部同场对照（合并案落地）
+    inRegion('**首尾镜像**（骨架对谈「故事阶段与关键转折」谈到开端与「结局与终局」时，两端互为镜像，同场对照着过', s3, s4, 'D5 首尾镜像')
+    inRegion('结局处他的哪个具体选择，是开头那个他不会做的？指不出这个选择，变化就还停在宣告', s3, s4, 'D5 收束验核句')
+    // D6 弧光验核→骨架两部位（三型三句＋落地两问，本体不动）
+    inRegion('**弧光三型**（骨架「主角目标与成长轨迹」部对谈时过一遍', s3, s4, 'D6 弧光三型')
+    inRegion('**弧光落地两问**（骨架「人物弧线与关系发展」部对谈时过一遍', s3, s4, 'D6 弧光落地两问')
+    // D7 卷级交叉思考→卷纲确认前（运行时形态尾句三线断档越线重排落位——数值照标尺单源）
+    inRegion('**卷级交叉思考**（卷纲正文写完、确认工具调用前过一遍）', s6, review, 'D7 卷级交叉思考')
+    inRegion('三线断档红线」行核对', s6, review, 'D7 三线断档标尺行核对')
+    inRegion('越线必须重排，不得带病确认', s6, review, 'D7 越线重排句')
+    // D8 跨轨道自检→路径 B 五步聊完、写入前最后一道
+    inRegion('**跨轨道自检**（五步聊完、写入前最后一道', s5, s6, 'D8 跨轨道自检')
+    // B. D5 合并句钉：开端三问×结局两问同场对照；独立条目负断言（原为两处独立卡）
+    expect(design).toContain('开端三问——为什么偏偏此刻发生（时机压力）？')
+    expect(design).toContain('结局两问——让主角回到开头那一刻，他不会再做同样选择吗？')
+    expect(design, '原独立卡「结局镜像卡」应清零（并入首尾镜像）').not.toContain('**结局镜像卡**')
+    expect(design, '原独立卡「激励事件三问」应清零（并入首尾镜像）').not.toContain('**激励事件三问**')
+    expect(design, '旧引语「结局倒推两问」应随合并退役').not.toContain('结局倒推两问')
+    // C. 判据句本体保留正钉（追问原文未搬动改写——抽四句逐字核）
+    expect(design).toContain('为什么偏偏此刻发生（时机压力）？为什么砸中这个主角（命中必然——绑定过往创伤，不是天降巧合）？主角为什么不躲开（无法回避——彻底打破日常，回不去了）？三问接不上＝开端只是「事情发生了」不是「不得不发生」')
+    expect(design).toContain('让主角回到开头那一刻，他不会再做同样选择吗？激励事件砸出的创伤，在结局怎么被主题回应？两问都接不上，结局部还只是「赢了」不是「完成了变化」')
+    expect(design).toContain('把主角拿走他还想干什么——答不上＝工具人，补独立动机')
+    expect(design).toContain('谁在规则下受害？——受害处即冲突土壤；答不出受害者，这条铁则还只是设定不是压力')
+  })
+
+  it('0.0.41 心智批·润色：P1-P5 任务包第 0 件＋先后序句＋三分判进批 1/批 2＋三类去向位＋自评行新口径＋「没劲段」全 polish 清零', () => {
+    const polish = readSkill('novel-polish')
+    const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
+    // A. 任务包第 0 件·润色心智：置顶锚＋先后序句＋P1-P5 五条正钉（条序 P1→P5 递增——架构 §5.1 各条「运行时形态」列原文，P1 标签随 0.0.38 起草侧改「读者会跳读的段」；0.0.43 审查修——括注去渗入、P1/P5 数值可达措辞、核验对象改候选事实段）
+    expect(polish).toContain('**任务包第 0 件·润色心智**（排所有其他件之前）')
+    expect(polish).toContain('三类判断先后序＝删留 → 节奏 → 语态——删除候选先过删留判，删定后判节奏，局部改定后核全章语态')
+    const pPins = [
+      '**弱段定位**：动手前先按对白占比粗判章型，逐段对照随包数值行扫密度异常段列重点清单；自评「读者会跳读的段」有就优先复核，没有不等于全章没弱段，得意句不给豁免',
+      '**删留三分判**：每个删除候选先过三问：读者缺后文信息吗、是有意的强调伏笔复沓吗、删后节奏变差吗——全过才删，拿不准保留标注；改写只换说法不换事实',
+      '**位置判**：改修辞先问位置：在情绪峰/出场/转折上吗——不在就删或降直陈；段末警句改成收在动作、悬问或具体物上',
+      '**语态接缝核**：指令集落稿前核接缝：改动段与未动段之间口吻称谓句式没换挡；不顺处改动向存量语态收敛，不逐字找平',
+      '**停机与转呈**：每段过四闸——无必改级命中、三分判全过、密度在随包数值行带内、承担钩伏笔功能——全过整段不进指令集；毛边不足和事实疑点不自己动手，转审读或对候选事实段核验；删减近两成收手呈作者',
+    ]
+    let prevP = -1
+    for (const pin of pPins) {
+      const at = polish.indexOf(pin)
+      expect(at, `润色心智条应在位：「${pin.slice(0, 10)}…」`).toBeGreaterThanOrEqual(0)
+      expect(at, `心智条应按 P1→P5 排序：「${pin.slice(0, 10)}…」`).toBeGreaterThan(prevP)
+      prevP = at
+    }
+    // A2. 数值可达通道：组包时从写作卡摘录数值行随包（子代理隔离读不到技能包——跨技能摘录先例＝审读动态摘录标尺行）
+    expect(polish).toContain('从《正文起草》技能包 agents/写作卡.md 末节「AI 痕迹六条」原样摘录三对带数值行随包')
+    // B. P1 自评行消费接线：新标签＋为空不推断＋得意句不保护（0.0.38 起草侧格式对齐——旧『没劲段』标签退役）
+    expect(polish).toContain('段末草稿自评行的「读者会跳读的段」非空时列最优先复核——作润色重点输入，仍只改表达不改事实')
+    expect(polish).toContain('为空不据此推断全章无弱段；「最得意」不作保护依据')
+    const polishRoot = path.join(__dirname, '..', 'skills', 'novel-polish')
+    const walkPolish = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walkPolish(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+      .filter((p) => p.endsWith('.md'))
+    for (const f of walkPolish(polishRoot)) {
+      expect(fs.readFileSync(f, 'utf8'), `${path.relative(polishRoot, f)}: 旧「没劲段」标签应清零`).not.toContain('没劲段')
+    }
+    // C. P2 三分判进批 1/批 2 执行指引：三问序＋信息层一票否决＋拿不准保留＋标注（批 2 另带只换说法不换事实）
+    expect(clean).toContain('删除前三问按信息→情绪→节奏序过')
+    expect(clean).toContain('是→不删,后两问不再问(信息层一票否决)')
+    expect(clean).toContain('是→保留并标注')
+    expect(clean).toContain('三问全过才删;拿不准→保留＋标注')
+    expect(reshape).toContain('改写前三问(每次等义改写前按信息→情绪→节奏序过)')
+    expect(reshape).toContain('缺→该句不进改写(信息层一票否决)')
+    expect(reshape).toContain('拿不准→保留＋标注;改写只换说法不换事实')
+    // D. P5 转呈通道：回传物三类去向位＋两成收手句（收手措辞与主控验收「删减不超过两成」对齐——收手在前、验收在后）
+    expect(polish).toContain('三类去向位——**保留并标注项**')
+    expect(polish).toContain('**待作者裁决项**')
+    expect(polish).toContain('**转审读项**（对白毛边不足、事实疑点对不上候选事实段、人设/逻辑/节奏一类内容问题，只记不改）')
+    expect(polish).toContain('累计删减近两成即收手，剩余删除候选保留＋标注呈作者')
+    // E. 停机条件三句：作者手改稿不跑（现行句对齐钉）＋定向单批只扫相关维度＋文风未定不编造
+    expect(polish).toContain('的待审稿都不主动派，作者点名要润色才派')
+    expect(polish).toContain('定向单批时润色心智的弱段定位扫描只扫该节相关维度，重点段清单不越节')
+    expect(reshape).toContain('分部未定时如实按「未定」处理,不编造特征——改写与接缝核只对照原稿存量语态判')
+  })
+
+  it('0.0.42 判据微修批：破折号双判＋段长变异上限＋语态样本移至＋释放量对账锚', () => {
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    const drafting = readSkill('novel-drafting')
+    const outline = readSkill('novel-outline')
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
+    // A. 破折号双判：位置判（高显著位才合法）＋功能判（引出解释／限定／点题即候选，不论密度）＋密度参考带 0-1/千字【待实测校准】；改法句与画像豁免句保留；旧单密度线全文件清零（含修辞上探卡引用行）
+    const selfCheckStart = cards.indexOf('## 行文自查卡')
+    expect(selfCheckStart, '写作卡应有行文自查卡').toBeGreaterThanOrEqual(0)
+    const selfCheck = cards.slice(selfCheckStart)
+    expect(selfCheck).toContain('破折号解释装置（双判：位置判＋功能判，密度参考带 0-1/千字【待实测校准】）：数「——」——位置判：高显著位才合法，不在高显著位＝候选；功能判：引出解释／限定／点题即候选，不论密度；命中候选自查哪些在引解释，拆句或删、让上下文自明（文风画像句法层申报破折号为保留技法时按画像另判）')
+    expect(cards, '旧单密度线「≤4/千字」应全文件清零（含修辞上探卡引用行）').not.toContain('≤4/千字')
+    expect(cards).toContain('密度上限同行文自查卡 AI 痕迹六条中三对带数值行（格言 ≤2/章、比喻 ≤2/千字、破折号 0-1/千字）')
+    // B. 段长变异上限：短句对合并抬方差不得过头上限——段长变异对照参照带（人类 0.55-0.75）【待实测定值】，方差不是越大越人味
+    expect(reshape).toContain('短句对合并抬段长方差不得过头上限：段长变异对照参照带（人类 0.55-0.75）【待实测定值】，方差不是越大越人味，超出带上限回退部分合并')
+    // C. 语态样本「抽出」改「移至」：包内唯一份——R1 写前读与生成前末读同一份
+    expect(drafting).toContain('「语态样本：」行从材料包「近期正文衔接」段移至任务包最末——生成点前最后一读')
+    expect(drafting, '「抽出」措辞应清零（语态样本包尾注入条）').not.toContain('抽出')
+    // D. 释放量对账补锚：≤70% 口径指向章细纲固定小节规格「信息边界」行（锚真实在位——规格件含该口径）
+    expect(outline).toContain('释放量对账（≤70% 口径见章细纲固定小节规格『信息边界』行）两问')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    expect(sect).toContain('揭示量 ≤70%')
+  })
+
+  it('0.0.43 心智批·G2 落地＋收口缩面：场景升级行＋带宽浮动停机＋R1 包尾注', () => {
+    const drafting = readSkill('novel-drafting')
+    // A. G2 场景权重写时升级（改造采纳案的运行时落地——总账复核发现 2）：准则句（升级合法＋限配给带宽内浮动＋超出交回＋登记位）
+    expect(drafting).toContain('场景功能写时升级合法（预判为调剂的单元写出实功能、反之为重场让路降调剂均可），但仅限该单元配给带宽内浮动；超出带宽或牵动走向的升级走偏离建议交回，不自行落实。升级发生时在候选事实段「场景升级」行登记。')
+    // B. 候选事实段「场景升级」前缀行（第五类）
+    expect(drafting).toContain('`- 场景升级：<单元>｜<细纲预判功能→实际写成的功能>`')
+    // C. R1 语态样本位置注（句面张力消解——样本行物理在包尾，R1 写前读同一份）
+    expect(drafting).toContain('逐行点名读近三章「语态样本：」行（位于任务包末尾）找回语感')
   })
 })

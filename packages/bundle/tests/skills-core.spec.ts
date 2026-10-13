@@ -167,7 +167,8 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(design).toContain('追问限额')
     expect(design).toContain('金手指四轨道追问')
     expect(design).toContain('暗面一问')
-    expect(design).toContain('结局镜像卡')
+    //（0.0.40 心智批·设计：结局镜像卡并入「首尾镜像」——断言随裁同步；0.0.42 判据微修批：钉加粗体星号与 batches 侧统一）
+    expect(design).toContain('**首尾镜像**')
     expect(design).toContain('书房/开书/<书名>/种子底子.md')
     expect(readSkill('novel-outline'), '《细纲备料》应可带种子底子进材料包').toContain('种子底子')
   })
