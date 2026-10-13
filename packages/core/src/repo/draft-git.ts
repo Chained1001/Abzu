@@ -53,6 +53,12 @@ export function ensureZoneGit(zoneRoot: string): ZoneGitState {
   runGit(dir.dir, ['config', 'user.email', 'abzu@local'])
   runGit(dir.dir, ['config', 'user.name', 'abzu'])
   runGit(dir.dir, ['config', 'commit.gpgsign', 'false'])
+  // 快照仓只由工具无人值守提交:hooksPath 指向不存在的目录以屏蔽全局/继承钩子,防交互式钩子挂起自动提交
+  const hooks = runGit(dir.dir, ['config', 'core.hooksPath', '.git/abzu-no-hooks'])
+  if (hooks.status !== 0) {
+    try { fs.rmSync(path.join(dir.dir, '.git'), { recursive: true, force: true }) } catch { /* 半初始化仓如实留给下次重试或作者处置 */ }
+    return { ok: false, initialized: false, reason: `禁用快照仓 git hooks 失败:${hooks.stderr.trim() || (hooks.error ?? '非零退出')}` }
+  }
   const snap = snapshotZone(dir.dir, '快照区初始化')
   if (!snap.ok) return { ok: false, initialized: false, reason: snap.reason }
   return { ok: true, initialized: true }

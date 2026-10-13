@@ -304,9 +304,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(drafting).toContain('**原文内联**任务包')
     expect(drafting).toContain('深挖时按 §x.y 只读该节（[07_正文写作](references/07_正文写作.md)），不整文件读入')
     expect(drafting).toContain('卡原文随任务包')
-    // B2. 趣味层接线：写作心智找乐子条＋趣味卡按场景标签带卡（幽默/轻松/玩梗单元）
+    // B2. 趣味层接线：写作心智找乐子条＋趣味卡按场景标签带卡（0.0.33 选卡映射单源移写作卡——映射句见卡头节）
     expect(drafting).toContain('找乐子')
-    expect(drafting).toContain('幽默/轻松/玩梗标签的单元时带趣味卡')
+    expect(cards).toContain('幽默/轻松/玩梗标签的单元时带趣味卡')
     // B3. 作家思维原则化：心智「读者在场＋主动性」条（一气呵成之前）＋热回看自愿自评行＋润色复核接线
     expect(drafting).toContain('读者在场')
     expect(drafting).toContain('吊他胃口')
@@ -1243,12 +1243,15 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sect).toContain('**承诺列**＋**兑现章号列**')
     expect(sect).toContain('三列口径：钩型｜承诺（下章拿什么还）｜兑现章号')
-    expect(sect).toContain('危机类即时威胁钩〔多为断点钩〕≤5 章')
+    // 0.0.33 挂账修复（危机钩红线单源化）：规格不再重述阈值，指路参考标尺该行
+    expect(sect).toContain('危机类即时威胁钩兑现时限踩线与否按本行末参考标尺指路判')
+    expect(sect, '规格不应重述危机钩阈值数值').not.toContain('≤5 章')
     expect(sect).toContain('定格即问号——泄压与牵引兼得')
     expect(sect).toContain('「章末钩型配比」行')
-    // A1 判据②：写前十查⑩兑现章号半句＋标尺行指引
+    // A1 判据②：写前十查⑩兑现章号半句＋标尺行指引（0.0.33 阈值改指路不重述）
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
-    expect(checks).toContain('兑现章号是否 5 章内（危机钩红线')
+    expect(checks).toContain('兑现章号是否踩红线（危机钩红线阈值与定义见下判据延伸所指参考标尺「章末钩型配比」行')
+    expect(checks, '写前十查不应重述危机钩阈值数值').not.toContain('≤5 章')
     expect(checks).toContain('承诺列或兑现章号列缺失＝补写再呈')
     expect(checks).toContain('「章末钩型配比」行')
     // A4 调剂行：高潮后 2 章内必回低烈度＋三式＋与 §6.1 分工（防同规则双源）
@@ -1380,9 +1383,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
     expect(cards).toContain('单元没写够配给先查有没有漏拍的戏（缺拍补拍），不是加描写凑数')
     // 独立审查修复批（0.0.24/0.0.25 两批审查 R1-R4 必修＋O1-O3＋两 Nit；版本保持 0.0.25）
-    // R4① review 侧钩型兑现接线：全量审读维度 1 章末双钩核对处回查兑现章号登记与红线
+    // R4① review 侧钩型兑现接线：全量审读维度 1 章末双钩核对处回查兑现章号登记与红线（0.0.33 阈值随任务包摘录，底本不抄数）
     const sweepReview = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
-    expect(sweepReview).toContain('回查本章双钩的兑现章号登记与红线（危机类 ≤5 章）')
+    expect(sweepReview).toContain('红线（危机钩兑现时限——阈值在派发材料的参考标尺摘录「章末钩型配比」行，底本不抄数值）')
+    expect(sweepReview, '审读底本不应重述危机钩阈值数值').not.toContain('危机类 ≤5 章')
     expect(sweepReview).toContain('上一次呈报的钩是否按期兑现')
     // R4② 卷纲调剂行补 A4 两判据（大战/高潮段禁泄压钩插入；大战前可排纯喜剧章作蓄压调剂）
     expect(vol).toContain('大战/高潮段禁泄压钩插入')
@@ -1883,7 +1887,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(txnSrc).toContain('TransactionConflictError')
     expect(txnSrc).toContain('持久化确认失败')
     const lockSrc = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'repo', 'lock.ts'), 'utf8')
-    expect(lockSrc).toContain('GUARD_STALE_MS = 30_000')
+    expect(lockSrc, 'GUARD_STALE_MS 已随死参数退役（0.0.33 挂账修复）').not.toContain('GUARD_STALE_MS')
     expect(lockSrc).toContain('export function lockIsStale')
     expect(lockSrc).toContain('acquireWriterMutex')
     expect(lockSrc).toContain('class BookLockError')
@@ -1961,8 +1965,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     expect(cards).toContain('快切合法但须节奏标记')
     expect(cards).toContain('转场不断钩')
-    expect(drafting).toContain('转场/分镜切换场景带转场卡')
-    expect(drafting).toContain('§7.11（分镜式写法vs线性叙事）→转场卡')
+    // 0.0.33 选卡映射单源移写作卡：SKILL 映射句与 § 对照表退役，改钉卡头
+    expect(cards).toContain('转场/分镜切换场景带转场卡')
+    expect(cards).toContain('## 转场卡 ←§7.11')
     // B. 件2 对白诊断：两审读底本引 §7.8（删除测试/标点节拍/毛边豁免不判废话）
     const style = fs.readFileSync(skillFile('novel-review', 'agents/文风与表达审读.md'), 'utf8')
     const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
@@ -1998,8 +2003,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(cards, `开场钩型应含「${hook}」`).toContain(hook)
     }
     expect(cards).toContain('文笔堆砌辞藻／第一章出场五六个人物／埋一堆伏笔乱切视角')
-    expect(drafting).toContain('首章与卷首章按开场卡黄金三百字判据自查')
-    expect(drafting).toContain('§6.2（黄金三百字')
+    // 0.0.33 选卡映射单源移写作卡：开场位半句与 §6.2 节源注随映射迁移，drafting 只留指路
+    expect(cards).toContain('首章与卷首章按开场卡黄金三百字判据自查')
+    expect(cards).toContain('§6.2（黄金三百字')
     // F. 件6 外貌：塑造卡一行＋人物档案模板记忆点扩句（模板侧同判据）
     expect(cards).toContain('写五官是照片，写习惯性动作才是活人')
     expect(cards).toContain('不清单式罗列〔§2.6〕')
@@ -2078,7 +2084,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const backup = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'repo', 'backup.ts'), 'utf8')
     expect(backup, '备份哈希口径应复用 materialHash（与 computeExport 同源）').toContain('materialHash')
     expect(backup).toContain("'manifest.json'")
-    expect(backup).toContain('书名}-${localStamp()')
+    // 0.0.33 TOCTOU 修复后：整轮只取一次时戳＋mkdir 原子占位
+    expect(backup).toContain('const stamp = localStamp()')
     const thinEntry = path.join(__dirname, '..', 'skills', 'novel-export', 'scripts', '一键备份.mjs')
     expect(fs.existsSync(thinEntry), 'novel-export/scripts/一键备份.mjs 薄入口应存在').toBe(true)
     expect(fs.readFileSync(thinEntry, 'utf8')).toContain('backupCli')
@@ -2172,19 +2179,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.32＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.31 零残留
+    // C. 版本纪律全套：两 package.json 0.0.33＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.32 零残留
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.32').toBe('0.0.32')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.32').toBe('0.0.32')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.32]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.33').toBe('0.0.33')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.33').toBe('0.0.33')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.33]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.32`).toContain('0.0.32')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.33`).toContain('0.0.33')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.31`).not.toContain('0.0.31')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.32`).not.toContain('0.0.32')
       }
     }
   })
@@ -2319,5 +2326,28 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // G. CHANGELOG 全量审查修复批节＋出处去向留痕
     const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')
     expect(changelog).toContain('全量审查修复批')
+  })
+
+  it('0.0.37 挂账修复批（core 三件＋技能三件＋十查补测）', () => {
+    // A. 危机钩红线单源化收尾：ruler 单源保留阈值（0.0.26 批 A 节已钉），review 任务包摘录扩含钩型配比行
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    expect(scale).toContain('危机钩（即时威胁型）兑现章号距钩章 ≤5 章')
+    const reviewSkill = fs.readFileSync(skillFile('novel-review', 'SKILL.md'), 'utf8')
+    expect(reviewSkill).toContain('每章字数三档、节拍分档与章末钩型配比行（全量审读维度 1 的危机钩兑现红线用）')
+    // B. 写作卡选卡映射单源：卡头节带映射句，drafting 只留指路不再重述映射与 § 对照表
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    expect(cards).toContain('选卡映射：推进场景带推进卡｜塑造场景带塑造卡｜动作高潮场景带动作卡｜环境展开场景带环境卡｜转场/分镜切换场景带转场卡')
+    expect(cards).toContain('「场景功能」枚举单源在《细纲备料》技能包 templates/章细纲固定小节规格.md')
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('按确认细纲/材料包各单元「场景功能」标注与卡头选卡映射把对应卡**原文内联**任务包')
+    expect(drafting).toContain('按所选卡卡头标注的节源（[07_正文写作](references/07_正文写作.md) 的 §x.y）只读该节')
+    expect(drafting, 'SKILL 不应重述选卡映射').not.toContain('推进场景带推进卡；塑造场景带塑造卡')
+    // C. 情绪直说张力修复：绝对禁令改按场景定档，升级链原文保留（0.0.26 批 E 节钉的链式串继续成立）
+    expect(cards).toContain('情绪按场景定档：过场可直接说，情绪场景按升级链落笔')
+    expect(cards).toContain('情绪场景至少落在生理反应档')
+    expect(cards, '绝对禁令句应清零').not.toContain('情绪不直接说，按升级链落笔')
+    // D. CHANGELOG 挂账修复批节
+    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')
+    expect(changelog).toContain('挂账修复批')
   })
 })

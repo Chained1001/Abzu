@@ -122,10 +122,26 @@ export function backupBook(bookRoot: string, options: BackupOptions = {}): Backu
   } catch (err) {
     return { ok: false, problems: [`备份根目录不可创建:${base}(${err instanceof Error ? err.message : String(err)})`] }
   }
-  let outputDir = path.join(base, `${书名}-${localStamp()}`)
-  for (let n = 2; fs.existsSync(outputDir) && n < 100; n += 1) outputDir = path.join(base, `${书名}-${localStamp()}-${n}`)
-  if (fs.existsSync(outputDir)) return { ok: false, problems: ['备份目录名冲突且序号耗尽,请另选输出目录'] }
-  fs.mkdirSync(outputDir)
+  // 原子占位:直接 mkdir 抢目录名(EEXIST/占用类错误换下一个序号),不做「先查再建」的窗口
+  const stamp = localStamp()
+  let outputDir: string | null = null
+  for (let n = 1; n < 100; n += 1) {
+    const candidate = path.join(base, n === 1 ? `${书名}-${stamp}` : `${书名}-${stamp}-${n}`)
+    try {
+      fs.mkdirSync(candidate)
+      outputDir = candidate
+      break
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code
+      // EPERM/ENOTDIR 两义:同名文件占位(换序号)或目录不可写(如实报)——以目标是否实存消歧
+      const occupied = code === 'EEXIST' || code === 'ENOTEMPTY'
+        || ((code === 'EPERM' || code === 'ENOTDIR') && fs.existsSync(candidate))
+      if (!occupied) {
+        return { ok: false, problems: [`备份目录不可创建:${candidate}(${err instanceof Error ? err.message : String(err)})`] }
+      }
+    }
+  }
+  if (outputDir === null) return { ok: false, problems: ['备份目录名冲突且序号耗尽,请另选输出目录'] }
 
   const entries: BackupEntry[] = []
   for (const source of sources) {

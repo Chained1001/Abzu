@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
 import { removeSync } from '../../core/src/repo/remove'
 import { tenChecksCli } from '../src/scripts/ten-checks-cli'
@@ -105,6 +107,26 @@ describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', (
     expect(data['⑧近五章重复'].行).toEqual(['本卷无确认细纲（首章或跨卷）——⑧无可比对'])
   })
 
+  it('候选缺「冲突与爽点」「本章形状」节（旧格式候选）如实报缺不编造', () => {
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'ten-checks-cli-')); roots.push(ws)
+    const book = path.join(ws, 'book')
+    fs.mkdirSync(path.join(book, '草稿区', '章细纲'), { recursive: true })
+    fs.mkdirSync(path.join(book, '大纲', '卷规划', '卷01', '章细纲'), { recursive: true })
+    fs.writeFileSync(path.join(book, '草稿区', '章细纲', '卷01-老格式.md'), [
+      '---\n状态: 候选\n---', '# 章细纲', '', '## 定位段', '', '## 细纲段', '', '- 目标: 脱困', '- 行动/冲突: 雨夜逃生', '- 状态变化: 入城', '',
+    ].join('\n'))
+    fs.writeFileSync(path.join(book, '大纲', '卷规划', '卷01', '章细纲', '0001-第一章.md'), `---\n状态: 已确认\n---\n${outlineBody('逐级升压', ['- 目标: 立规矩', '- 行动/冲突: 演武场立威', '- 状态变化: 声望起'])}`)
+    const { code, data } = invoke(['--book', book, '--卷', '1', '--章', '2', '--章名', '老格式'])
+    expect(code).toBe(0)
+    expect(data.ok).toBe(true)
+    // ⑥：候选缺节不造爽点位行，也不误报账本状态
+    expect(data['⑥爽点铺垫']).toMatchObject({ 承诺账本: '未读', 已埋承诺条目: 0 })
+    expect(data['⑥爽点铺垫'].行).toEqual(['候选缺「### 冲突与爽点」节——⑥机械对账无爽点位可取，先落节再查'])
+    // ⑧：候选缺「本章形状」节时跳过章形比对，只比单元行
+    expect(data['⑧近五章重复'].比对序列).toEqual(['0001-第一章.md'])
+    expect(data['⑧近五章重复'].行).toEqual(['无同款'])
+  })
+
   it('缺参、书仓缺失与候选缺失都退出 1，不产伪结果', () => {
     const { ws, book } = fixture()
     const stderr = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -113,5 +135,24 @@ describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', (
     }
     expect(stderr).toHaveBeenCalled()
     stderr.mockRestore()
+  })
+})
+
+describe('十查机械.mjs 薄入口 spawn 冒烟', () => {
+  const entry = fileURLToPath(new URL('../skills/novel-outline/scripts/十查机械.mjs', import.meta.url))
+
+  it('薄入口上溯三级动态引 lib 运行库，候选在则退出 0 产出同一报告', () => {
+    const { book } = fixture()
+    const r = spawnSync(process.execPath, [entry, '--book', book, '--卷', '1', '--章', '5', '--章名', '第五章'], { encoding: 'utf-8' })
+    expect(r.status, r.stderr).toBe(0)
+    const data = JSON.parse(r.stdout)
+    expect(data.ok).toBe(true)
+    expect(data.候选).toBe('草稿区/章细纲/卷01-第五章.md')
+    expect(data['⑧近五章重复'].比对序列[0]).toBe('0004-第四章.md')
+  })
+
+  it('缺参经薄入口退出 1——退出码协议透传，不是加载崩溃（崩溃应为 3）', () => {
+    const r = spawnSync(process.execPath, [entry], { encoding: 'utf-8' })
+    expect(r.status, r.stderr).toBe(1)
   })
 })

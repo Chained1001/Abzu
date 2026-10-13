@@ -10,7 +10,7 @@ import * as path from 'node:path'
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { removeSync } from './remove'
 import { renameSync } from './rename'
-import { currentBookProvenance, GUARD_STALE_MS, lockIsStale, RUNTIME_DIR, TRANSACTION_DIR, withBookLock } from './lock'
+import { currentBookProvenance, lockIsStale, RUNTIME_DIR, TRANSACTION_DIR, withBookLock } from './lock'
 
 export const QUARANTINE_DIR = `${RUNTIME_DIR}/quarantine`
 import { canonicalizePath, isInsideCanonicalRoot } from '../gate/canonical'
@@ -505,7 +505,7 @@ export function diagnoseBookRuntime(bookRoot: string): string[] {
   const runtime = path.join(bookRoot, RUNTIME_DIR)
   const guard = path.join(runtime, 'acquire.lock')
   const lock = path.join(runtime, 'book.lock')
-  if (fs.existsSync(guard) && lockIsStale(guard, GUARD_STALE_MS)) notes.push('残留 .abzu/acquire.lock：下次写入时会自动回收')
+  if (fs.existsSync(guard) && lockIsStale(guard)) notes.push('残留 .abzu/acquire.lock：下次写入时会自动回收')
   if (fs.existsSync(lock) && lockIsStale(lock)) notes.push('残留 .abzu/book.lock：持有进程已退出，下次写入时会自动回收')
   for (const record of listQuarantined(bookRoot)) {
     const targets = record.targets === null ? '目标未知' : `涉及 ${record.targets.join('、')}`

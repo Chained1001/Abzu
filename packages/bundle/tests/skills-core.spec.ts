@@ -225,7 +225,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(readSkill('novel-outline')).toContain('按 `## §x.y` 标题定位后只读该节，不整文件读入')
     const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
     expect(checks).toContain('判据延伸：读 [06_章纲](../references/06_章纲.md) §6.1')
-    expect(readSkill('novel-drafting')).toContain('判据：读 [07_正文写作](references/07_正文写作.md) §7.1')
+    expect(readSkill('novel-drafting')).toContain('按所选卡卡头标注的节源（[07_正文写作](references/07_正文写作.md) 的 §x.y）只读该节')
     expect(readSkill('novel-drafting')).toContain('按当前场景选择性引用')
     expect(readSkill('novel-drafting')).toContain('§7.13（中文行文怎么不怪异')
     expect(readSkill('novel-director')).toContain('[08_修订排障](references/08_修订排障.md) 的 **§8.0 排障索引**')

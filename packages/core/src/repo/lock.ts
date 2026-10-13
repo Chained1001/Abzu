@@ -84,8 +84,6 @@ export class BookLockError extends Error {
 
 /** Heartbeat age is diagnostic only; an expired heartbeat does not revoke a live writer. */
 export const LOCK_STALE_MS = 10 * 60_000
-/** The acquire guard is held for a few file operations only. */
-export const GUARD_STALE_MS = 30_000
 const HEARTBEAT_MS = 10_000
 const RETRY_LIMIT_MS = 2_000
 const host = os.hostname()
@@ -104,7 +102,7 @@ function readOwner(file: string): LockOwner | undefined {
  * Only a demonstrably exited owner may be reclaimed. Unknown/remote owners
  * fail closed. A timestamp predating this process detects reuse of our own PID.
  */
-export function lockIsStale(file: string, _staleMs = LOCK_STALE_MS): boolean {
+export function lockIsStale(file: string): boolean {
   const owner = readOwner(file)
   if (owner === undefined) return false
   const pid = owner.pid
@@ -190,7 +188,7 @@ function acquireWriterMutex(runtime: string, owner: string): () => void {
 function tryAcquire(guard: string, lock: string, owner: string): 'acquired' | 'busy' | 'busy-self' {
   try { fs.writeFileSync(guard, owner, { flag: 'wx', mode: 0o600 }) } catch (error) {
     if (!fs.existsSync(guard)) throw error
-    if (lockIsStale(guard, GUARD_STALE_MS)) reclaim(guard)
+    if (lockIsStale(guard)) reclaim(guard)
     return 'busy'
   }
   try {
