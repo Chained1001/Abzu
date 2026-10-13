@@ -135,7 +135,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     // 0B 节级索引.yaml 不入包（发行正则只认 md/mjs），节级核验直接解析分发件 §x.y 标题
     const kbFiles = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '0A_第一性原理层.md']
     const chapterFile: Record<string, string> = { '1': '01_开书.md', '2': '02_人物设计.md', '3': '03_世界观设计.md', '4': '04_大纲.md', '5': '05_卷纲.md' }
-    const stamp = '> 知识库净版 · 源版本 v2.0.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+    const stamp = '> 知识库净版 · 源版本 v2.3 · 净版纪律见 docs/design/增强实施计划.md §二'
     const headings = new Map<string, Set<string>>()
     for (const f of kbFiles) {
       const p = path.join(refsDir, f)
@@ -180,7 +180,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       { skill: 'novel-drafting', file: '07_正文写作.md', chapter: '7' },
       { skill: 'novel-director', file: '08_修订排障.md', chapter: '8' },
     ]
-    const stamp = '> 知识库净版 · 源版本 v2.0.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+    const stamp = '> 知识库净版 · 源版本 v2.3 · 净版纪律见 docs/design/增强实施计划.md §二'
     // 章→分发件全映射（1-5 在 novel-design），三 SKILL 里出现的任何 §x.y 都要能落到对应文件
     const chapterFile: Record<string, { skill: string; file: string }> = {
       '1': { skill: 'novel-design', file: '01_开书.md' }, '2': { skill: 'novel-design', file: '02_人物设计.md' },
@@ -421,7 +421,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
 
 describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域拆分）', () => {
   const extractScript = path.join(__dirname, '..', 'scripts', 'kb-extract.mjs')
-  const stamp = '> 知识库净版 · 源版本 v2.0.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+  const stamp = '> 知识库净版 · 源版本 v2.3 · 净版纪律见 docs/design/增强实施计划.md §二'
   const kbFiles = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '06_章纲.md', '07_正文写作.md', '08_修订排障.md', '0A_第一性原理层.md']
 
   it('kb-extract.mjs 存在且 --check 模式全链路可跑：夹具源 --write→--check 退出码 0，篡改→退出码 1', () => {
