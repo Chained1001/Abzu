@@ -1423,7 +1423,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     for (const f of walkDocs(docsRoot)) {
       const text = fs.readFileSync(f, 'utf8')
       // 0.0.43 收口缩面：仅「模型写作机制调研.md」豁免 '2000'（LongWriter 研究引文，非篇幅示例），精确文件名匹配；其余数值全目录全量扫
-      const staleNums = path.basename(f) === '模型写作机制调研.md' ? ['1600', '2400'] : ['2000', '1600', '2400']
+      // 0.0.44 独立化批：设计源存档/证据存档为归档区（历史证据原文携旧数值），整树豁免——活文档仍全量扫
+      const archived = f.includes('设计源存档') || f.includes('证据存档')
+      const staleNums = archived ? [] : path.basename(f) === '模型写作机制调研.md' ? ['1600', '2400'] : ['2000', '1600', '2400']
       for (const staleNum of staleNums) {
         expect(text, `docs 全目录不应残留旧篇幅数值「${staleNum}」：${path.relative(docsRoot, f)}`).not.toContain(staleNum)
       }
