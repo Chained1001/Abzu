@@ -184,7 +184,7 @@ function payoffRows(book: string, 卷: number, 章: number, body: string): Recor
   const 承诺文件 = paths.账本('承诺')
   const 账本状态 = ledger.files.includes(承诺文件)
     ? '已读'
-    : ledger.kind === 'parse-error' && ledger.file === 承诺文件 ? '解析失败' : '未建账'
+    : !ledger.ok && ledger.kind === 'parse-error' && ledger.file === 承诺文件 ? '解析失败' : '未建账'
   return { 承诺账本: 账本状态, 已埋承诺条目: planted.length, 上一章摘要: summary?.file ?? null, 行: lines }
 }
 
