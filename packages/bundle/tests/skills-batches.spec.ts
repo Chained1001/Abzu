@@ -119,9 +119,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(readSkill('novel-design')).toContain('判据：读 [卷纲-节奏与高潮](references/卷纲-节奏与高潮.md)')
     expect(readSkill('novel-drafting')).toContain('§7.5（叙述视角技术')
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
-    //（v2.4.2 阶段2 拆分：02_人物设计 §2.18 并入《人物设计-金手指设计》——断言随裁同步）
+    //（v2.4.2 阶段2 拆分：02_人物设计 §2.18 并入《人物设计-金手指设计》；v2.4.3 阶段3 拆分：03_世界观设计 §3.9 并入《世界观-力量体系与天花板》——断言随裁同步）
     expect(checks).toContain('《人物设计-金手指设计》（跨包：novel-design/references/，整读）')
-    expect(checks).toContain('03_世界观设计 §3.9')
+    expect(checks).toContain('《世界观-力量体系与天花板》（跨包：novel-design/references/，整读）')
     expect(checks).toContain('完整版在《定调设计》技能包')
     expect(checks, '写前十查不得用跨包相对链接（人物/03 判据在 novel-design 包）').not.toContain('](../novel-design')
     // C1. 呈确认件统一格式：门槛＋十查双轨合并一张表
@@ -358,13 +358,13 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // F. 注册单源：artifact-contract 登记写作卡
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
     expect(contract).toContain("'skills/novel-drafting/agents/写作卡.md'")
-    // G. KB 节级健康断言：分发件逐二级节行跨度 ≤ 上限（v2.4.1 阶段1 04/05 拆 9 件、v2.4.2 阶段2 02 拆 6 件，共 21 件）。
+    // G. KB 节级健康断言：分发件逐二级节行跨度 ≤ 上限（v2.4.1 阶段1 04/05 拆 9 件、v2.4.2 阶段2 02 拆 6 件、v2.4.3 阶段3 01/03 拆 8 件，共 27 件）。
     // 实测依据（2026-10-10，0.0.15 批前测量）：九件全部二级节最大行跨度 103 行
     // （08_修订排障.md §8.5 毒点怎么查），向上取整到十位＝110。0A_第一性原理层无
     // § 节但「原语」同为二级节，一并受上限约束。目的＝拦知识库升版导致的节膨胀，
     // 不是改现有文件。
     const kbFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
-      ...['01_开书.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md']
+      ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md']
         .map((file) => ({ skill: 'novel-design', file })),
       { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
       { skill: 'novel-outline', file: '06_章纲.md' },
@@ -2190,19 +2190,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.36＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.35 零残留（v2.4.2 阶段2 拆分批接力）
+    // C. 版本纪律全套：两 package.json 0.0.37＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.36 零残留（v2.4.3 阶段3 拆分批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.36').toBe('0.0.36')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.36').toBe('0.0.36')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.36]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.37').toBe('0.0.37')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.37').toBe('0.0.37')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.37]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.36`).toContain('0.0.36')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.37`).toContain('0.0.37')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.35`).not.toContain('0.0.35')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.36`).not.toContain('0.0.36')
       }
     }
   })
