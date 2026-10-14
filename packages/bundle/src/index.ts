@@ -39,8 +39,30 @@ import { ReferenceHost } from './reference/host'
 import type { FileSystem } from '@deepseek-ai/dsh-fs'
 import type { LlmRuntime } from '@deepseek-ai/dsh-llm'
 import type { SettingsForms } from '@deepseek-ai/dsh-settings'
+import type { SelfCheckStatus, SelfCheckSnapshot } from './self-check'
+import { readSelfCheck, recordSelfCheck } from './self-check'
 
 export const name = 'abzu-bundle'
+
+/** R1 装机自检快照（Arch 草案 B 档：只读查询，排障脚本与测试直接调）。 */
+export function abzuSelfCheck(): SelfCheckSnapshot {
+  return readSelfCheck()
+}
+
+/** R1 A 档：一行固定字段的结构化自检日志。字段名是契约，顺序不承诺；值里不夹自由文本。 */
+function logSelfCheckLine(logger: { info(message: string): void }, root: string, books: number): void {
+  const snapshot = readSelfCheck()
+  const ids = (status: SelfCheckStatus): string[] =>
+    snapshot.items.filter((item) => item.status === status).map((item) => item.id)
+  logger.info(JSON.stringify({
+    event: 'abzu.self-check',
+    degraded: ids('degraded'),
+    missing: ids('missing'),
+    pending: ids('pending'),
+    workspace: root,
+    books,
+  }))
+}
 
 /**
  * 确定性检查脚本的 CLI 能力（R21/A1）：薄入口
@@ -319,16 +341,24 @@ export function apply(ctx: Context) {
   ctx.logger.info('工作台插件已加载（abzu bundle）')
   const bundledSkillDir = fileURLToPath(new URL('../skills/', import.meta.url))
   if (typeof ctx.inject !== 'function' || typeof ctx.plugin !== 'function') {
+    recordSelfCheck('host.inject', 'missing', '宿主缺少 inject/plugin 能力')
+    recordSelfCheck('skills.mount', 'missing', '宿主缺少 inject/plugin 能力，随包技能无法挂载')
     ctx.logger.warn('[abzu-bundle] 随包技能未挂载：宿主缺少 inject/plugin 能力，请核对 DSH 版本。')
   } else if (!existsSync(bundledSkillDir)) {
+    recordSelfCheck('skills.dir', 'missing', `安装包缺少技能目录 ${bundledSkillDir}`)
+    recordSelfCheck('skills.mount', 'missing', `技能目录缺失 ${bundledSkillDir}`)
     ctx.logger.warn(`[abzu-bundle] 随包技能未挂载：安装包缺少技能目录 ${bundledSkillDir}`)
   } else {
+    recordSelfCheck('host.inject', 'ok', '宿主具备 inject/plugin 能力')
+    recordSelfCheck('skills.dir', 'ok', `技能目录存在 ${bundledSkillDir}`)
+    recordSelfCheck('skills.mount', 'pending', '已声明 skills 依赖，等待宿主就绪')
     ctx.inject(['skills'], scope => {
       scope.plugin(skillFilesystem, {
         providerName: 'abzu-bundled',
         includeDefaultRoots: false,
         bundledSkillDir,
       })
+      recordSelfCheck('skills.mount', 'ok', '随包技能已挂载（abzu-bundled）')
     })
   }
 
@@ -381,6 +411,11 @@ export function apply(ctx: Context) {
     nativeBridge = runtime !== undefined && typeof runtime.execute === 'function' ? createNativeWriteBridge(runtime) : undefined
     const bridge = nativeBridge
     step(scope, 'native-write', () => () => { bridge?.dispose() })
+    recordSelfCheck('tools.kit',
+      runtime === undefined ? 'pending' : askFn === undefined ? 'degraded' : 'ok',
+      runtime === undefined ? 'tools 服务未就绪，工具集不完整'
+        : askFn === undefined ? '裁决通道缺失（userQuestions.ask），定稿沉淀不可用'
+          : '工具集已建（裁决通道可用）')
     toolKit = {
       askFn,
       defs: createNovelTools({
@@ -440,9 +475,9 @@ export function apply(ctx: Context) {
   function enforceChildApproval(agent: AgentLike): void {
     if (isMainAgent(agent)) return
     const approval = agentCtxGet<{ setPolicy?: (agent: unknown, policy: 'never') => void }>(agent, 'approval')
-    if (typeof approval?.setPolicy !== 'function') return
-    try { approval.setPolicy(agent, 'never') }
-    catch (err) { ctx.logger.warn(`[abzu-bundle] 子 Agent 审批策略设置失败（${agent.id}）：${String(err)}`) }
+    if (typeof approval?.setPolicy !== 'function') { recordSelfCheck('approval.policy', 'missing', `宿主无 approval.setPolicy（子 Agent ${agent.id}）`); return }
+    try { approval.setPolicy(agent, 'never'); recordSelfCheck('approval.policy', 'ok', `子 Agent 审批策略已设为 never（${agent.id}）`) }
+    catch (err) { recordSelfCheck('approval.policy', 'degraded', `子 Agent 审批策略设置失败（${agent.id}）：${String(err)}`); ctx.logger.warn(`[abzu-bundle] 子 Agent 审批策略设置失败（${agent.id}）：${String(err)}`) }
   }
 
   /** 子 Agent restrict（E2）：deny 名单须是子 Agent 当前可见面的已知名字，
@@ -475,6 +510,8 @@ export function apply(ctx: Context) {
       step(scope, 'abzu:workspace-generation', () => {
         const generation = claimWorkspaceRoot(ctxGet(scope, 'workspaceRegistry'))
         if (generation !== undefined) claimed = generation
+        recordSelfCheck('workspace.root', generation === undefined ? 'pending' : 'ok',
+          generation === undefined ? 'workspaceRegistry 就绪但工作区清单为空' : `已认领工作范围（${generation}）`)
         return () => { releaseWorkspaceRoot(generation) }
       })
     })
@@ -484,6 +521,13 @@ export function apply(ctx: Context) {
     // 上面两条都认不到 —— 工作范围永远为空,状态注入返回空串被组装侧过滤,总览静默缺席
     // （2026-09-01 真机实证）。照 dsh 自己 launchEnvironmentOf 的形状退回进程默认。
     if (currentWorkspaceRoot() === undefined) claimed = claimProcessCwd()
+    const settledRoot = currentWorkspaceRoot()
+    const settledByFallback = workspaceRootState.isFallback
+    recordSelfCheck('workspace.root',
+      settledRoot === undefined ? 'missing' : settledByFallback ? 'degraded' : 'ok',
+      settledRoot === undefined ? '未认到工作范围：workspaceRegistry 缺席且 cwd 兜底不可用'
+        : settledByFallback ? `workspaceRegistry 未就绪，退回进程 cwd（${settledRoot}）`
+          : `已认领工作范围（${settledRoot}）`)
     return () => {
       releaseWorkspaceRoot(claimed)
       void reg.fiber?.dispose?.()
@@ -538,14 +582,20 @@ export function apply(ctx: Context) {
         try {
           const offPersona = attachPersonaToAgent(agentCtx as unknown as AgentCtxLike, undefined, { logger: ctx.logger })
           if (offPersona !== undefined) attached.push(offPersona)
+          recordSelfCheck('persona.mount', offPersona === undefined ? 'missing' : 'ok',
+            offPersona === undefined ? `宿主无 systemPrompt 表面（${agentId}）` : `主 Agent persona 已挂载（${agentId}）`)
         } catch (err) {
+          recordSelfCheck('persona.mount', 'degraded', `persona 挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
           ctx.logger.warn(`[abzu-bundle] persona 挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
         }
         // 书架总览——经 agent.ctx 挂 scoped systemPrompt.context。
         try {
           const offStatus = attachStatusToAgent(agentCtx, { workspaceRoot: rootOf })
           if (offStatus !== undefined) attached.push(offStatus)
+          recordSelfCheck('status.mount', offStatus === undefined ? 'missing' : 'ok',
+            offStatus === undefined ? `宿主无 systemPrompt 表面（${agentId}）` : `书架总览已挂载（${agentId}）`)
         } catch (err) {
+          recordSelfCheck('status.mount', 'degraded', `状态注入挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
           ctx.logger.warn(`[abzu-bundle] 状态注入挂载失败（${agentId}）：${err instanceof Error ? err.message : String(err)}`)
         }
         // 主 Agent scoped 工具注册（toolKit 未就绪时由第三步反应式补装）。
@@ -577,6 +627,8 @@ export function apply(ctx: Context) {
       })
       if (offGate === undefined) ctx.logger.warn(`[abzu-bundle] 文件门禁未挂载（${agentId}）。`)
       else attached.push(offGate)
+      recordSelfCheck('gate.file', offGate === undefined ? 'missing' : 'ok',
+        offGate === undefined ? `文件门禁未挂载（${agentId}）` : `文件门禁已挂载（${agentId}）`)
 
       // 数据保护批 #2:文件工具写进草稿区/书房后自动版本化快照(tools/result 观察者)。
       const offSnap = attachDraftSnapshotToAgent(agentCtx as unknown as { readonly on?: (event: string, listener: (...args: never[]) => unknown) => unknown }, {
@@ -604,6 +656,8 @@ export function apply(ctx: Context) {
     // 初装：现有 agents（同样经 inject 声明，agents 后到亦能补装）。
     const attachExisting = (scope: Context): void => {
       const agents = ctxGet<{ readonly list: () => ReadonlyArray<unknown> }>(scope, 'agents')
+      recordSelfCheck('agents.surface', agents === undefined ? 'pending' : 'ok',
+        agents === undefined ? 'agents 服务未就绪（等待宿主）' : 'agents 服务就绪')
       if (agents === undefined) return
       for (const a of agents.list() as ReadonlyArray<AgentLike>) installFor(a)
     }
@@ -633,6 +687,13 @@ export function apply(ctx: Context) {
         for (const agent of installedAgents.values()) {
           if (!isMainAgent(agent)) restrictNovelToolsInto(agent)
         }
+        const mains = [...installedAgents.values()].filter(isMainAgent)
+        const registeredAll = mains.every((agent) => agentToolOffs.has(agent.id))
+        recordSelfCheck('tools.register',
+          mains.length === 0 ? 'pending' : registeredAll ? 'ok' : 'degraded',
+          mains.length === 0 ? '尚无主 Agent（等待宿主创建会话）'
+            : registeredAll ? `已注册 ${toolKit?.defs.length ?? 0} 个工具到 ${mains.length} 个主 Agent`
+              : '部分主 Agent 工具注册未成功（工具面不可用）')
         return () => {
           disposeAllAgentTools()
           toolKit = undefined
@@ -662,6 +723,7 @@ export function apply(ctx: Context) {
     if (root === undefined) return
     const books = scanBooks(root)
     ctx.logger.info(`[abzu-bundle] 工作范围已注册：${root}（${books.length} 本书）`)
+    logSelfCheckLine(ctx.logger, root, books.length)
   })
   void indexing.refresh()
 }
