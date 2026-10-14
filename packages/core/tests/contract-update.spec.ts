@@ -97,8 +97,8 @@ const sectionNames = (text: string): string[] =>
 
 const LENGTH_BLOCK = '### 章节篇幅\n- 目标汉字数: 2000\n- 下限汉字数: 1600\n- 上限汉字数: 2400'
 
-describe('C-01 core 按节替换（其余字节原样保留）', () => {
-  it('a) 未更新部分逐字节不动：目标节之前与之后两段切片与原文完全相同', () => {
+describe('C-01 core 按节替换（其余内容与顺序保留）', () => {
+  it('a) 未更新部分内容与顺序不动：目标节之前与之后两段切片与原文完全相同', () => {
     put(ORIGINAL)
     const marker = '## 主角原则与关系边界'
     const before = parseDocument(ORIGINAL)
