@@ -3,8 +3,7 @@
  * 写入器只写文件不碰 git;提交由工具层在作者确认时经 commitConfirmed 执行(拍板 1/7)。
  */
 
-import * as fs from 'node:fs'
-import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { writeFileAtomic, type FileOp } from '../repo/atomic'
 import { applyVersionFields, bumpVersion, initialVersion } from '../provenance'
@@ -12,12 +11,11 @@ import { paths } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
 
 function readTextOrNull(bookRoot: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(bookRoot, rel), 'utf-8')
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null
-    throw error
-  }
+  // A-2：读原语单源，但**保留本处特例**——只有 missing 算「没有」，io 照旧抛出（带原 errno）。
+  const result = readBookText(bookRoot, rel)
+  if (result.ok) return result.text
+  if (result.reason === 'missing') return null
+  throw Object.assign(new Error(result.detail), result.code === undefined ? {} : { code: result.code })
 }
 
 export interface DesignWriteResult {

@@ -4,6 +4,7 @@
 
 import { createHash } from 'node:crypto'
 import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import type { ChapterKey } from '../derive/scan'
 import { writeFileAtomic } from '../repo/atomic'
 import { paths } from '../repo/paths'
@@ -118,12 +119,9 @@ export function isReviewIncomplete(record: ReviewRecord): boolean {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    // 修复(0.0.20 批 bug7):审核记录是机器态 JSON,读取统一走 readMachineText(剥 BOM)——原先不剥,外部编辑器存 BOM 即解析失败回退空记录
-    return readMachineText(path.join(root, rel))
-  } catch {
-    return null
-  }
+  // A-2：读原语单源（同样剥 BOM，与 readMachineText 口径一致）；判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 function asDisposition(v: unknown): 处置状态 {

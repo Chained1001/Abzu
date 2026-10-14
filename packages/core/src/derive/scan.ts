@@ -5,6 +5,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import { parseDocument } from '../repo/frontmatter'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { isWindowEntryReady } from './states'
@@ -52,12 +53,9 @@ export interface ChapterFacts {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    // readFileSync(utf-8) 保留 BOM,而材料清单/裁决等机器态 JSON 解析不容忍——扫描读取边界统一剥首部 BOM,与 parseDocument 口径一致
-    return fs.readFileSync(path.join(root, rel), 'utf-8').replace(/^\uFEFF/, '')
-  } catch {
-    return null
-  }
+  // A-2：读原语单源（剥 BOM 口径已内建，与 scan 原先一致）；判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 /** 近期窗口条目行式:`- <名称> 〔状态〕`(parseWindow 与重建保留行判定共用同一正则)。 */

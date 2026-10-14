@@ -17,7 +17,7 @@ import * as path from 'node:path'
 
 export type BookTextResult =
   | { readonly ok: true; readonly text: string }
-  | { readonly ok: false; readonly reason: 'missing' | 'io'; readonly detail: string }
+  | { readonly ok: false; readonly reason: 'missing' | 'io'; readonly detail: string; /** 原 errno，供需要「原样重抛」的调用方保留 code（如 design/skeleton 的 ENOENT-only 特例）。 */ readonly code?: string }
 
 /** 读书仓内文本：`rel` 为书仓相对路径（`/` 与 `\` 都收）。 */
 export function readBookText(root: string, rel: string): BookTextResult {
@@ -27,11 +27,12 @@ export function readBookText(root: string, rel: string): BookTextResult {
     raw = fs.readFileSync(target, 'utf8')
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code
-    if (code === 'ENOENT') return { ok: false, reason: 'missing', detail: `文件不存在：${rel}` }
+    if (code === 'ENOENT') return { ok: false, reason: 'missing', detail: `文件不存在：${rel}`, ...(code === undefined ? {} : { code }) }
     return {
       ok: false,
       reason: 'io',
       detail: `读取失败：${rel}（${code ?? '未知错误'}：${error instanceof Error ? error.message : String(error)}）`,
+      ...(code === undefined ? {} : { code }),
     }
   }
   return { ok: true, text: raw.replace(/^\uFEFF/, '') }

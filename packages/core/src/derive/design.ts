@@ -4,6 +4,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import { parseDocument } from '../repo/frontmatter'
 import { CN_NUMERAL, isMarkdownFileName, pad, paths } from '../repo/paths'
 import { parseWindow } from './scan'
@@ -351,11 +352,9 @@ export function moduleHasConfirmedEntry(root: string, 模块: string): boolean {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 function exists(abs: string): boolean {

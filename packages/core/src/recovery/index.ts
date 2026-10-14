@@ -2,8 +2,7 @@
  * 事件与恢复(插件规格 §4.1/§8):恢复只从书仓推导，不依赖会话记忆。
  */
 
-import * as fs from 'node:fs'
-import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import { deriveChapterFacts, type ChapterDerivation } from '../derive/derive'
 import { listChapters, scanChapter, type ChapterFacts, type ChapterKey } from '../derive/scan'
 import { loadMaterialPackage } from '../assembly/read'
@@ -26,7 +25,9 @@ export interface ResumeSnapshot {
 }
 
 function read(root: string, rel: string): string {
-  try { return fs.readFileSync(path.join(root, rel), 'utf8') } catch { return '' }
+  // A-2：整函数换成读原语，判据不变——非 missing 也仍返回空串（收紧留待步 3）。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : ''
 }
 
 function advice(环节: string): string {

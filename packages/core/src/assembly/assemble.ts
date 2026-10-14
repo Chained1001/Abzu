@@ -4,8 +4,8 @@
  * 世界书历史事实省略处显式标注指回真源——体量不随书增长(PRD §10.2 规模不变量 1)。
  */
 
-import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import { listChapters, parseWindow, type ChapterKey } from '../derive/scan'
 import { entryChapterNo as ledgerEntryChapterNo, queryDueLedger, queryLedger, queryMemory, type LedgerEntry } from '../ledger'
 import { parseOutline } from '../outline/parse'
@@ -72,11 +72,9 @@ export interface MaterialManifest {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 function asRefLine(raw: string): string {

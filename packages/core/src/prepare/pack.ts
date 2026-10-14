@@ -3,8 +3,8 @@
  */
 
 import { createHash } from 'node:crypto'
-import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import type { ChapterKey } from '../derive/scan'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
@@ -55,11 +55,9 @@ function sha256Of(content: string): string {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 /**

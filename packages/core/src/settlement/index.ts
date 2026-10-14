@@ -1,5 +1,6 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import type { ChapterKey } from '../derive/scan'
 import type { FileOp } from '../repo/atomic'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
@@ -56,11 +57,9 @@ const placeholderText = new Set([
 const normal = (text: string): string => text.replace(/\r\n/g, '\n').replace(/\n+$/, '')
 
 function readOptional(packageAbs: string, file: string): string {
-  try {
-    return fs.readFileSync(path.join(packageAbs, file), 'utf-8')
-  } catch {
-    return ''
-  }
+  // A-2：读原语单源，判据不变——非 missing 也仍返回空串（收紧留待步 3）。
+  const result = readBookText(packageAbs, file)
+  return result.ok ? result.text : ''
 }
 
 /**
@@ -570,10 +569,8 @@ function planSettlementUnsafe(
 }
 
 function readExisting(root: string, relPath: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, relPath), 'utf-8')
-  } catch {
-    return null
-  }
+  // A-2：读原语单源；判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, relPath)
+  return result.ok ? result.text : null
 }
 export { writeSettlementDecision } from './decision'

@@ -3,8 +3,7 @@
  * 不调用 runReview / polish。硬约束回查失败写入报告、不阻断保存；正式结论交之后的审核。
  */
 
-import * as fs from 'node:fs'
-import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import type { ChapterKey } from '../derive/scan'
 import { classifyHardConstraint, parseOutline } from '../outline/parse'
 import { paths } from '../repo/paths'
@@ -26,11 +25,9 @@ export interface FollowupReport {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 export function followupReport(

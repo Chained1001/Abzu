@@ -6,6 +6,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument, serializeDocument } from './frontmatter'
 import { writeFileAtomic } from './atomic'
+import { readBookText } from './read'
 import { extractVersionFields } from '../provenance'
 import { filenameCase, isMarkdownFileName, paths } from './paths'
 import type { ChapterKey } from '../derive/scan'
@@ -27,11 +28,9 @@ export interface DraftFile {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 export function isNumberedDraftPath(relative: string): boolean {
