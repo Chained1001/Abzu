@@ -18,7 +18,8 @@
     "check:version": "node scripts/release/version.mjs --check",
     "test:release": "node --test scripts/release/tests/*.test.mjs",
     "release:build": "node scripts/release/build.mjs",
-    "lint:fix": "eslint --fix packages scripts"
+    "lint:fix": "eslint --fix packages scripts",
+    "audit:public": "pnpm audit --audit-level=high --registry=https://registry.npmjs.org/"
   },
   "engines": {
     "node": "^22.19.0 || ^24.0.0"

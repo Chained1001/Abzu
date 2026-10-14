@@ -1,9 +1,10 @@
 name: v8 CI
 on:
   pull_request:
-    branches: [v8]
+    branches: [master, v8]
   push:
-    branches: [v8]
+    branches: [master, v8]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -81,6 +82,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     continue-on-error: true
+    env:
+      ABZU_LOADER_REPORT: ${{ github.workspace }}/.tmp/ci/loader.json
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -95,6 +98,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test
+      - name: Preserve timings and worker failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ci-linux-observation-attempt-${{ github.run_attempt }}
+          path: .tmp/ci/
+          include-hidden-files: true
+          retention-days: 14
   required:
     name: v8-required
     runs-on: ubuntu-latest
