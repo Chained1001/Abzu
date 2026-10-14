@@ -133,10 +133,10 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
   it('E5′ KB 批：净版本域件存在带版本戳零标注残留；SKILL §x.y 引用逐一命中分发件标题（v2.4.1 节图全局化）', () => {
     const refsDir = path.join(__dirname, '..', 'skills', 'novel-design', 'references')
     // 0B 节级索引.yaml 不入包（发行正则只认 md/mjs），节级核验直接解析分发件 §x.y 标题
-    // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；节图改全局收集
-    const stamp = '> 知识库净版 · 源版本 v2.4.1 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；v2.4.2 阶段2：02 拆为 6 件；节图改全局收集
+    const stamp = '> 知识库净版 · 源版本 v2.4.2 · 净版纪律见 docs/design/增强实施计划.md §二'
     const kbFiles: ReadonlyArray<{ readonly dir: string; readonly file: string }> = [
-      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ dir: refsDir, file })),
+      ...['01_开书.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ dir: refsDir, file })),
       { dir: path.join(__dirname, '..', 'skills', 'novel-outline', 'references'), file: '章纲-信息与情绪.md' },
     ]
     const headings = new Set<string>()
@@ -179,11 +179,11 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       { skill: 'novel-drafting', file: '07_正文写作.md', chapter: '7' },
       { skill: 'novel-director', file: '08_修订排障.md', chapter: '8' },
     ]
-    const stamp = '> 知识库净版 · 源版本 v2.4.1 · 净版纪律见 docs/design/增强实施计划.md §二'
-    // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件——节图全局化（§→所在件集合），取代章→单文件映射；
+    const stamp = '> 知识库净版 · 源版本 v2.4.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件、v2.4.2 阶段2：§2.x 分驻人物件——节图全局化（§→所在件集合），取代章→单文件映射；
     // 三 SKILL 里出现的任何 §x.y 都要能落到某个分发件标题
     const kbAllFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
-      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ skill: 'novel-design', file })),
+      ...['01_开书.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ skill: 'novel-design', file })),
       { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
       { skill: 'novel-outline', file: '06_章纲.md' },
       { skill: 'novel-drafting', file: '07_正文写作.md' },
@@ -421,13 +421,13 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
 
 describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域拆分）', () => {
   const extractScript = path.join(__dirname, '..', 'scripts', 'kb-extract.mjs')
-  const stamp = '> 知识库净版 · 源版本 v2.4.1 · 净版纪律见 docs/design/增强实施计划.md §二'
-  const kbWhole = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '06_章纲.md', '07_正文写作.md', '08_修订排障.md', '0A_第一性原理层.md']
-  const kbPieces = ['大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md']
+  const stamp = '> 知识库净版 · 源版本 v2.4.2 · 净版纪律见 docs/design/增强实施计划.md §二'
+  const kbWhole = ['01_开书.md', '03_世界观设计.md', '06_章纲.md', '07_正文写作.md', '08_修订排障.md', '0A_第一性原理层.md']
+  const kbPieces = ['人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md']
 
   it('kb-extract.mjs 存在且 --check 模式全链路可跑：夹具源 --write→--check 退出码 0，篡改→退出码 1', () => {
     expect(fs.existsSync(extractScript), 'packages/bundle/scripts/kb-extract.mjs 应存在').toBe(true)
-    // 夹具源：16 件齐全（映射表全覆盖——v2.4.1 拆分件带件头三要素），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
+    // 夹具源：21 件齐全（映射表全覆盖——v2.4.2 拆分件带件头三要素），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
     const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-extract-spec-'))
     try {
       for (const [i, f] of kbWhole.entries()) {

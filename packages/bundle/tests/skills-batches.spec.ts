@@ -119,10 +119,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(readSkill('novel-design')).toContain('判据：读 [卷纲-节奏与高潮](references/卷纲-节奏与高潮.md)')
     expect(readSkill('novel-drafting')).toContain('§7.5（叙述视角技术')
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
-    expect(checks).toContain('02_人物设计 §2.18')
+    //（v2.4.2 阶段2 拆分：02_人物设计 §2.18 并入《人物设计-金手指设计》——断言随裁同步）
+    expect(checks).toContain('《人物设计-金手指设计》（跨包：novel-design/references/，整读）')
     expect(checks).toContain('03_世界观设计 §3.9')
     expect(checks).toContain('完整版在《定调设计》技能包')
-    expect(checks, '写前十查不得用跨包相对链接（02/03 在 novel-design 包）').not.toContain('](../novel-design')
+    expect(checks, '写前十查不得用跨包相对链接（人物/03 判据在 novel-design 包）').not.toContain('](../novel-design')
     // C1. 呈确认件统一格式：门槛＋十查双轨合并一张表
     const outline = readSkill('novel-outline')
     expect(outline).toContain('呈确认件统一格式')
@@ -224,7 +225,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('命中必然')
     expect(design).toContain('无法回避')
     expect(design).toContain('§4.12')
-    // A4. 反派正当性两问：KB 锚 §2.10（02_人物设计.md 标题存在由引用一致性测试另守）
+    // A4. 反派正当性两问：KB 锚 §2.10（标题在《人物设计-反派》，由引用一致性测试另守）
     expect(design).toContain('立场正当性')
     expect(design).toContain('体量正当性')
     expect(design).toContain('§2.10')
@@ -357,13 +358,13 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // F. 注册单源：artifact-contract 登记写作卡
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
     expect(contract).toContain("'skills/novel-drafting/agents/写作卡.md'")
-    // G. KB 节级健康断言：分发件逐二级节行跨度 ≤ 上限（v2.4.1 阶段1 起 04/05 拆为 9 件，共 16 件）。
+    // G. KB 节级健康断言：分发件逐二级节行跨度 ≤ 上限（v2.4.1 阶段1 04/05 拆 9 件、v2.4.2 阶段2 02 拆 6 件，共 21 件）。
     // 实测依据（2026-10-10，0.0.15 批前测量）：九件全部二级节最大行跨度 103 行
     // （08_修订排障.md §8.5 毒点怎么查），向上取整到十位＝110。0A_第一性原理层无
     // § 节但「原语」同为二级节，一并受上限约束。目的＝拦知识库升版导致的节膨胀，
     // 不是改现有文件。
     const kbFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
-      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md']
+      ...['01_开书.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md']
         .map((file) => ({ skill: 'novel-design', file })),
       { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
       { skill: 'novel-outline', file: '06_章纲.md' },
@@ -1054,7 +1055,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('下一轮参考标尺校准')
     // D. 全 skills prose 与 CONTEXT 独立「标尺」零命中（负向断言，排除参考标尺子串与 assets/）
     //    白名单两处豁免：标尺校准_六书.json＝仓库外校准产物文件名（文件名不改名）；
-    //    KB 净版 02_人物设计.md「存在本身就是标尺」＝弧光行比喻用法（非参考标尺简称），净版纪律只报告待作者裁定
+    //    KB 净版 人物设计-弧光与关系.md「存在本身就是标尺」＝弧光行比喻用法（非参考标尺简称），净版纪律只报告待作者裁定
     const skillsRoot = path.join(__dirname, '..', 'skills')
     const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
       .flatMap((e) => (e.isDirectory() && e.name !== 'assets' ? walkMd(path.join(dir, e.name)) : [path.join(dir, e.name)]))
@@ -1925,9 +1926,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // A. 件1＋件2：骨架步骤 3 判据行零 02 节缺位闭合——判据行补 §2.5/§2.14/§2.17（§2.14 关系矩阵随批同补），三子弹带部定位与判据节
     const skeletonCriteria = design.split('\n').find((l) => l.startsWith('   判据：读 [大纲-主线与骨架](references/大纲-主线与骨架.md)'))
     expect(skeletonCriteria, '骨架步骤 3 判据行应在位').toBeDefined()
-    for (const sec of ['§2.5', '§2.14', '§2.17']) {
-      expect(skeletonCriteria!, `骨架判据行应含 ${sec}（02 章节号缺位闭合）`).toContain(sec)
-    }
+    //（v2.4.2 阶段2 拆分：§2.5/§2.14/§2.17 所在整件《人物设计-弧光与关系》入判据行——断言随裁同步）
+    expect(skeletonCriteria!, '骨架判据行应含 §2.5/§2.14/§2.17 所在件（人物设计-弧光与关系）').toContain('人物设计-弧光与关系')
     expect(design).toContain('**弧光三型**（骨架「主角目标与成长轨迹」部对谈时过一遍；判据 §2.5 主角成长弧怎么排）')
     expect(design).toContain('起点信念')
     expect(design).toContain('扁平坚守（核心信念从没变，存在本身就是标尺）')
@@ -1943,9 +1943,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(power).toContain('到顶之后主角的新目标')
     expect(power).toContain('天花板即终局对手的位阶锚，与「对手梯队映射」终局行对照')
     // C. 件4：世界书步骤 2 判据行补 §2.7＋配角功能一问（八功能对号＋零功能砍或合并＋独立动机）
-    const worldCriteria = design.split('\n').find((l) => l.startsWith('   判据：读 [02_人物设计](references/02_人物设计.md) §2.2'))
+    const worldCriteria = design.split('\n').find((l) => l.startsWith('   判据：读 [人物设计-主角](references/人物设计-主角.md)'))
     expect(worldCriteria, '世界书步骤 2 判据行应在位').toBeDefined()
-    expect(worldCriteria!, '世界书判据行应含 §2.7').toContain('§2.7')
+    expect(worldCriteria!, '世界书判据行应含 §2.7 所在件（配角与群像）').toContain('人物设计-配角与群像')
     expect(design).toContain('**配角功能一问**（人物档案条目起稿时逐个常驻配角过一遍；判据 §2.7 配角功能怎么配）')
     for (const fn of ['情绪（拉扯情绪）', '困境（制造会恶化的阻碍）', '方法（给解决途径）', '冲突（扛最终对决）', '背景（攒嘲讽质疑、结局释放）', '伪装（误导再转折）', '任务（强制开支线）', '全局（分阶段推大方向）']) {
       expect(design, `配角八功能应含「${fn}」`).toContain(fn)
@@ -2190,19 +2190,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.35＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.34 零残留（v2.4.1 阶段1 拆分批接力）
+    // C. 版本纪律全套：两 package.json 0.0.36＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.35 零残留（v2.4.2 阶段2 拆分批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.35').toBe('0.0.35')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.35').toBe('0.0.35')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.35]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.36').toBe('0.0.36')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.36').toBe('0.0.36')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.36]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.35`).toContain('0.0.35')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.36`).toContain('0.0.36')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.34`).not.toContain('0.0.34')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.35`).not.toContain('0.0.35')
       }
     }
   })
