@@ -2190,19 +2190,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.41＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.40 零残留（T2 附录蒸馏批接力）
+    // C. 版本纪律全套：两 package.json 0.0.42＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.41 零残留（T3 小修回补批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.41').toBe('0.0.41')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.41').toBe('0.0.41')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.41]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.42').toBe('0.0.42')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.42').toBe('0.0.42')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.42]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.41`).toContain('0.0.41')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.42`).toContain('0.0.42')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.40`).not.toContain('0.0.40')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.41`).not.toContain('0.0.41')
       }
     }
   })
@@ -2791,5 +2791,50 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // H. 润色批 2 对话节删除测试：口径与审读侧 §7.8 单源（引节号不重述全文）
     const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
     expect(reshape).toContain('**删除测试**：盖住这句对白再读，信息量/性格/关系三者无损＝可删候选（删后语义不塌才准删；塌则留）——口径与《正文起草》技能包 references/正文-展示与对白.md §7.8 单源（引节号，不重述全文）')
+  })
+
+  it('T3 小修回补批：十件小修清账——9 项新落＋1 项核实已在位（KB v2.4.7，内容面收官）', () => {
+    const ref = (skill: string, file: string) => fs.readFileSync(path.join(__dirname, '..', 'skills', skill, file), 'utf8')
+    // 项1：附.5 屈辱感判据行落塑造卡（1e7ff06 虚报件回补——判据形态＋〔附.5〕溯源标注）
+    const cards = ref('novel-drafting', 'agents/写作卡.md')
+    expect(cards).toContain('屈辱感不写「他很屈辱」，写：他想反抗但动不了（耳鸣、血液上涌、指尖发麻）')
+    expect(cards).toContain('最大的否定是无视；他清醒地看着自己受辱却主动屈从')
+    expect(cards).toContain('读者看了会不会跟着揪心〔知识库附录·附.5〕')
+    // 项9：行文自查卡插入语行（§7.13 话语标记/语序域，判据式）
+    expect(cards).toContain('- 插入语：「说实话／不得不说／某种程度上」式句首插入语成串即删')
+    // 项2：附.4 残留四词入 tier4＋其余七词已有位锚（含「不分发」诚实标注——附录指针闸）
+    const clean = ref('novel-polish', 'references/1-表达清理.md')
+    expect(clean).toContain('慎用句式清单（附.4，附录不分发）残留四词')
+    for (const w of ['眼神微眯（高频套路表情', 'A市／法拉利（偷懒地名品牌名', '车祸失忆（狗血梗契机']) {
+      expect(clean, `tier4 应含残留词目「${w}」`).toContain(w)
+    }
+    expect(clean).toContain('对白标签族「淡淡道／他说他道」改法在批 2「标签与动作」行')
+    // 项3：象征物半层——润色意象节＋细纲★位（两处引 §4.11 溯源）
+    const reshape = ref('novel-polish', 'references/2-节奏与重塑.md')
+    expect(reshape).toContain('对象带象征义时意象节加查半层——物是否复现、含义是否递进（判据源 §4.11')
+    const outlineSpec = ref('novel-outline', 'templates/章细纲固定小节规格.md')
+    expect(outlineSpec).toContain('★单元的对象带象征义时加查半层——物是否复现、含义是否递进（判据源 §4.11')
+    // 项4：世界书模板增行×2（稀缺资源四问→地图；经济循环→世界规则；源出 §3.10）
+    expect(ref('novel-design', 'templates/世界书/地图条目模板.md')).toContain('- 稀缺资源四问：<这张图上人人想要的资源——谁垄断／别人要付什么代价／谁在受害／什么条件下打破垄断')
+    expect(ref('novel-design', 'templates/世界书/世界规则条目模板.md')).toContain('- 经济循环：<这条规则让什么流动起来')
+    // 项5：层层垫高入作家评审骨架 D1 尾行（挂 §4.13）
+    expect(ref('novel-design', 'agents/作家评审.md')).toContain('6. 层层垫高了吗——每个反转的赌注/规模比上一个高吗，还是一路平推到赢（§4.13；故事阶段与关键转折）')
+    // 项6：七底版可选菜单入 design 步骤3（源 §2.12 关系公式型——菜单+判据形态）
+    const design = ref('novel-design', 'SKILL.md')
+    expect(design).toContain('**关系底版菜单（可选）**：感情线对谈时把七种关系底版作候选过一遍（判据 §2.12 感情线怎么写不尬·关系公式型）')
+    for (const b of ['欢喜冤家', '黑暗救赎', '霸道总裁', '青梅竹马', '纯洁暧昧', '假戏真做', '相爱相杀']) {
+      expect(design, `七底版应含「${b}」`).toContain(b)
+    }
+    // 项7：§1.1 画面三问半句（KB 源修补的分发面）＋§2.1 五要素枚举已在位现状锚
+    expect(ref('novel-design', 'references/开书-构思与验证.md')).toContain('能用一句话说出**核心画面**，过一遍画面三问：')
+    expect(ref('novel-design', 'references/人物设计-主角.md'), '项7 之 §2.1 五要素枚举应已在位（现状锚）').toContain('身份定完，再过一遍五要素：')
+    // 项8：§8.10 双部件检索位行（KB 源修补的分发面）
+    expect(ref('novel-director', 'references/排障-长篇防崩.md')).toContain('| 双部件检索位 | 决策点回查先走台账再叠人设卡：亲历记忆从状态四栏的变更史与"谁知道"栏检索')
+    // 项10：§6.6 铺垫三件事并入判断标准区（KB 源修补的分发面）
+    expect(ref('novel-outline', 'references/章纲-场景与节奏.md')).toContain('铺垫段只写叠 BUFF 的三件事吗？（反派多嚣张／众人多看衰／主角有什么暗牌')
+    // KB v2.4.7 重戳：三处源侧修补件的净版戳（全量戳位由 skills-core 净版纪律断言守）
+    for (const [skill, file] of [['novel-design', 'references/开书-构思与验证.md'], ['novel-director', 'references/排障-长篇防崩.md'], ['novel-outline', 'references/章纲-场景与节奏.md']] as const) {
+      expect(ref(skill, file), `${file} 净版戳应为 v2.4.7`).toContain('源版本 v2.4.7')
+    }
   })
 })
