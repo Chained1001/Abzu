@@ -75,11 +75,12 @@ describe('D-2 书房 API 路由随插件生命周期退场', () => {
     expect(routes.size, '晚到路由不得留在宿主上').toBe(0)
   })
 
-  it('重复卸载幂等，不抛', () => {
+  it('重复卸载幂等：只交回一次，不抛', () => {
     const { fetch } = makeFetchRegistry()
-    const { host } = makeHost({ connection: { fetch }, agents: { list: () => [], roots: () => [] } })
+    const { host, disposedCount } = makeHost({ connection: { fetch }, agents: { list: () => [], roots: () => [] } })
     const undo = attachStudyWeb(host as never, undefined, new EditorRequestHub())
 
-    expect(() => { undo(); undo() }).not.toThrow()
+    expect(() => { undo(); undo(); undo() }).not.toThrow()
+    expect(disposedCount(), '三次卸载只 dispose 一次').toBe(1)
   })
 })

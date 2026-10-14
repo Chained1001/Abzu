@@ -308,6 +308,7 @@ export function attachStudyWeb(ctx: Context, indexing?: BookIndexManager, editor
     }
   })
   return () => {
+    if (disposed) return // 重复卸载：路由与 fiber 只交回一次（Test 的重复 undo 断言据此成立）
     disposed = true
     for (const off of routeDisposers.splice(0).reverse()) {
       try { off() } catch { /* 幂等清理：重复卸载不再抛 */ }
