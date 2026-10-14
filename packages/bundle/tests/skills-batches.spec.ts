@@ -116,7 +116,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('卷纲·卷级交叉思考；章级脚本未实装（未接线）')
     // B. 四处缺失判据引用接线（§x.y 逐一反查由既有引用一致性测试自动扩展覆盖）
     expect(readSkill('novel-outline')).toContain('§6.7（信息怎么分配')
-    expect(readSkill('novel-design')).toContain('§5.3（本卷大高潮怎么设')
+    expect(readSkill('novel-design')).toContain('判据：读 [卷纲-节奏与高潮](references/卷纲-节奏与高潮.md)')
     expect(readSkill('novel-drafting')).toContain('§7.5（叙述视角技术')
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks).toContain('02_人物设计 §2.18')
@@ -216,7 +216,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(sect).toContain('核心情绪前→后')
     expect(checks).toContain('前→后是位移')
     expect(checks).toContain('落点是读者离开时带什么')
-    // A3. 激励事件三问：KB 锚 §4.12（04_大纲.md 标题存在由引用一致性测试另守），三要素措辞对齐
+    // A3. 激励事件三问：KB 锚 §4.12（标题在《大纲-激励事件与首尾》，由引用一致性测试另守），三要素措辞对齐
     //（0.0.40 心智批·设计：激励事件三问并入「首尾镜像」同场对照条目——断言随裁同步，三问本体未动）
     const design = readSkill('novel-design')
     expect(design).toContain('**首尾镜像**')
@@ -357,14 +357,15 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // F. 注册单源：artifact-contract 登记写作卡
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
     expect(contract).toContain("'skills/novel-drafting/agents/写作卡.md'")
-    // G. KB 节级健康断言：九件分发件逐二级节行跨度 ≤ 上限。
+    // G. KB 节级健康断言：分发件逐二级节行跨度 ≤ 上限（v2.4.1 阶段1 起 04/05 拆为 9 件，共 16 件）。
     // 实测依据（2026-10-10，0.0.15 批前测量）：九件全部二级节最大行跨度 103 行
     // （08_修订排障.md §8.5 毒点怎么查），向上取整到十位＝110。0A_第一性原理层无
     // § 节但「原语」同为二级节，一并受上限约束。目的＝拦知识库升版导致的节膨胀，
     // 不是改现有文件。
     const kbFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
-      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '0A_第一性原理层.md']
+      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md']
         .map((file) => ({ skill: 'novel-design', file })),
+      { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
       { skill: 'novel-outline', file: '06_章纲.md' },
       { skill: 'novel-drafting', file: '07_正文写作.md' },
       { skill: 'novel-director', file: '08_修订排障.md' },
@@ -400,8 +401,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(researcher).toContain('name: researcher')
     // B. 作家评审：引证纪律（逐字引文）＋对象-判据路由（04_大纲/05_卷纲 相关节）＋根因三选一＋待采风标记＋首评声明
     expect(writer).toContain('逐字引文')
-    expect(writer).toContain('04_大纲')
-    expect(writer).toContain('05_卷纲')
+    expect(writer).toContain('大纲-主线与骨架')
+    expect(writer).toContain('卷纲-节奏与高潮')
     expect(writer).toContain('§4.15')
     expect(writer).toContain('§5.1')
     for (const root of ['设定根源', '主线根源', '规格根源']) {
@@ -967,7 +968,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
     expect(reshape).toContain('总判据是契约「叙事方式与文风基调」分部')
     // A6. director 排障入口跨包定位句＋改稿章程加载名（全表唯一断点修复）
-    expect(director).toContain('§4.x＝《定调设计》技能包 references/04_大纲.md')
+    expect(director).toContain('§4.x/§5.x＝《定调设计》技能包 references/ 下大纲-*与卷纲-*拆分件')
     expect(director).toContain('§6.x＝《细纲备料》技能包 references/06_章纲.md')
     const charter = fs.readFileSync(skillFile('novel-revision', 'agents/改稿章程.md'), 'utf8')
     expect(charter).toContain('完整判据在《工作台总控》技能包 references/08_修订排障.md')
@@ -1922,7 +1923,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const power = fs.readFileSync(skillFile('novel-design', 'templates/世界书/力量体系条目模板.md'), 'utf8')
     const writer = fs.readFileSync(skillFile('novel-design', 'agents/作家评审.md'), 'utf8')
     // A. 件1＋件2：骨架步骤 3 判据行零 02 节缺位闭合——判据行补 §2.5/§2.14/§2.17（§2.14 关系矩阵随批同补），三子弹带部定位与判据节
-    const skeletonCriteria = design.split('\n').find((l) => l.startsWith('   判据：读 [04_大纲](references/04_大纲.md) §4.15'))
+    const skeletonCriteria = design.split('\n').find((l) => l.startsWith('   判据：读 [大纲-主线与骨架](references/大纲-主线与骨架.md)'))
     expect(skeletonCriteria, '骨架步骤 3 判据行应在位').toBeDefined()
     for (const sec of ['§2.5', '§2.14', '§2.17']) {
       expect(skeletonCriteria!, `骨架判据行应含 ${sec}（02 章节号缺位闭合）`).toContain(sec)
@@ -2189,19 +2190,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.34＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.33 零残留（0.0.43 心智批收口接力）
+    // C. 版本纪律全套：两 package.json 0.0.35＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.34 零残留（v2.4.1 阶段1 拆分批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.34').toBe('0.0.34')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.34').toBe('0.0.34')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.34]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.35').toBe('0.0.35')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.35').toBe('0.0.35')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.35]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.34`).toContain('0.0.34')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.35`).toContain('0.0.35')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.33`).not.toContain('0.0.33')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.34`).not.toContain('0.0.34')
       }
     }
   })

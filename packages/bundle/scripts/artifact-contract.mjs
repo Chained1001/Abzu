@@ -22,9 +22,10 @@ export const referenceDocs = [
   'skills/novel-design/templates/对手梯队子表规格.md',
   'skills/novel-design/templates/卷纲固定段规格.md',
   'skills/novel-outline/templates/章细纲固定小节规格.md',
-  ...['01_开书', '02_人物设计', '03_世界观设计', '04_大纲', '05_卷纲', '0A_第一性原理层']
+  ...['01_开书', '02_人物设计', '03_世界观设计', '大纲-主线与骨架', '大纲-激励事件与首尾', '大纲-换图与支线', '大纲-伏笔埋收', '大纲-牌局与结构检查', '卷纲-卷功能与结构', '卷纲-节奏与高潮', '卷纲-情节类型骨架', '0A_第一性原理层']
     .map(name => `skills/novel-design/references/${name}.md`),
   'skills/novel-outline/references/06_章纲.md',
+  'skills/novel-outline/references/章纲-信息与情绪.md',
   'skills/novel-drafting/references/07_正文写作.md',
   'skills/novel-director/references/08_修订排障.md',
   'skills/novel-director/references/书房与检索.md',

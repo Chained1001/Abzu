@@ -130,16 +130,19 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(text).toContain('方向选择')
   })
 
-  it('E5′ KB 批：净版六件存在带版本戳零标注残留；SKILL §x.y 引用逐一命中分发件标题', () => {
+  it('E5′ KB 批：净版本域件存在带版本戳零标注残留；SKILL §x.y 引用逐一命中分发件标题（v2.4.1 节图全局化）', () => {
     const refsDir = path.join(__dirname, '..', 'skills', 'novel-design', 'references')
     // 0B 节级索引.yaml 不入包（发行正则只认 md/mjs），节级核验直接解析分发件 §x.y 标题
-    const kbFiles = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '0A_第一性原理层.md']
-    const chapterFile: Record<string, string> = { '1': '01_开书.md', '2': '02_人物设计.md', '3': '03_世界观设计.md', '4': '04_大纲.md', '5': '05_卷纲.md' }
-    const stamp = '> 知识库净版 · 源版本 v2.3 · 净版纪律见 docs/design/增强实施计划.md §二'
-    const headings = new Map<string, Set<string>>()
-    for (const f of kbFiles) {
-      const p = path.join(refsDir, f)
-      expect(fs.existsSync(p), `novel-design/references/${f} 应存在`).toBe(true)
+    // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；节图改全局收集
+    const stamp = '> 知识库净版 · 源版本 v2.4.1 · 净版纪律见 docs/design/增强实施计划.md §二'
+    const kbFiles: ReadonlyArray<{ readonly dir: string; readonly file: string }> = [
+      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ dir: refsDir, file })),
+      { dir: path.join(__dirname, '..', 'skills', 'novel-outline', 'references'), file: '章纲-信息与情绪.md' },
+    ]
+    const headings = new Set<string>()
+    for (const { dir, file: f } of kbFiles) {
+      const p = path.join(dir, f)
+      expect(fs.existsSync(p), `references/${f} 应存在`).toBe(true)
       const text = fs.readFileSync(p, 'utf8')
       expect(text.startsWith('# '), `${f}: 应以一级标题开头`).toBe(true)
       expect(text, `${f}: 头部应含净版版本戳（唯一元信息）`).toContain(stamp)
@@ -148,22 +151,18 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
         expect(text, `${f}: 净版不应残留「${banned}」`).not.toContain(banned)
       }
       expect(text.match(/T0\d\d/g), `${f}: 净版不应残留 T 编号理论锚点`).toBeNull()
-      headings.set(f.replace('.md', ''), new Set([...text.matchAll(/^## (§[\d.]+)/gm)].map((m) => m[1]!)))
+      for (const m of text.matchAll(/^## (§[\d.]+)/gm)) headings.add(m[1]!)
     }
-    // 引用一致性：SKILL 里全部 §x.y 引用（判据行/追问卡）逐一反查分发件标题，悬空即失败
+    // 引用一致性：SKILL 里全部 §x.y 引用（判据行/追问卡）逐一反查全局节图，悬空即失败
     const design = readSkill('novel-design')
     const mentioned = [...new Set([...design.matchAll(/§\d+\.\d+/g)].map((m) => m[0]))]
     expect(mentioned.length, '《定调设计》应含 §x.y 判据引用').toBeGreaterThan(0)
-    const dangling = mentioned.filter((ref) => {
-      const chapter = ref.slice(1).split('.')[0]!
-      const file = chapterFile[chapter]
-      return file === undefined || !(headings.get(file.replace('.md', ''))?.has(ref) ?? false)
-    })
+    const dangling = mentioned.filter((ref) => !headings.has(ref))
     expect(dangling, `以下 §x.y 引用在分发件中无对应标题：${dangling.join('、')}`).toEqual([])
     // E5′ 瘦身件防回退：对谈纪律/五步判据行/三张追问卡/种子三百字
     expect(design).toContain('## 对谈纪律')
     expect(design).toContain('判据：读 [01_开书](references/01_开书.md)')
-    expect(design).toContain('判据：读 [05_卷纲](references/05_卷纲.md)')
+    expect(design).toContain('判据：读 [卷纲-节奏与高潮](references/卷纲-节奏与高潮.md)')
     expect(design).toContain('追问限额')
     expect(design).toContain('金手指四轨道追问')
     expect(design).toContain('暗面一问')
@@ -180,14 +179,16 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       { skill: 'novel-drafting', file: '07_正文写作.md', chapter: '7' },
       { skill: 'novel-director', file: '08_修订排障.md', chapter: '8' },
     ]
-    const stamp = '> 知识库净版 · 源版本 v2.3 · 净版纪律见 docs/design/增强实施计划.md §二'
-    // 章→分发件全映射（1-5 在 novel-design），三 SKILL 里出现的任何 §x.y 都要能落到对应文件
-    const chapterFile: Record<string, { skill: string; file: string }> = {
-      '1': { skill: 'novel-design', file: '01_开书.md' }, '2': { skill: 'novel-design', file: '02_人物设计.md' },
-      '3': { skill: 'novel-design', file: '03_世界观设计.md' }, '4': { skill: 'novel-design', file: '04_大纲.md' },
-      '5': { skill: 'novel-design', file: '05_卷纲.md' }, '6': { skill: 'novel-outline', file: '06_章纲.md' },
-      '7': { skill: 'novel-drafting', file: '07_正文写作.md' }, '8': { skill: 'novel-director', file: '08_修订排障.md' },
-    }
+    const stamp = '> 知识库净版 · 源版本 v2.4.1 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件——节图全局化（§→所在件集合），取代章→单文件映射；
+    // 三 SKILL 里出现的任何 §x.y 都要能落到某个分发件标题
+    const kbAllFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
+      ...['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ skill: 'novel-design', file })),
+      { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
+      { skill: 'novel-outline', file: '06_章纲.md' },
+      { skill: 'novel-drafting', file: '07_正文写作.md' },
+      { skill: 'novel-director', file: '08_修订排障.md' },
+    ]
     const headingsByFile = new Map<string, Set<string>>()
     const headingsOf = (skill: string, file: string): Set<string> => {
       const key = `${skill}/${file}`
@@ -199,6 +200,8 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       }
       return set
     }
+    const headingsAll = new Set<string>()
+    for (const { skill: s, file: fl } of kbAllFiles) for (const h of headingsOf(s, fl)) headingsAll.add(h)
     for (const { skill, file, chapter } of kbChapters) {
       const p = path.join(__dirname, '..', 'skills', skill, 'references', file)
       expect(fs.existsSync(p), `${skill}/references/${file} 应存在`).toBe(true)
@@ -214,10 +217,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       const mentioned = [...new Set([...skillText.matchAll(/§\d+\.\d+/g)].map((m) => m[0]!))]
       expect(mentioned.filter((ref) => ref.slice(1).split('.')[0] === chapter).length,
         `${skill} SKILL 应含 §${chapter}.x 判据引用`).toBeGreaterThan(0)
-      const dangling = mentioned.filter((ref) => {
-        const target = chapterFile[ref.slice(1).split('.')[0]!]
-        return target === undefined || !headingsOf(target.skill, target.file).has(ref)
-      })
+      const dangling = mentioned.filter((ref) => !headingsAll.has(ref))
       expect(dangling, `${skill} SKILL 的以下 §x.y 引用在分发件中无对应标题：${dangling.join('、')}`).toEqual([])
       expect(headingsOf(skill, file).size, `${file}: §x.y 标题数应大于零`).toBeGreaterThan(0)
     }
@@ -421,16 +421,20 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
 
 describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域拆分）', () => {
   const extractScript = path.join(__dirname, '..', 'scripts', 'kb-extract.mjs')
-  const stamp = '> 知识库净版 · 源版本 v2.3 · 净版纪律见 docs/design/增强实施计划.md §二'
-  const kbFiles = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '04_大纲.md', '05_卷纲.md', '06_章纲.md', '07_正文写作.md', '08_修订排障.md', '0A_第一性原理层.md']
+  const stamp = '> 知识库净版 · 源版本 v2.4.1 · 净版纪律见 docs/design/增强实施计划.md §二'
+  const kbWhole = ['01_开书.md', '02_人物设计.md', '03_世界观设计.md', '06_章纲.md', '07_正文写作.md', '08_修订排障.md', '0A_第一性原理层.md']
+  const kbPieces = ['大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md']
 
   it('kb-extract.mjs 存在且 --check 模式全链路可跑：夹具源 --write→--check 退出码 0，篡改→退出码 1', () => {
     expect(fs.existsSync(extractScript), 'packages/bundle/scripts/kb-extract.mjs 应存在').toBe(true)
-    // 夹具源：9 件齐全（映射表全覆盖），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
+    // 夹具源：16 件齐全（映射表全覆盖——v2.4.1 拆分件带件头三要素），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
     const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-extract-spec-'))
     try {
-      for (const [i, f] of kbFiles.entries()) {
+      for (const [i, f] of kbWhole.entries()) {
         fs.writeFileSync(path.join(ws, f), `# 第${i + 1}章 测试\n\n正文一句（卡#1）与锚（T042）。\n\n**来源**：作家实战（卡#1）；内容：原话+归纳｜可信度：高\n\n---\n\n\n`)
+      }
+      for (const f of kbPieces) {
+        fs.writeFileSync(path.join(ws, f), `# ${f.replace(/\.md$/, '')}\n\n> 件定位：测试\n> 消费位：测试\n\n---\n\n正文一句（卡#1）与锚（T042）。\n\n**来源**：作家实战（卡#1）；内容：原话+归纳｜可信度：高\n\n---\n\n\n`)
       }
       const out = path.join(ws, 'out')
       const run = (args: string[]) => spawnSync(process.execPath, [extractScript, ...args], { encoding: 'utf8' })

@@ -14,16 +14,25 @@ import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const KB_VERSION = 'v2.3'
+const KB_VERSION = 'v2.4.1'
 const STAMP = `> 知识库净版 · 源版本 ${KB_VERSION} · 净版纪律见 docs/design/增强实施计划.md §二`
 
-/** 分发映射表（单源）：KB 文件 → 技能 references/ 目录。 */
+/** 分发映射表（单源）：KB 文件 → 技能 references/ 目录。
+ *  v2.4.1 阶段1：大纲域+卷纲域拆分——04/05 整文件退役为源侧壳（不分发），
+ *  8 件上位 novel-design，章纲-信息与情绪为存根件（§4.11 先行入住，主节阶段4归位）。 */
 const MAPPING = [
   { file: '01_开书.md', skill: 'novel-design' },
   { file: '02_人物设计.md', skill: 'novel-design' },
   { file: '03_世界观设计.md', skill: 'novel-design' },
-  { file: '04_大纲.md', skill: 'novel-design' },
-  { file: '05_卷纲.md', skill: 'novel-design' },
+  { file: '大纲-主线与骨架.md', skill: 'novel-design' },
+  { file: '大纲-激励事件与首尾.md', skill: 'novel-design' },
+  { file: '大纲-换图与支线.md', skill: 'novel-design' },
+  { file: '大纲-伏笔埋收.md', skill: 'novel-design' },
+  { file: '大纲-牌局与结构检查.md', skill: 'novel-design' },
+  { file: '卷纲-卷功能与结构.md', skill: 'novel-design' },
+  { file: '卷纲-节奏与高潮.md', skill: 'novel-design' },
+  { file: '卷纲-情节类型骨架.md', skill: 'novel-design' },
+  { file: '章纲-信息与情绪.md', skill: 'novel-outline' },
   { file: '06_章纲.md', skill: 'novel-outline' },
   { file: '07_正文写作.md', skill: 'novel-drafting' },
   { file: '08_修订排障.md', skill: 'novel-director' },
@@ -59,32 +68,35 @@ const REWRITES = {
     ['### 常见错误（本质上都是经济没有闭环）', '### 常见错误（本质上都是经济循环没立住）'],
     ['| 经济闭环 | 世界经济/资源怎么设计 |', '| 经济循环 | 世界经济/资源怎么设计 |'],
   ],
-  '04_大纲.md': [
-    ['§4.11 潜文本象征已移附录·附.12；', '§4.11 潜文本象征已移知识库附录·附.12——附录不分发、运行时不可读；'],
+  // v2.4.1 阶段1：改写表随节搬迁重归属（原 04/05 两键退役；
+  // 失配死条目 2 条与落壳条目 4 条经落位分析删除，活条目 14 条并入下列 6 键）
+  '大纲-主线与骨架.md': [
     ['**另一套续法（分歧保留）**：理论课程按"目标怎么接续"给主线续命', '**另一套续法（分歧保留）**：按"目标怎么接续"给主线续命'],
     ['**另一套分法（分歧保留）**：B站课程按"主线怎么组织"分三式', '**另一套分法（分歧保留）**：按"主线怎么组织"分三式'],
-    ['每一卷独立闭环、承上启下', '每一卷独立完整、承上启下'],
-    ['卷里没有完整闭环', '卷里没有完整故事'],
-    ['> **本节已移出**：文学性内容，对百万字连载的结构决策边际价值低，整体移至**附录·附.12**。', '> **本节已移出**：文学性内容（象征/潜文本属精修层），整体移至知识库附录·附.12（附录不分发、运行时不可读）。'],
+  ],
+  '大纲-伏笔埋收.md': [
+    ['> **类型特化**：写悬疑文详见「附.3 悬疑类型怎么特化」。', '> **类型特化**：写悬疑文的类型特化判据在知识库附录（附.3——附录不分发、运行时不可读）。'],
+  ],
+  '大纲-牌局与结构检查.md': [
     ['- 《斩神》《我不是戏神》用**活大纲法（网文版）**：三九音域开书前会准备大纲，但"写到那个地步的时候，就会发现有一条路可能更好，发展可能会更有意思，所以就会抛弃原来的，去选择新的路线。所以凡是有大纲都会被我推翻，后来就没有大纲了"。不是真没有', '- 《斩神》《我不是戏神》用**活大纲法（网文版）**：三九音域开书前会准备大纲，但写到中途发现更好的路线就抛弃原案重选——大纲一路被推翻，最后只剩世界观大框架和核心精神。不是真没有'],
     ['**要不要写大纲**：老编辑结论——争论的两极', '**要不要写大纲**：争论的两极'],
-    ['一卷的功能=单卷内部的目标/冲突/闭环（第五章）', '一卷的功能=单卷内部的目标/冲突/完整结构（第五章）'],
-    ['> **类型特化**：写悬疑文详见「附.3 悬疑类型怎么特化」。', '> **类型特化**：写悬疑文的类型特化判据在知识库附录（附.3——附录不分发、运行时不可读）。'],
     ['> **类型特化**：写权谋文详见「附.1 权谋类型怎么特化」。', '> **类型特化**：写权谋文的类型特化判据在知识库附录（附.1——附录不分发、运行时不可读）。'],
   ],
-  '05_卷纲.md': [
+  '卷纲-卷功能与结构.md': [
     ['每一卷独立闭环、承上启下', '每一卷独立完整、承上启下'],
     ['每一卷独立闭环、同时承上启下', '每一卷独立完整、同时承上启下'],
     ['如果这一卷没有独立闭环，读者就没有阶段感', '如果这一卷不能独立成篇，读者就没有阶段感'],
     ['都要落到**独立闭环**——这一卷独立看是完整的', '都要落到**独立完整**——这一卷独立看是完整的'],
     ['- 有（独立闭环）→ 卷纲对了', '- 有（独立成篇）→ 卷纲对了'],
+    ['卷里没有完整闭环', '卷里没有完整故事'],
+  ],
+  '卷纲-节奏与高潮.md': [
+    ['**时间线管理三件**（咕嘎72理论库，延伸档）：', '**时间线管理三件**：'],
+  ],
+  '卷纲-情节类型骨架.md': [
     ['（素材未给三幕，按争夺目标排：明面争什么+暗线争什么）', '（三幕按争夺目标排：明面争什么+暗线争什么）'],
     ['**第二套参考系：按"读者要什么"选基调（网文经典结构九类）**。上表按', '**第二套参考系：按"读者要什么"选基调的九类**。上表按'],
     ['| 素材未标 |', '| — |'],
-    ['**时间线管理三件**（咕嘎72理论库，延伸档）：', '**时间线管理三件**：'],
-    ['| 本卷核心目标 | 一卷的功能是什么 | 独立闭环 |', '| 本卷核心目标 | 一卷的功能是什么 | 独立完整 |'],
-    ['一卷=一套完整的阶段目标+起承转合，独立闭环；一章=', '一卷=一套完整的阶段目标+起承转合，独立成篇；一章='],
-    ['一卷的功能=单卷内部的目标/冲突/闭环（本章）；分卷规划=', '一卷的功能=单卷内部的目标/冲突/完整结构（本章）；分卷规划='],
   ],
   '06_章纲.md': [
     ['**核心逻辑**：不管这一章主要干什么，最终都要落到**一章一个小闭环**——有头有尾有钩。', '**核心逻辑**：不管这一章主要干什么，最终都要落到**一章一个完整小单元**——有头有尾有钩。'],
@@ -233,9 +245,23 @@ if (process.argv[1] !== undefined && process.argv[1].endsWith('kb-extract.mjs'))
   run(sourceDir, outRoot, mode)
 }
 
+/** 件级结构校验（v2.4 起拆分件＝非数字开头文件名）：H1＋件头定位/消费位两要素。 */
+function assertPieceHeader (file, sourceText) {
+  const lines = sourceText.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n')
+  if (!lines[0].startsWith('# ')) throw new Error(`${file}: 件头第一行不是 H1`)
+  const header = lines.slice(1, 10)
+  if (!header.some((l) => l.startsWith('> 件定位：'))) throw new Error(`${file}: 件头缺「> 件定位：」`)
+  if (!header.some((l) => l.startsWith('> 消费位：'))) throw new Error(`${file}: 件头缺「> 消费位：」`)
+}
+
+function isPieceFile (file) {
+  return !/^\d/.test(file)
+}
+
 /** 主命令：遍历映射表，净版输出→比对或写入。返回退出码。 */
 export function run (sourceDir, outRoot, mode) {
   let drift = 0
+  const sectionOwners = new Map()
   for (const { file, skill } of MAPPING) {
     const srcPath = nodePath.join(sourceDir, file)
     const distPath = nodePath.join(outRoot, skill, 'references', file)
@@ -244,7 +270,15 @@ export function run (sourceDir, outRoot, mode) {
       drift++
       continue
     }
+    if (isPieceFile(file)) assertPieceHeader(file, fs.readFileSync(srcPath, 'utf8'))
     const cleaned = cleanVersion(file, fs.readFileSync(srcPath, 'utf8'))
+    for (const m of cleaned.matchAll(/^## §(\d+\.\d+) /gm)) {
+      const id = m[1]
+      if (sectionOwners.has(id)) {
+        console.log(`节重复：§${id} 同时在 ${sectionOwners.get(id)} 与 ${file}`)
+        drift++
+      } else sectionOwners.set(id, file)
+    }
     if (mode === 'write') {
       fs.mkdirSync(nodePath.dirname(distPath), { recursive: true })
       fs.writeFileSync(distPath, cleaned, 'utf8')
