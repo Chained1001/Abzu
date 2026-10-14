@@ -37,8 +37,16 @@ function checkDependencies(result) {
     }
   }
   const shared = /node_modules\/(?:@deepseek-ai\/(?:cordis|dsh-tools|dsh-llm|dsh-skill-filesystem)\/|react\/)/
-  for (const input of Object.keys(result.metafile.inputs)) {
-    if (shared.test(input.replaceAll('\\', '/'))) throw new Error(`共享运行时被内联: ${input}`)
+  const inlined = Object.keys(result.metafile.inputs).map(input => input.replaceAll('\\', '/'))
+  for (const input of inlined) {
+    if (shared.test(input)) throw new Error(`共享运行时被内联: ${input}`)
+  }
+  // 反向一条:peer 依赖由宿主提供,被内联就等于多发一份第二副本(EXTERNAL 漏登记时的静默路径)。
+  // 按每个入口的 metafile 判断,比"peer 必须出现在 EXTERNAL 里"更严:某个入口单独漏了 external 也拦得住。
+  for (const peer of Object.keys(manifest.peerDependencies ?? {})) {
+    if (inlined.some(input => input.includes(`/node_modules/${peer}/`))) {
+      throw new Error(`peer 依赖被内联,应放进 EXTERNAL 交给宿主: ${peer}`)
+    }
   }
 }
 
