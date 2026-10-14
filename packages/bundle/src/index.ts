@@ -399,7 +399,8 @@ export function apply(ctx: Context) {
   })
   step(ctx, 'abzu:indexing', () => () => indexing.close())
   const editorRequests = new EditorRequestHub()
-  attachStudyWeb(ctx, indexing, editorRequests)
+  // D-2：书房 API 的路由与注入 fiber 随本步 effect 逆操作交回（卸载后旧 handler 退场、重装不抛）。
+  step(ctx, 'abzu:study-web', () => attachStudyWeb(ctx, indexing, editorRequests))
 
   /** 就绪时建一次工具集（裁决通道取自宿主 userQuestions；缺则 askFn undefined，
    *  沉淀 fail-closed——裁决 14）。依赖出现由 inject 反应式驱动。 */

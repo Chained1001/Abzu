@@ -282,14 +282,36 @@ export function createStudyHandler(runtime: StudyWebRuntime, indexing?: BookInde
   }
 }
 
-export function attachStudyWeb(ctx: Context, indexing?: BookIndexManager, editorRequests = new EditorRequestHub()): void {
-  if (typeof ctx.inject !== 'function') return
-  ctx.inject(['connection', 'agents'], scope => {
+/**
+ * 挂书房 API（D-2）：把 16 条路由的注销句柄与注入 fiber 收进返回的 disposer。
+ *
+ * `connection.fetch.register` 返回注销函数，且**同一 path 重复注册会抛**
+ * （dsh-client-connection：`connection: exact Fetch route ... is already registered`）。
+ * 原先两者都被丢弃——插件卸载后旧 handler 仍挂在路由上，connection 服务重启
+ * （inject 重新激活）时第二次 setup 直接抛错、后续 setup 中断。
+ * 这里照 index.ts 的 withServices / step 形状：先逆序撤自身产物，再 dispose 注入 fiber；
+ * setup 晚到时（外层已卸载）当场退场，不留孤儿路由。
+ */
+export function attachStudyWeb(ctx: Context, indexing?: BookIndexManager, editorRequests = new EditorRequestHub()): () => void {
+  if (typeof ctx.inject !== 'function') return () => {}
+  const routeDisposers: Array<() => void> = []
+  let disposed = false
+  const fiber = ctx.inject(['connection', 'agents'], scope => {
     const workflow = new WorkflowObserver()
     observeWorkflow(scope, workflow)
     const handler = createStudyHandler(scope, indexing, workflow, editorRequests)
     for (const method of METHODS) {
-      scope.connection.fetch.register({ path: STUDY_API_PATH + method, methods: ['POST'], requestBody: 'streaming', fetch: handler })
+      const off = scope.connection.fetch.register({ path: STUDY_API_PATH + method, methods: ['POST'], requestBody: 'streaming', fetch: handler })
+      if (typeof off !== 'function') continue
+      if (disposed) void off()
+      else routeDisposers.push(off as () => void)
     }
   })
+  return () => {
+    disposed = true
+    for (const off of routeDisposers.splice(0).reverse()) {
+      try { off() } catch { /* 幂等清理：重复卸载不再抛 */ }
+    }
+    try { void fiber?.dispose?.() } catch { /* 幂等清理 */ }
+  }
 }
