@@ -187,3 +187,142 @@ describe('R1 装机自检（可查询的降级状态，纯增不改行为）', (
     expect(ok + degraded + pending + missing).toBe(counted)
   })
 })
+
+/** agent scoped ctx 桩：按需暴露 systemPrompt / inject / on / tools / approval 表面。 */
+function agentStub(opts: {
+  readonly prompt?: boolean
+  readonly inject?: boolean
+  readonly on?: boolean
+  readonly tools?: unknown
+  readonly approval?: unknown
+} = {}): Record<string, unknown> {
+  const ctx: Record<string, unknown> = {
+    // status-context 的 sysPromptOf 优先走 ctx.get('systemPrompt')，属性读只是兜底
+    get: (n: string) => (n === 'systemPrompt' && opts.prompt !== false ? ctx['systemPrompt']
+      : n === 'tools' ? opts.tools
+        : n === 'approval' ? opts.approval
+          : undefined),
+  }
+  if (opts.on !== false) ctx['on'] = () => {}
+  if (opts.prompt !== false) ctx['systemPrompt'] = { context: () => () => {}, section: () => () => {}, variable: () => {} }
+  if (opts.inject !== false) {
+    ctx['inject'] = (_deps: unknown, cb: (scope: unknown) => void) => { cb(ctx); return { dispose: async () => {} } }
+  }
+  return ctx
+}
+
+const idsOf = (): string[] => abzuSelfCheck().items.map((item) => item.id)
+
+/**
+ * 补齐 6 个从未被断言的挂载点（skills.dir / agents.surface / tools.kit / gate.file /
+ * persona.mount / status.mount），并加「上报集合 vs SELF_CHECK_IDS」的覆盖率断言——
+ * 原漏报防护只保证「已上报的 id 合法」，新增挂载点忘了上报仍会报健康。
+ */
+describe('R1 装机自检：挂载点 id 覆盖率', () => {
+  beforeEach(() => {
+    resetSelfCheck()
+    resetWorkspaceRoot()
+  })
+
+  it('skills.dir：正常安装面记 ok 且 detail 带技能目录（inject 缺席时该 id 不上报）', () => {
+    const { host } = makeHost({ ready: {} })
+    apply(host as never)
+
+    const item = abzuSelfCheck().items.find((entry) => entry.id === 'skills.dir')
+    expect(item?.status).toBe('ok')
+    expect(item?.detail).toContain('技能目录存在')
+    // skills 服务未就绪，挂载停在 pending —— 与 skills.dir 是两件事
+    expect(statusOf(abzuSelfCheck(), 'skills.mount')).toBe('pending')
+  })
+
+  it('agents.surface：无 agents 服务记 pending，就绪记 ok', () => {
+    const offHost = makeHost({ ready: {}, withInject: false })
+    apply(offHost.host as never)
+    expect(statusOf(abzuSelfCheck(), 'agents.surface')).toBe('pending')
+    expect(abzuSelfCheck().items.find((i) => i.id === 'agents.surface')?.detail).toContain('未就绪')
+
+    resetSelfCheck(); resetWorkspaceRoot()
+    const onHost = makeHost({ ready: { agents: { list: () => [] } } })
+    apply(onHost.host as never)
+    expect(statusOf(abzuSelfCheck(), 'agents.surface')).toBe('ok')
+  })
+
+  it('tools.kit：tools 服务未就绪 pending、缺裁决通道 degraded、两者齐备 ok', () => {
+    const pending = makeHost({ ready: { agents: { list: () => [] } }, withInject: false })
+    apply(pending.host as never)
+    expect(statusOf(abzuSelfCheck(), 'tools.kit')).toBe('pending')
+
+    resetSelfCheck(); resetWorkspaceRoot()
+    const degraded = makeHost({ ready: { agents: { list: () => [] }, tools: { register: () => {} }, userQuestions: {} } })
+    apply(degraded.host as never)
+    expect(statusOf(abzuSelfCheck(), 'tools.kit')).toBe('degraded')
+
+    resetSelfCheck(); resetWorkspaceRoot()
+    const ok = makeHost({ ready: { agents: { list: () => [] }, tools: { register: () => {} }, userQuestions: { ask: async () => ({ answers: [] }) } } })
+    apply(ok.host as never)
+    expect(statusOf(abzuSelfCheck(), 'tools.kit')).toBe('ok')
+  })
+
+  it('gate.file：agent 无 on 表面记 missing，有 on 记 ok（高危项必须留痕）', () => {
+    const missing = makeHost({ ready: { agents: { list: () => [{ id: 'a-1', ctx: agentStub({ on: false, tools: { register: () => {} } }) }] } } })
+    apply(missing.host as never)
+    expect(statusOf(abzuSelfCheck(), 'gate.file')).toBe('missing')
+
+    resetSelfCheck(); resetWorkspaceRoot()
+    const ok = makeHost({ ready: { agents: { list: () => [{ id: 'a-1', ctx: agentStub({ tools: { register: () => {} } }) }] } } })
+    apply(ok.host as never)
+    expect(statusOf(abzuSelfCheck(), 'gate.file')).toBe('ok')
+  })
+
+  it('persona.mount / status.mount：无 surface 记 missing，就绪记 ok', () => {
+    const missing = makeHost({ ready: { agents: { list: () => [{ id: 'a-1', ctx: agentStub({ prompt: false, inject: false }) }] } } })
+    apply(missing.host as never)
+    expect(statusOf(abzuSelfCheck(), 'persona.mount')).toBe('missing')
+    expect(statusOf(abzuSelfCheck(), 'status.mount')).toBe('missing')
+
+    resetSelfCheck(); resetWorkspaceRoot()
+    const ok = makeHost({ ready: { agents: { list: () => [{ id: 'a-1', ctx: agentStub({ on: false, tools: { register: () => {} } }) }] } } })
+    apply(ok.host as never)
+    expect(statusOf(abzuSelfCheck(), 'persona.mount')).toBe('ok')
+    expect(statusOf(abzuSelfCheck(), 'status.mount')).toBe('ok')
+  })
+
+  it('满配宿主：11 个 id 全部上报，集合与 SELF_CHECK_IDS 相等', () => {
+    const ws = makeWorkspace()
+    const registered: string[] = []
+    const mainCtx = agentStub({ tools: { register: (tool: { name: string }) => { registered.push(tool.name); return () => {} } } })
+    const subCtx = agentStub({ approval: { setPolicy: () => {} } })
+    const { host } = makeHost({
+      ready: {
+        workspaceRegistry: { list: () => [{ path: ws }] },
+        skills: {},
+        agents: {
+          list: () => [
+            { id: 'main-1', ctx: mainCtx },
+            { id: 'sub-1', session: { header: { origin: 'subagent' } }, ctx: subCtx },
+          ],
+        },
+        tools: { register: () => {} },
+        userQuestions: { ask: async () => ({ answers: [] }) },
+      },
+    })
+    apply(host as never)
+
+    expect([...idsOf()].sort()).toEqual([...SELF_CHECK_IDS].sort())
+    expect(registered.length).toBeGreaterThan(0)
+    expect(statusOf(abzuSelfCheck(), 'skills.mount')).toBe('ok')
+    expect(statusOf(abzuSelfCheck(), 'approval.policy')).toBe('ok')
+    expect(statusOf(abzuSelfCheck(), 'tools.register')).toBe('ok')
+  })
+
+  it('缺配宿主：只上报最小集合，其余挂载点不得凭空出现', () => {
+    const { host } = makeHost({ ready: {}, withInject: false, withEffect: false })
+    apply(host as never)
+
+    // inject 缺席 ⇒ skills.dir 不上报；无 agent ⇒ persona/status/gate/approval 不上报
+    expect([...idsOf()].sort()).toEqual([
+      'agents.surface', 'host.inject', 'skills.mount', 'tools.kit', 'tools.register', 'workspace.root',
+    ].sort())
+    expect(idsOf().every((id) => (SELF_CHECK_IDS as readonly string[]).includes(id))).toBe(true)
+  })
+})
