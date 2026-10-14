@@ -431,7 +431,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('确认前评审（可选）')
     expect(design).toContain('书房/评审/')
     expect(design).toContain('【待采风：查询词】')
-    expect(design).toContain('两席独立互不通气')
+    //（T4 编辑席实装批：评审两席→三席——断言随裁同步）
+    expect(design).toContain('三席独立互不通气')
     expect(design).toContain('评审不是新门禁')
     expect((design.match(/确认前评审（可选）/g) ?? []).length,
       '「确认前评审（可选）」应≥4 次命中（节＋步骤 3/4/6 接线）').toBeGreaterThanOrEqual(4)
@@ -856,7 +857,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       const text = fs.readFileSync(path.join(docsUser, f), 'utf8')
       expect(text, `${f}: 不应残留陈旧当前口径 0.0.5`).not.toContain('0.0.5')
       expect(text, `${f}: 不应残留上一版 0.0.18`).not.toContain('0.0.18')
-      const stale4 = [...text.matchAll(/0\.0\.4(?! 起| 移除)/g)].map((m) => m[0])
+      //（T4 编辑席实装批：版本进入 0.0.4x 区间——regex 加 \d 前瞻防 0.0.40+ 误伤，裸 0.0.4 白名单不变）
+      const stale4 = [...text.matchAll(/0\.0\.4(?!\d| 起| 移除)/g)].map((m) => m[0])
       expect(stale4, `${f}: 0.0.4 只允许出现在「0.0.4 起/0.0.4 移除」历史叙事里`).toHaveLength(0)
     }
     // B. profile 名：--profile scriptor 在 docs/user 零命中（de-brand 收尾；迁移/旧 profile 语境唯一合法保留面是 docs/maintenance，现无残留）
@@ -2188,19 +2190,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.39＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.38 零残留（v2.4.5 阶段5a 拆分批接力）
+    // C. 版本纪律全套：两 package.json 0.0.40＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.39 零残留（T4 编辑席实装批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.39').toBe('0.0.39')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.39').toBe('0.0.39')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.39]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.40').toBe('0.0.40')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.40').toBe('0.0.40')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.40]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.39`).toContain('0.0.39')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.40`).toContain('0.0.40')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.38`).not.toContain('0.0.38')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.39`).not.toContain('0.0.39')
       }
     }
   })
@@ -2712,5 +2714,56 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // M. 润色 tier3 词表交叉引用改指速览表（文风底本已不内联词表）
     const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
     expect(clean).toContain('词表单源在审读 novel-review 技能包 SKILL「参考线速览表」，与本行一致')
+  })
+
+  it('T4 编辑席实装批：编辑评审底本（三参数＋首评＋标尺对照表四态＋待校准纪律）＋design 三席串行接线＋润色删除测试＋注册单源', () => {
+    // A. 底本存在＋frontmatter name＋B 仓死引用零残留（差异集/登记册/tiers/区块/验真脚本；章级档与复评机制不移植——复评仅存「本席无复评机制」声明句）
+    const editorPath = skillFile('novel-design', 'agents/编辑评审.md')
+    expect(fs.existsSync(editorPath), 'novel-design/agents/编辑评审.md 应存在').toBe(true)
+    const editor = fs.readFileSync(editorPath, 'utf8')
+    expect(editor).toContain('name: editor-reviewer')
+    for (const stale of ['差异集', '登记册', 'tiers', '区块', '验真']) {
+      expect(editor, `编辑评审不应残留 B 仓死引用「${stale}」`).not.toContain(stale)
+    }
+    // B. 调用契约与两席同构：三参数＋首评 only＋判据引用格式＝标尺行名或 §x.y 节号（节号全局可解）
+    expect(editor).toContain('宿主传入三参数')
+    expect(editor).toContain('对象类型 | 骨架 / 分卷 / 卷纲')
+    expect(editor).toContain('只做首评')
+    expect(editor).toContain('参考标尺行名（如「单卷体量」行）或 §x.y 节号')
+    // C. 检查清单内联（两份细则合一）：骨架/分卷 E1 对标点表＋E2-E4、卷纲 E1-E4＋粗锚降级；卖点侧判据节在位
+    expect(editor).toContain('### 对象＝骨架/分卷')
+    expect(editor).toContain('### 对象＝卷纲')
+    for (const sec of ['§1.6', '§1.7', '§1.12', '§1.13', '§5.5']) {
+      expect(editor, `编辑评审应引卖点侧判据节 ${sec}`).toContain(sec)
+    }
+    expect(editor).toContain('「卷目标与卷末状态」卷行·字数')
+    expect(editor).toContain('「三线断档红线」行')
+    expect(editor).toContain('粗锚降级检查')
+    // D. 标尺对照表四态＋待校准纪律两句＋不编造修正系数
+    expect(editor).toContain('✅达标 ｜ ⚠️待校准（数值未定，不计入）｜ ❌超标（升级为问题清单条目）｜ 不适用')
+    expect(editor).toContain('⚠️待校准数值项不计入问题计数、禁作判据引用')
+    expect(editor).toContain('修正系数全取 1.0＋如实标注「该题材参考标尺未校准」——绝不编造修正值')
+    // E. 报告体例对齐两席：主问题行＋★ 标＋根因三选一＋复评回归句＋落盘路径＋禁止事项
+    expect(editor).toContain('**主问题（仅一个）**：{全部发现')
+    expect(editor).toContain('# 列行首标 ★')
+    for (const root of ['设定根源', '主线根源', '规格根源']) {
+      expect(editor, `编辑评审根因三选一应含「${root}」`).toContain(root)
+    }
+    expect(editor).toContain('复评优先回归主问题——主问题未解不改次要项结论')
+    expect(editor).toContain('{对象}_编辑.md`（{对象}：骨架/分卷/卷NN——如卷01）')
+    expect(editor).toContain('三席互不通气，各自独立出具')
+    expect(editor).toContain('禁替作者改定位')
+    // F. design SKILL 三席串行接线：作家→读者→编辑＋编辑底本链接＋报告落盘行＋工件契约行
+    const design = readSkill('novel-design')
+    expect(design).toContain('[编辑评审](agents/编辑评审.md)')
+    expect(design).toContain('按作家→读者→编辑串行')
+    expect(design).toContain('三席独立互不通气')
+    expect(design).toContain('{对象}_作家.md`、`{对象}_读者.md`、`{对象}_编辑.md`')
+    // G. 注册单源：artifact-contract 照登（pack-check 按 referenceDocs 校验打包面）
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract, 'artifact-contract 应登记编辑评审').toContain("'skills/novel-design/agents/编辑评审.md'")
+    // H. 润色批 2 对话节删除测试：口径与审读侧 §7.8 单源（引节号不重述全文）
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
+    expect(reshape).toContain('**删除测试**：盖住这句对白再读，信息量/性格/关系三者无损＝可删候选（删后语义不塌才准删；塌则留）——口径与《正文起草》技能包 references/正文-展示与对白.md §7.8 单源（引节号，不重述全文）')
   })
 })

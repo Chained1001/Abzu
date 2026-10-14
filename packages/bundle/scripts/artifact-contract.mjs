@@ -10,6 +10,7 @@ export const referenceDocs = [
   'skills/novel-outline/agents/写前十查.md',
   'skills/novel-design/agents/作家评审.md',
   'skills/novel-design/agents/读者评审.md',
+  'skills/novel-design/agents/编辑评审.md',
   'skills/novel-inspiration/agents/采风检索.md',
   // 灵感库种子：十类框架八册（历史事实/现实生活待采不建册，见种子索引.md）
   ...['文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '命名词语', '设定概念']
