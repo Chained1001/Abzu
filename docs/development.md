@@ -18,6 +18,17 @@ pnpm check:public
 
 常规检查使用合成夹具与固定响应，无需 API key。`SCALE_BENCH=1` 的容量测试和真实模型评测单独运行，不是普通 PR 的前提。大规模容量报告写入 `.tmp/scale-benchmark/`。
 
+## 本地跑测（DSH 宿主内）
+
+在 DSH 宿主里跑全量 `pnpm test` 前，先把临时目录指到工作区内，再跑测试：
+
+```powershell
+$env:TEMP = "$PWD\.tmp\dsh-temp"; $env:TMP = $env:TEMP
+pnpm test
+```
+
+原因：宿主只允许未签名的 `esbuild.exe` 写工作区内部，而 `%TEMP%` 在工作区外，所以它写 `os.tmpdir()` 被拒（`Access is denied`）。直接吃 esbuild 的 4 个 spec 因此整块失败或跳过：`transaction-process`、`retrieval/settings`、`retcon-retry-receipt`、`host-loader`。这与测试代码无关，CI runner 不受影响；在 DSH 之外的普通终端里跑不需要这一步。
+
 ## 目录
 
 | 目录 | 职责 |
