@@ -2,7 +2,8 @@
  * 作品定调(PRD §3.4 / 格式规格 §3.1):契约六部模板与完成谓词。
  * 作者整份审定 M0 = 六部皆已确认;不另设签名文件。
  * N1 修复:更新分部时保留书id frontmatter 与其余分部正文内容。
- * C-01:更新分部改为按节替换——只重写显式给出的分部,未给出的分部、六部外 `##` 小节与首部逐字节保留
+ * C-01:更新分部改为按节替换——只重写显式给出的分部,未给出的分部、六部外 `##` 小节与首部的
+ *   **内容与顺序**保留(不是逐字节:行尾统一为 LF——`parseDocument`/`serializeDocument` 会归一 `\r\n`)。
  *   (规格依据 docs/book-format.md:26「保留其中已有内容」、docs/CONTEXT.md:42「绝不整体重写」)。
  *   分部边界只认可见行(围栏代码块 / 注释里的 `## ` 不算分部);「章节篇幅」子节在 core 侧保留
  *   (该部新正文里没有任何可见 `###` 时接回旧子节),调用侧不回填,护栏只兜底绕过工具的写入路径。
@@ -127,7 +128,8 @@ function renderSection(name: string, part: ContractPart): string[] {
 }
 
 /**
- * C-01 按节替换：只动目标 `## ` 分部（到下一个二级标题之前），其余字节原样保留；
+ * C-01 按节替换：只动目标 `## ` 分部（到下一个二级标题之前），其余**内容与顺序**保留
+ * （行尾统一为 LF；不承诺逐字节——归一发生在解析/序列化入口）；
  * 文件里没有该分部时追加到文末。整篇重建会顺手删掉六部外的小节、清空掉标签分部的正文。
  */
 function replaceSection(body: string, name: string, replacement: readonly string[]): string {
@@ -152,7 +154,7 @@ const LENGTH_HOST = '阅读体验与情绪承诺'
 /** 「章节篇幅」三级标题行（可见行口径：围栏 / 注释里的同名行不算）。 */
 const LENGTH_HEADING = /^\s*###\s+章节篇幅\s*(?:[〔(].*[〕)])?\s*$/
 
-/** 取出分部正文里可见的「章节篇幅」子节整块（标题行到下一个同级或更高级标题之前）；行尾原样带回。 */
+/** 取出分部正文里可见的「章节篇幅」子节整块（标题行到下一个同级或更高级标题之前）；行尾按解析后正文的形态带回（CRLF 已在解析入口归一为 LF）。 */
 function extractChapterLengthSubsection(sectionBody: string): string | null {
   const lines = sectionBody.split('\n')
   const visible = visibleLines(sectionBody)
@@ -197,7 +199,7 @@ export function prepareContract(bookRoot: string, parts: ContractParts = {}, ext
     assertChapterLengthSurvives(existing.body, content, incomingLength)
     return { relPath: paths.契约(), content }
   }
-  // 有既有正文：按节替换，六部之外的小节与未更新分部的正文字节原样保留。
+  // 有既有正文：按节替换，六部之外的小节与未更新分部的正文内容与顺序保留（行尾统一 LF）。
   const previousBodies = extractContractSectionBodies(existing.body)
   let body = existing.body
   for (const name of 契约六部) {
