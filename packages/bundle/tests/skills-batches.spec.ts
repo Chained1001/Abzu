@@ -2030,7 +2030,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       if (!fs.existsSync(refDir)) continue
       for (const f of fs.readdirSync(refDir).filter((n) => n.endsWith('.md'))) {
         for (const line of fs.readFileSync(path.join(refDir, f), 'utf8').split('\n')) {
-          if (/附\.[0-9]/.test(line)) {
+          if (/附\.[0-9]/.test(line) && !line.includes('蒸馏自附')) { // T2 附录蒸馏批起：蒸馏自附.N=溯源标注非指针，豁免
             expect(line, `${skill}/references/${f} 附录指针须带「不分发」诚实标注（附录未分发）`).toContain('不分发')
           }
         }
@@ -2190,19 +2190,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.40＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.39 零残留（T4 编辑席实装批接力）
+    // C. 版本纪律全套：两 package.json 0.0.41＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.40 零残留（T2 附录蒸馏批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.40').toBe('0.0.40')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.40').toBe('0.0.40')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.40]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.41').toBe('0.0.41')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.41').toBe('0.0.41')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.41]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.40`).toContain('0.0.40')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.41`).toContain('0.0.41')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.39`).not.toContain('0.0.39')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.40`).not.toContain('0.0.40')
       }
     }
   })
@@ -2714,6 +2714,32 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // M. 润色 tier3 词表交叉引用改指速览表（文风底本已不内联词表）
     const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
     expect(clean).toContain('词表单源在审读 novel-review 技能包 SKILL「参考线速览表」，与本行一致')
+  })
+
+  it('T2 附录蒸馏批：九项类型特化蒸为通用机制并入对应件（v2.4.6，作者逐项批准）', () => {
+    const ref = (skill: string, file: string) => fs.readFileSync(path.join(__dirname, '..', 'skills', skill, 'references', file), 'utf8')
+    // 八块落位（附.7/附.8 合并对照块）
+    expect(ref('novel-design', '大纲-牌局与结构检查.md')).toContain('### 智斗剧情通用件（蒸馏自附.1，权谋外壳已剥）')
+    expect(ref('novel-design', '大纲-牌局与结构检查.md')).toContain('读者复盘三遍仍合理')
+    expect(ref('novel-design', '人物设计-弧光与关系.md')).toContain('### 情感线张力总纲与能动性（蒸馏自附.2，女频外壳已剥）')
+    expect(ref('novel-design', '人物设计-弧光与关系.md')).toContain('只哭不抗=弃读位')
+    expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('### 悬疑张力通用件：四支柱与三层真相（蒸馏自附.3，悬疑外壳已剥）')
+    expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('第一层揭开后故事还有劲吗')
+    expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('### 全书核心疑问与缺席者技法（蒸馏自附.10，替身外壳已剥）')
+    expect(ref('novel-design', '卷纲-节奏与高潮.md')).toContain('### 情绪兑现两型供血（蒸馏自附.7/附.8，类型外壳已剥；两型互为对照）')
+    expect(ref('novel-design', '卷纲-节奏与高潮.md')).toContain('两型不混同一本账')
+    expect(ref('novel-design', '开书-读者与情绪定位.md')).toContain('### 笔墨随题材调配（蒸馏自附.9）')
+    expect(ref('novel-outline', '章纲-信息与情绪.md')).toContain('### 信息差定向爆破：掉马时机（蒸馏自附.11，马甲外壳已剥）')
+    expect(ref('novel-outline', '章纲-信息与情绪.md')).toContain('悬念还在吗？读者还记得吗')
+    expect(ref('novel-director', '排障-长篇防崩.md')).toContain('### 循环/重生/时间线题材一致性体制（条件触发，蒸馏自附.13）')
+    expect(ref('novel-director', '排障-长篇防崩.md')).toContain('读者会拿第 1 章的声明来审你')
+    // 蒸馏块净版纪律：块内不残留来源行/理论锚
+    for (const [file, title] of [['卷纲-节奏与高潮.md', '情绪兑现两型供血'], ['排障-长篇防崩.md', '一致性体制']] as const) {
+      const text = ref('novel-design' === 'x' ? 'novel-director' : (file.startsWith('排障') ? 'novel-director' : 'novel-design'), file)
+      const block = text.slice(text.indexOf(title) - 5)
+      expect(block, `${file} 蒸馏块不应残留来源行`).not.toContain('**来源**：')
+      expect(block).not.toMatch(/T0\d\d/)
+    }
   })
 
   it('T4 编辑席实装批：编辑评审底本（三参数＋首评＋标尺对照表四态＋待校准纪律）＋design 三席串行接线＋润色删除测试＋注册单源', () => {

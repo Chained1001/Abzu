@@ -134,7 +134,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     const refsDir = path.join(__dirname, '..', 'skills', 'novel-design', 'references')
     // 0B 节级索引.yaml 不入包（发行正则只认 md/mjs），节级核验直接解析分发件 §x.y 标题
     // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；v2.4.2 阶段2：02 拆为 6 件；v2.4.3 阶段3：01/03 拆为 8 件（§1.10 跨域移入《大纲-牌局与结构检查》，design 包全拆分件化）；v2.4.4 阶段4：06 拆 3 件＋存根归位、07 拆 6 件；v2.4.5 阶段5a：08 拆 3 件入 novel-director、0A 退役出清单；节图改全局收集
-    const stamp = '> 知识库净版 · 源版本 v2.4.5 · 净版纪律见 docs/design/增强实施计划.md §二'
+    const stamp = '> 知识库净版 · 源版本 v2.4.6 · 净版纪律见 docs/design/增强实施计划.md §二'
     const kbFiles: ReadonlyArray<{ readonly dir: string; readonly file: string }> = [
       ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md'].map((file) => ({ dir: refsDir, file })),
       { dir: path.join(__dirname, '..', 'skills', 'novel-outline', 'references'), file: '章纲-信息与情绪.md' },
@@ -179,7 +179,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       ...['正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md'].map((file) => ({ skill: 'novel-drafting', file, chapter: '7' })),
       ...['排障-索引与改稿流程.md', '排障-专项修复.md', '排障-长篇防崩.md'].map((file) => ({ skill: 'novel-director', file, chapter: '8' })),
     ]
-    const stamp = '> 知识库净版 · 源版本 v2.4.5 · 净版纪律见 docs/design/增强实施计划.md §二'
+    const stamp = '> 知识库净版 · 源版本 v2.4.6 · 净版纪律见 docs/design/增强实施计划.md §二'
     // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件、v2.4.2 阶段2：§2.x 分驻人物件、v2.4.3 阶段3：§1.x/§3.x 分驻开书/世界观件、v2.4.4 阶段4：§6.x/§7.x 分驻章纲/正文件、v2.4.5 阶段5a：§8.x 分驻排障三件＋0A 退役——节图全局化（§→所在件集合），取代章→单文件映射；
     // 三 SKILL 里出现的任何 §x.y 都要能落到某个分发件标题
     const kbAllFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
@@ -425,7 +425,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
 
 describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域拆分）', () => {
   const extractScript = path.join(__dirname, '..', 'scripts', 'kb-extract.mjs')
-  const stamp = '> 知识库净版 · 源版本 v2.4.5 · 净版纪律见 docs/design/增强实施计划.md §二'
+  const stamp = '> 知识库净版 · 源版本 v2.4.6 · 净版纪律见 docs/design/增强实施计划.md §二'
   // v2.4.5 阶段5a：08 拆 3 件入 kbPieces、08/0A 整文件退役——kbWhole 清空（分发面已无数字前缀整章件）
   const kbWhole: string[] = []
   const kbPieces = ['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md', '章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md', '正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md', '排障-索引与改稿流程.md', '排障-专项修复.md', '排障-长篇防崩.md']
