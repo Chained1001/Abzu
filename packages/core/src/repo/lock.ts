@@ -252,7 +252,21 @@ function audit(root: string, state: HeldLock, startedAt: string, status: 'runnin
   finally { try { fs.unlinkSync(temp) } catch { /* Already renamed or never created. */ } }
 }
 
+/**
+ * 同步临界区只接受同步函数。
+ *
+ * async 函数在第一个 await 处就把控制权交还事件循环，而锁的 finally 已经释放——
+ * 异步体会在**无锁**状态下继续写，与另一写入交错（丢更新/多文件半写），调用方却只看到一句错误。
+ * 因此必须在调用函数体之前判：函数体一旦启动就已经晚了（原实现在拿到 Promise 后才抛，属同一漏洞）。
+ */
+export function assertSyncOperation(operation: unknown): void {
+  if (typeof operation === 'function' && Object.prototype.toString.call(operation) === '[object AsyncFunction]') {
+    throw new Error('书仓写入临界区必须同步，不接受 async 函数：请改用 withBookLockAsync / withBookWriteAsync')
+  }
+}
+
 export function withBookLock<T>(bookRoot: string, operation: () => T, options: BookLockOptions = {}): T {
+  assertSyncOperation(operation)
   const root = canonicalizePath(bookRoot)
   const key = keyOf(root)
   const existing = ownedState(key)

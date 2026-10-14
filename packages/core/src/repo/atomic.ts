@@ -9,7 +9,7 @@
  *   临时文件天然同盘,异常回滚与残留清理也作用于同一目录。
  */
 
-import { withBookLock, withBookLockAsync } from './lock'
+import { assertSyncOperation, withBookLock, withBookLockAsync } from './lock'
 import { recoverTransactions, runTransaction, type OperationProvenance } from './transaction'
 import { relPathProblem } from './rel-path'
 
@@ -30,6 +30,8 @@ function assertRelPath(relPath: string): void {
 
 /** Acquire the write boundary and recover interrupted work before any reads. */
 export function withBookWrite<T>(root: string, operation: () => T, provenance?: OperationProvenance): T {
+  // 判在调用之前：本函数把 operation 包进同步箭头，锁入口看不到它的 async 形状（见 lock.ts 同名守卫）。
+  assertSyncOperation(operation)
   return withBookLock(root, () => {
     recoverTransactions(root)
     return operation()
@@ -47,7 +49,10 @@ export function withBookWriteAsync<T>(root: string, operation: () => Promise<T>,
 export function bookWriter<Args extends unknown[], Result>(
   writer: (root: string, ...args: Args) => Result,
 ): (root: string, ...args: Args) => Result {
-  return (root, ...args) => withBookWrite(root, () => writer(root, ...args))
+  return (root, ...args) => {
+    assertSyncOperation(writer)
+    return withBookWrite(root, () => writer(root, ...args))
+  }
 }
 
 /** Batch replacement with crash recovery; conflicts retain their recovery evidence. */

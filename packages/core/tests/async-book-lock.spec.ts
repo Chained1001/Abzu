@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { withBookLock, withBookLockAsync, withBookWriteAsync, writeBatchAtomic } from '../src'
+import { bookWriter, withBookLock, withBookLockAsync, withBookWrite, withBookWriteAsync, writeBatchAtomic } from '../src'
 import { removeSync } from '../src/repo/remove'
 
 let root: string
@@ -53,6 +53,31 @@ describe('等待原生写入时的书仓锁', () => {
     let nested!: Promise<void>
     withBookLock(root, () => { nested = withBookLockAsync(root, async () => undefined) })
     await expect(nested).rejects.toThrow(/同步书仓锁内不得启动异步写入/)
+    expect(fs.existsSync(lockPath())).toBe(false)
+  })
+
+  /**
+   * 审查 P1：async 函数在第一个 await 处交还控制权，而锁的 finally 已经释放，
+   * 异步体会在无锁状态下继续写。判必须发生在函数体启动之前——原实现是拿到
+   * Promise 之后才抛，那时函数体已经跑过一半（测试用 ran 钉死这一点）。
+   */
+  it('async 回调交给同步锁入口：函数体启动前立即抛，且不起锁', () => {
+    let ran = false
+    const asyncBody = async () => { ran = true; return '不该跑' }
+
+    expect(() => withBookLock(root, asyncBody as never)).toThrow(/必须同步，不接受 async 函数/)
+    expect(() => withBookWrite(root, asyncBody as never)).toThrow(/必须同步，不接受 async 函数/)
+    expect(() => bookWriter(asyncBody as never)(root)).toThrow(/必须同步，不接受 async 函数/)
+
+    expect(ran, 'async 函数体不得在抛错前执行').toBe(false)
+    expect(fs.existsSync(lockPath()), '锁不得被起过').toBe(false)
+    expect(fs.existsSync(path.join(root, '.abzu')), '不得留下运行目录').toBe(false)
+  })
+
+  it('同步函数与同步写法照旧可用（守卫不误伤）', () => {
+    expect(withBookLock(root, () => 'ok')).toBe('ok')
+    expect(withBookWrite(root, () => 'ok')).toBe('ok')
+    expect(bookWriter((_root: string, value: string) => value)(root, 'ok')).toBe('ok')
     expect(fs.existsSync(lockPath())).toBe(false)
   })
 })
