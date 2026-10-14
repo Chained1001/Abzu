@@ -17,6 +17,7 @@
 import * as path from 'node:path'
 import * as fs from 'node:fs'
 import {
+  classifyFileTool,
   gateFileAccess,
   gateWriteDraft,
   isInsidePath,
@@ -82,7 +83,13 @@ export function attachFileGateToAgent(
           return { kind: 'deny', reason: '受管原文与机器状态仅供参考工具读取，请使用拆书或定点证据回查' }
         }
       }
-      if (!isMutatingFileTool(toolCall)) return next()
+      // D-1：由「名单内才查」翻成「带路径就默认拦、登记过才放行」——
+      // unknown（顶层带 file_path/path 但没登记）走 ask，不往下走 zone 判定（免得冒出更强的 deny 文案）。
+      const kind = classifyFileTool(toolCall)
+      if (kind === 'unknown') {
+        return Promise.resolve({ kind: 'ask', reason: `未登记的文件工具 ${toolCall.name} 携带路径参数，无法判定只读或改写，需作者确认` } as PreToolDecisionLike as never)
+      }
+      if (kind !== 'mutating') return next()
       if (target === null) {
         return Promise.resolve({ kind: 'deny', reason: '文件工具缺少可解析路径,拒绝写入' } as PreToolDecisionLike as never)
       }

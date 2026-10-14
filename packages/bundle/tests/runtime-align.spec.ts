@@ -20,6 +20,11 @@ import * as nodePath from 'node:path'
 import * as os from 'node:os'
 import { apply, resetWorkspaceRoot } from '../src'
 import { NOVEL_TOOL_NAMES } from '../src/novel-tools'
+import { classifyFileTool } from '@abzu/core'
+import { apply as applyToolFs, inject as ToolFsInject, name as ToolFsName } from '@deepseek-ai/dsh-tool-fs'
+
+/** dsh-tool-fs 只认 4 个正整数的读窗口参数（字段见其包内 Config schema），枚举不需要真值。 */
+const TOOL_FS_CONFIG = { readLimit: 2000, readMaxLineLength: 2000, readMaxBytes: 262144, readStreamMinSize: 65536 }
 
 const roots: string[] = []
 afterAll(() => {
@@ -54,6 +59,11 @@ class AgentsStub extends Service {
 class WorkspaceRegistryStub extends Service {
   constructor(ctx: Context, private readonly workspace: string) { super(ctx, 'workspaceRegistry') }
   list = (): unknown[] => [{ path: this.workspace, title: '测试工作范围' }]
+}
+
+/** 极窄 fs stub：只为让真实 dsh-tool-fs 激活（它 inject ['tools','fs','systemPrompt']），执行期才用其方法。 */
+class FsStub extends Service {
+  constructor(ctx: Context) { super(ctx, 'fs') }
 }
 
 interface TestAgent {
@@ -129,6 +139,17 @@ function schemasOf(tools: ToolRuntimeType, agent: TestAgent): string[] {
   return schemas.map((s) => String(s.name ?? ''))
 }
 
+/** D-1：从工具 schema 里取顶层路径键（兼容 `{type,properties}` 与裸属性表两种形状）。 */
+function declaredPathKeys(schema: { readonly parameters?: unknown }): string[] {
+  const parameters = schema.parameters
+  if (parameters === null || typeof parameters !== 'object') return []
+  const props = 'properties' in parameters
+    ? (parameters as { properties?: unknown }).properties
+    : parameters
+  if (props === null || typeof props !== 'object') return []
+  return Object.keys(props as Record<string, unknown>).filter((key) => key === 'file_path' || key === 'path')
+}
+
 async function execTool(tools: ToolRuntimeType, agent: TestAgent, name: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
   return tools.execute({
     callId: `call-${Math.random().toString(36).slice(2)}`,
@@ -160,6 +181,35 @@ describe('dsh 运行时对齐:主 Agent scoped 工具面', () => {
     for (const n of NOVEL_TOOL_NAMES) expect(mainNames).toContain(n)
     expect(mainNames.filter((n) => n.startsWith('novel_'))).toHaveLength(NOVEL_TOOL_NAMES.length)
     expect(schemasOf(tools, outsider.agent).filter((n) => n.startsWith('novel_'))).toEqual([])
+    await disposeRoot(root)
+  })
+
+  it('D-1 枚举覆盖：真实宿主文件工具里每个带 file_path / path 的都必须已被门禁登记（否则点名）', async () => {
+    resetWorkspaceRoot()
+    const ws = mkWorkspace()
+    const root = new Context()
+    await root.plugin(SystemPrompt)
+    await root.plugin(ToolRuntime)
+    // 真实 dsh-tool-fs（read / write / edit / read_image 的来源），另有 bundle 自己的工具面
+    await root.plugin(FsStub)
+    await root.plugin({ name: ToolFsName, inject: ToolFsInject, apply: (ctx: Context) => applyToolFs(ctx, TOOL_FS_CONFIG) })
+
+    const main = makeAgent(root, 'main-d1', { cwd: ws })
+    await loadBundle(root, ws, [main.agent])
+
+    const tools = (root as unknown as { get(n: string): unknown }).get('tools') as ToolRuntimeType
+    const schemas = tools.schemas(main.agent) as ReadonlyArray<{ readonly name?: string; readonly parameters?: unknown }>
+    const declared = schemas.flatMap((schema) => declaredPathKeys(schema).map((key) => ({ name: String(schema.name ?? ''), key })))
+    expect(declared.length, '枚举里必须真的命中宿主带路径参数的工具，否则这条断言是空转').toBeGreaterThan(0)
+    for (const name of ['read', 'write', 'edit']) expect(declared.map((d) => d.name)).toContain(name)
+
+    for (const { name, key } of declared) {
+      expect(
+        classifyFileTool({ name, arguments: { [key]: '草稿区/枚举覆盖.md' } }),
+        `未登记的文件工具 ${name}（顶层带 ${key}）——请登记进 MUTATING_FILE_TOOLS 或 READ_ONLY_FILE_TOOLS`,
+      ).not.toBe('unknown')
+    }
+
     await disposeRoot(root)
   })
 

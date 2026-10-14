@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { decidePreExecute } from '../src/gate/preExecute'
+import { classifyFileTool, decidePreExecute } from '../src/gate/preExecute'
 import { reportDraftReadiness } from '../src/gate/writeDraft'
 import { serializeDocument } from '../src/repo/frontmatter'
 
@@ -145,5 +145,49 @@ describe('str_replace_editor 命令分流', () => {
     expect(view).toEqual({ kind: 'allow' })
     const edit = decidePreExecute(root, { name: 'str_replace_editor', arguments: { command: 'str_replace', path: dest } })
     expect(edit.kind).toBe('deny')
+  })
+})
+
+describe('D-1 文件工具分类（带路径默认拦、登记过才放行）', () => {
+  it('已登记只读工具：read / read_image 带 file_path → allow', () => {
+    const root = mkBook()
+    expect(decidePreExecute(root, { name: 'read', arguments: { file_path: path.join(root, '定稿/卷01/0001-初见.md') } })).toEqual({ kind: 'allow' })
+    expect(decidePreExecute(root, { name: 'read_image', arguments: { file_path: path.join(root, '草稿区/插图.png') } })).toEqual({ kind: 'allow' })
+    expect(classifyFileTool({ name: 'read_image', arguments: { file_path: 'x.png' } })).toBe('read-only')
+  })
+
+  it('str_replace_editor{command:view} → read-only（回归钉子：判定顺序不能换）', () => {
+    const root = mkBook()
+    expect(classifyFileTool({ name: 'str_replace_editor', arguments: { command: 'view', path: 'x.md' } })).toBe('read-only')
+    expect(decidePreExecute(root, { name: 'str_replace_editor', arguments: { command: 'view', path: path.join(root, '定稿/卷01/0001-初见.md') } })).toEqual({ kind: 'allow' })
+  })
+
+  it('str_replace_editor{command:create} 打定稿 → deny（既有行为不变）', () => {
+    const root = mkBook()
+    const d = decidePreExecute(root, { name: 'str_replace_editor', arguments: { command: 'create', path: path.join(root, '定稿/卷01/0001-初见.md') } })
+    expect(d.kind).toBe('deny')
+    if (d.kind === 'deny') expect(d.reason).toMatch(/定稿区只读/)
+  })
+
+  it('未登记却带 path 的工具 → ask，reason 指名工具（fail-closed，不误 deny）', () => {
+    const root = mkBook()
+    expect(classifyFileTool({ name: 'apply_patch', arguments: { path: '草稿区/x.md' } })).toBe('unknown')
+    expect(decidePreExecute(root, { name: 'apply_patch', arguments: { path: '草稿区/x.md' } })).toEqual({
+      kind: 'ask',
+      reason: '未登记的文件工具 apply_patch 携带路径参数，无法判定只读或改写，需作者确认',
+    })
+  })
+
+  it('不碰路径参数的工具 → unrelated / allow（今天零行为变化的那一类）', () => {
+    const root = mkBook()
+    expect(classifyFileTool({ name: 'todo_write', arguments: { todos: [] } })).toBe('unrelated')
+    expect(classifyFileTool({ name: 'novel_get_story_status', arguments: { bookId: 'b-1' } })).toBe('unrelated')
+    expect(decidePreExecute(root, { name: 'todo_write', arguments: { todos: [] } })).toEqual({ kind: 'allow' })
+  })
+
+  it('write 缺 file_path → deny（既有 fail-closed 不变）', () => {
+    const root = mkBook()
+    expect(classifyFileTool({ name: 'write', arguments: {} })).toBe('mutating')
+    expect(decidePreExecute(root, { name: 'write', arguments: {} }).kind).toBe('deny')
   })
 })
