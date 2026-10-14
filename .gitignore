@@ -1,4 +1,6 @@
 node_modules/
+# pnpm 在没有 --store-dir 时会就近建仓内 store；仓内目录会让 check:public/release:build 直接失败
+.pnpm-store/
 lib/
 dist/
 .tmp/
