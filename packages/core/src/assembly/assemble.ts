@@ -21,6 +21,7 @@ import { bookWriter } from '../repo/atomic'
 import { appendSupplements, type SupplementPreview } from './supplements'
 import { readMaterialFile } from './source'
 import { canonicalizePath } from '../gate/canonical'
+import { resolveInsideBookOrNull } from '../gate/paths'
 import { parseChapterLength, renderChapterLength } from '../design/chapter-length'
 
 /** F4:时序未定条目的来源与不确定性标注行。 */
@@ -83,17 +84,6 @@ function asRefLine(raw: string): string {
   return t.startsWith('来源') ? t : `来源:${t}`
 }
 
-function resolveInsideBook(bookRoot: string, rel: string): string | null {
-  if (rel.includes('..') || /^[a-zA-Z]:/.test(rel) || rel.startsWith('/') || rel.startsWith('\\')) {
-    return null
-  }
-  const abs = path.resolve(bookRoot, rel)
-  const rootAbs = path.resolve(bookRoot)
-  const prefix = rootAbs.endsWith(path.sep) ? rootAbs : rootAbs + path.sep
-  if (abs !== rootAbs && !abs.startsWith(prefix)) return null
-  return abs
-}
-
 function versionOf(text: string | null): string {
   if (text === null) return ''
   const r = parseDocument(text)
@@ -126,7 +116,7 @@ function collectWorldbookRels(body: string): string[] {
 }
 
 function sliceFile(bookRoot: string, rel: string): { text: string; missing: boolean } {
-  const abs = resolveInsideBook(bookRoot, rel)
+  const abs = resolveInsideBookOrNull(bookRoot, rel)
   if (abs === null) return { text: '', missing: true }
   const text = readText(bookRoot, rel)
   if (text === null) return { text: '', missing: true }

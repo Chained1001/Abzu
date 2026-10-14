@@ -27,6 +27,17 @@ export function resolveInsideBook(bookRoot: string, target: string):
   return { ok: true, relPath: toPosixRel(rel) }
 }
 
+/**
+ * 兼容旧调用方（assembly/outline 里两份本地副本已删）：越界/逃逸 → null；
+ * 否则给出 canonical 后的绝对路径。与 resolveInsideBook 同判，只把 `{ok:false}`
+ * 映射回旧调用方的 null 语义——按路径段判定，`A..B.md` 这类名字不再被误挡。
+ */
+export function resolveInsideBookOrNull(bookRoot: string, target: string): string | null {
+  const resolved = resolveInsideBook(bookRoot, target)
+  if (!resolved.ok) return null
+  return path.join(canonicalizePath(bookRoot), ...resolved.relPath.split('/'))
+}
+
 export function classifyRelPath(relPath: string): '草稿区' | '定稿' | '构想' | '真源' {
   const p = toPosixRel(relPath)
   if (p === '草稿区' || p.startsWith('草稿区/')) return '草稿区'

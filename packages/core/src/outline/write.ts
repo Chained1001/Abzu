@@ -12,6 +12,7 @@ import { writeBatchAtomic, writeFileAtomic } from '../repo/atomic'
 import { removeSync } from '../repo/remove'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { assertSegment, paths } from '../repo/paths'
+import { resolveInsideBookOrNull } from '../gate/paths'
 import { parseSourceRef, type SourceRef } from '../repo/sourceRef'
 import { parseOutline } from './parse'
 import { 定位段小节, 单元字段 } from './template'
@@ -82,19 +83,8 @@ function hasConfirmedOutline(bookRoot: string, key: Pick<ChapterKey, '卷' | '�
   return text !== null && labeledStateOf(text) === '已确认'
 }
 
-function resolveInsideBook(bookRoot: string, rel: string): string | null {
-  if (rel.includes('..') || /^[a-zA-Z]:/.test(rel) || rel.startsWith('/') || rel.startsWith('\\')) {
-    return null
-  }
-  const abs = path.resolve(bookRoot, rel)
-  const rootAbs = path.resolve(bookRoot)
-  const prefix = rootAbs.endsWith(path.sep) ? rootAbs : rootAbs + path.sep
-  if (abs !== rootAbs && !abs.startsWith(prefix)) return null
-  return abs
-}
-
 function targetIsBlankSetting(bookRoot: string, rel: string): boolean {
-  const abs = resolveInsideBook(bookRoot, rel)
+  const abs = resolveInsideBookOrNull(bookRoot, rel)
   if (abs === null) return false
   let text: string
   try {
@@ -187,7 +177,7 @@ export function checkConfirmable(bookRoot: string, key: Pick<ChapterKey, '卷' |
 
 function checkRef(bookRoot: string, ref: SourceRef, line: string): { readonly gap?: string; readonly 播报?: string } {
   if (ref.kind === '作者自定义' || ref.kind === '对谈共创' || ref.kind === '知识库') return {}
-  const abs = resolveInsideBook(bookRoot, ref.path)
+  const abs = resolveInsideBookOrNull(bookRoot, ref.path)
   if (abs === null) return { gap: `来源路径逃逸:${line}` }
   if (!fs.existsSync(abs)) return { gap: `仓内引用目标不存在:${ref.path}` }
   if (targetIsBlankSetting(bookRoot, ref.path)) return { 播报: `引用留白设定:${ref.path}` }
