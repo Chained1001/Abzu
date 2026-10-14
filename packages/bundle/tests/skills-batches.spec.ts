@@ -110,7 +110,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     expect(scale).toContain('章纲·写前十查⑥爽点铺垫＋审读·节奏与张力维')
     expect(scale).toContain('卷纲·卷级交叉思考（伏笔兑现×读者期待）')
-    expect(scale).toContain('章纲·写前十查⑤平章检查')
+    expect(scale).toContain('章纲·写前十查雷点快扫（数值随本行）')
     expect(scale).toContain('卷纲·卷级交叉思考（换图×世界观扩展）')
     expect(scale).toContain('审读·线索与伏笔维（对照账本线索到期）')
     expect(scale).toContain('卷纲·卷级交叉思考；章级脚本未实装（未接线）')
@@ -963,7 +963,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('按 [写前十查](agents/写前十查.md) 底本文末的高发雷点内联判据快扫')
     expect(settle).toContain('《细纲备料》技能包 agents/写前十查.md ④接钩预检的末行读取位')
     const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
-    expect(clean).toContain('novel-review 技能包 agents/文风与表达审读.md')
+    expect(clean).toContain('词表单源在审读 novel-review 技能包 SKILL「参考线速览表」')
     const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
     expect(reshape).toContain('总判据是契约「叙事方式与文风基调」分部')
     // A6. director 排障入口跨包定位句＋改稿章程加载名（全表唯一断点修复）
@@ -1262,7 +1262,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(vol).toContain('## 高潮后调剂（弧线段内固定核对行）')
     expect(vol).toContain('高潮章后 2 章内**必须**回低烈度')
     expect(vol).toContain('日常（生活线回稳）/喜剧（社交喜剧章）/清算（余债收拾）')
-    expect(vol).toContain('全卷不连续两章钝收')
+    expect(vol).toContain('全卷不连续三章及以上钝收')
     expect(vol).toContain('§6.1 管单章怎么收束')
     expect(vol).toContain('本行管卷级调剂节奏')
     // A5 升级节点：模板行事件化四件＋写前十查②核对（两处互指）
@@ -1356,7 +1356,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // M13 调剂对连钝：相连钝收＝调剂组成部分，红线按章整体烈度判
     const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(vol).toContain('调剂对（高潮章＋调剂章）相连钝收＝调剂的组成部分')
-    expect(vol).toContain('不计入「不连续两钝」红线')
+    expect(vol).toContain('不计入「连续钝收」红线')
     expect(vol).toContain('红线按章整体烈度判')
     // R4 ③扩词：伏笔/验证到期——核对对象加力量体系升级节点验证窗口与排期（双记位兜底）；备料段自查行点名双记位
     expect(checks).toContain('**伏笔/验证到期**')
@@ -1394,8 +1394,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // R4② 卷纲调剂行补 A4 两判据（大战/高潮段禁泄压钩插入；大战前可排纯喜剧章作蓄压调剂）
     expect(vol).toContain('大战/高潮段禁泄压钩插入')
     expect(vol).toContain('大战前可排纯喜剧章作蓄压调剂')
-    // R2 写前十查信息释放行同步本章口径句
-    expect(checks).toContain('本章计划释出条目占本章可释集')
+    // R2 写前十查信息释放行同步本章口径句（0.0.44 审查批：判据全文收成规格指针，句面钉随裁）
+    expect(checks).toContain('判据全文——含终卷收束豁免／钝·定格豁免／新问号核对——见')
     expect(checks).toContain('是信息行不作案据')
     // O2 配给核对回退：细纲未带配给行＝呈报「未配给」不判红
     expect(checks).toContain('细纲未带配给行＝呈报「未配给」，不判红')
@@ -1700,7 +1700,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // A. F9 浮动档区间化：design 示例改区间式＋±12.5% 容差带（独立审查 R1——沙盘工作口径与 F9 建议句原值）＋单值式清零；三消费位档区间口径；F36 现状注记措辞同步（core 未实装注记保留）；R4 起草验收句补含容差带
     expect(design).toContain('章型浮动: 常规 3500-4500｜过渡 2800-3200｜高潮 4000-5500')
     expect(design).toContain('各档写「低-高」区间、各档给 ±12.5% 容差带')
-    expect(review).toContain('各档 ±12.5% 容差带')
+    expect(review).toContain('容差带口径照作品契约章节篇幅节（单源）')
     expect(design).not.toContain('常规 3500｜过渡 2800｜高潮 4500')
     for (const t of [design, review, sect, drafting]) {
       expect(t, '浮动档四个消费位都应改档区间口径').toContain('档区间')
@@ -1721,9 +1721,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // C. F3 前史隐喻行：力量体系条目模板金手指轨道位
     expect(power).toContain('前史隐喻：<能力与人物前史的呼应——能力形态即创伤/执念的具象')
     expect(power).toContain('无呼应留白，不硬造')
-    // D. F14 A 轴句：章末双钩节——期待钩设计期排期＋S:A≈7:3 参照
+    // D. F14 A 轴句：章末双钩节——期待钩设计期排期＋S:A 配比参照（0.0.44 审查批：≈7:3 数值收成标尺行指针＋S/A 加注）
     expect(sect).toContain('期待钩（A 轴）在悬模式下应占双钩其一')
-    expect(sect).toContain('S:A≈7:3')
+    expect(sect).toContain('S:A（S＝悬念、A＝期待，配比与置信标注见该行）')
     expect(sect).toContain('期待钩靠设计期排期，不是写时顺手')
     // E. F12 对白占比章型子带：设计侧散文文档三档子带＋书级带只作书级参照（独立审查 R3——引谱改 1-4 全卷实测 3.3-36.7%；R2——长句配额参数单源行）
     expect(proseDoc).toContain('对白占比章型子带')
@@ -2008,7 +2008,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(cards).toContain('黄金三百字自查（首章与卷首章执行）')
     expect(cards).toContain('前三行进人')
     expect(cards).toContain('前 300 字立冲突')
-    expect(cards).toContain('前 1000 字给钩')
+    expect(cards, '开篇「前 1000 字给钩」两尺口径已随 0.0.44 方法论审查修复批删除（KB §6.2/§7.10 无此口径）').not.toContain('前 1000 字给钩')
     for (const hook of ['危机型（生存缺口', '悬念型（信息缺口', '情感型（关系缺口', '炸裂型（认知缺口', '认知错位钩', '信息差钩']) {
       expect(cards, `开场钩型应含「${hook}」`).toContain(hook)
     }
@@ -2305,7 +2305,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     // B2. R1 正断言：判据句与数值保留（抽四处关键位）
     expect(outline).toContain('兑现前必有强化触点')
-    expect(volSpec).toContain('误会-和解小循环周期按本书节奏拟（参考 10-15 章，大周期以事件弧计）')
+    expect(volSpec).toContain('误会-和解小循环周期按本书节奏拟（参考 10-15 章，大周期以事件弧计——实证与节拍口径见《定调设计》技能包 references/参考标尺.md 节奏基准「单元循环节拍」行）')
     expect(sect).toContain('期待钩靠设计期排期，不是写时顺手')
     expect(game).toContain('换算随本书设定自拟口径、不默认小时换算')
     expect(game).not.toContain('1-4')
@@ -2322,7 +2322,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(inspiration).toContain('类简称十值与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
     expect(inspiration, 'SKILL 完整枚举应退役').not.toContain('类简称＝古词/台词/剧情/人物/历史/文化/影动/现实/命名/设定')
     // F. 低等级项：参照带措辞归一＋标尺三值＋settle 派发模板路径补尖括号＋design 窗口路径统一
-    expect(cards).toContain('参照书章节相邻双代词起句不足 1%')
+    expect(cards).toContain('参照书章节相邻双代词起句 0-0.7%')
     expect(cards, '「人类五书样本」出处措辞应清零').not.toContain('人类五书样本')
     expect(cards, '「人类对照章节」出处措辞应清零').not.toContain('人类对照章节')
     expect(clean).toContain('参照书章节相邻双代词起句 0-0.7%')
@@ -2399,7 +2399,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(drafting, `删除句应清零：「${stale}」`).not.toContain(stale)
     }
     // C. R4 改判（G1 两级改造落起草侧）：单元配给降参考带宽＋写时节奏赢＋误判落自评行＋章级合计带判
-    expect(drafting).toContain('单元级配给＝参考带宽（±50% 浮动【待实测分位定值】）')
+    expect(drafting).toContain('单元级配给＝参考带宽（带宽值照章细纲规格预期字数行）')
     expect(drafting).toContain('写时按场景类型给节奏赢过配给')
     expect(drafting).toContain('误判的段落落自评行供润色复核')
     expect(drafting).toContain('章级合计仍按目标字数区间判——合计不足加事不加字')
@@ -2610,5 +2610,86 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(drafting).toContain('`- 场景升级：<单元>｜<细纲预判功能→实际写成的功能>`')
     // C. R1 语态样本位置注（句面张力消解——样本行物理在包尾，R1 写前读同一份）
     expect(drafting).toContain('逐行点名读近三章「语态样本：」行（位于任务包末尾）找回语感')
+  })
+
+  it('0.0.45 方法论审查修复批：C1 润色密度口径＋R1 开篇两尺删除与适用边界＋R2 憋屈三口径＋R3 ≤70% 指针化＋R4 毛边豁免＋R5 钝收档差＋R6 标尺触发位＋N 系单源指针＋审读参考线速览表', () => {
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
+    const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    const outline = readSkill('novel-outline')
+    const design = readSkill('novel-design')
+    const review = readSkill('novel-review')
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    const mineList = fs.readFileSync(skillFile('novel-design', 'references/雷点清单.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
+    const struct = fs.readFileSync(skillFile('novel-review', 'agents/章节结构审读.md'), 'utf8')
+    const style = fs.readFileSync(skillFile('novel-review', 'agents/文风与表达审读.md'), 'utf8')
+    // A. C1 润色密度互斥修复：三对数值行参照带（软预算）＋画像优先；旧「不设跨作品统一数量上限」清零
+    expect(reshape).toContain('**密度判断**：以随包三对数值行为参照带（软预算——超标先自查哪句可删哪句该留），本书文风画像申报疏密偏好时画像优先')
+    expect(reshape).not.toContain('不设跨作品统一数量上限')
+    // B. R1 开篇钩位两尺：写作卡删「前 1000 字给钩」（负断言在 0.0.31 组随裁）＋「在乎」句折入 300 字项；review 两底本补适用边界
+    expect(cards).toContain('读者脑子里得有一个「然后呢？」的问题——悬念前先建立在乎：读者还不在乎结果时悬置它只是干等')
+    expect(sweep).toContain('前 300 字核对「主角＋处境＋钩」三件是否立齐（首章与卷首章硬核，余章对照细纲判）')
+    expect(struct).toContain('主角＋处境＋钩（首章与卷首章硬核，余章对照细纲判）')
+    // C. R2 憋屈三口径：KB 分发件与雷点清单都改挂《参考标尺》憋屈剧情上限行
+    const kb08 = fs.readFileSync(skillFile('novel-director', 'references/08_修订排障.md'), 'utf8')
+    expect(kb08).toContain('羞辱后还手时限照《参考标尺》憋屈剧情上限行')
+    expect(kb08).not.toContain('羞辱一章就打脸')
+    expect(mineList).toContain('还手时限照《参考标尺》憋屈剧情上限行')
+    expect(mineList).not.toContain('羞辱一章内打脸')
+    // D. R3 信息释放行指针化（写前十查句面钉在 0.0.25 组随裁）；此处钉 outline SKILL 步骤 5 简版豁免口径句
+    expect(outline).toContain('豁免口径见规格')
+    // E. R4 §7.8 毛边豁免补入（KB 分发件侧）
+    const kb07 = fs.readFileSync(skillFile('novel-drafting', 'references/07_正文写作.md'), 'utf8')
+    expect(kb07).toContain('毛边对白（结巴／口癖／答非所问／无信息量客套）是人味不是废话——功能审判只删删完什么都不剩的空转对白')
+    // F. R5 钝收档差：三章及以上红线＋高潮后 1-2 章余波钝收合法（主句钉在 0.0.24 组随裁）
+    expect(vol).toContain('高潮后 1-2 章余波钝收合法')
+    // G. R6 标尺触发位失实修复：憋屈行触发位钉在 0.0.13 组随裁；章末钩子行→审读·章节结构维；写前十查雷点快扫行补憋屈句
+    expect(scale).toContain('审读·章节结构维（对照细纲章末双钩）')
+    expect(scale).not.toContain('章级·draft 回看')
+    expect(checks).toContain('憋屈连续超线照参考标尺憋屈行')
+    // H. N1 字数示例改标尺指针；N5/N12/N13 数值单源指针句面钉在 0.0.28/0.0.38/0.0.39 组随裁
+    expect(design).toContain('三档话术与基准照 references/参考标尺.md 每章字数行取（示例数值仅格式演示）')
+    // I. N7 格言预算指针：两底本改「数值随派发材料写作卡摘录行」，≤2/章 数值不再内联
+    for (const t of [sweep, style]) {
+      expect(t).toContain('数值随派发材料写作卡摘录行')
+      expect(t).not.toContain('（≤2/章）提示均匀感')
+    }
+    // J. N9 审读参考线速览表：单源一段在 review SKILL 派发模板＋八底本数值行改指针（读者承诺审读无通用参考线数值行）
+    for (const row of [
+      '对话密度 | 1.5 次/百字（番茄风格）',
+      '段落均值 80 字；超 200 字段计数',
+      '短篇 10 个内',
+      '低于三成为漂移候选',
+      '5-15 处/千字（体裁分档警戒线）；词表 6 词：心想/意识到/感到/觉得/认为/明白',
+      '场景切换套路标记 | 5 处/千字（与此同时/另一边/画面一转）',
+      '同一标记 ≥3 次',
+      '消失超 50% 篇幅后复现',
+      '连续 ≥3 段纯叙述（无对话、无动作 beat，段长≥20 字）',
+      '常见套话词表 | 11 词：眼中闪过/嘴角勾起/眼眶微红/不可置信/眼底闪过/咬了咬唇/身子一颤/心头一紧/倒吸一口凉气/目光一凝/瞳孔一缩',
+    ]) {
+      expect(review, `参考线速览表应含「${row}」`).toContain(row)
+    }
+    expect(review).toContain('**参考线速览表单源**：九份审读底本（全量审读＋八份单维底本）的参考线数值一律对照第二部分速览表')
+    expect(review).toContain('段末格言化参照（对白金句密度）：从《正文起草》技能包 agents/写作卡.md「AI 痕迹六条」原样摘录段末格言化行随包')
+    const agentDir = path.join(__dirname, '..', 'skills', 'novel-review', 'agents')
+    for (const f of ['全量审读.md', '章节结构审读.md', '人物与关系审读.md', '情节与因果审读.md', '信息披露审读.md', '线索与伏笔审读.md', '节奏与张力审读.md', '文风与表达审读.md']) {
+      expect(fs.readFileSync(path.join(agentDir, f), 'utf8'), `${f}: 底本参考线数值行应对照随包参考线速览表`).toContain('对照随包参考线速览表')
+    }
+    for (const stale of ['参考线 1.5/百字', '参考线 80 字', '短篇参考线 10', '体裁参考线 5~15', '超 5 处/千字', '超 50% 篇幅后复现']) {
+      expect(sweep, `全量审读不应残留内联参考线数值「${stale}」`).not.toContain(stale)
+    }
+    expect(style, '文风底本不应残留套话词表内联').not.toContain('眼中闪过/嘴角勾起')
+    // K. N10-N11 跨包单源声明：事件化四件（世界书模板升级节点行）＋平章三型（章细纲规格可选增补行）
+    expect(checks).toContain('定义单源在世界书模板-力量体系条目「升级节点」行')
+    expect(checks).toContain('三型枚举单源在 [章细纲固定小节规格](../templates/章细纲固定小节规格.md) 可选增补行')
+    // L. 顺手批：KB 自引表金手指版清零（四版统一）；主语密度 0-0.7% 钉在 0.0.36 组随裁
+    const kb06 = fs.readFileSync(skillFile('novel-outline', 'references/06_章纲.md'), 'utf8')
+    expect(kb06).toContain('| 黄金三百字 | 黄金三百字 | 主角+处境+冲突 |')
+    expect(kb06).not.toContain('主角+处境+冲突+金手指')
+    // M. 润色 tier3 词表交叉引用改指速览表（文风底本已不内联词表）
+    const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
+    expect(clean).toContain('词表单源在审读 novel-review 技能包 SKILL「参考线速览表」，与本行一致')
   })
 })
