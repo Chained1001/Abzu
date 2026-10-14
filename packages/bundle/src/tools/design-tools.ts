@@ -134,7 +134,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
             description: '契约分部名称',
           },
           state: { type: 'string', enum: ['已确认', '暂定', '留白'], description: '分部确认状态' },
-          content: { type: 'string', description: '该分部的详细设定文本。阅读体验与情绪承诺可含三级标题「章节篇幅」，其下只写三项列表：目标汉字数、下限汉字数、上限汉字数；正整数且下限≤目标≤上限。' },
+          content: { type: 'string', description: '该分部的详细设定文本。阅读体验与情绪承诺可含三级子节「章节篇幅」，其下只写三项列表：目标汉字数、下限汉字数、上限汉字数；正整数且下限≤目标≤上限。不写该子节时沿用契约中已有的篇幅约定（要改就完整写出整个子节）。' },
           summary: { type: 'string', description: '提交摘要（可选，如「契约·核心看点」；缺省用分部名）' },
         },
         required: ['bookId', 'partName', 'state', 'content'],
@@ -163,14 +163,23 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         const parts: ContractParts = {
           [partName]: { state, body: content },
         }
+        // C-01 定稿：篇幅子节只在 core 侧保留，调用侧不回填（两处各自拼接＝双保险变双风险，
+        // 还会覆盖模型的显式改动）。这里只比较入参与结果、回报「发生过保留」，让模型知道本次没动旧篇幅。
+        let lengthPreserved = false
         try {
-          await writeNative(bookRoot, prepareContract(bookRoot, parts), sessionContext)
+          const op = prepareContract(bookRoot, parts)
+          lengthPreserved = partName === '阅读体验与情绪承诺'
+            && !/###\s+章节篇幅/.test(content) && /###\s+章节篇幅/.test(op.content)
+          await writeNative(bookRoot, op, sessionContext)
         } catch (err) {
           return { ok: false, reason: `更新契约失败: ${err instanceof Error ? err.message : String(err)}` }
         }
+        const lengthNote = lengthPreserved
+          ? '本次未写「章节篇幅」子节，已沿用契约中旧的篇幅约定；要改就完整写出目标汉字数、下限汉字数、上限汉字数三项。'
+          : ''
         // 提交点跟随作者确认（拍板 1）：只有已确认态产生 design: 提交；暂定/留白只写文件。
         if (state !== '已确认') {
-          return { ok: true, commitState: 'not-required', retryable: false, message: `已完成《${bookId}》契约【${partName}】更新，状态为〔${state}〕，无需提交，不要为补提交重复调用。` }
+          return { ok: true, commitState: 'not-required', retryable: false, message: `已完成《${bookId}》契约【${partName}】更新，状态为〔${state}〕，无需提交，不要为补提交重复调用。${lengthNote}` }
         }
         const summary = args['summary'] !== undefined ? String(args['summary']).trim() : `契约·${partName}`
         const commit = commitConfirmed({
@@ -180,7 +189,8 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           summary,
           provenance: provenanceOf(sessionContext, [paths.契约()]),
         })
-        return designCommitResult(commit, `契约【${partName}】`, args, sessionContext)
+        const result = designCommitResult(commit, `契约【${partName}】`, args, sessionContext)
+        return lengthNote !== '' && result.ok ? { ...result, message: `${result.message}${lengthNote}` } : result
       },
     },
     {

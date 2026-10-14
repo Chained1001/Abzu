@@ -29,7 +29,7 @@ const SOURCE = '作品契约/契约.md · 阅读体验与情绪承诺 / 章节�
 const KEYS = ['目标汉字数', '下限汉字数', '上限汉字数'] as const
 
 /** Ignore comments and fenced examples when locating real Markdown headings. */
-function visibleLines(body: string): string[] {
+export function visibleLines(body: string): string[] {
   let fence: { mark: string; length: number } | undefined
   return body.replace(/<!--[\s\S]*?(?:-->|$)/g, text => text.replace(/[^\n]/g, '')).split('\n').map(line => {
     const marker = /^\s*(`{3,}|~{3,})/.exec(line)
@@ -40,6 +40,14 @@ function visibleLines(body: string): string[] {
     if (marker) { fence = { mark: marker[1]![0]!, length: marker[1]!.length }; return '' }
     return line
   })
+}
+
+/**
+ * 片段里是否存在任何可见的三级 `###` 标题（不看标题名）。
+ * C-01 前置判据：该部新正文自带三级小节时不再接回旧「章节篇幅」，否则会写出两个子节。
+ */
+export function hasThirdLevelHeading(fragment: string): boolean {
+  return visibleLines(fragment.replace(/\r\n/g, '\n')).some(line => /^\s*###\s+\S/.test(line))
 }
 
 /** Parse the one visible subsection; no implicit defaults or natural-language guessing. */

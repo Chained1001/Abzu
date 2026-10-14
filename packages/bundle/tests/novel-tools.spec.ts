@@ -5,7 +5,7 @@ import * as os from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { createNovelTools, NOVEL_TEST_TOOL_NAMES, NOVEL_TOOL_NAMES } from '../src/novel-tools'
 import { EDITOR_CANCELLED_REASON, EDITOR_DUPLICATE_REASON, EDITOR_UNKNOWN_REASON, EditorRequestHub, type EditorIntent, type EditorRequestSnapshot } from '../src/study/editor-requests'
-import { createBook, scanDesign, writeContract, 契约六部 } from '@abzu/core'
+import { createBook, parseChapterLength, scanDesign, writeContract, 契约六部 } from '@abzu/core'
 import { nativeWriteStub } from './fixtures/native-write-stub'
 
 const roots: string[] = []
@@ -97,6 +97,43 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
     expect(await update.execute(next)).toMatchObject({ ok: true, commitState: 'committed', retryable: false })
     expect(head()).not.toBe(committed)
     expect(await update.execute({ ...next, state: '暂定' })).toMatchObject({ ok: true, commitState: 'not-required', retryable: false })
+  })
+
+  it('C-01 工具路径：不带子节更新阅读体验与情绪承诺 → core 侧接回旧「章节篇幅」，篇幅仍已配置', async () => {
+    const ws = mkRoot()
+    const bookRoot = path.join(ws, '篇幅回填')
+    const tools = createNovelTools({ nativeWrite: nativeWriteStub, workspaceRoot: () => ws, bookRootOfBookId: () => bookRoot })
+    const created = await tools.find(t => t.name === 'novel_create_book')!.execute({
+      bookName: '篇幅回填', concept: { 状态: '已确认', 核心创意: 'x', 题材与目标读者: 'x', 主角核心欲望: 'x', 主要冲突: 'x', 核心看点: 'x', 差异化方向: 'x', 明确不要什么: 'x' },
+    }) as { ok: boolean; bookId: string }
+    expect(created.ok).toBe(true)
+    const update = tools.find(t => t.name === 'novel_update_contract')!
+    const contract = path.join(bookRoot, '作品契约', '契约.md')
+
+    // 首次：写出合法子节
+    expect(await update.execute({
+      bookId: created.bookId, partName: '阅读体验与情绪承诺', state: '已确认',
+      content: '### 章节篇幅\n- 目标汉字数: 2000\n- 下限汉字数: 1600\n- 上限汉字数: 2400',
+    })).toMatchObject({ ok: true })
+    expect(parseChapterLength(fs.readFileSync(contract, 'utf8')).状态).toBe('已配置')
+
+    // 第二次：正文不带子节 ⇒ core 侧接回（调用侧不回填），篇幅不得被抹掉
+    const rewritten = await update.execute({
+      bookId: created.bookId, partName: '阅读体验与情绪承诺', state: '已确认', content: '重写后的阅读体验正文。',
+    })
+    expect(rewritten).toMatchObject({ ok: true })
+    const text = fs.readFileSync(contract, 'utf8')
+    expect(text).toContain('重写后的阅读体验正文。')
+    expect(text).toContain('### 章节篇幅')
+    expect(parseChapterLength(text)).toMatchObject({ 状态: '已配置', 范围: { 目标汉字数: 2000 } })
+
+    // 正文自带别的小节 ⇒ 不回填（否则两个子节），丢掉合法篇幅时由 core 护栏拒绝
+    const conflicting = await update.execute({
+      bookId: created.bookId, partName: '阅读体验与情绪承诺', state: '已确认', content: '### 情绪温度\n温暖。',
+    })
+    expect(conflicting).toMatchObject({ ok: false })
+    expect(String((conflicting as { reason?: string }).reason)).toMatch(/章节篇幅/)
+    expect(fs.readFileSync(contract, 'utf8')).toBe(text)
   })
 
   it('novel_create_book & novel_select_book & novel_seed_min_design & novel_update_contract & novel_get_story_status 闭环', async () => {
