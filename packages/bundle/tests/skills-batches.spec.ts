@@ -115,7 +115,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('审读·线索与伏笔维（对照账本线索到期）')
     expect(scale).toContain('卷纲·卷级交叉思考；章级脚本未实装（未接线）')
     // B. 四处缺失判据引用接线（§x.y 逐一反查由既有引用一致性测试自动扩展覆盖）
-    expect(readSkill('novel-outline')).toContain('§6.7（信息怎么分配')
+    expect(readSkill('novel-outline')).toContain('§6.7 信息怎么分配')
     expect(readSkill('novel-design')).toContain('判据：读 [卷纲-节奏与高潮](references/卷纲-节奏与高潮.md)')
     expect(readSkill('novel-drafting')).toContain('§7.5（叙述视角技术')
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
@@ -304,7 +304,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const drafting = readSkill('novel-drafting')
     expect(drafting).toContain('[写作卡](agents/写作卡.md)')
     expect(drafting).toContain('**原文内联**任务包')
-    expect(drafting).toContain('深挖时按 §x.y 只读该节（[07_正文写作](references/07_正文写作.md)），不整文件读入')
+    expect(drafting).toContain('深挖时按卡头节源→件对照整读对应拆分件，不按节切读')
     expect(drafting).toContain('卡原文随任务包')
     // B2. 趣味层接线：写作心智找乐子条＋趣味卡按场景标签带卡（0.0.33 选卡映射单源移写作卡——映射句见卡头节）
     expect(drafting).toContain('找乐子')
@@ -358,7 +358,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // F. 注册单源：artifact-contract 登记写作卡
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
     expect(contract).toContain("'skills/novel-drafting/agents/写作卡.md'")
-    // G. KB 节级健康断言：分发件逐二级节行跨度 ≤ 上限（v2.4.1 阶段1 04/05 拆 9 件、v2.4.2 阶段2 02 拆 6 件、v2.4.3 阶段3 01/03 拆 8 件，共 27 件）。
+    // G. KB 节级健康断言：分发件逐二级节行跨度 ≤ 上限（v2.4.1 阶段1 04/05 拆 9 件、v2.4.2 阶段2 02 拆 6 件、v2.4.3 阶段3 01/03 拆 8 件、v2.4.4 阶段4 06 拆 3 件＋存根归位、07 拆 6 件，共 34 件）。
     // 实测依据（2026-10-10，0.0.15 批前测量）：九件全部二级节最大行跨度 103 行
     // （08_修订排障.md §8.5 毒点怎么查），向上取整到十位＝110。0A_第一性原理层无
     // § 节但「原语」同为二级节，一并受上限约束。目的＝拦知识库升版导致的节膨胀，
@@ -366,9 +366,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const kbFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
       ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md']
         .map((file) => ({ skill: 'novel-design', file })),
-      { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
-      { skill: 'novel-outline', file: '06_章纲.md' },
-      { skill: 'novel-drafting', file: '07_正文写作.md' },
+      ...['章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md', '章纲-信息与情绪.md'].map((file) => ({ skill: 'novel-outline', file })),
+      ...['正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md'].map((file) => ({ skill: 'novel-drafting', file })),
       { skill: 'novel-director', file: '08_修订排障.md' },
     ]
     const SECTION_LINE_CAP = 110
@@ -960,7 +959,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // A3. 构想快照孤例改裸书仓式（书仓根工件不带 <书仓>/ 前缀）
     expect(inspiration).toContain('| 构想快照 | `构想/构想快照.md` |')
     // A4. 规格模板判据位改包根语境式
-    expect(sectSpec).toContain('本技能包 references/06_章纲.md')
+    expect(sectSpec).toContain('本技能包 references/ 下章纲-*拆分件')
     // A5. 书名号违例四处修正后形态（书名号只用于书/文章名，技能包引用用链接式或技能包路径）
     expect(outline).toContain('按 [写前十查](agents/写前十查.md) 底本文末的高发雷点内联判据快扫')
     expect(settle).toContain('《细纲备料》技能包 agents/写前十查.md ④接钩预检的末行读取位')
@@ -970,7 +969,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(reshape).toContain('总判据是契约「叙事方式与文风基调」分部')
     // A6. director 排障入口跨包定位句＋改稿章程加载名（全表唯一断点修复）
     expect(director).toContain('§4.x/§5.x＝《定调设计》技能包 references/ 下大纲-*与卷纲-*拆分件')
-    expect(director).toContain('§6.x＝《细纲备料》技能包 references/06_章纲.md')
+    expect(director).toContain('§6.x＝《细纲备料》技能包 references/ 下章纲-*拆分件（§6.7 在《章纲-信息与情绪》）')
     const charter = fs.readFileSync(skillFile('novel-revision', 'agents/改稿章程.md'), 'utf8')
     expect(charter).toContain('完整判据在《工作台总控》技能包 references/08_修订排障.md')
     // B. 术语四处归一：新词在位
@@ -2190,19 +2189,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.37＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.36 零残留（v2.4.3 阶段3 拆分批接力）
+    // C. 版本纪律全套：两 package.json 0.0.38＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.37 零残留（v2.4.4 阶段4 拆分批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.37').toBe('0.0.37')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.37').toBe('0.0.37')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.37]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.38').toBe('0.0.38')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.38').toBe('0.0.38')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.38]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.37`).toContain('0.0.37')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.38`).toContain('0.0.38')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.36`).not.toContain('0.0.36')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.37`).not.toContain('0.0.37')
       }
     }
   })
@@ -2351,7 +2350,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(cards).toContain('「场景功能」枚举单源在《细纲备料》技能包 templates/章细纲固定小节规格.md')
     const drafting = readSkill('novel-drafting')
     expect(drafting).toContain('按确认细纲/材料包各单元「场景功能」标注与卡头选卡映射把对应卡**原文内联**任务包')
-    expect(drafting).toContain('按所选卡卡头标注的节源（[07_正文写作](references/07_正文写作.md) 的 §x.y）只读该节')
+    expect(drafting).toContain('按卡头节源对应的《正文-*》拆分件整读')
+    expect(cards).toContain('卡头节源→件对照（07 已拆《正文-*》六件＋06 一节；拆分件整件读）')
+    expect(cards).toContain('§7.1/§7.2/§7.8/§7.9→正文-展示与对白')
     expect(drafting, 'SKILL 不应重述选卡映射').not.toContain('推进场景带推进卡；塑造场景带塑造卡')
     // C. 情绪直说张力修复：绝对禁令改按场景定档，升级链原文保留（0.0.26 批 E 节钉的链式串继续成立）
     expect(cards).toContain('情绪按场景定档：过场可直接说，情绪场景按升级链落笔')
@@ -2446,7 +2447,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('**单元排布**（细纲段单元列表落笔时）')
     const uAnchor = outline.indexOf('**细纲段**：叙事单元列表')
     const uStart = outline.indexOf('**单元排布**（细纲段单元列表落笔时）')
-    const uEnd = outline.indexOf('   - 判据：读 [06_章纲]')
+    const uEnd = outline.indexOf('   - 判据：读 [章纲-信息与情绪]')
     expect(uAnchor, '挂点锚（细纲段条目）应在位').toBeGreaterThanOrEqual(0)
     expect(uStart, '单元排布应挂在细纲段条目之后').toBeGreaterThan(uAnchor)
     expect(uEnd, '判据行锚应在位').toBeGreaterThanOrEqual(0)
@@ -2641,9 +2642,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(mineList).not.toContain('羞辱一章内打脸')
     // D. R3 信息释放行指针化（写前十查句面钉在 0.0.25 组随裁）；此处钉 outline SKILL 步骤 5 简版豁免口径句
     expect(outline).toContain('豁免口径见规格')
-    // E. R4 §7.8 毛边豁免补入（KB 分发件侧）
-    const kb07 = fs.readFileSync(skillFile('novel-drafting', 'references/07_正文写作.md'), 'utf8')
-    expect(kb07).toContain('毛边对白（结巴／口癖／答非所问／无信息量客套）是人味不是废话——功能审判只删删完什么都不剩的空转对白')
+    // E. R4 §7.8 毛边豁免补入（KB 分发件侧——v2.4.4 阶段4 起随 §7.8 落《正文-展示与对白》）
+    const kbShowTell = fs.readFileSync(skillFile('novel-drafting', 'references/正文-展示与对白.md'), 'utf8')
+    expect(kbShowTell).toContain('毛边对白（结巴／口癖／答非所问／无信息量客套）是人味不是废话——功能审判只删删完什么都不剩的空转对白')
     // F. R5 钝收档差：三章及以上红线＋高潮后 1-2 章余波钝收合法（主句钉在 0.0.24 组随裁）
     expect(vol).toContain('高潮后 1-2 章余波钝收合法')
     // G. R6 标尺触发位失实修复：憋屈行触发位钉在 0.0.13 组随裁；章末钩子行→审读·章节结构维；写前十查雷点快扫行补憋屈句
@@ -2685,10 +2686,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // K. N10-N11 跨包单源声明：事件化四件（世界书模板升级节点行）＋平章三型（章细纲规格可选增补行）
     expect(checks).toContain('定义单源在世界书模板-力量体系条目「升级节点」行')
     expect(checks).toContain('三型枚举单源在 [章细纲固定小节规格](../templates/章细纲固定小节规格.md) 可选增补行')
-    // L. 顺手批：KB 自引表金手指版清零（四版统一）；主语密度 0-0.7% 钉在 0.0.36 组随裁
-    const kb06 = fs.readFileSync(skillFile('novel-outline', 'references/06_章纲.md'), 'utf8')
-    expect(kb06).toContain('| 黄金三百字 | 黄金三百字 | 主角+处境+冲突 |')
-    expect(kb06).not.toContain('主角+处境+冲突+金手指')
+    // L. 顺手批：KB 自引表金手指版清零（四版统一）——v2.4.4 阶段4 起自引表随章头块落 06 源侧壳（不分发），断言随裁退役；主语密度 0-0.7% 钉在 0.0.36 组随裁
     // M. 润色 tier3 词表交叉引用改指速览表（文风底本已不内联词表）
     const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
     expect(clean).toContain('词表单源在审读 novel-review 技能包 SKILL「参考线速览表」，与本行一致')

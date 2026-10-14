@@ -133,8 +133,8 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
   it('E5′ KB 批：净版本域件存在带版本戳零标注残留；SKILL §x.y 引用逐一命中分发件标题（v2.4.1 节图全局化）', () => {
     const refsDir = path.join(__dirname, '..', 'skills', 'novel-design', 'references')
     // 0B 节级索引.yaml 不入包（发行正则只认 md/mjs），节级核验直接解析分发件 §x.y 标题
-    // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；v2.4.2 阶段2：02 拆为 6 件；v2.4.3 阶段3：01/03 拆为 8 件（§1.10 跨域移入《大纲-牌局与结构检查》，design 包全拆分件化）；节图改全局收集
-    const stamp = '> 知识库净版 · 源版本 v2.4.3 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；v2.4.2 阶段2：02 拆为 6 件；v2.4.3 阶段3：01/03 拆为 8 件（§1.10 跨域移入《大纲-牌局与结构检查》，design 包全拆分件化）；v2.4.4 阶段4：06 拆 3 件＋存根归位、07 拆 6 件；节图改全局收集
+    const stamp = '> 知识库净版 · 源版本 v2.4.4 · 净版纪律见 docs/design/增强实施计划.md §二'
     const kbFiles: ReadonlyArray<{ readonly dir: string; readonly file: string }> = [
       ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ dir: refsDir, file })),
       { dir: path.join(__dirname, '..', 'skills', 'novel-outline', 'references'), file: '章纲-信息与情绪.md' },
@@ -172,21 +172,21 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(readSkill('novel-outline'), '《细纲备料》应可带种子底子进材料包').toContain('种子底子')
   })
 
-  it('KB 06/07/08 批：净版三件存在带版本戳零标注残留；outline/drafting/director 三 SKILL §x.y 引用逐一命中分发件标题', () => {
-    // 域随技能走：06→novel-outline、07→novel-drafting、08→novel-director；引用测试逻辑与 E5′ 一致，只扩解析范围
+  it('KB 08 批＋章纲/正文拆分件批：净版件存在带版本戳零标注残留；outline/drafting/director 三 SKILL §x.y 引用逐一命中分发件标题', () => {
+    // 域随技能走：06 拆 4 件→novel-outline（存根归位）、07 拆 6 件→novel-drafting、08→novel-director；引用测试逻辑与 E5′ 一致，只扩解析范围
     const kbChapters: ReadonlyArray<{ readonly skill: string; readonly file: string; readonly chapter: string }> = [
-      { skill: 'novel-outline', file: '06_章纲.md', chapter: '6' },
-      { skill: 'novel-drafting', file: '07_正文写作.md', chapter: '7' },
+      ...['章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md', '章纲-信息与情绪.md'].map((file) => ({ skill: 'novel-outline', file, chapter: '6' })),
+      ...['正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md'].map((file) => ({ skill: 'novel-drafting', file, chapter: '7' })),
       { skill: 'novel-director', file: '08_修订排障.md', chapter: '8' },
     ]
-    const stamp = '> 知识库净版 · 源版本 v2.4.3 · 净版纪律见 docs/design/增强实施计划.md §二'
-    // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件、v2.4.2 阶段2：§2.x 分驻人物件、v2.4.3 阶段3：§1.x/§3.x 分驻开书/世界观件——节图全局化（§→所在件集合），取代章→单文件映射；
+    const stamp = '> 知识库净版 · 源版本 v2.4.4 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件、v2.4.2 阶段2：§2.x 分驻人物件、v2.4.3 阶段3：§1.x/§3.x 分驻开书/世界观件、v2.4.4 阶段4：§6.x/§7.x 分驻章纲/正文件——节图全局化（§→所在件集合），取代章→单文件映射；
     // 三 SKILL 里出现的任何 §x.y 都要能落到某个分发件标题
     const kbAllFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
       ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ skill: 'novel-design', file })),
+      ...['章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md'].map((file) => ({ skill: 'novel-outline', file })),
       { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
-      { skill: 'novel-outline', file: '06_章纲.md' },
-      { skill: 'novel-drafting', file: '07_正文写作.md' },
+      ...['正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md'].map((file) => ({ skill: 'novel-drafting', file })),
       { skill: 'novel-director', file: '08_修订排障.md' },
     ]
     const headingsByFile = new Map<string, Set<string>>()
@@ -222,11 +222,15 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       expect(headingsOf(skill, file).size, `${file}: §x.y 标题数应大于零`).toBeGreaterThan(0)
     }
     // 接线防回退：三 SKILL 判据行＋排障索引入口＋改稿章程内联摘要（跨包引用不可达，走内联方案）
-    expect(readSkill('novel-outline')).toContain('判据：读 [06_章纲](references/06_章纲.md)')
-    expect(readSkill('novel-outline')).toContain('按 `## §x.y` 标题定位后只读该节，不整文件读入')
+    expect(readSkill('novel-outline')).toContain('判据：读 [章纲-信息与情绪](references/章纲-信息与情绪.md)')
+    expect(readSkill('novel-outline')).toContain('章纲域已全拆分件化，整件读、不按节切读')
     const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
-    expect(checks).toContain('判据延伸：读 [06_章纲](../references/06_章纲.md) §6.1')
-    expect(readSkill('novel-drafting')).toContain('按所选卡卡头标注的节源（[07_正文写作](references/07_正文写作.md) 的 §x.y）只读该节')
+    expect(checks).toContain('判据延伸：读 [章纲-章型与开篇](../references/章纲-章型与开篇.md)')
+    expect(readSkill('novel-drafting')).toContain('按卡头节源对应的《正文-*》拆分件整读')
+    const cards = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-drafting', 'agents', '写作卡.md'), 'utf8')
+    expect(cards).toContain('卡头节源→件对照')
+    expect(cards).toContain('§7.13→正文-中文行文规范')
+    expect(cards).toContain('§6.2→章纲-章型与开篇')
     expect(readSkill('novel-drafting')).toContain('按当前场景选择性引用')
     expect(readSkill('novel-drafting')).toContain('§7.13（中文行文怎么不怪异')
     expect(readSkill('novel-director')).toContain('[08_修订排障](references/08_修订排障.md) 的 **§8.0 排障索引**')
@@ -421,13 +425,13 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
 
 describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域拆分）', () => {
   const extractScript = path.join(__dirname, '..', 'scripts', 'kb-extract.mjs')
-  const stamp = '> 知识库净版 · 源版本 v2.4.3 · 净版纪律见 docs/design/增强实施计划.md §二'
-  const kbWhole = ['06_章纲.md', '07_正文写作.md', '08_修订排障.md', '0A_第一性原理层.md']
-  const kbPieces = ['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md']
+  const stamp = '> 知识库净版 · 源版本 v2.4.4 · 净版纪律见 docs/design/增强实施计划.md §二'
+  const kbWhole = ['08_修订排障.md', '0A_第一性原理层.md']
+  const kbPieces = ['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md', '章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md', '正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md']
 
   it('kb-extract.mjs 存在且 --check 模式全链路可跑：夹具源 --write→--check 退出码 0，篡改→退出码 1', () => {
     expect(fs.existsSync(extractScript), 'packages/bundle/scripts/kb-extract.mjs 应存在').toBe(true)
-    // 夹具源：27 件齐全（映射表全覆盖——v2.4.2 起拆分件带件头三要素；v2.4.3 阶段3 01/03 拆 8 件入 kbPieces），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
+    // 夹具源：34 件齐全（映射表全覆盖——v2.4.2 起拆分件带件头三要素；v2.4.4 阶段4 06/07 拆 9 件入 kbPieces，存根件阶段 1 已在列不重复计），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
     const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-extract-spec-'))
     try {
       for (const [i, f] of kbWhole.entries()) {
@@ -441,8 +445,8 @@ describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域
       const w = run(['--source', ws, '--write', '--out', out])
       expect(w.status, `--write 应退出码 0（stderr: ${w.stderr}）`).toBe(0)
       // 净版产物：版本戳在位、来源行/卡括注/T 锚剥净、文末空行收一
-      const cleaned = fs.readFileSync(path.join(out, 'novel-outline', 'references', '06_章纲.md'), 'utf8')
-      expect(cleaned.startsWith('# 第1章 测试\n\n')).toBe(true)
+      const cleaned = fs.readFileSync(path.join(out, 'novel-outline', 'references', '章纲-章型与开篇.md'), 'utf8')
+      expect(cleaned.startsWith('# 章纲-章型与开篇\n\n')).toBe(true)
       expect(cleaned).toContain(stamp)
       expect(cleaned).not.toContain('**来源**：')
       expect(cleaned).not.toContain('卡#1')
@@ -450,7 +454,7 @@ describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域
       expect(cleaned.endsWith('---\n')).toBe(true)
       // --check 对刚写的产物＝逐字节一致（退出码 0）；篡改一件＝漂移（退出码 1）
       expect(run(['--source', ws, '--check', '--out', out]).status).toBe(0)
-      fs.appendFileSync(path.join(out, 'novel-outline', 'references', '06_章纲.md'), 'x')
+      fs.appendFileSync(path.join(out, 'novel-outline', 'references', '章纲-章型与开篇.md'), 'x')
       const drifted = run(['--source', ws, '--check', '--out', out])
       expect(drifted.status, '--check 检出漂移应退出码 1').toBe(1)
       expect(drifted.stdout).toContain('漂移')

@@ -1,12 +1,12 @@
 # 备份、升级与卸载
 
-## 升级到 0.0.37
+## 升级到 0.0.38
 
 0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭。0.0.3 把五条功能入口的条目 id 统一换为 abzu 系（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`），借零书、零插件设置的窗口完成，设置、凭据引用与停用状态按新 id 重新配置。0.0.4 移除鲸鱼娘桌宠，`abzu-companion` 条目随之消失，其余四条入口与全部设置、凭据引用不变。继续配套 DSH 0.2.0-rc.2，不需要更换 DSH。
 
 1. 停止正在运行的会话。
 2. 卸载单独安装过的 `abzu-retrieval`、`abzu-companion` 或 `abzu-full`（如果有）。
-3. 更新或安装 `abzu` 到 0.0.37，应用变更并重启。
+3. 更新或安装 `abzu` 到 0.0.38，应用变更并重启。
    成功时，已安装列表只剩 `abzu` 一个入口；设置中剩余四条入口使用 abzu 系新 id。
 
 0.0.1 基于上游 webnovel-writer 8.2.0，包含其直接编辑、行内 Agent 建议、确定性字数统计与契约篇幅约定，修复旧书的世界书模块登记，并移植上游之后的四批缺陷修复。从 8.0.x 或 8.1.x 升级的旧项目仍须按 [旧项目需要更新作品契约](#旧项目需要更新作品契约) 补充篇幅约定。新界面见 [编辑器教程](editor.md)。
@@ -95,7 +95,7 @@ node <resourceBase>/scripts/一键备份.mjs --book <bookRoot> [--书房 <worksp
    成功时，书房可以打开，并且书仓状态与备份前的预期一致。
 
 ```powershell
-dsh plugin --profile abzu add abzu@0.0.37
+dsh plugin --profile abzu add abzu@0.0.38
 dsh --profile abzu --dump-config
 ```
 
