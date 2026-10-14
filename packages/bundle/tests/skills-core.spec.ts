@@ -133,10 +133,10 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
   it('E5′ KB 批：净版本域件存在带版本戳零标注残留；SKILL §x.y 引用逐一命中分发件标题（v2.4.1 节图全局化）', () => {
     const refsDir = path.join(__dirname, '..', 'skills', 'novel-design', 'references')
     // 0B 节级索引.yaml 不入包（发行正则只认 md/mjs），节级核验直接解析分发件 §x.y 标题
-    // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；v2.4.2 阶段2：02 拆为 6 件；v2.4.3 阶段3：01/03 拆为 8 件（§1.10 跨域移入《大纲-牌局与结构检查》，design 包全拆分件化）；v2.4.4 阶段4：06 拆 3 件＋存根归位、07 拆 6 件；节图改全局收集
-    const stamp = '> 知识库净版 · 源版本 v2.4.4 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // v2.4.1 阶段1：04/05 拆为 8 件（§4.11 存根件在 novel-outline）；v2.4.2 阶段2：02 拆为 6 件；v2.4.3 阶段3：01/03 拆为 8 件（§1.10 跨域移入《大纲-牌局与结构检查》，design 包全拆分件化）；v2.4.4 阶段4：06 拆 3 件＋存根归位、07 拆 6 件；v2.4.5 阶段5a：08 拆 3 件入 novel-director、0A 退役出清单；节图改全局收集
+    const stamp = '> 知识库净版 · 源版本 v2.4.5 · 净版纪律见 docs/design/增强实施计划.md §二'
     const kbFiles: ReadonlyArray<{ readonly dir: string; readonly file: string }> = [
-      ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ dir: refsDir, file })),
+      ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md'].map((file) => ({ dir: refsDir, file })),
       { dir: path.join(__dirname, '..', 'skills', 'novel-outline', 'references'), file: '章纲-信息与情绪.md' },
     ]
     const headings = new Set<string>()
@@ -173,21 +173,21 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
   })
 
   it('KB 08 批＋章纲/正文拆分件批：净版件存在带版本戳零标注残留；outline/drafting/director 三 SKILL §x.y 引用逐一命中分发件标题', () => {
-    // 域随技能走：06 拆 4 件→novel-outline（存根归位）、07 拆 6 件→novel-drafting、08→novel-director；引用测试逻辑与 E5′ 一致，只扩解析范围
+    // 域随技能走：06 拆 4 件→novel-outline（存根归位）、07 拆 6 件→novel-drafting、08 拆 3 件→novel-director（v2.4.5 阶段5a）、0A 退役；引用测试逻辑与 E5′ 一致，只扩解析范围
     const kbChapters: ReadonlyArray<{ readonly skill: string; readonly file: string; readonly chapter: string }> = [
       ...['章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md', '章纲-信息与情绪.md'].map((file) => ({ skill: 'novel-outline', file, chapter: '6' })),
       ...['正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md'].map((file) => ({ skill: 'novel-drafting', file, chapter: '7' })),
-      { skill: 'novel-director', file: '08_修订排障.md', chapter: '8' },
+      ...['排障-索引与改稿流程.md', '排障-专项修复.md', '排障-长篇防崩.md'].map((file) => ({ skill: 'novel-director', file, chapter: '8' })),
     ]
-    const stamp = '> 知识库净版 · 源版本 v2.4.4 · 净版纪律见 docs/design/增强实施计划.md §二'
-    // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件、v2.4.2 阶段2：§2.x 分驻人物件、v2.4.3 阶段3：§1.x/§3.x 分驻开书/世界观件、v2.4.4 阶段4：§6.x/§7.x 分驻章纲/正文件——节图全局化（§→所在件集合），取代章→单文件映射；
+    const stamp = '> 知识库净版 · 源版本 v2.4.5 · 净版纪律见 docs/design/增强实施计划.md §二'
+    // v2.4.1 阶段1：§4.x/§5.x 分驻拆分件、v2.4.2 阶段2：§2.x 分驻人物件、v2.4.3 阶段3：§1.x/§3.x 分驻开书/世界观件、v2.4.4 阶段4：§6.x/§7.x 分驻章纲/正文件、v2.4.5 阶段5a：§8.x 分驻排障三件＋0A 退役——节图全局化（§→所在件集合），取代章→单文件映射；
     // 三 SKILL 里出现的任何 §x.y 都要能落到某个分发件标题
     const kbAllFiles: ReadonlyArray<{ readonly skill: string; readonly file: string }> = [
-      ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '0A_第一性原理层.md'].map((file) => ({ skill: 'novel-design', file })),
+      ...['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md'].map((file) => ({ skill: 'novel-design', file })),
       ...['章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md'].map((file) => ({ skill: 'novel-outline', file })),
       { skill: 'novel-outline', file: '章纲-信息与情绪.md' },
       ...['正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md'].map((file) => ({ skill: 'novel-drafting', file })),
-      { skill: 'novel-director', file: '08_修订排障.md' },
+      ...['排障-索引与改稿流程.md', '排障-专项修复.md', '排障-长篇防崩.md'].map((file) => ({ skill: 'novel-director', file })),
     ]
     const headingsByFile = new Map<string, Set<string>>()
     const headingsOf = (skill: string, file: string): Set<string> => {
@@ -233,11 +233,11 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(cards).toContain('§6.2→章纲-章型与开篇')
     expect(readSkill('novel-drafting')).toContain('按当前场景选择性引用')
     expect(readSkill('novel-drafting')).toContain('§7.13（中文行文怎么不怪异')
-    expect(readSkill('novel-director')).toContain('[08_修订排障](references/08_修订排障.md) 的 **§8.0 排障索引**')
+    expect(readSkill('novel-director')).toContain('[排障-索引与改稿流程](references/排障-索引与改稿流程.md) 的 **§8.0 排障索引**')
     expect(readSkill('novel-director')).toContain('「中期崩盘」→§8.8')
     const charter = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-revision', 'agents', '改稿章程.md'), 'utf8')
     expect(charter).toContain('改稿方向判据（内联摘要）')
-    expect(charter).toContain('完整判据在《工作台总控》技能包 references/08_修订排障.md')
+    expect(charter).toContain('完整判据在《工作台总控》技能包 references/排障-索引与改稿流程.md')
     // 跨包相对链接在 DSH resourceBase 解析语义下不可达（技能基目录的 ../../ 逃出 skills 树）且章程整体内联进隔离子代理——禁用链接形态
     expect(charter, '改稿章程不得用跨包相对链接').not.toContain('](../')
   })
@@ -425,13 +425,14 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
 
 describe('0.0.31 架构改进批（#4 KB 分发自动化＋#5 novel-tools 按域拆分）', () => {
   const extractScript = path.join(__dirname, '..', 'scripts', 'kb-extract.mjs')
-  const stamp = '> 知识库净版 · 源版本 v2.4.4 · 净版纪律见 docs/design/增强实施计划.md §二'
-  const kbWhole = ['08_修订排障.md', '0A_第一性原理层.md']
-  const kbPieces = ['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md', '章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md', '正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md']
+  const stamp = '> 知识库净版 · 源版本 v2.4.5 · 净版纪律见 docs/design/增强实施计划.md §二'
+  // v2.4.5 阶段5a：08 拆 3 件入 kbPieces、08/0A 整文件退役——kbWhole 清空（分发面已无数字前缀整章件）
+  const kbWhole: string[] = []
+  const kbPieces = ['开书-构思与验证.md', '开书-读者与情绪定位.md', '开书-书名与简介.md', '开书-参考作品利用.md', '人物设计-主角.md', '人物设计-金手指设计.md', '人物设计-配角与群像.md', '人物设计-反派.md', '人物设计-弧光与关系.md', '人物设计-人物卡工具.md', '世界观-规则与铁则.md', '世界观-力量体系与天花板.md', '世界观-地图与势力.md', '世界观-经济与原创性.md', '大纲-主线与骨架.md', '大纲-激励事件与首尾.md', '大纲-换图与支线.md', '大纲-伏笔埋收.md', '大纲-牌局与结构检查.md', '卷纲-卷功能与结构.md', '卷纲-节奏与高潮.md', '卷纲-情节类型骨架.md', '章纲-信息与情绪.md', '章纲-章型与开篇.md', '章纲-冲突与爽点.md', '章纲-场景与节奏.md', '正文-展示与对白.md', '正文-场景与动作.md', '正文-视角落地.md', '正文-文笔修炼.md', '正文-开场转场与特殊戏.md', '正文-中文行文规范.md', '排障-索引与改稿流程.md', '排障-专项修复.md', '排障-长篇防崩.md']
 
   it('kb-extract.mjs 存在且 --check 模式全链路可跑：夹具源 --write→--check 退出码 0，篡改→退出码 1', () => {
     expect(fs.existsSync(extractScript), 'packages/bundle/scripts/kb-extract.mjs 应存在').toBe(true)
-    // 夹具源：34 件齐全（映射表全覆盖——v2.4.2 起拆分件带件头三要素；v2.4.4 阶段4 06/07 拆 9 件入 kbPieces，存根件阶段 1 已在列不重复计），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
+    // 夹具源：35 件齐全（映射表全覆盖——v2.4.2 起拆分件带件头三要素；v2.4.4 阶段4 06/07 拆 9 件入 kbPieces，存根件阶段 1 已在列不重复计；v2.4.5 阶段5a 08 拆 3 件入 kbPieces、08/0A 出 kbWhole——工单'36'系 34−2+3 误算，实列 35），带来源行/#卡括注/T 编号锚/文末空行四类可剥元素
     const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'kb-extract-spec-'))
     try {
       for (const [i, f] of kbWhole.entries()) {
