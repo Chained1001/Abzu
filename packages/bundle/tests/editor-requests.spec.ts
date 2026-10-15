@@ -278,4 +278,15 @@ describe('工具回复校验', () => {
     expect(second.run({ kind: 'replace', text: '改过。' })).toMatchObject({ ok: true, message: EDITOR_DELIVERED_MESSAGE })
     expect(second.run({ kind: 'replace', text: '再改。' })).toMatchObject({ ok: false, reason: EDITOR_DUPLICATE_REASON })
   })
+
+  // P2-3：insert（续写）补对称上限——与 replace 同形（动态余量＋硬顶）。
+  it('续写文本有对称上限：空锚 4000 字，锚原文按 2 倍＋4000 计，硬顶 20000', () => {
+    expect(setup('continue', '', 'cont4k0').run({ kind: 'insert', text: '续'.repeat(4000) })).toMatchObject({ ok: true })
+    expect(setup('continue', '', 'cont4k1').run({ kind: 'insert', text: '续'.repeat(4001) }))
+      .toMatchObject({ ok: false, reason: expect.stringContaining('续写文本过长（4001 字，上限 4000 字）') })
+    // 锚 9000 字：min(2×9000+4000, 20000)＝20000
+    expect(setup('continue', '锚'.repeat(9000), 'cont9k0').run({ kind: 'insert', text: '续'.repeat(20000) })).toMatchObject({ ok: true })
+    expect(setup('continue', '锚'.repeat(9000), 'cont9k1').run({ kind: 'insert', text: '续'.repeat(20001) }))
+      .toMatchObject({ ok: false, reason: expect.stringContaining('续写文本过长（20001 字，上限 20000 字）') })
+  })
 })

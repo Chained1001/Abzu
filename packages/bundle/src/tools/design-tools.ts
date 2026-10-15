@@ -2,7 +2,7 @@
  * 设计域工具：书架选书/建书/契约分部/占位设计（测试）/骨架/分卷/近期窗口/世界书/卷纲/待补便签/进度卡。
  */
 import { dispositionMentions, finishDesignCommit, provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { commitConfirmed, createBook, listAuthorMemory, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareSkeleton, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
+import { checkCommitPath, commitConfirmed, createBook, listAuthorMemory, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareSkeleton, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { bookMemoryCatalogText, progressLineOf, renderCurrentBook } from '../status-context'
@@ -79,13 +79,16 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
               状态: { type: 'string', enum: ['已确认'], description: '必须为已确认' },
               核心创意: { type: 'string' },
               题材与目标读者: { type: 'string' },
-              主角核心欲望: { type: 'string' },
-              主要冲突: { type: 'string' },
-              核心看点: { type: 'string' },
-              差异化方向: { type: 'string' },
-              明确不要什么: { type: 'string' },
+              主角核心欲望: { type: 'string', description: '可留白（缺省视同留白）' },
+              主要冲突: { type: 'string', description: '可留白（缺省视同留白）' },
+              核心看点: { type: 'string', description: '可留白（缺省视同留白）' },
+              差异化方向: { type: 'string', description: '可留白（缺省视同留白）' },
+              明确不要什么: { type: 'string', description: '可留白（缺省视同留白）' },
             },
-            required: ['状态', '核心创意', '题材与目标读者', '主角核心欲望', '主要冲突', '核心看点', '差异化方向', '明确不要什么'],
+            // 与 core 实际口径对齐（P2-2 schema 过查修正）：构想必填只有 核心创意/题材与目标读者，
+            // 其余五要素可留白（缺省视同留白）；原先把八项全列 required 比实现更严，统一校验后
+            // 会误拒合法的部分构想建书（novel-tools 既有测试即部分构想）。core 兜底不动。
+            required: ['状态', '核心创意', '题材与目标读者'],
           },
         },
         required: ['bookName', 'concept'],
@@ -535,22 +538,27 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         const book = resolveBook(args, sessionContext)
         if (!book.ok) return book
         const relPath = String(args['relPath']).trim().replace(/\\/g, '/')
+        // 读侧探测信道预校验（P2-5）：与 commit 路径同形——穿越段（..）、书仓外与
+        // 知识库/配置域顶层在进 core 读取之前就拒，不给「工件不存在/没有分节」的差异
+        // 报文当存在性探针。core 侧 writePending 的真源顶层约束不动。
+        const pathCheck = checkCommitPath(book.bookRoot, relPath)
+        if (!pathCheck.ok) return { ok: false, reason: `待补便签路径非法（${pathCheck.reason}）：${relPath}` }
         const 节名 = String(args['节名']).trim()
         const 文本 = args['文本'] === undefined || String(args['文本']).trim() === '' ? null : String(args['文本']).trim()
         try {
-          const r = writePending(book.bookRoot, relPath, 节名, 文本)
+          const r = writePending(book.bookRoot, pathCheck.relPath, 节名, 文本)
           if (!r.ok) return { ok: false, reason: r.reason }
           const commit = commitConfirmed({
             bookRoot: book.bookRoot,
-            paths: [relPath],
+            paths: [pathCheck.relPath],
             prefix: 'design',
             summary: args['summary'] !== undefined ? String(args['summary']).trim() : `待补便签·${节名}`,
-            provenance: provenanceOf(sessionContext, [relPath]),
+            provenance: provenanceOf(sessionContext, [pathCheck.relPath]),
           })
           if (!commit.ok) {
             return { ok: false, reason: `便签已写入但提交失败（已落盘但未提交，重跑本工具即可补提交）：${commit.reason}` }
           }
-          return { ok: true, relPath, message: 文本 === null ? `已清除「${节名}」待补便签` : `已记待补便签（${节名}）：${文本}` }
+          return { ok: true, relPath: pathCheck.relPath, message: 文本 === null ? `已清除「${节名}」待补便签` : `已记待补便签（${节名}）：${文本}` }
         } catch (err) {
           return { ok: false, reason: `待补便签失败: ${err instanceof Error ? err.message : String(err)}` }
         }

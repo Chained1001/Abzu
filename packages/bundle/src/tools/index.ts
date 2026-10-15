@@ -28,6 +28,7 @@
  */
 
 import { withBookWrite, withBookWriteAsync } from '@abzu/core'
+import { validateJsonSchemaValue, type JsonSchemaNode } from '@deepseek-ai/dsh-tools'
 import { NATIVE_DESIGN_TOOLS } from '../design-commit-result'
 
 import { REFERENCE_TOOL_NAMES } from '../reference/tools'
@@ -84,6 +85,27 @@ export const NOVEL_TOOL_NAMES: readonly string[] = [
  */
 export const NOVEL_TEST_TOOL_NAMES: readonly string[] = ['novel_seed_min_design']
 
+/**
+ * 统一入参校验（P2-2）：execute 前先按各工具声明的 parameters 过一遍 JSON Schema
+ * 校验器（复用 dsh-tools 的 validateJsonSchemaValue，覆盖 required/type/enum/const/
+ * oneOf/additionalProperties 等关键字），违规即拒并点名参数与问题。reference 四件与
+ * editor_suggest 自带的内部分支校验不豁免——双验无害，注册面单源统一。
+ * schema 之外的语义校验（章键正整数、状态词表、边界值等）仍由各工具与 core 兜底，
+ * 一字不动；schema 子集外的注记关键字（minimum/pattern）校验器按注记忽略。
+ */
+function withInputValidation(tool: NovelToolDefinition): NovelToolDefinition {
+  return {
+    ...tool,
+    execute: (args: Record<string, unknown>, sessionContext?: ToolExecContext) => {
+      const violations = validateJsonSchemaValue(tool.parameters as JsonSchemaNode, args, 'args')
+      if (violations.length > 0) {
+        return { ok: false, code: 'invalid-args', reason: `工具参数不完整或格式错误（${tool.name}）：${violations.join('；')}——请对照工具参数声明修正后重试` }
+      }
+      return tool.execute(args, sessionContext)
+    },
+  }
+}
+
 export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
   const shared = createToolShared(deps)
   // 域文件按域分组收集，注册顺序按 NOVEL_TOOL_NAMES 还原（novel-tools.spec 钉死逐项相等）；
@@ -122,6 +144,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
   ])
   const nativeTools = NATIVE_DESIGN_TOOLS
   const registered = deps.testTools === true ? tools : tools.filter((tool) => !NOVEL_TEST_TOOL_NAMES.includes(tool.name))
+  // 入参校验包在最外层：schema 违规在拿书锁之前就拒（纯 CPU 检查不必进 withBookWrite）。
   return registered.map((tool) => {
     if (!locked.has(tool.name)) return tool
     return {
@@ -141,5 +164,5 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
         }
       },
     }
-  })
+  }).map(withInputValidation)
 }

@@ -22,6 +22,7 @@ export const SELF_CHECK_IDS = [
   'agents.surface',
   'tools.kit',
   'tools.register',
+  'tools.restrict',
   'approval.policy',
   'gate.file',
   'persona.mount',

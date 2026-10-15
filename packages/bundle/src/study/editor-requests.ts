@@ -16,6 +16,7 @@ export const EDITOR_NOTE_LIMIT = 200
 export const EDITOR_COMMENT_NOTE_LIMIT = 300
 export const EDITOR_COMMENT_LIMIT = 12
 export const EDITOR_REPLACE_CAP = 20000
+export const EDITOR_INSERT_CAP = 20000
 
 export const EDITOR_UNKNOWN_REASON = '未知请求编号；只有书房编辑器发来的请求才能用此工具回复。'
 export const EDITOR_CANCELLED_REASON = '作者已取消此请求，停止处理，不要改写文件。'
@@ -382,6 +383,11 @@ function buildReply(kind: string, args: Record<string, unknown>, intent: EditorI
       if (size > limit) return { ok: false, reason: `替换文本过长（${size} 字，上限 ${limit} 字）。` }
       return { ok: true, reply: note === undefined ? { kind: 'replace', text } : { kind: 'replace', text, note } }
     }
+    // insert（续写）与 replace 同形＝动态余量＋硬顶：锚原文长度给 2 倍＋4000 的续写余量
+    // （续写可不带原文，空锚也有 4000 字可用），硬顶 20000 与 EDITOR_REPLACE_CAP 对齐。
+    const insertLimit = Math.min(textLength(original) * 2 + 4000, EDITOR_INSERT_CAP)
+    const insertSize = textLength(text)
+    if (insertSize > insertLimit) return { ok: false, reason: `续写文本过长（${insertSize} 字，上限 ${insertLimit} 字）。` }
     return { ok: true, reply: note === undefined ? { kind: 'insert', text } : { kind: 'insert', text, note } }
   }
   const value = args['comments']

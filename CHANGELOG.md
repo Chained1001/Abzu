@@ -2,6 +2,24 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.44] — 2026-10-15
+
+### Fixed（A2 审查修复第四票·工具校验批——五件收口）
+
+**统一入参校验（P2-2）**：`createNovelTools` 注册面统一包 `validateJsonSchemaValue`（复用 dsh-tools 既有校验器，覆盖 required/type/enum/const/oneOf/additionalProperties 等关键字；子集外注记关键字 minimum/pattern 按注记忽略不拒）——execute 前按各工具声明的 parameters 先验，违规即拒（`code: invalid-args`，可读错误点名参数与问题），且在拿书锁之前；reference 四件与 novel_editor_suggest 自带的内部分支校验不豁免（双验无害，单源统一）。schema 之外的语义校验（章键正整数、窗口状态词表、边界值）仍由各工具与 core 兜底，一字不动。**schema 过查修正一件**：novel_create_book 的 concept.required 由八项全列收窄为 状态/核心创意/题材与目标读者（对齐 core `checkConceptCompleteness` 的构想必填集口径——其余五要素可留白，原 schema 比实现更严，统一校验后会误拒合法的部分构想建书）；既有枚举强转兜底（novel_import_draft 角色/生成模块、novel_record_proposal 域/类型、novel_resolve_proposal 决定、novel_confirm_volume_outline 目标等）保留但经工具面已不可达（schema 先拒，词表外的值不再静默强转）。
+
+**discovery 凭据 ref 白名单（P2-1）**：嵌入服务探测请求体（/api/abzu/embeddings）的 apiKeyEnv 收敛为只接受 DEFAULT_CREDENTIAL（ABZU_EMBEDDING_API_KEY）——请求方同时可控 baseURL，放开任意 ref 等于允许借探测面把宿主任意凭据发往任意地址；其他 ref 一律拒绝（可读错误点名白名单与收到的 ref）。retrieval/config.ts 校验注释同步（名称形态校验只管配置面，探测面另收紧白名单）。
+
+**editor insert 对称上限（P2-3）**：novel_editor_suggest 的 insert（续写）分支补与 replace 同形的上限——`min(2×锚原文＋4000, EDITOR_INSERT_CAP=20000)`：续写可不带原文（空锚也有 4000 字可用），硬顶与 EDITOR_REPLACE_CAP 对齐；超限可读错误（「续写文本过长（N 字，上限 M 字）」）。
+
+**note_pending 路径预校验（P2-5）**：novel_note_pending 的 relPath 在工具层先过 `checkCommitPath`（与 commit 路径同形）——穿越段（..）、书仓外与知识库/配置域/草稿区顶层在进 core 读取之前就拒，堵「工件不存在/没有分节」差异报文的存在性探测信道；core 侧 writePending 的真源顶层约束不动，下游统一改用归一化路径。
+
+**restrict 自检条目（P2-4）**：SELF_CHECK_IDS 增 `tools.restrict`（12 项）；restrictNovelToolsInto 挂上记 ok（detail 带 deny 数量）、抛错记 degraded，第三步 registerAllInstalled 聚合上报 pending（尚无子 Agent）与未全挂（待工具面就绪后反应式补挂）；restrict 成功即计入 offs（宿主不回传 off 时收成 no-op，与幂等口径一致、聚合计数不误报）。
+
+测试新增：tool-input-schema 统一校验负例组（缺必填/类型错/枚举外值/未知字段（additionalProperties:false）/合法调用不误伤/全部注册工具逐一违规理由带工具名）；editor-requests insert 超限边界（空锚恰 4000/4001、9000 字锚硬顶 20000/20001）；retrieval/discovery.spec 凭据 ref 白名单负例（非默认 ref 拒且点名、默认 ref 放行至网络层）；novel-tools note_pending 预校验（合法路径照常写并 design: 提交、六类非法路径拒且不泄露存在性差异、书仓外同名分节文件未被触碰）；self-check tools.restrict 三态用例（ok/degraded/pending）＋满配 12 id 集合与 SELF_CHECK_IDS 相等＋缺配最小集含 tools.restrict pending。
+
+版本纪律全套 0.0.44：package.json×2、README×2、docs/user、docs/maintenance 0.0.43 零残留；skills-batches 版本钉位块推进 0.0.43→0.0.44（工具校验批接力）；skills-core 净版戳 v2.4.7 不动（KB 未动）。五闸绿：lint、check:version（0.0.44）、check:public（702 文件/92 提交）、build、kb-extract --check 35 件零漂移；全量 vitest 1310 passed|42 skipped（0 条测试红；唯一文件级红 host-loader.spec 为 d653f56 已登记的满载子进程环境项，其内部 37 项检查全 ok、单独复跑 37/37 绿）；bundle spec 两件 75 passed（skills-batches 53＋skills-core 22）。
+
 ## [0.0.43] — 2026-10-15
 
 ### Fixed（P1-1 epub 解析健壮性＋悬案口径回补——快修批第一票）

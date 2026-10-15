@@ -22,10 +22,12 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
           正文: { type: 'string', description: '作者稿全文（可带「## 草稿候选事实」段）' },
           候选事实: { type: 'array', items: { type: 'string' }, description: '候选事实（可选，逐条）' },
           角色: { type: 'string', enum: ['草稿', '待审稿'], description: '草稿＝写稿节点导入；待审稿＝润色/改稿节点替代导入' },
-          生成模块: { type: 'string', enum: ['作者手写', '作者手改'], description: '整章自写＝作者手写；在某稿基础上改＝作者手改' },
+          生成模块: { type: 'string', enum: ['作者手写', '作者手改'], description: '整章自写＝作者手写；在某稿基础上改＝作者手改（可选；缺省按 作者手写 留痕——与实现的缺省口径一致，P2-2 schema 过查修正）' },
           父版本: { type: 'number', description: '作者手改时指向被改稿的版本（可选；缺省取该章最新版本）' },
         },
-        required: ['bookId', '卷', '章', '章名', '正文', '角色', '生成模块'],
+        // 生成模块 与实现对齐改为可选（缺省 作者手写）：原 required 比实现更严，
+        // 统一校验后会误拒合法调用（approval-snapshot F04 既有用例即省略）。core 兜底不动。
+        required: ['bookId', '卷', '章', '章名', '正文', '角色'],
       },
       output: {
         schema: {

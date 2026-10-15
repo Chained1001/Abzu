@@ -483,7 +483,8 @@ export function apply(ctx: Context) {
 
   /** 子 Agent restrict（E2）：deny 名单须是子 Agent 当前可见面的已知名字，
    *  工具尚未注册到祖先层时 restrict 会抛「未知名字」——此时返回 false，
-   *  由第三步反应式驱动在工具面就绪后重挂（registerAllInstalled 尾部）。 */
+   *  由第三步反应式驱动在工具面就绪后重挂（registerAllInstalled 尾部）。
+   *  挂载结果记自检（P2-4）：成功 ok／抛错 degraded；「表面未就绪／无子 Agent」由第三步聚合上报。 */
   function restrictNovelToolsInto(agent: AgentLike): boolean {
     if (toolKit === undefined) return false
     if (agentRestrictOffs.has(agent.id)) return true
@@ -492,9 +493,13 @@ export function apply(ctx: Context) {
     try {
       // deny 取实际注册集:走查开启的测试工具同样对子 Agent 不可见,未注册的名字不进名单
       const offRestrict = tools.restrict({ deny: toolKit.defs.map((tool) => tool.name) })
-      if (typeof offRestrict === 'function') agentRestrictOffs.set(agent.id, offRestrict)
+      // 挂上即计入 offs（非函数 off 收成 no-op）：与 return true 的幂等口径一致，
+      // 也让第三步的聚合自检按「已挂」计数，不因宿主不回传 off 而误报未全挂。
+      agentRestrictOffs.set(agent.id, typeof offRestrict === 'function' ? offRestrict : () => {})
+      recordSelfCheck('tools.restrict', 'ok', `子 Agent 工具面已 restrict（deny ${toolKit.defs.length} 个小说工具，${agent.id}）`)
       return true
     } catch (err) {
+      recordSelfCheck('tools.restrict', 'degraded', `子 Agent 工具 restrict 挂载失败（${agent.id}）：${err instanceof Error ? err.message : String(err)}`)
       ctx.logger.warn(`[abzu-bundle] 子 Agent 工具 restrict 暂不可挂（${agent.id}）：${err instanceof Error ? err.message : String(err)}`)
       return false
     }
@@ -695,6 +700,13 @@ export function apply(ctx: Context) {
           mains.length === 0 ? '尚无主 Agent（等待宿主创建会话）'
             : registeredAll ? `已注册 ${toolKit?.defs.length ?? 0} 个工具到 ${mains.length} 个主 Agent`
               : '部分主 Agent 工具注册未成功（工具面不可用）')
+        // restrict 聚合上报（P2-4）：无子 Agent 是正常等待（pending）；有子 Agent 而
+        // 未全挂＝工具面/名单未就绪或挂载抛错（degraded），成功明细见单挂记录。
+        const subs = [...installedAgents.values()].filter((agent) => !isMainAgent(agent))
+        const restrictedCount = subs.filter((agent) => agentRestrictOffs.has(agent.id)).length
+        if (subs.length === 0) recordSelfCheck('tools.restrict', 'pending', '尚无子 Agent（等待宿主创建会话）')
+        else if (restrictedCount === subs.length) recordSelfCheck('tools.restrict', 'ok', `子 Agent 工具面已 restrict（deny ${toolKit?.defs.length ?? 0} 个小说工具，共 ${subs.length} 个子 Agent）`)
+        else recordSelfCheck('tools.restrict', 'degraded', `子 Agent 工具面 restrict 未全挂（${restrictedCount}/${subs.length}），未挂的待工具面就绪后反应式补挂`)
         return () => {
           disposeAllAgentTools()
           toolKit = undefined

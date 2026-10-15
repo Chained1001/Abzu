@@ -346,8 +346,9 @@ describe('novel_roll_window 窗口防护(状态词表/读失败分类/保留行)
     for (const 非法 of ['已确', 'confirmed']) {
       const bad = await roll.execute({ bookId, 卷: 1, action: '追加', 名称: '第一章', 状态: 非法 }) as { ok: boolean; reason: string }
       expect(bad.ok, 非法).toBe(false)
-      expect(bad.reason, 非法).toContain('不在词表内')
-      expect(bad.reason, 非法).toContain('已确认、暂定、已消费、已失效、等待补设计')
+      // 统一入参校验（P2-2）先拒（schema enum）；execute 里的词表双校验仍是兜底。两层都须点名全部合法值。
+      expect(bad.reason, 非法).toContain('状态')
+      for (const legal of ['已确认', '暂定', '已消费', '已失效', '等待补设计']) expect(bad.reason, 非法).toContain(legal)
     }
     expect(fs.readFileSync(windowPath, 'utf8')).toBe(before)
     const ok = await roll.execute({ bookId, 卷: 1, action: '追加', 名称: '第一章', 状态: '暂定' }) as { ok: boolean }
@@ -445,5 +446,40 @@ describe('novel_editor_suggest', () => {
     const second = setup('polish', '林舟在渡口停下。', 'again01')
     expect(await second.run({ kind: 'replace', text: '改过。' })).toMatchObject({ ok: true })
     expect(await second.run({ kind: 'none' })).toMatchObject({ ok: false, reason: EDITOR_DUPLICATE_REASON })
+  })
+})
+
+describe('novel_note_pending 路径预校验（P2-5：与 commit 路径同形，堵读侧探测信道）', () => {
+  const CONCEPT = { 状态: '已确认', 核心创意: 'x', 题材与目标读者: 'x', 主角核心欲望: 'x', 主要冲突: 'x', 核心看点: 'x', 差异化方向: 'x', 明确不要什么: 'x' }
+  async function setup(bookName: string) {
+    const ws = mkRoot()
+    const bookRoot = path.join(ws, bookName)
+    const tools = createNovelTools({ nativeWrite: nativeWriteStub, workspaceRoot: () => ws, bookRootOfBookId: () => bookRoot })
+    const created = await tools.find((t) => t.name === 'novel_create_book')!.execute({ bookName, concept: CONCEPT }) as { ok: boolean; bookId: string }
+    expect(created.ok).toBe(true)
+    fs.mkdirSync(path.join(bookRoot, '大纲'), { recursive: true })
+    fs.writeFileSync(path.join(bookRoot, '大纲/故事骨架.md'), '# 故事骨架\n\n## 线索悬念伏笔\n\n- 开场点名主角\n')
+    return { ws, bookId: created.bookId, note: tools.find((t) => t.name === 'novel_note_pending')! }
+  }
+
+  it('合法真源路径照常写便签并随 design: 提交', async () => {
+    const { note, bookId } = await setup('便签书')
+    const r = await note.execute({ bookId, relPath: '大纲/故事骨架.md', 节名: '线索悬念伏笔', 文本: '补：铜铃来历' }) as { ok: boolean; relPath?: string }
+    expect(r.ok).toBe(true)
+    expect(r.relPath).toBe('大纲/故事骨架.md')
+  })
+
+  it('穿越段／书仓外／知识库与配置域顶层在进 core 读取前被拒，不泄露存在性差异', async () => {
+    const { ws, note, bookId } = await setup('穿越书')
+    // 书仓外造一个带同名分节的真文件：预校验失效时报文会从「路径非法」变成「没有分节」——这就是探测信道
+    fs.writeFileSync(path.join(ws, '书外.md'), '# 外部\n\n## 线索悬念伏笔\n\n外部内容\n')
+    for (const bad of ['../书外.md', '..\书外.md', '大纲/../../书外.md', '知识库/条目.md', 'profiles/x.md', '草稿区/稿1.md']) {
+      const r = await note.execute({ bookId, relPath: bad, 节名: '线索悬念伏笔', 文本: 'x' }) as { ok: boolean; reason: string }
+      expect(r.ok, bad).toBe(false)
+      expect(r.reason, bad).toContain('待补便签路径非法')
+      expect(r.reason, bad).not.toContain('没有分节')
+      expect(r.reason, bad).not.toContain('工件不存在')
+    }
+    expect(fs.readFileSync(path.join(ws, '书外.md'), 'utf8')).toBe('# 外部\n\n## 线索悬念伏笔\n\n外部内容\n')
   })
 })

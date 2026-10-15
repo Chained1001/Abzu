@@ -287,11 +287,61 @@ describe('R1 装机自检：挂载点 id 覆盖率', () => {
     expect(statusOf(abzuSelfCheck(), 'status.mount')).toBe('ok')
   })
 
-  it('满配宿主：11 个 id 全部上报，集合与 SELF_CHECK_IDS 相等', () => {
+  it('tools.restrict（P2-4）：挂上记 ok、restrict 抛错记 degraded、无子 Agent 记 pending', () => {
+    // ok：子 Agent 暴露 restrict 表面，deny 名单进宿主
+    const denied: string[] = []
+    const subCtx = agentStub({ tools: { restrict: (filter: { deny?: readonly string[] }) => { denied.push(...(filter.deny ?? [])); return () => {} } } })
+    const ws = makeWorkspace()
+    const okHost = makeHost({
+      ready: {
+        workspaceRegistry: { list: () => [{ path: ws }] },
+        agents: {
+          list: () => [
+            { id: 'main-1', ctx: agentStub({ tools: { register: () => () => {} } }) },
+            { id: 'sub-1', session: { header: { origin: 'subagent' } }, ctx: subCtx },
+          ],
+        },
+        tools: { register: () => {} },
+        userQuestions: { ask: async () => ({ answers: [] }) },
+      },
+    })
+    apply(okHost.host as never)
+    const okItem = abzuSelfCheck().items.find((i) => i.id === 'tools.restrict')
+    expect(okItem?.status).toBe('ok')
+    expect(okItem?.detail).toContain('restrict')
+    expect(denied.length).toBeGreaterThan(0)
+
+    // degraded：restrict 抛「未知名字」（工具面未就绪时的既有失败形态）
+    resetSelfCheck(); resetWorkspaceRoot()
+    const throwingSub = agentStub({ tools: { restrict: () => { throw new Error('未知名字') } } })
+    const degradedHost = makeHost({
+      ready: {
+        agents: { list: () => [{ id: 'sub-2', session: { header: { origin: 'subagent' } }, ctx: throwingSub }] },
+        tools: { register: () => {} },
+        userQuestions: { ask: async () => ({ answers: [] }) },
+      },
+    })
+    apply(degradedHost.host as never)
+    expect(statusOf(abzuSelfCheck(), 'tools.restrict')).toBe('degraded')
+
+    // pending：只有主 Agent、无子 Agent（正常等待，不是故障）
+    resetSelfCheck(); resetWorkspaceRoot()
+    const mainOnly = makeHost({
+      ready: {
+        agents: { list: () => [{ id: 'main-9', ctx: agentStub({ tools: { register: () => () => {} } }) }] },
+        tools: { register: () => {} },
+        userQuestions: { ask: async () => ({ answers: [] }) },
+      },
+    })
+    apply(mainOnly.host as never)
+    expect(statusOf(abzuSelfCheck(), 'tools.restrict')).toBe('pending')
+  })
+
+  it('满配宿主：12 个 id 全部上报，集合与 SELF_CHECK_IDS 相等', () => {
     const ws = makeWorkspace()
     const registered: string[] = []
     const mainCtx = agentStub({ tools: { register: (tool: { name: string }) => { registered.push(tool.name); return () => {} } } })
-    const subCtx = agentStub({ approval: { setPolicy: () => {} } })
+    const subCtx = agentStub({ approval: { setPolicy: () => {} }, tools: { restrict: () => () => {} } })
     const { host } = makeHost({
       ready: {
         workspaceRegistry: { list: () => [{ path: ws }] },
@@ -313,6 +363,7 @@ describe('R1 装机自检：挂载点 id 覆盖率', () => {
     expect(statusOf(abzuSelfCheck(), 'skills.mount')).toBe('ok')
     expect(statusOf(abzuSelfCheck(), 'approval.policy')).toBe('ok')
     expect(statusOf(abzuSelfCheck(), 'tools.register')).toBe('ok')
+    expect(statusOf(abzuSelfCheck(), 'tools.restrict')).toBe('ok')
   })
 
   it('缺配宿主：只上报最小集合，其余挂载点不得凭空出现', () => {
@@ -320,8 +371,9 @@ describe('R1 装机自检：挂载点 id 覆盖率', () => {
     apply(host as never)
 
     // inject 缺席 ⇒ skills.dir 不上报；无 agent ⇒ persona/status/gate/approval 不上报
+    // （tools.restrict 与 tools.register 同点：无子 Agent 记 pending）
     expect([...idsOf()].sort()).toEqual([
-      'agents.surface', 'host.inject', 'skills.mount', 'tools.kit', 'tools.register', 'workspace.root',
+      'agents.surface', 'host.inject', 'skills.mount', 'tools.kit', 'tools.register', 'tools.restrict', 'workspace.root',
     ].sort())
     expect(idsOf().every((id) => (SELF_CHECK_IDS as readonly string[]).includes(id))).toBe(true)
   })

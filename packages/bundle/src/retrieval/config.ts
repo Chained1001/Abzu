@@ -60,6 +60,8 @@ export function resolveSettings(input: EmbeddingSettings): ResolvedEmbeddingSett
   if (model.length > 200 || /[\r\n\0]/.test(model) || (protocol === 'gemini-native' && !/^[A-Za-z0-9._-]+$/.test(model))) {
     throw new Error('向量模型名称无效')
   }
+  // 凭据引用名校验只管名称形态（配置面可指向任意 ref）；探测面（discovery 的 fetch
+  // 入口）另收紧为白名单——请求体只接受 DEFAULT_CREDENTIAL，其他 ref 一律拒绝（P2-1）。
   const apiKeyEnv = input.apiKeyEnv ?? DEFAULT_CREDENTIAL
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(apiKeyEnv)) throw new Error('凭据引用名称无效')
   if ((input.documentPrefix?.length ?? 0) > 4096 || (input.queryPrefix?.length ?? 0) > 4096) throw new Error('嵌入指令前缀过长')

@@ -22,10 +22,14 @@ export function attachDiscovery(ctx: Context): void {
           if (input.action !== 'models' && input.action !== 'dimensions') throw new EmbeddingError('invalid-input', '未知配置操作')
           if (typeof input.baseURL !== 'string' || typeof input.protocol !== 'string') throw new EmbeddingError('invalid-input', '请先填写接口地址和协议')
           if (input.action === 'dimensions' && (typeof input.model !== 'string' || !input.model.trim())) throw new EmbeddingError('invalid-input', '请先选择或填写向量模型')
+          // 凭据 ref 白名单（P2-1）：探测请求体只能引用固定的嵌入凭据；请求方同时可控
+          // baseURL，放开任意 ref 等于允许借探测面把宿主任意凭据发往任意地址。
+          const apiKeyEnv = typeof input.apiKeyEnv === 'string' ? input.apiKeyEnv : DEFAULT_CREDENTIAL
+          if (apiKeyEnv !== DEFAULT_CREDENTIAL) throw new EmbeddingError('invalid-input', `凭据引用只接受 ${DEFAULT_CREDENTIAL}（收到：${apiKeyEnv}）`)
           const config = resolveSettings({
             enabled: true, protocol: input.protocol as EmbeddingSettings['protocol'], baseURL: input.baseURL,
             model: typeof input.model === 'string' && input.model ? input.model : 'discovery',
-            dimensions: 1, apiKeyEnv: typeof input.apiKeyEnv === 'string' ? input.apiKeyEnv : DEFAULT_CREDENTIAL,
+            dimensions: 1, apiKeyEnv,
             sendDimensions: false, maxRetries: 1,
           })!
           const key = typeof input.apiKey === 'string' && input.apiKey.trim() ? input.apiKey.trim() : undefined

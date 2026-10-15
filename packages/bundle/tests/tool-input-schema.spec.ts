@@ -82,3 +82,61 @@ describe('model-facing tool input schemas (#185)', () => {
     expect(workspaceRoot).not.toHaveBeenCalled()
   })
 })
+
+describe('统一入参校验（P2-2：注册面单源，execute 前按 schema 先拒）', () => {
+  const tools = createNovelTools({ workspaceRoot: () => undefined, bookRootOfBookId: () => undefined, testTools: true })
+  const call = async (name: string, args: Record<string, unknown>) =>
+    await tools.find((t) => t.name === name)!.execute(args) as { ok: boolean; code?: string; reason?: string }
+
+  it('缺必填参数在进 execute 前被拒，错误点名缺失参数', async () => {
+    const r = await call('novel_select_book', {})
+    expect(r).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(r.reason).toContain('bookId')
+    expect(r.reason).toContain('novel_select_book')
+  })
+
+  it('参数类型不符被拒（relPath 非字符串、卷为字符串）', async () => {
+    const r = await call('novel_note_pending', { bookId: 'b', relPath: 123, 节名: '线索' })
+    expect(r).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(r.reason).toContain('relPath')
+    const r2 = await call('novel_confirm_outline', { bookId: 'b', 卷: '1', 章: 1, 章名: 'x' })
+    expect(r2).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(r2.reason).toContain('卷')
+  })
+
+  it('枚举外的值被拒，不再静默强转（决定/角色等词表落地）', async () => {
+    const r = await call('novel_resolve_proposal', { bookId: 'b', 提案编号: '0001', 决定: '搁置', 裁决记录: 'x' })
+    expect(r).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(r.reason).toContain('决定')
+    const r2 = await call('novel_import_draft', { bookId: 'b', 卷: 1, 章: 1, 章名: 'x', 正文: 'y', 角色: '草', 生成模块: '作者手写' })
+    expect(r2).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(r2.reason).toContain('角色')
+  })
+
+  it('声明 additionalProperties:false 的工具连未知字段一起拒', async () => {
+    const r = await call('novel_reference_analyze', { action: 'status', sourceId: 'ref-test', unknown: true })
+    expect(r).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(r.reason).toContain('unknown')
+  })
+
+  it('schema 合法的调用照常到达 execute，不被校验层误伤', async () => {
+    // bookId 齐备但书不存在：应到达 resolveBook 并报书id不存在，而非 invalid-args
+    const r = await call('novel_get_story_status', { bookId: 'no-such' })
+    expect(r).toMatchObject({ ok: false })
+    expect(r.code).toBeUndefined()
+    expect(r.reason).toContain('书id不存在')
+  })
+
+  it('全部注册工具（含 reference 四件与 seed）都套了统一校验：违规理由带工具名', async () => {
+    expect(tools.length).toBeGreaterThan(20)
+    for (const tool of tools) {
+      const r = await tool.execute({}) as { ok?: boolean; code?: string; reason?: string }
+      expect(r?.ok, tool.name).toBe(false)
+      // 每个工具至少有一个必填参数（seed/最简工具也要求 bookId）；无必填者不适用本断言
+      if ((tool.parameters as { required?: string[] }).required?.length) {
+        expect(r?.code, tool.name).toBe('invalid-args')
+        expect(r?.reason, tool.name).toContain(tool.name)
+      }
+    }
+  })
+})
