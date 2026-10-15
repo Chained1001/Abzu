@@ -104,7 +104,10 @@ beforeAll(async () => {
     env: { ...process.env, DSH_HOME: path.join(root, '.dsh'), DSH_AGENTS_HOME: path.join(root, '.agents'), DSH_TELEMETRY_DISABLED: '1' },
     // The shared process runs 35 integration scenarios, including native settings
     // reloads and local HTTP. Keep a total bound without treating it as one test.
-    timeout: 90_000,
+    // 2026-10-15 实测（仓内 TEMP，本宿主唯一能跑 esbuild 的形态）：全套 87.3s / 89.7s / 92.8s / 94.1s，
+    // 原来的 90s 预算已经在悬崖上——满载那一跑在第 26/37 个 check 被判超时 SIGTERM，37 条全 skipped
+    // （逐条断言都是绿的，死的是预算不是实现）。提到 120s 留出余量；CI（TEMP 在仓外）不受影响。
+    timeout: 120_000,
     windowsHide: true,
     maxBuffer: 2 * 1024 * 1024,
   }).catch((error: unknown) => {
@@ -118,7 +121,8 @@ beforeAll(async () => {
   const reportPath = process.env['ABZU_LOADER_REPORT']
   if (reportPath !== undefined) fs.writeFileSync(path.resolve(reportPath), JSON.stringify({ ...report, stdout: result.stdout, stderr: result.stderr }, null, 2))
   expect(result.stderr).not.toContain('UNHANDLED')
-}, 100_000)
+  // hook 预算必须大于子进程预算（含 esbuild 构建），否则子进程还没到点、hook 先被判超时。
+}, 150_000)
 
 afterAll(() => {
   if (root === undefined) return

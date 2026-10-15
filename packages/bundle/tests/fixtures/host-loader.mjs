@@ -185,11 +185,22 @@ try {
     const local = path.join(workspace, '.agents', 'skills', names[0])
     fs.mkdirSync(local, { recursive: true })
     fs.writeFileSync(path.join(local, 'SKILL.md'), `---\nname: ${names[0]}\ndescription: 本地覆盖验收\n---\n本地技能覆盖。\n`)
-    const filesystem = await import(host === undefined ? '@deepseek-ai/dsh-skill-filesystem' : pathToFileURL(host.entry('@deepseek-ai/dsh-skill-filesystem')).href)
-    const localProvider = ctx.plugin(filesystem, { providerName: 'acceptance-local' })
-    await localProvider
-    assert.equal((await service('skills').get(names[0], { cwd: workspace, scope: main })).provider, 'acceptance-local')
-    await localProvider.dispose()
+    // 项目根发现（@deepseek-ai/dsh-skill-filesystem 的 findProjectRoot）只认 `.git` 并一路向上找，
+    // 找到谁谁就是项目根（本地技能根 = <项目根>/.agents/skills）。团队约定单文件验证时 TEMP 指在仓内，
+    // 祖先链上第一个 .git 是本仓仓根 → 写在这里的本地覆盖技能发现不到，那条 provider 覆盖断言会假红
+    //（真因见 .tmp 探针，不是 provider 优先级缺陷）。落一个 .git 标记让项目根回到 workspace。
+    // 标记只活在本条 check 的这段窗口内：真实路径照样被测到，其余 check 不背它的开销（全量里它会顶掉 90s 预算）。
+    const gitMarker = path.join(workspace, '.git')
+    fs.writeFileSync(gitMarker, 'gitdir: ../.fixture-not-a-repo\n', 'utf8')
+    try {
+      const filesystem = await import(host === undefined ? '@deepseek-ai/dsh-skill-filesystem' : pathToFileURL(host.entry('@deepseek-ai/dsh-skill-filesystem')).href)
+      const localProvider = ctx.plugin(filesystem, { providerName: 'acceptance-local' })
+      await localProvider
+      assert.equal((await service('skills').get(names[0], { cwd: workspace, scope: main })).provider, 'acceptance-local')
+      await localProvider.dispose()
+    } finally {
+      fs.rmSync(gitMarker, { force: true })
+    }
     await toggle('abzu', true)
     assert.equal((await skills()).length, 0)
     await toggle('abzu', false)
