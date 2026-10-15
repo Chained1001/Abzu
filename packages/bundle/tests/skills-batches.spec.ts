@@ -1592,8 +1592,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // H. F19 卷末触发句＋契约三行（独立审查 C1——次序改先对账后摘要，对齐同节既有句与 F19 原文）
     expect(settle).toContain('卷对账→卷摘要→段级刷新→体感回灌，四件一批')
     expect(settle).toContain('| 卷摘要 | `大纲/卷规划/卷<NN>/卷摘要.md` |')
-    expect(settle).toContain('| 卷对账（卷级） | `大纲/卷规划/卷<NN>/卷对账.md` |')
-    expect(settle).toContain('| 段级刷新 | `大纲/卷规划/卷<NN>/段级刷新.md` |')
+    expect(settle).toContain('| 卷对账（卷级） | `<工作范围>/书房/卷末/<书名>/卷<NN>-卷对账.md` |')
+    expect(settle).toContain('| 段级刷新 | `<工作范围>/书房/卷末/<书名>/卷<NN>-段级刷新.md` |')
     // I. F13/F1 文风画像文件名防漂移：间隔号·无空格＋漂移字形清单
     expect(drafting).toContain('间隔符用间隔号「·」且两侧无空格')
     expect(drafting).toContain('均为漂移字形')
@@ -1996,19 +1996,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const settle = readSkill('novel-settle')
     expect(settle).toContain('**写时发现分拣**')
     expect(settle).toContain('`## 写时发现`')
-    expect(settle).toContain('记线索/承诺（标「写时发现」来源）')
-    expect(settle).toContain('作者确认后入账本')
+    expect(settle).toContain('记到本卷卷纲「线索推进」节（标「写时发现」来源）')
+    expect(settle).toContain('作者确认后在后续细纲排期')
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.46＋CHANGELOG 条目＋README×2（纪律统一批接力）
+    // C. 版本纪律全套：两 package.json 0.0.47＋CHANGELOG 条目＋README×2（纪律统一批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.46').toBe('0.0.46')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.46').toBe('0.0.46')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.46]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.47').toBe('0.0.47')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.47').toBe('0.0.47')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.47]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.46`).toContain('0.0.46')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.47`).toContain('0.0.47')
     }
   })
 

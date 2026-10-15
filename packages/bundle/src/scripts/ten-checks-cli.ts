@@ -2,7 +2,7 @@
  * 写前十查机械部分脚本的 CLI 逻辑（⑥爽点铺垫对账＋⑧近五章重复——机械比对交脚本）。
  *
  * 本模块经薄入口 `skills/novel-outline/scripts/十查机械.mjs` 动态引 lib 调用。
- * 只算不写：读候选细纲「冲突与爽点」「本章形状」与细纲段单元行、账本/承诺已埋条目、
+ * 只算不写：读候选细纲「冲突与爽点」「本章形状」与细纲段单元行、账本/承诺进行中条目、
  * 上一章章摘要、本卷近五份确认细纲，机械比对产出候选行；机械行是呈确认件的原料，
  * 真铺垫/真重复的语义判断仍归主 Agent（十查是检查不是门禁）。
  * argv 进、退出码出，模块顶层零副作用。
@@ -161,9 +161,9 @@ function recentOutlines(book: string, 卷: number, 章: number): OutlineDoc[] {
 function payoffRows(book: string, 卷: number, 章: number, body: string): Record<string, unknown> {
   const payoff = section(body, '冲突与爽点')
   if (payoff === null) {
-    return { 承诺账本: '未读', 已埋承诺条目: 0, 上一章摘要: null, 行: ['候选缺「### 冲突与爽点」节——⑥机械对账无爽点位可取，先落节再查'] }
+    return { 承诺账本: '未读', 进行中承诺条目: 0, 上一章摘要: null, 行: ['候选缺「### 冲突与爽点」节——⑥机械对账无爽点位可取，先落节再查'] }
   }
-  const ledger = queryLedger(book, { 分类: '承诺', 状态: '已埋' })
+  const ledger = queryLedger(book, { 分类: '承诺', 状态: '进行中' })
   const planted = ledger.entries
   const summary = previousSummary(book, 卷, 章)
   const sources = [
@@ -183,7 +183,7 @@ function payoffRows(book: string, 卷: number, 章: number, body: string): Recor
     })
   const 承诺文件 = paths.账本('承诺')
   const 账本状态 = 承诺账本状态(ledger, 承诺文件)
-  return { 承诺账本: 账本状态, 已埋承诺条目: planted.length, 上一章摘要: summary?.file ?? null, 行: lines }
+  return { 承诺账本: 账本状态, 进行中承诺条目: planted.length, 上一章摘要: summary?.file ?? null, 行: lines }
 }
 
 /**

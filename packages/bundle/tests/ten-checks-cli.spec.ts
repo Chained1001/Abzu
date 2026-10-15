@@ -28,11 +28,11 @@ function fixture() {
     fs.mkdirSync(path.join(book, ...rel.split('/').slice(0, -1)), { recursive: true })
     fs.writeFileSync(path.join(book, ...rel.split('/')), text)
   }
-  // 候选＝第 5 章「第五章」；已埋承诺「当众对质」是第一个爽点位的铺垫源，第二个爽点位无铺垫
+  // 候选＝第 5 章「第五章」；进行中承诺「当众对质」是第一个爽点位的铺垫源，第二个爽点位无铺垫
   write('草稿区/章细纲/卷01-第五章.md', `---\n状态: 候选\n---\n${outlineBody('反转揭半留半', ['- 目标: 摆平刁难', '- 行动/冲突: 当众对质，反转局面', '- 状态变化: 打脸成功'])}`)
   write('账本/承诺.md', [
     '# 承诺', '',
-    '## 当众对质', '- 状态: 已埋', '第3章埋下当众对质的由头，占理已铺。', '',
+    '## 当众对质', '- 状态: 进行中', '第3章埋下当众对质的由头，占理已铺。', '',
     '## 旧账清账', '- 状态: 已兑现', '第2章已兑现的旧承诺，不应计入铺垫源。', '',
   ].join('\n'))
   // 上一章（第 4 章）章摘要——只呼应「当众对质」，不碰「绝境悟道」
@@ -73,15 +73,15 @@ function snapshot(directory: string): Record<string, string> {
 }
 
 describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', () => {
-  it('⑥逐爽点位对账已埋承诺与上章摘要，⑧机械比对近五份确认细纲，全程零写盘', () => {
+  it('⑥逐爽点位对账进行中承诺与上章摘要，⑧机械比对近五份确认细纲，全程零写盘', () => {
     const { book } = fixture()
     const before = snapshot(book)
     const { code, data } = invoke(['--book', book, '--卷', '1', '--章', '5', '--章名', '第五章'])
     expect(code).toBe(0)
     expect(data.ok).toBe(true)
     expect(data.候选).toBe('草稿区/章细纲/卷01-第五章.md')
-    // ⑥：已埋条目计数不含已兑现；铺垫源含账本条目与上章摘要；无铺垫如实输出
-    expect(data['⑥爽点铺垫']).toMatchObject({ 承诺账本: '已读', 已埋承诺条目: 1, 上一章摘要: '0004-第四章.md' })
+    // ⑥：进行中条目计数不含已兑现；铺垫源含账本条目与上章摘要；无铺垫如实输出
+    expect(data['⑥爽点铺垫']).toMatchObject({ 承诺账本: '已读', 进行中承诺条目: 1, 上一章摘要: '0004-第四章.md' })
     const payoffRows: string[] = data['⑥爽点铺垫'].行
     expect(payoffRows.some(row => row.startsWith('有候选铺垫：当众对质打脸') && row.includes('承诺「当众对质」') && row.includes('上章摘要(0004-第四章.md)'))).toBe(true)
     expect(payoffRows.some(row => row.startsWith('无铺垫：绝境悟道'))).toBe(true)
@@ -101,7 +101,7 @@ describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', (
     fs.writeFileSync(path.join(book, '草稿区', '章细纲', '卷01-开篇.md'), `---\n状态: 候选\n---\n${outlineBody('危机开场', ['- 目标: 脱困', '- 行动/冲突: 雨夜逃生', '- 状态变化: 入城'])}`)
     const { code, data } = invoke(['--book', book, '--卷', '1', '--章', '1', '--章名', '开篇'])
     expect(code).toBe(0)
-    expect(data['⑥爽点铺垫']).toMatchObject({ 承诺账本: '未建账', 已埋承诺条目: 0, 上一章摘要: null })
+    expect(data['⑥爽点铺垫']).toMatchObject({ 承诺账本: '未建账', 进行中承诺条目: 0, 上一章摘要: null })
     expect(data['⑥爽点铺垫'].行.some(row => row.startsWith('无铺垫：'))).toBe(true)
     expect(data['⑧近五章重复'].比对序列).toEqual([])
     expect(data['⑧近五章重复'].行).toEqual(['本卷无确认细纲（首章或跨卷）——⑧无可比对'])
@@ -120,7 +120,7 @@ describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', (
     expect(code).toBe(0)
     expect(data.ok).toBe(true)
     // ⑥：候选缺节不造爽点位行，也不误报账本状态
-    expect(data['⑥爽点铺垫']).toMatchObject({ 承诺账本: '未读', 已埋承诺条目: 0 })
+    expect(data['⑥爽点铺垫']).toMatchObject({ 承诺账本: '未读', 进行中承诺条目: 0 })
     expect(data['⑥爽点铺垫'].行).toEqual(['候选缺「### 冲突与爽点」节——⑥机械对账无爽点位可取，先落节再查'])
     // ⑧：候选缺「本章形状」节时跳过章形比对，只比单元行
     expect(data['⑧近五章重复'].比对序列).toEqual(['0001-第一章.md'])
