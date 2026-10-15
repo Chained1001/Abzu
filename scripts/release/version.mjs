@@ -4,6 +4,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import assert from 'node:assert/strict'
 
 export const root = path.resolve(fileURLToPath(new URL('../../', import.meta.url)))
+function markdownUnder(directory, relative) {
+  const absolute = path.join(directory, relative)
+  if (!fs.existsSync(absolute)) return []
+  return fs.readdirSync(absolute, { withFileTypes: true }).flatMap(entry => {
+    const child = `${relative}/${entry.name}`
+    if (entry.isDirectory()) return markdownUnder(directory, child)
+    return entry.name.endsWith('.md') ? [child] : []
+  })
+}
 export function releaseVersion(directory = root, tag) {
   const bundle = JSON.parse(fs.readFileSync(path.join(directory, 'packages/bundle/package.json'), 'utf8'))
   const workspace = JSON.parse(fs.readFileSync(path.join(directory, 'package.json'), 'utf8'))
@@ -14,9 +23,7 @@ export function releaseVersion(directory = root, tag) {
   if (tag) assert.equal(tag, expectedTag, 'Release tag must match the package version')
   const changelog = fs.readFileSync(path.join(directory, 'CHANGELOG.md'), 'utf8')
   assert.ok(changelog.includes(`## [${bundle.version}]`), 'Missing versioned changelog entry')
-  const documents = ['README.md', 'packages/bundle/README.md',
-    ...fs.readdirSync(path.join(directory, 'docs/user')).filter(file => file.endsWith('.md')).map(file => `docs/user/${file}`),
-    ...fs.readdirSync(path.join(directory, 'docs/maintenance')).filter(file => file.endsWith('.md')).map(file => `docs/maintenance/${file}`)]
+  const documents = ['README.md', 'packages/bundle/README.md', ...markdownUnder(directory, 'docs')]
   for (const file of documents) {
     const text = fs.readFileSync(path.join(directory, file), 'utf8')
     for (const match of text.matchAll(/abzu-([\d][\w.-]*)\.tgz/g)) {

@@ -49,5 +49,5 @@ assets.push('release-manifest.json')
 fs.writeFileSync(path.join(output, 'SHA256SUMS'), assets.sort().map(file => `${hash(file)}  ${file}`).join('\n') + '\n')
 const changelog = fs.readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8')
 const notes = changelog.slice(changelog.indexOf(`## [${info.version}]`)).split(/\n## \[/)[0]
-fs.writeFileSync(path.join(output, 'release-notes.md'), notes + '\n\n校验与安装：请使用本页 SHA256SUMS、release-manifest.json，参阅 docs/user/install.md。\n')
+fs.writeFileSync(path.join(output, 'release-notes.md'), notes + '\n\n校验与安装：请使用本页 SHA256SUMS、release-manifest.json，参阅仓库 docs/技术文档.md「构建与安装」节。\n')
 console.log(JSON.stringify({ ok: true, output, version: info.version, publicCommit: manifest.publicCommit, assets: assets.length }))

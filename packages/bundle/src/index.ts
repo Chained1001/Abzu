@@ -1,7 +1,7 @@
 /**
  * 工作台 bundle（接线入口）。
  *
- * 行为规格：README.md（产品）、docs/book-format.md（格式）、docs/development.md（工程）。
+ * 行为规格：docs/产品文档.md（产品）、docs/标准/书仓格式.md（格式）、docs/技术文档.md（工程）。
  *
  * 核心功能：
  * - 装机：工作范围注册 + 书房脚手架（workspace）

@@ -1,4 +1,4 @@
-/* @abzu/core —— 核心服务(M0:书仓/推导/配置最小)。行为规格见 docs/book-format.md。 */
+/* @abzu/core —— 核心服务(M0:书仓/推导/配置最小)。行为规格见 docs/标准/书仓格式.md。 */
 export * from './repo/draft-length'
 export * from './repo/draft-git'
 export * from './repo/backup'

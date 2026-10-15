@@ -909,7 +909,7 @@ E1 标尺批：参考标尺以单源数值资产落位 `novel-design/references/
 
 ### Upgrade
 
-从 0.0.2 升级：更新 `abzu` 到 0.0.3 并重启即可；条目 id 已随包换为 abzu 系，自定义 profile 覆盖里的旧 id 与凭据引用名称按维护文档换成现行值。步骤见 [安装教程](docs/user/install.md) 与 [备份与升级](docs/user/upgrade-backup.md)。
+从 0.0.2 升级：更新 `abzu` 到 0.0.3 并重启即可；条目 id 已随包换为 abzu 系，自定义 profile 覆盖里的旧 id 与凭据引用名称按维护文档换成现行值。步骤见 安装教程（`docs/user/install.md`） 与 备份与升级（`docs/user/upgrade-backup.md`）。
 
 ## [0.0.2] — 2026-10-09
 
@@ -927,7 +927,7 @@ E1 标尺批：参考标尺以单源数值资产落位 `novel-design/references/
 
 ### Upgrade
 
-从 0.0.1 升级：停会话，卸载单独安装过的 `abzu-retrieval` / `abzu-companion` / `abzu-full`，更新 `abzu` 到 0.0.2；自定义 profile 覆盖里的模块引用按维护文档换成 `abzu/*` 子路径，条目 id 与凭据引用不动。步骤见 [安装教程](docs/user/install.md) 与 [备份与升级](docs/user/upgrade-backup.md)。
+从 0.0.1 升级：停会话，卸载单独安装过的 `abzu-retrieval` / `abzu-companion` / `abzu-full`，更新 `abzu` 到 0.0.2；自定义 profile 覆盖里的模块引用按维护文档换成 `abzu/*` 子路径，条目 id 与凭据引用不动。步骤见 安装教程（`docs/user/install.md`） 与 备份与升级（`docs/user/upgrade-backup.md`）。
 
 ## [0.0.1] — 2026-10-09
 
@@ -949,7 +949,7 @@ Abzu 首个自有版本：基于 webnovel-writer v8.2.0（上游 2b585f3）fork�
 
 ### Upgrade
 
-从上游 8.x 旧入口迁移：先备份，卸载旧入口后按 [备份与升级](docs/user/upgrade-backup.md) 安装新包；DSH 宿主仍为 0.2.0-rc.2，不需要更换。
+从上游 8.x 旧入口迁移：先备份，卸载旧入口后按 备份与升级（`docs/user/upgrade-backup.md`） 安装新包；DSH 宿主仍为 0.2.0-rc.2，不需要更换。
 
 ## [8.2.0] — 2026-10-05
 
@@ -971,9 +971,9 @@ Abzu 首个自有版本：基于 webnovel-writer v8.2.0（上游 2b585f3）fork�
 
 ### Upgrade
 
-**旧项目升级后请补充并确认作品契约的“章节篇幅”子项。** 先备份，保留“阅读体验与情绪承诺”原有内容，加入目标汉字数、下限汉字数、上限汉字数，经原契约更新工具确认。示例与复查步骤见 [升级指南](docs/user/upgrade-backup.md#旧项目需要更新作品契约)。未配置仍兼容使用，但不启用范围核对，也不会自动判定达标。已定稿章节不会因此被改写；当前未定稿审读证据变化后沿原流程重跑。
+**旧项目升级后请补充并确认作品契约的“章节篇幅”子项。** 先备份，保留“阅读体验与情绪承诺”原有内容，加入目标汉字数、下限汉字数、上限汉字数，经原契约更新工具确认。示例与复查步骤见 升级指南（`docs/user/upgrade-backup.md#旧项目需要更新作品契约`）。未配置仍兼容使用，但不启用范围核对，也不会自动判定达标。已定稿章节不会因此被改写；当前未定稿审读证据变化后沿原流程重跑。
 
-更新已使用的插件并重启宿主。检索增强与桌宠本次仅同步兼容版本，安装仍可选；full 包含写作与检索，不包含桌宠。新编辑器操作见 [图文教程](docs/user/editor.md)。
+更新已使用的插件并重启宿主。检索增强与桌宠本次仅同步兼容版本，安装仍可选；full 包含写作与检索，不包含桌宠。新编辑器操作见 图文教程（`docs/user/editor.md`）。
 
 ## [8.1.1] — 2026-10-04
 

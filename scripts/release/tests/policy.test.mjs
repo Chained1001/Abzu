@@ -9,7 +9,7 @@ import { releaseVersion, root as sourceRoot } from '../version.mjs'
 test('public policy rejects private files and permits runtime Markdown', () => {
   for (const file of ['.trellis/prd.md', 'session.jsonl', 'packages/bundle/.env', '../README.md', 'packages/bundle/dsh-local.yml']) assert.throws(() => checkPublicPath(file))
   checkPublicPath('packages/bundle/skills/novel-director/SKILL.md')
-  checkPublicPath('docs/user/install.md')
+  checkPublicPath('docs/技术文档.md')
   checkPublicPath('CHANGELOG-archive.md')
 })
 test('credential and personal-path checks do not echo their values', () => {
@@ -24,7 +24,7 @@ test('release version binds exact tag, package and changelog', () => {
   assert.throws(() => releaseVersion(undefined, 'v6.2.1'))
 })
 
-test('version checks every user tutorial and package installation example', () => {
+test('version checks every document and package installation example', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-doc-versions-'))
   const files = ['package.json', 'CHANGELOG.md', 'README.md', 'packages/bundle/package.json', 'packages/bundle/README.md']
   try {
@@ -32,14 +32,15 @@ test('version checks every user tutorial and package installation example', () =
       fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true })
       fs.copyFileSync(path.join(sourceRoot, file), path.join(root, file))
     }
-    fs.mkdirSync(path.join(root, 'docs/user'), { recursive: true })
-    fs.mkdirSync(path.join(root, 'docs/maintenance'), { recursive: true })
-    const tutorial = path.join(root, 'docs/user/another-tutorial.md')
+    releaseVersion(root)
+    fs.mkdirSync(path.join(root, 'docs/nested'), { recursive: true })
+    const document = path.join(root, 'docs/another-document.md')
     for (const sample of ['abzu@1.0.0', 'abzu-1.0.0.tgz', 'releases/tag/abzu-v0.9.9']) {
-      fs.writeFileSync(tutorial, sample)
+      fs.writeFileSync(document, sample)
       assert.throws(() => releaseVersion(root), /Stale/)
     }
-    fs.writeFileSync(path.join(root, 'docs/maintenance/another-guide.md'), 'dsh plugin add abzu@1.0.0')
+    fs.rmSync(document)
+    fs.writeFileSync(path.join(root, 'docs/nested/another-guide.md'), 'dsh plugin add abzu@1.0.0')
     assert.throws(() => releaseVersion(root), /Stale/)
   } finally {
     const remove = dir => { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const target = path.join(dir, entry.name); if (entry.isDirectory()) remove(target); else fs.unlinkSync(target) }; fs.rmdirSync(dir) }

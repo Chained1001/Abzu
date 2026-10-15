@@ -1,4 +1,4 @@
-/* @abzu/polish —— 行为规格见 docs/book-format.md(单一真源);本包只放实现 */
+/* @abzu/polish —— 行为规格见 docs/标准/书仓格式.md(单一真源);本包只放实现 */
 export const pkg = '@abzu/polish'
 
 export { applyPolishRules, BANNED_OPENERS, type ApplyRulesResult, type PolishChange } from './rules'
