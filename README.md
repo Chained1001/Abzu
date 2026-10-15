@@ -81,7 +81,7 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 
 - [新手教程：从安装到第一章](docs/user/beginner.md)
 - [新编辑器：选区改写、批注、采纳与保存](docs/user/editor.md)
-- [界面与按钮参考](docs/user/ui-reference.md) · [增强索引操作指南](docs/user/enhanced-index.md)
+- [界面与按钮参考](docs/user/ui-reference.md) · [模型配置与增强索引](docs/user/configuration.md)
 - [参考小说分析](docs/user/reference-analysis.md)
 - [日常写作与暂停恢复](docs/user/workflows.md)
 - [备份、升级、回退与卸载](docs/user/upgrade-backup.md)
