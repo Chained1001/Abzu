@@ -366,12 +366,16 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
   const undeterminedTl = pickedTl.filter((e) => ledgerEntryChapterNo(e) === null).length
   const tl边界注 = (tlExcluded > 0 ? `已按目标章(第${input.章}章)边界剔除 ${tlExcluded} 条晚于本章的事实;` : '')
     + (undeterminedTl > 0 ? `含时序未定条目 ${undeterminedTl} 条(来源与不确定性已标注);` : '')
+  // io（账在、读不了）且本段无可呈现条目时，正文不得说「无账本时间线」——那是「没有」的谎。
+  // 有可读条目时照旧呈现（另一本账读不了不该吞掉已读到的事实，恶化为「残缺」由完整性呈报）。
   const tlBody = pickedTl.length === 0
-    ? '（无账本时间线）'
+    ? (tlResult.ok || tlResult.kind === 'missing' ? '（无账本时间线）' : `（账本时间线不可读：${tlResult.reason}）`)
     : pickedTl.map((e) => ledgerEntryChapterNo(e) === null ? withTimingNote(renderLedgerEntry(e), e) : renderLedgerEntry(e)).join('\n')
+  // A-2 步 3：只有 missing（没有这本账）才算「空/完整」；unreadable（账在、读不了）与 parse-error
+  // 同为「残缺」——IO 故障不得说成「无账本时间线」。
   const tl完整: SectionRecord['完整性'] = tlResult.ok
     ? (pickedTl.length === 0 ? '空' : '完整')
-    : (tlResult.kind === 'parse-error' ? '残缺' : (pickedTl.length === 0 ? '空' : '完整'))
+    : (tlResult.kind === 'missing' ? (pickedTl.length === 0 ? '空' : '完整') : '残缺')
 
   // ── 故事线承诺线索:到期/逾期全文 ＋ 细纲点名全文 ＋ 其余活跃条目一行制 ──
   const activeKinds = ['故事线', '人物弧线', '承诺', '线索'] as const
@@ -402,11 +406,14 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
   if (roster.length > 0) {
     ledgerParts.push(['### 其余活跃条目', '', ...roster.map((e) => `- ${e.名称}〔${e.字段['状态'] ?? '？'}〕`)].join('\n'))
   }
-  const ledgerBody = ledgerParts.join('\n\n') || '（无账本条目）'
+  // 同 tlBody：io 且无可呈现条目时，正文不得说「无账本条目」。
+  const ledgerBody = ledgerParts.join('\n\n')
+    || (ledgerResult.ok || ledgerResult.kind === 'missing' ? '（无账本条目）' : `（账本条目不可读：${ledgerResult.reason}）`)
   const ledgerSources = [...new Set(activeEntries.map((e) => e.来源文件))]
+  // A-2 步 3：同 tl完整——unreadable 归「残缺」，不归「空」。
   const ledger完整: SectionRecord['完整性'] = ledgerResult.ok
     ? (activeEntries.length === 0 ? '空' : '完整')
-    : (ledgerResult.kind === 'parse-error' ? '残缺' : (activeEntries.length === 0 ? '空' : '完整'))
+    : (ledgerResult.kind === 'missing' ? (activeEntries.length === 0 ? '空' : '完整') : '残缺')
 
   // ── 暂定与警告:契约文风、卷纲本章窗口段 ＋ 暂定/留白行 ──
   const 契约Body = 契约 === null ? null : bodyOnly(契约)

@@ -20,6 +20,14 @@ import { scanDesignDetail } from '../src/progress'
 import { scanChapter } from '../src/derive/scan'
 import { rebuildResume } from '../src/recovery'
 import { queryMemory } from '../src/ledger'
+import { computeVolumeSummaryCandidate } from '../src/summary'
+import { computePack } from '../src/prepare/pack'
+import { computeMaterials } from '../src/assembly/assemble'
+import { confirmOutline, writeCandidate } from '../src/outline/write'
+import { seedMinDesign } from '../src/design/seed'
+import { writeFileAtomic } from '../src/repo/atomic'
+import { serializeDocument } from '../src/repo/frontmatter'
+import { paths } from '../src/repo/paths'
 
 const roots: string[] = []
 afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟 */ } } })
@@ -187,5 +195,165 @@ describe('读侧契约：真缺失的文案必须原样保留', () => {
     const result = queryMemory(root) as unknown as Record<string, unknown>
     expect(result['kind']).toBe('missing')
     expect(String(result['reason'] ?? '')).toContain('不存在')
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 第 5 批（第三态 `unreadable` 引入后暴露的 io 误分类）：同样是「EISDIR + 真缺失」成对。
+// 这些分支在只有 missing/parse-error 两态时 else 分支都是对的，是第三态让它们集体变成错分类。
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** 空壳设计书（seedMinDesign）；材料包 / 待定稿包 / 卷摘要三个判据点共用。 */
+function mkSeedBook(): string {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'a2-points-'))
+  roots.push(root)
+  seedMinDesign(root)
+  return root
+}
+
+/** 卷一第 1 章定稿 + 章摘要齐（卷摘要候选的前置）。 */
+function mkOneFinalChapter(root: string): void {
+  const fin = path.join(root, paths.定稿章(1, 1, '开篇任务'))
+  fs.mkdirSync(path.dirname(fin), { recursive: true })
+  fs.writeFileSync(fin, serializeDocument({ 状态: '已定稿' }, '第1章正文。'), 'utf8')
+  const sum = path.join(root, paths.章摘要(1, 1, '开篇任务'))
+  fs.mkdirSync(path.dirname(sum), { recursive: true })
+  fs.writeFileSync(sum, '# 章摘要\n\n开篇摘要：埋了一个钩子。', 'utf8')
+}
+
+/** 唯一待审稿（待定稿包的前置）。 */
+function mkPendingDraft(root: string): void {
+  const dir = path.join(root, paths.草稿目录(1, '开篇任务'))
+  fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(path.join(dir, '稿1.md'), serializeDocument({ 角色: '待审稿' }, '第1章正文草稿。'), 'utf8')
+}
+
+const CONFIRM_REFS = ['作品契约/契约.md@1', '世界书/人物档案/主角.md@1'] as const
+
+/** 本卷第 1 章确认细纲（材料包的前置）；与 assembly.spec 同款夹具。 */
+function confirmReady(root: string): void {
+  const body = [
+    '# 章细纲', '', '## 定位段', '',
+    '### 来源窗口项及拆并关系', '开篇任务，单章承接', '',
+    '### 章节功能', '建立开场冲突', '- 〔软〕节奏平稳', '',
+    '### 视角与焦点', '主角视角', '',
+    '### 时空锚定', '城门口，清晨', '',
+    '### 起止边界', '从抵达城门到发现异状', '',
+    '### 故事线与承诺分配', '推进主线承诺', '',
+    '### 信息边界', '只披露主角所见', '',
+    '### 情绪与节奏目标', '紧张后留钩子', '',
+    '### 前置条件核对结果', '已核对来源与窗口，前置设定均非留白', '',
+    '## 细纲段', '', '### 单元 1', '',
+    '- 目标: 找到异常', '- 人物: 主角', '- 时空: 城门口',
+    '- 行动/冲突: 盘问与发现', '- 信息披露: 异常线索', '- 状态变化: 从平静到警觉', '',
+  ].join('\n')
+  writeCandidate(root, { 卷: 1, 章: 1, 章名: '开篇任务', 来源引用: CONFIRM_REFS, body })
+  const r = confirmOutline(root, KEY)
+  if (!r.ok) throw new Error(`confirm failed:${r.gaps.join(';')}`)
+}
+
+/** 把「账本/<名>.md」换成同名目录（EISDIR）；真缺失对照则整份账本都不建。 */
+function ledgerAsDir(root: string, name: string): void {
+  fs.mkdirSync(path.join(root, '账本'), { recursive: true })
+  toDir(path.join(root, '账本', `${name}.md`))
+}
+
+/** 材料包某段的记录（computeMaterials 纯算，不落盘）。 */
+function sectionOf(root: string, 段: string): { readonly 完整性: string } {
+  const record = computeMaterials(root, KEY).段?.find((s) => s.段 === 段)
+  if (record === undefined) throw new Error(`材料包缺段:${段}`)
+  return record
+}
+
+/** 材料包某段的正文（同一次纯算的写盘载荷里取，不落盘）。 */
+function sectionBody(root: string, 段: string): string {
+  const op = computeMaterials(root, KEY).文件?.find((f) => f.relPath.endsWith(`-${段}.md`))
+  if (op === undefined) throw new Error(`材料包缺段文件:${段}`)
+  return op.content
+}
+
+/** 待定稿包里某件的内容（computePack 纯算，取写盘载荷而不是落盘）。 */
+function packArtifact(root: string, 名: string): string {
+  const computed = computePack(root, KEY)
+  const op = computed.文件?.find((f) => f.relPath.endsWith(名))
+  if (op === undefined) throw new Error(`待定稿包缺 ${名}：${computed.reason ?? '未知原因'}`)
+  return op.content
+}
+
+describe('第 5 批：io 不得被说成「未建账 / 解析失败 / 空」', () => {
+  it('⑦ 卷摘要：线索账本不可读 → 报「不可读」，不报「解析失败」', () => {
+    const root = mkSeedBook()
+    mkOneFinalChapter(root)
+    ledgerAsDir(root, '线索')
+    const r = computeVolumeSummaryCandidate(root, 1)
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.reason).toContain('不可读')
+    expect(r.reason).not.toContain('解析失败')
+  })
+
+  it('⑦m 卷摘要：线索账本确实缺失 → 仍报「缺失」', () => {
+    const root = mkSeedBook()
+    mkOneFinalChapter(root)
+    const r = computeVolumeSummaryCandidate(root, 1)
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.reason).toContain('缺失')
+    expect(r.reason).not.toContain('不可读')
+  })
+
+  it('⑧ 待定稿包：时间线账本不可读 → 卷对账写「事实时间线不可读」，不写解析失败', () => {
+    const root = mkSeedBook()
+    mkPendingDraft(root)
+    ledgerAsDir(root, '时间线')
+    const 卷对账 = packArtifact(root, '卷对账.md')
+    expect(卷对账).toContain('事实时间线不可读')
+    expect(卷对账).not.toContain('事实时间线解析失败')
+  })
+
+  it('⑧m 待定稿包：时间线账本确实缺失 → 仍写「事实时间线未初始化」', () => {
+    const root = mkSeedBook()
+    mkPendingDraft(root)
+    const 卷对账 = packArtifact(root, '卷对账.md')
+    expect(卷对账).toContain('事实时间线未初始化')
+    expect(卷对账).not.toContain('不可读')
+  })
+
+  it('⑨ 材料包：时间线账本不可读 → 段记残缺，正文写「不可读」不写「无账本时间线」', () => {
+    const root = mkSeedBook()
+    confirmReady(root)
+    ledgerAsDir(root, '时间线')
+    expect(sectionOf(root, '当前事实与连续性').完整性).toBe('残缺')
+    const body = sectionBody(root, '当前事实与连续性')
+    expect(body).toContain('账本时间线不可读')
+    expect(body).not.toContain('（无账本时间线）')
+  })
+
+  it('⑨m 材料包：时间线账本确实缺失 → 仍是「空」，正文保持「（无账本时间线）」', () => {
+    const root = mkSeedBook()
+    confirmReady(root)
+    expect(sectionOf(root, '当前事实与连续性').完整性).toBe('空')
+    const body = sectionBody(root, '当前事实与连续性')
+    expect(body).toContain('（无账本时间线）')
+    expect(body).not.toContain('不可读')
+  })
+
+  it('⑩ 材料包：承诺账本不可读 → 段记残缺，正文写「不可读」不写「无账本条目」', () => {
+    const root = mkSeedBook()
+    confirmReady(root)
+    ledgerAsDir(root, '承诺')
+    expect(sectionOf(root, '故事线承诺线索').完整性).toBe('残缺')
+    const body = sectionBody(root, '故事线承诺线索')
+    expect(body).toContain('账本条目不可读')
+    expect(body).not.toContain('（无账本条目）')
+  })
+
+  it('⑩m 材料包：账本确实缺失 → 仍是「空」，正文保持「（无账本条目）」', () => {
+    const root = mkSeedBook()
+    confirmReady(root)
+    expect(sectionOf(root, '故事线承诺线索').完整性).toBe('空')
+    const body = sectionBody(root, '故事线承诺线索')
+    expect(body).toContain('（无账本条目）')
+    expect(body).not.toContain('不可读')
   })
 })

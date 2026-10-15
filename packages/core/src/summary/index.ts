@@ -110,7 +110,8 @@ export function computeVolumeSummaryCandidate(bookRoot: string, 卷: number): Vo
   const 卷末章号 = Math.max(...chapters.map((c) => c.章))
   const ledger = queryLedger(bookRoot, { 分类: '线索', 章上限: 卷末章号 })
   if (!ledger.ok) {
-    const kindText = ledger.kind === 'missing' ? '缺失' : '解析失败'
+    // A-2 步 3：unreadable（账本在、读不了）不得说成「解析失败」——那是把 IO 故障当成格式问题。
+    const kindText = ledger.kind === 'missing' ? '缺失' : ledger.kind === 'unreadable' ? '不可读' : '解析失败'
     return { ok: false, reason: `账本${kindText}：${ledger.reason}，不产候选不落盘`, 缺章摘要: [], 账本失败: true }
   }
   // 修复(0.0.20 批 bug2):账本读侧不校验状态值,兑现类终态「已兑现」实见在线索账本(settlement

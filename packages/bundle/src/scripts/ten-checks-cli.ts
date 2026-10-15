@@ -10,7 +10,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { parseDocument, paths, queryLedger } from '@abzu/core'
+import { parseDocument, paths, queryLedger, type LedgerQueryResult } from '@abzu/core'
 
 /** 虚词大字不计入内容双字——避免任意两段中文都撞出「一个／到了」式假命中。 */
 const FUNCTION_CHARS = new Set('的了是在和与就都也很个又一不没我你他她它这那及被把让向上下中出说到做去来还要'.split(''))
@@ -182,10 +182,24 @@ function payoffRows(book: string, 卷: number, 章: number, body: string): Recor
       return hits.length === 0 ? `无铺垫：${truncate(row, 24)}` : `有候选铺垫：${truncate(row, 24)}｜←${hits.join('、')}`
     })
   const 承诺文件 = paths.账本('承诺')
-  const 账本状态 = ledger.files.includes(承诺文件)
-    ? '已读'
-    : !ledger.ok && ledger.kind === 'parse-error' && ledger.file === 承诺文件 ? '解析失败' : '未建账'
+  const 账本状态 = 承诺账本状态(ledger, 承诺文件)
   return { 承诺账本: 账本状态, 已埋承诺条目: planted.length, 上一章摘要: summary?.file ?? null, 行: lines }
+}
+
+/**
+ * 承诺账本读侧状态（A-2 步 3）：
+ * - `已读`：该文件确实读进来了；
+ * - `解析失败`：读进来了但格式坏；
+ * - `不可读`：文件在、这次读不了（io）——不得说成「未建账」；
+ * - `未建账`：只有真·缺失（missing）才算。
+ */
+function 承诺账本状态(ledger: LedgerQueryResult, 承诺文件: string): string {
+  if (ledger.files.includes(承诺文件)) return '已读'
+  if (!ledger.ok && ledger.file === 承诺文件) {
+    if (ledger.kind === 'parse-error') return '解析失败'
+    if (ledger.kind === 'unreadable') return '不可读'
+  }
+  return '未建账'
 }
 
 function repeatRows(candidate: OutlineDoc, confirmed: readonly OutlineDoc[]): Record<string, unknown> {

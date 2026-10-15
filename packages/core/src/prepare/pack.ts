@@ -80,7 +80,8 @@ function reconciliationSections(bookRoot: string, volume: number): { readonly �
   const result = reconcileLedger(bookRoot, volume)
   if (!result.ok) {
     return {
-      实际: `（事实时间线${result.kind === 'missing' ? '未初始化' : '解析失败'}）`,
+      // A-2 步 3：unreadable（真源在、读不了）不得与解析失败混为一谈。
+      实际: `（事实时间线${result.kind === 'missing' ? '未初始化' : result.kind === 'unreadable' ? '不可读' : '解析失败'}）`,
       偏离: `无法对账：${result.reason}`,
       已呈报: false,
     }

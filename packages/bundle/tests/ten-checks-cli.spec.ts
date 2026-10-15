@@ -127,6 +127,30 @@ describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', (
     expect(data['⑧近五章重复'].行).toEqual(['无同款'])
   })
 
+  it('承诺账本在、但读不了（EISDIR）→ 报「不可读」，不得说成「未建账」', () => {
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'ten-checks-cli-')); roots.push(ws)
+    const book = path.join(ws, 'book')
+    fs.mkdirSync(path.join(book, '草稿区', '章细纲'), { recursive: true })
+    fs.writeFileSync(path.join(book, '草稿区', '章细纲', '卷01-开篇.md'), `---\n状态: 候选\n---\n${outlineBody('危机开场', ['- 目标: 脱困', '- 行动/冲突: 雨夜逃生', '- 状态变化: 入城'])}`)
+    // io 注入（A-2 步 3 的第三态）：把被读的那个文件换成同名目录 → EISDIR
+    fs.mkdirSync(path.join(book, '账本', '承诺.md'), { recursive: true })
+    const { code, data } = invoke(['--book', book, '--卷', '1', '--章', '1', '--章名', '开篇'])
+    expect(code).toBe(0)
+    expect(data['⑥爽点铺垫'].承诺账本).toBe('不可读')
+    expect(data['⑥爽点铺垫'].承诺账本).not.toBe('未建账')
+  })
+
+  it('承诺账本真缺失 → 仍报「未建账」（与上一条配对，防一刀切）', () => {
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'ten-checks-cli-')); roots.push(ws)
+    const book = path.join(ws, 'book')
+    fs.mkdirSync(path.join(book, '草稿区', '章细纲'), { recursive: true })
+    fs.writeFileSync(path.join(book, '草稿区', '章细纲', '卷01-开篇.md'), `---\n状态: 候选\n---\n${outlineBody('危机开场', ['- 目标: 脱困', '- 行动/冲突: 雨夜逃生', '- 状态变化: 入城'])}`)
+    const { code, data } = invoke(['--book', book, '--卷', '1', '--章', '1', '--章名', '开篇'])
+    expect(code).toBe(0)
+    expect(data['⑥爽点铺垫'].承诺账本).toBe('未建账')
+    expect(data['⑥爽点铺垫'].承诺账本).not.toBe('不可读')
+  })
+
   it('缺参、书仓缺失与候选缺失都退出 1，不产伪结果', () => {
     const { ws, book } = fixture()
     const stderr = vi.spyOn(console, 'error').mockImplementation(() => {})
