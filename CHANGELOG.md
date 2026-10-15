@@ -2,6 +2,18 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.45] — 2026-10-15
+
+### Added（A3 审查 P1·测试补齐批——审查修复第七票：三件零直测面各补 spec）
+
+**CLI 三件补 spec（R21 薄入口直测）**：packages/bundle/src/scripts/ 下 materials-cli / pack-cli / export-cli 对照 backup-cli / impact-cli 的既有直测模式各写 spec（materials-cli.spec / pack-cli.spec / export-cli.spec，用例名中文）——参数解析面全覆盖（必需参数缺失、非法 flag、卷章非正整数、export 的未知/重复/缺值选项与 `--校验` 联合约束，均退出码 1 且 stderr 指名）；正常路径以夹具书仓走通：materials 走真实 seedMinDesign＋确认细纲夹具断言 材料清单.json 载荷（状态/合计字数/十段口径与顶层一致＋零写盘），pack 走幂等（两次计算 stdout 逐字节一致＋七件＋清单载荷＋B2 章名白名单异常出口退出码 2），export 走 computeExport 对账（CLI 载荷与 core 直调同源同字节、范围筛选、目标只读检查三态、校验三态）。覆盖边界如实注记：材料 CLI 退出码 2 不可达（A-2 读原语把 IO 故障收进结果对象）；备包落盘/沉淀候选预校验、导出内容形态由 core 侧既有 spec 另守。
+
+**live-preview 补测**：packages/bundle/src/client/editor/live-preview.ts（163 行，编辑器客户端唯一零测试模块，被 FocusEditor 使用）新增 editor-live-preview.spec——按其导出 API 以「EditorView 形状最小桩」直测：editorFocused 焦点判定（切应用不失焦语义）、livePreview 装饰构建（行类 cm-lp-h1/blank/quote/li/hr/p、行内 cm-lp-em/cm-lp-ol、圆点与分隔线 widget、未触焦行标记隐藏、光标行揭示 cm-lp-mark、失焦后一律隐藏）、update 增量口径（docChanged 重建、全静默保持装饰集引用）、linkClicks（Ctrl/Cmd 单击链接经书房打开＋普通单击/右键/非链接/空坐标不劫持）。覆盖边界：selectionSet/focusChanged/语法树替换分支与 widget.toDOM 的真实 DOM 呈现不在 node 直测面内，由编辑器集成与浏览器侧 probe 夹具守。
+
+**epub 上限负例补齐（REFERENCE_LIMITS 全覆盖收官）**：reference-parser.spec 补两条——expandedBytes（总解压 256 MiB）：注入小上限（夹具首条目 mimetype 恰 20 字节、上限压到 20）让首条目过、第二条目起累计越限拒绝 `epub-limit`，证明闸门按全书累计字节而非单条目；同字节默认上限对照正常通过。sourceBytes（64 MiB）：previewReference 无 limits 覆盖缝，测试内临时调小共享 REFERENCE_LIMITS.sourceBytes 并 finally 还原，小上限拒绝 `source-limit`、同字节默认上限正常通过。与 4272beb 的 maxDomNodes/maxTextChars/entries 及更早的 entryBytes 合计，REFERENCE_LIMITS 六个保护上限正负例全覆盖。
+
+版本纪律全套 0.0.45：package.json×2、README×2、docs/user 全量 0.0.44→0.0.45（升级节「升级到 0.0.44」随版翻为「升级到 0.0.45」，0.0.4/0.0.2–0.0.3 等历史版本号不动）、docs/maintenance 无涉及；CHANGELOG 头插本条；skills-batches 版本钉位块推进 0.0.44→0.0.45＋docs 扫描口径 0.0.44 零残留（测试补齐批接力）；skills-core 净版戳 v2.4.7 不动（KB 未动）。五闸绿：lint、check:version（0.0.45）、check:public（701 文件/98 提交）、build、全量 vitest TEMP=仓内 .tmp/w7：1368 passed｜5 skipped，0 条测试红 0 件文件级红（新增 4 件 spec 19 用例＋reference-parser 新增 2 用例全绿，本跑 host-loader 亦过 120s 子进程预算）。
+
 ## [0.0.44] — 2026-10-15
 
 ### Fixed（A2 审查修复第四票·工具校验批——五件收口）

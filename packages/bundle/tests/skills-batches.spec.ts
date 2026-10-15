@@ -2190,19 +2190,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.44＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.43 零残留（工具校验批接力）
+    // C. 版本纪律全套：两 package.json 0.0.45＋CHANGELOG 条目＋README×2＋docs/user＋docs/maintenance 0.0.44 零残留（测试补齐批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.44').toBe('0.0.44')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.44').toBe('0.0.44')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.44]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.45').toBe('0.0.45')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.45').toBe('0.0.45')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.45]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.44`).toContain('0.0.44')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.45`).toContain('0.0.45')
     }
     for (const dir of ['user', 'maintenance'] as const) {
       const docsDir = path.join(__dirname, '..', '..', '..', 'docs', dir)
       for (const f of fs.readdirSync(docsDir).filter((name) => name.endsWith('.md'))) {
-        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.43`).not.toContain('0.0.43')
+        expect(fs.readFileSync(path.join(docsDir, f), 'utf8'), `docs/${dir}/${f}: 不应残留上一版 0.0.44`).not.toContain('0.0.44')
       }
     }
   })

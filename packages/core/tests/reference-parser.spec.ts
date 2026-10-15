@@ -97,4 +97,26 @@ describe('本地 TXT 与 EPUB 接入', () => {
     await expect(parseEpub(forgedEntries(REFERENCE_LIMITS.entries + 1))).rejects.toMatchObject({ code: 'epub-zip' })
     await expect(parseEpub(forgedEntries(REFERENCE_LIMITS.entries))).rejects.toMatchObject({ code: 'epub-format' })
   })
+  it('EPUB 全书解压总量按累计字节设上限：注入小上限拒绝 epub-limit，同字节默认上限正常通过', async () => {
+    // 夹具首条目 mimetype 恰 20 字节：上限压到 20 让首条目过、第二条目起累计越限——
+    // 证明闸门按全书累计（256 MiB 默认口径），不是单条目口径。
+    const bytes = referenceZip(epubFiles())
+    await expect(parseEpub(bytes, undefined, { expandedBytes: 20 })).rejects.toMatchObject({ code: 'epub-limit' })
+    expect((await parseEpub(referenceZip(epubFiles()))).units).toHaveLength(3)
+  })
+  it('原文件导入大小设上限：注入小上限拒绝 source-limit，同字节默认上限正常通过', async () => {
+    // previewReference 无 limits 覆盖缝：sourceBytes 直接读共享 REFERENCE_LIMITS，
+    // 测试内临时调小并在 finally 还原（同字节对照，证拒绝来自上限非内容）。
+    const bytes = Buffer.from('第一章 起航\n船开了。\n第二章 靠岸\n船到了。')
+    const caps = REFERENCE_LIMITS as { sourceBytes: number }
+    const original = caps.sourceBytes
+    caps.sourceBytes = bytes.length - 1
+    try {
+      await expect(previewReference(bytes, 'book.txt')).rejects.toMatchObject({ code: 'source-limit' })
+    } finally {
+      caps.sourceBytes = original
+    }
+    const result = await previewReference(bytes, 'book.txt')
+    expect(result.parsed.units).toHaveLength(2)
+  })
 })

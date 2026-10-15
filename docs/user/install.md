@@ -1,4 +1,4 @@
-# 安装 Abzu 0.0.44
+# 安装 Abzu 0.0.45
 
 本版配套 **DSH 0.2.0-rc.2**。先安装这个桌面端，再安装插件。
 
@@ -16,7 +16,7 @@
 2. 在仓库根执行 `pnpm install --frozen-lockfile`，然后依次运行 `pnpm lint`、`pnpm test`、`pnpm test:release`。
    成功时，全部检查通过。
 3. 执行 `pnpm release:build`。
-   成功时，`.tmp/release/0.0.44/` 下生成 `abzu-0.0.44.tgz`，以及 SHA256SUMS 与 release-manifest.json。
+   成功时，`.tmp/release/0.0.45/` 下生成 `abzu-0.0.45.tgz`，以及 SHA256SUMS 与 release-manifest.json。
 
 ### 2. 安装
 
@@ -28,7 +28,7 @@
 
 ```powershell
 dsh --profile abzu --from-default-profile web --dump-config
-dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.44.tgz
+dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.45.tgz
 dsh --profile abzu --host 127.0.0.1 --port 6104 --no-open
 ```
 
@@ -46,7 +46,7 @@ tarball 放在无空格目录；安装后按 SHA256SUMS 核对校验和。通过
 2. 应用变更。如果页面要求重启，按上面的方式完全退出后再打开。
    成功时，已安装列表符合下面的结果。
 
-- **写作工作台**：包名正确，版本为 0.0.44。启用后可以打开书房。
+- **写作工作台**：包名正确，版本为 0.0.45。启用后可以打开书房。
 - **检索增强**：可以找到嵌入、场景识别和重排配置。它们默认关闭。基础写作不必先填写这些项目。
 
 设置中的内置插件列表只用来查看状态。安装和卸载都使用侧栏“插件”页面。
@@ -63,11 +63,11 @@ tarball 放在无空格目录；安装后按 SHA256SUMS 核对校验和。通过
 
 ## GitHub Release 下载（公开发布后）
 
-公开发布后，可从 GitHub Release 下载对应版本的 tgz 发行件（`abzu-0.0.44.tgz` 式命名）与 SHA256SUMS，再按上面的安装与启用步骤操作。本节在公开发布时改为具体入口与链接。
+公开发布后，可从 GitHub Release 下载对应版本的 tgz 发行件（`abzu-0.0.45.tgz` 式命名）与 SHA256SUMS，再按上面的安装与启用步骤操作。本节在公开发布时改为具体入口与链接。
 
 ## 为什么要固定 DSH 版本
 
-插件只针对一个 DSH 版本验证。0.0.44 配套 **DSH 0.2.0-rc.2**。旧版 preview.6 / 提供方 0.0.8 对应 0.1.5-rc.2；0.1.0-preview.7 / 旧提供方 0.0.9 对应 0.1.7-rc.2。旧版资料留在相应的 Release，不要把一个版本的说明套到另一个 DSH 上。
+插件只针对一个 DSH 版本验证。0.0.45 配套 **DSH 0.2.0-rc.2**。旧版 preview.6 / 提供方 0.0.8 对应 0.1.5-rc.2；0.1.0-preview.7 / 旧提供方 0.0.9 对应 0.1.7-rc.2。旧版资料留在相应的 Release，不要把一个版本的说明套到另一个 DSH 上。
 
 DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
 
