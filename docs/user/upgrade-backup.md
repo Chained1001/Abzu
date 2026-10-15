@@ -2,7 +2,7 @@
 
 ## 升级到 0.0.44
 
-0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭。0.0.3 把五条功能入口的条目 id 统一换为 abzu 系（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`），借零书、零插件设置的窗口完成，设置、凭据引用与停用状态按新 id 重新配置。0.0.4 移除鲸鱼娘桌宠，`abzu-companion` 条目随之消失，其余四条入口与全部设置、凭据引用不变。继续配套 DSH 0.2.0-rc.2，不需要更换 DSH。
+0.0.2 把 0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 三个安装包并入主包 `abzu`：检索增强与鲸鱼娘桌宠随主包提供，默认关闭。0.0.3 把五条功能入口的条目 id 统一换为 abzu 系（`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`），借零书、零插件设置的窗口完成，设置、凭据引用与停用状态按新 id 重新配置。0.0.4 移除鲸鱼娘桌宠，`abzu-companion` 条目随之消失，其余四条入口与全部设置、凭据引用不变。本版不需要更换 DSH（配套版本见 [安装教程](install.md)）。
 
 1. 停止正在运行的会话。
 2. 卸载单独安装过的 `abzu-retrieval`、`abzu-companion` 或 `abzu-full`（如果有）。
@@ -51,23 +51,25 @@
 
 ## 旧包名迁移（8.0.0 起）
 
-8.0.0 起，旧的 webnovel-embedding-provider 更名为 @linfengqaqtat/dsh-scriptor-retrieval。旧的 @linfengqaqtat/dsh-whale-companion 更名为 @linfengqaqtat/dsh-scriptor-companion。所有新版安装包都是 8.2.0，使用 DSH 0.2.0-rc.2。
+8.0.0 起，旧的 webnovel-embedding-provider 更名为 @linfengqaqtat/dsh-scriptor-retrieval。旧的 @linfengqaqtat/dsh-whale-companion 更名为 @linfengqaqtat/dsh-scriptor-companion。所有新版安装包都是 8.2.0（DSH 配套口径见 [安装教程](install.md)）。
 
 > [!WARNING]
 > 不要同时启用旧包和新包。
 
-1. 先备份作品、profile 配置和凭据引用。
-2. 停止会话。
-3. 在 DSH 侧栏“插件”中卸载旧入口。
-4. 按提示重启。
-5. 再安装新入口。
-   成功时，只启用新入口。
+1. 先备份作品、profile 配置和凭据引用，保存配置和凭据引用的原样。
+2. 停止正在运行的会话。
+   成功时，没有会话还在写入作品。
+3. 在 DSH 侧栏“插件”中卸载旧入口（旧检索包、旧桌宠或旧 full 入口）。
+4. 按提示重启。保留备份，不要删除作品。
+5. 再安装新入口 `abzu`。
+   成功时，只启用新入口；书稿不会因为改了包名就自动搬迁。
+6. 核对原有配置和启用状态。如果自定义 profile 覆盖（cordis.patch.yml）里仍写着旧模块名称或旧条目 id，按下文 [维护者命令行安装与包名迁移](#维护者命令行安装与包名迁移) 更新为 `abzu/*` 子路径与 abzu 系条目 id；凭据引用名称一并换成 `ABZU_` 前缀。
 
-自定义模块的 name 覆盖，要按下文 [维护者命令行安装与包名迁移](#维护者命令行安装与包名迁移) 更新。稳定的条目 id 和 config 保留。（0.0.1 时代的"完整版与写作/检索单装二选一"已随单包统一废止。）
+（0.0.1 时代的"完整版与写作/检索单装二选一"已随单包统一废止。）
 
 ## 维护者命令行安装与包名迁移
 
-新手使用 [DSH 插件管理页面](install.md)。本节供维护已有 Web profile 或离线包的用户使用，配套 DSH 0.2.0-rc.2。
+新手使用 [DSH 插件管理页面](install.md)。本节供维护已有 Web profile 或离线包的用户使用（DSH 配套版本见 [安装教程](install.md)）。
 
 ```powershell
 dsh --profile abzu --from-default-profile web --dump-config
@@ -83,7 +85,7 @@ dsh --profile abzu
 
 先停止实例，备份 profile 和作品。只卸载实际安装过的旧入口：webnovel-embedding-provider、@linfengqaqtat/dsh-whale-companion、0.0.1 的 abzu-retrieval / abzu-companion / abzu-full。再安装 `abzu@0.0.44`。不要在同一启用配置中保留旧包和新包。
 
-如果 cordis.patch.yml 中有显式 name 覆盖，把模块引用更新为并入后的子路径：`abzu-retrieval` 换为 `abzu/embeddings`，`abzu-retrieval/scenes` 换为 `abzu/scenes`，`abzu-retrieval/reranking` 换为 `abzu/reranking`；桌宠模块 `abzu-companion` 已在 0.0.4 移除，对应条目直接删除。条目 id 用 abzu 系：`abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`（0.0.2–0.0.3 还有 `abzu-companion`；0.0.2 及更早为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`，0.0.3 起统一换新）；保留 config 和凭据引用。先核对 dump-config，再启动并验证设置。
+如果 cordis.patch.yml 中有显式 name 覆盖，把模块引用更新为并入后的子路径：`abzu-retrieval` 换为 `abzu/embeddings`，`abzu-retrieval/scenes` 换为 `abzu/scenes`，`abzu-retrieval/reranking` 换为 `abzu/reranking`；桌宠模块 `abzu-companion` 已在 0.0.4 移除，对应条目直接删除。条目 id 用 abzu 系（0.0.2–0.0.3 还有 `abzu-companion`；完整沿革见本页「升级到 0.0.44」节的唯一对照）；保留 config 和凭据引用。先核对 dump-config，再启动并验证设置。
 
 Windows 替换已加载包可能遇到占用。使用应用菜单完全退出后重装同一发行原件，核对实际安装文件；不要删除 profile 或作品来解决缺包。
 
@@ -170,7 +172,7 @@ dsh --profile abzu --dump-config
 > [!CAUTION]
 > 不要把未安装的包名一起传入。否则 pnpm 会拒绝这次卸载。
 
-3. 整套卸载后，核对配置里已经没有 `abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`（0.0.2–0.0.3 还有 `abzu-companion`；0.0.2 及更早版本的条目 id 为 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion`）。
+3. 整套卸载后，核对配置里已经没有 abzu 系条目与更早的 webnovel 系残留（完整沿革见本页「升级到 0.0.44」节的唯一对照）。
 4. 核对直接安装列表里已经清空。
 5. 再按安装教程重装。
    卸载不会删除作者的书仓、书房、设置或模型凭据，也不会清空 pnpm 的共享缓存。保留下来的作者资料不属于重复安装。

@@ -118,7 +118,7 @@ pnpm release:build
    成功时，`node scripts/release/version.mjs --check` 不报「Workspace and main release version must agree」。
 2. `CHANGELOG.md` 顶部新增 `## [<version>]` 节。
    成功时，同一命令不报「Missing versioned changelog entry」。
-3. 文档面版本串：根 `README.md`、`packages/bundle/README.md`、`docs/user/*.md`、`docs/maintenance/*.md` 中的 `abzu-<version>.tgz`、`releases/tag/abzu-v<version>`、`abzu@<version>` 全换新版本；`version.mjs` 只扫这四处，`docs/来源声明.md`、`docs/CONTEXT.md`、`docs/design/` 不在扫描面内，须人工核对。
+3. 文档面版本串：根 `README.md`、`packages/bundle/README.md`、`docs/user/*.md`、`docs/maintenance/*.md` 中的 `abzu-<version>.tgz`、`releases/tag/abzu-v<version>`、`abzu@<version>` 全换新版本；`version.mjs` 只扫这四处，`docs/来源声明.md`、`docs/CONTEXT.md`、`docs/design/` 不在扫描面内，须人工核对。DSH 配套口径已单源到 `docs/user/install.md`（其余文档为「见安装教程」指针）；本版不换 DSH 时该处不动。
    成功时，`node scripts/release/version.mjs --check` 退出码 0。
 4. spec 版本钉位：`packages/bundle/tests/skills-batches.spec.ts` 版本纪律组——两根 `package.json` 的版本值、CHANGELOG 条目、两份 README 的当前版本，以及 `docs/user`＋`docs/maintenance`「上一版零残留」断言，全部随版本改。
    成功时，该断言组在 `pnpm test` 中通过。

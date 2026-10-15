@@ -7,20 +7,10 @@
 - `v8-required` 必须同时等待 policy 和全部 Windows 分片成功。Linux 运行时观察任务继续保留。
 - 标签发行运行一次完整根测试，再打包并验收同一批安装包。根测试覆盖所有包，不能再次串行跑相同的包测试。`ci-workflows.test.mjs` 使用真实 Vitest 文件发现与分片器核对完整性。
 
-## 依赖公告修补（2026-10-06）
+## 历史备忘
 
-Pages 发布前的 audit 命中 `source-map-js` 的高危公告 [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)。该依赖来自 Vitest → Vite → PostCSS。工作区为 `<1.2.2` 增加精确 `1.2.2` 覆盖并更新锁文件，避免继续解析到有漏洞的版本；未降低 audit 门槛，也未更改产品包版本。修补后重新执行冻结安装、构建与测试。
-
-## 历史失败复盘（2026-10-04）
-
-审查范围为当时可获取的 56 次 v8 CI、14 次 Release、7 次 npm 工作流，并检查失败后重跑成功的早期 attempt。
-
-| 类别 | 证据与处理 |
-| --- | --- |
-| 补偿测试超过 15 秒 | 8.1.0 发布两次 attempt，以及 preview.7 都命中 `retcon-retry-receipt.spec.ts`。现复用一次真实建书准备，各用例完整复制为独立书仓和 Git 历史；断言、用例数和超时保持原值。 |
-| Windows 测试进程意外退出 | 8.1.1 首次发行测试与历史三次 attempt 出现 `Worker exited unexpectedly`。日志不足以证明具体原生崩溃原因；不把重跑成功当作根治。新增父进程检查点与 Node fatal report，继续保留失败语义。 |
-| npm 接收上传但版本尚不可见 | 8.1.1 npm 发布与多次历史发布均超过原来的短轮询窗口。现把提交和验证分阶段；尚未就绪保留 draft，待可见后使用 `phase=verify`，不重传原件。 |
-| 旧路径、权限、包名或错误契约 | 早期包括 Windows 短路径、隔离安装权限、未发布依赖名、旧宿主错误格式和许可证行尾。对应修复已进入基线；相关检查继续保留，不能把这些真实错误一概归为超时。 |
+- 依赖公告修补（2026-10-06）：audit 命中 `source-map-js` 高危公告 GHSA-68fv-2mgg-jv7q（Vitest → Vite → PostCSS 传递），以精确 1.2.2 覆盖＋锁文件更新了结；未降 audit 门槛，未动产品版本。
+- 历史失败复盘（2026-10-04，56 次 v8 CI／14 次 Release／7 次 npm 工作流）：补偿测试超时族（复用一次真实建书准备，用例各自独立书仓与 Git 历史）；Windows worker 意外退出族（父进程检查点＋Node fatal report，不把重跑成功当根治）；npm 上传后版本迟可见族（提交与验证分阶段，draft 待可见后 `phase=verify`）；早期路径／权限／包名／契约族（修复已入基线，检查保留）。不把这些真实错误一概归为超时，明细见 CHANGELOG 相应版本条目。
 
 ## 诊断材料
 

@@ -67,7 +67,7 @@ tarball 放在无空格目录；安装后按 SHA256SUMS 核对校验和。通过
 
 ## 为什么要固定 DSH 版本
 
-插件只针对一个 DSH 版本验证。0.0.44 配套 **DSH 0.2.0-rc.2**。旧版 preview.6 / 提供方 0.0.8 对应 0.1.5-rc.2。
+插件只针对一个 DSH 版本验证。0.0.44 配套 **DSH 0.2.0-rc.2**。旧版 preview.6 / 提供方 0.0.8 对应 0.1.5-rc.2；0.1.0-preview.7 / 旧提供方 0.0.9 对应 0.1.7-rc.2。旧版资料留在相应的 Release，不要把一个版本的说明套到另一个 DSH 上。
 
 DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
 
@@ -75,39 +75,9 @@ DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
 2. 把插件和 DSH 一起更新。
    成功时，两边的版本与上面的对应关系一致。
 
-## 从 0.0.1 四包安装升级为单包
+## 从旧版升级
 
-0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full` 不再发布。书仓与配置留在原来的 profile，不随包名搬迁；五条功能入口的条目 id 在 0.0.2 曾保持 `webnovel`、`webnovel-embeddings`、`webnovel-scenes`、`webnovel-reranking`、`whale-companion` 不变，0.0.3 起统一换为 `abzu`、`abzu-embeddings`、`abzu-scenes`、`abzu-reranking`、`abzu-companion`，设置、凭据引用和停用状态按新 id 重新配置；0.0.4 起鲸鱼娘桌宠移除，只剩前四条。
-
-1. 停用正在使用的会话。
-2. 卸载旧入口：单独安装过 `abzu-retrieval`、`abzu-companion` 或 `abzu-full` 的，逐个移除。
-3. 安装 `abzu@0.0.44`（已安装 `abzu` 的直接更新）。
-4. 应用变更并按提示重启。
-   成功时，已安装列表只剩 `abzu` 一个入口。
-5. 如果自定义 profile 覆盖（cordis.patch.yml）里写有旧模块名或旧条目 id，按 [维护者命令行安装](upgrade-backup.md#维护者命令行安装与包名迁移) 更新为 `abzu/*` 子路径与 abzu 系条目 id；凭据引用名称一并换成 `ABZU_` 前缀。
-
-## 从旧包升级
-
-先阅读 [备份与升级](upgrade-backup.md)。旧检索包是 `webnovel-embedding-provider`。旧桌宠包是 `@linfengqaqtat/dsh-whale-companion`。
-
-> [!WARNING]
-> 不要让旧包名和新包名同时启用。
-
-1. 备份工作区和当前 DSH profile。
-2. 保存配置和凭据引用。
-3. 停止正在运行的会话。
-   成功时，没有会话还在写入作品。
-4. 在插件管理页卸载旧检索包、旧桌宠或旧 full 入口。
-5. 按提示重启。保留备份，不要删除作品。
-6. 安装 `abzu@0.0.44`。
-7. 核对原有配置和启用状态。
-   如果自定义 profile 覆盖里仍写着旧模块名称，按维护文档更新模块引用与条目 id 为 0.0.44 现行值；凭据引用名称一并换成 `ABZU_` 前缀。
-8. 确认只剩 `abzu` 一个有效入口，然后再继续写作。
-   书稿不会因为改了包名就自动搬迁。
-
-0.1.0-preview.7 / 旧提供方 0.0.9 对应 DSH 0.1.7-rc.2。0.0.44 对应 DSH 0.2.0-rc.2。旧版资料留在相应的 Release。不要把一个版本的说明套到另一个 DSH 上。
-
-[配置教程](configuration.md) · [故障排查](troubleshooting.md) · [维护者命令行安装](upgrade-backup.md#维护者命令行安装与包名迁移)
+0.0.1 时代的 `abzu-retrieval`、`abzu-companion`、`abzu-full`，以及更早的 `webnovel-embedding-provider`、`@linfengqaqtat/dsh-whale-companion`，升级、卸载与备份的完整步骤统一见 [备份与升级](upgrade-backup.md)（含条目 id 沿革与 cordis.patch.yml 模块名更新）。不要让旧入口与新包同时启用。
 
 ## 平台与测试范围
 
