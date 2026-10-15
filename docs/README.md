@@ -12,7 +12,7 @@
 | 区 | 内容 | 读者 |
 |---|---|---|
 | [user/](user/beginner.md) | 安装、首书、编辑器、备份等使用教程（13 篇+截图） | 使用者 |
-| [maintenance/](maintenance/releasing.md) | CI、发布、安装规范、发布检查单、用户文档写作规范 | 维护者 |
+| [maintenance/](maintenance/releasing.md) | CI、发行规范（含当天检查单）、用户文档写作规范 | 维护者 |
 | [examples/](examples/first-book.md) | 合成练习《灯塔来信》 | 新手 |
 | [design/](design/README.md) | 设计文档（活文档 6 份＋索引）——增强蓝图/裁定文/心智架构/判据根系等 | 开发/维护 |
 

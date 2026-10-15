@@ -51,4 +51,4 @@ pnpm test
 - 上述命令全部通过再提交；涉及发行链或公开文档的改动，另跑 `pnpm check:public`、`pnpm check:version` 与 `pnpm --filter abzu pack-check`。
 - 测试与截图使用合成书仓，不要提交自己的 API key、启动 token、完整对话或私人小说。
 
-本仓库当前为私有自用开发，暂不接受外部贡献；**公开发布后欢迎 PR**：一个 PR 解决一个可解释的问题，正文写清问题、最终行为、关联 Issue 与实际运行的检查；行为修复带有价值的回归测试，技能/提示词属于运行代码，说明流程和模型调用影响。主线和发行 tag 不强推、不改写；发行流程见 [发行说明](maintenance/releasing.md) 与 [发布检查单](maintenance/发布检查单.md)。所有贡献按本项目 GPL-3.0-only 接收；请确认你有权提交内容，并保留第三方许可声明（packages/*/licenses/ 与 THIRD_PARTY_NOTICES.md）。
+本仓库当前为私有自用开发，暂不接受外部贡献；**公开发布后欢迎 PR**：一个 PR 解决一个可解释的问题，正文写清问题、最终行为、关联 Issue 与实际运行的检查；行为修复带有价值的回归测试，技能/提示词属于运行代码，说明流程和模型调用影响。主线和发行 tag 不强推、不改写；发行流程见 [发行说明](maintenance/releasing.md)（含 [当天检查单](maintenance/releasing.md#当天检查单)）。所有贡献按本项目 GPL-3.0-only 接收；请确认你有权提交内容，并保留第三方许可声明（packages/*/licenses/ 与 THIRD_PARTY_NOTICES.md）。

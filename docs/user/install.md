@@ -84,7 +84,7 @@ DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
 3. 安装 `abzu@0.0.44`（已安装 `abzu` 的直接更新）。
 4. 应用变更并按提示重启。
    成功时，已安装列表只剩 `abzu` 一个入口。
-5. 如果自定义 profile 覆盖（cordis.patch.yml）里写有旧模块名或旧条目 id，按 [维护者命令行安装](../maintenance/cli-install.md) 更新为 `abzu/*` 子路径与 abzu 系条目 id；凭据引用名称一并换成 `ABZU_` 前缀。
+5. 如果自定义 profile 覆盖（cordis.patch.yml）里写有旧模块名或旧条目 id，按 [维护者命令行安装](upgrade-backup.md#维护者命令行安装与包名迁移) 更新为 `abzu/*` 子路径与 abzu 系条目 id；凭据引用名称一并换成 `ABZU_` 前缀。
 
 ## 从旧包升级
 
@@ -107,7 +107,7 @@ DSH 接口会随版本变化。更高的 DSH 版本不代表已经兼容。
 
 0.1.0-preview.7 / 旧提供方 0.0.9 对应 DSH 0.1.7-rc.2。0.0.44 对应 DSH 0.2.0-rc.2。旧版资料留在相应的 Release。不要把一个版本的说明套到另一个 DSH 上。
 
-[配置教程](configuration.md) · [故障排查](troubleshooting.md) · [维护者命令行安装](../maintenance/cli-install.md)
+[配置教程](configuration.md) · [故障排查](troubleshooting.md) · [维护者命令行安装](upgrade-backup.md#维护者命令行安装与包名迁移)
 
 ## 平台与测试范围
 
