@@ -71,7 +71,7 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 
 1. 安装配套的 **DSH 0.2.0-rc.2** 桌面端，打开侧栏 **插件 → 添加插件**。
 2. 安装本地构建的 tgz 发行件（包名 `abzu`，本版对应 `abzu@0.0.44`），核对预览并安装，按提示应用变更。
-3. 配置聊天模型与凭据，选择作品工作区，按 [第一本书与第一章](docs/user/first-book.md) 开始。
+3. 配置聊天模型与凭据，选择作品工作区，按 [新手教程](docs/user/beginner.md) 开始。
 
 逐步说明见 [安装教程](docs/user/install.md) 和 [新手教程](docs/user/beginner.md)。
 
@@ -79,11 +79,11 @@ Abzu 将长篇小说的生产拆分为**作品设计**与**章节闭环**两个�
 
 ## 文档
 
-- [新手教程：从安装到第一章](docs/user/beginner.md)
+- [新手教程：从安装到日常写作](docs/user/beginner.md)
 - [新编辑器：选区改写、批注、采纳与保存](docs/user/editor.md)
 - [界面与按钮参考](docs/user/ui-reference.md) · [模型配置与增强索引](docs/user/configuration.md)
 - [参考小说分析](docs/user/reference-analysis.md)
-- [日常写作与暂停恢复](docs/user/workflows.md)
+- [日常写作与暂停恢复](docs/user/beginner.md#11-日常写作与恢复)
 - [备份、升级、回退与卸载](docs/user/upgrade-backup.md)
 - [故障排查](docs/user/troubleshooting.md)
 - [模型费用、数据流与隐私](docs/user/privacy.md)

@@ -2041,10 +2041,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.31 产品体验批：新手路径 A 默认（beginner 触发话术＋路径 B 标进阶＋弹头人话）＋CONTEXT 术语表按旅程补全（≥30 条）＋浮动条款前置护栏＋版本纪律全套', () => {
     const beginner = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'user', 'beginner.md'), 'utf8')
-    const firstBook = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'user', 'first-book.md'), 'utf8')
     const context = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'CONTEXT.md'), 'utf8')
     // A. 路径 A 默认：beginner 第 5 节含路径 A 触发话术（快速开写＋先跑起来再细化），路径 B 降级进阶小节且话术原文保留；两文件同款
-    for (const [label, doc] of [['beginner.md', beginner], ['first-book.md', firstBook]] as const) {
+    //（0.0.44 docs合并4：first-book.md 并入 beginner.md「新手全流程」单件——双文件断言收成单文件，话术原文随迁在位）
+    for (const [label, doc] of [['beginner.md', beginner]] as const) {
       expect(doc, `${label}: 路径 A 触发话术应在位`).toContain('快速开写，先跑起来再细化')
       expect(doc, `${label}: 路径 B 应标进阶`).toContain('进阶——逐部细聊')
       expect(doc, `${label}: 路径 B 话术原文应保留`).toContain('使用逐部设计流程')
