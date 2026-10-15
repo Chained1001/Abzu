@@ -10,6 +10,7 @@ test('public policy rejects private files and permits runtime Markdown', () => {
   for (const file of ['.trellis/prd.md', 'session.jsonl', 'packages/bundle/.env', '../README.md', 'packages/bundle/dsh-local.yml']) assert.throws(() => checkPublicPath(file))
   checkPublicPath('packages/bundle/skills/novel-director/SKILL.md')
   checkPublicPath('docs/user/install.md')
+  checkPublicPath('CHANGELOG-archive.md')
 })
 test('credential and personal-path checks do not echo their values', () => {
   for (const value of ['sk-' + 'a'.repeat(40), 'ghp_' + 'b'.repeat(40), ['C:', 'Users', 'private', 'book'].join('/')]) {

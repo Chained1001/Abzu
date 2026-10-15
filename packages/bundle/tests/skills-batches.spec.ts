@@ -2290,8 +2290,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const cliSrc = fs.readFileSync(path.join(__dirname, '..', 'src', 'scripts', 'ten-checks-cli.ts'), 'utf8')
     expect(cliSrc, 'CLI 实现应只算不写').toContain('只算不写')
     expect(fs.readFileSync(path.join(__dirname, '..', 'src', 'index.ts'), 'utf8'), 'bundle index 应导出 tenChecksCli').toContain("export { tenChecksCli } from './scripts/ten-checks-cli'")
-    // D. CHANGELOG 后沿批节＋「近五章机械比对」解冻声明（增强实施计划二期冻结面，本批落技能薄入口层）
-    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')
+    // D. CHANGELOG 后沿批节＋「近五章机械比对」解冻声明（增强实施计划二期冻结面，本批落技能薄入口层）——该节为 0.0.32 内追加，2026-10-15 拆档后位于 CHANGELOG-archive.md
+    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG-archive.md'), 'utf8')
     expect(changelog).toContain('流程修复后沿批 flow-fix 03+07')
     expect(changelog, 'CHANGELOG 应声明「近五章机械比对」解冻实装').toContain('近五章机械比对')
     expect(changelog).toContain('解冻')
@@ -2356,8 +2356,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('<粘贴 草稿区/草稿/卷<NN>-<章名>/稿<N>.md 全文>')
     expect(design).toContain('`大纲/卷规划/卷<NN>/近期窗口.md`')
     expect(design, 'design 工件表「卷NN」路径式应统一为「卷<NN>」').not.toContain('大纲/卷规划/卷NN/')
-    // G. CHANGELOG 全量审查修复批节＋出处去向留痕
-    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')
+    // G. CHANGELOG 全量审查修复批节＋出处去向留痕——0.0.32 内追加节，2026-10-15 拆档后位于 CHANGELOG-archive.md
+    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG-archive.md'), 'utf8')
     expect(changelog).toContain('全量审查修复批')
   })
 
@@ -2381,8 +2381,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(cards).toContain('情绪按场景定档：过场可直接说，情绪场景按升级链落笔')
     expect(cards).toContain('情绪场景至少落在生理反应档')
     expect(cards, '绝对禁令句应清零').not.toContain('情绪不直接说，按升级链落笔')
-    // D. CHANGELOG 挂账修复批节
-    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')
+    // D. CHANGELOG 挂账修复批节——0.0.32 内追加节，2026-10-15 拆档后位于 CHANGELOG-archive.md
+    const changelog = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG-archive.md'), 'utf8')
     expect(changelog).toContain('挂账修复批')
   })
 
