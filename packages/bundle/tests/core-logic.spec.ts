@@ -143,8 +143,27 @@ describe('status-context 状态注入', () => {
   })
 })
 
+/**
+ * 夹具是否落在某个 git 仓内部（与 `workspace.ts` 的 `insideGitRepo` 同一判据:逐级向上找 `.git`）。
+ * 团队约定单文件验证时 `$env:TEMP="$PWD\.tmp"`，此时 `mkdtempSync(os.tmpdir(), ...)` 落在 Abzu 仓内，
+ * `validateWorkspacePath` 必然按「不得落在别人的 git 仓内部」拒绝——那不是实现回归，是用例前提不成立。
+ * CI 的 TEMP 在仓外，会真跑，覆盖不丢。
+ */
+function insideGitRepo(start: string): boolean {
+  let cur = path.resolve(start)
+  for (;;) {
+    if (fs.existsSync(path.join(cur, '.git'))) return true
+    const parent = path.dirname(cur)
+    if (parent === cur) return false
+    cur = parent
+  }
+}
+
+const TEMP_INSIDE_GIT = insideGitRepo(os.tmpdir())
+
 describe('workspace 装机', () => {
-  it('校验:普通目录通过', () => {
+  it('校验:普通目录通过', (ctx) => {
+    ctx.skip(TEMP_INSIDE_GIT, 'TEMP 落在 git 仓内（.tmp 在 Abzu 仓里），夹具前提不成立:validateWorkspacePath 会按「落在别人的 git 仓内部」拒绝；CI 的 TEMP 在仓外会真跑')
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ws-'))
     const r = validateWorkspacePath(dir, () => undefined, () => false)
     expect(r.ok).toBe(true)

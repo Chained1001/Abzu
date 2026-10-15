@@ -33,6 +33,16 @@ function initRepo(): string {
   return root
 }
 
+/**
+ * 目录是否落在某个 git 仓内（真源判据:git 自己的仓解析，不只向上找 `.git`）。
+ * 团队约定单文件验证时 `$env:TEMP="$PWD\.tmp"`，此时 `mkdtempSync(os.tmpdir(), ...)` 落在 Abzu 仓里，
+ * `git -C <dir>` 会向上命中外层仓 → 「非 git 仓」前提不成立、用例实测成 never 而非 error。
+ * CI 的 TEMP 在仓外，会真跑，覆盖不丢。
+ */
+function insideGitWorktree(dir: string): boolean {
+  return git(dir, ['rev-parse', '--show-toplevel']).status === 0
+}
+
 describe('git 健康检查(B6)', () => {
   it('干净仓库通过', () => {
     const root = initRepo()
@@ -432,7 +442,7 @@ describe('某工件最近一次提交(lastCommitOf,拍板 3)', () => {
     expect(r.chapter).toEqual({ 卷: 1, 章: 3 })
   })
 
-  it('从未提交→kind never;非 git 仓→kind error', () => {
+  it('从未提交→kind never;非 git 仓→kind error', (ctx) => {
     const root = initRepo()
     fs.mkdirSync(path.join(root, '大纲'), { recursive: true })
     fs.writeFileSync(path.join(root, '大纲/卷纲.md'), '# 卷纲\n', 'utf-8')
@@ -443,6 +453,7 @@ describe('某工件最近一次提交(lastCommitOf,拍板 3)', () => {
     if (!never.ok) expect(never.kind).toBe('never')
 
     const bare = mkDir('abzu-nogit-')
+    ctx.skip(insideGitWorktree(bare), 'TEMP 落在 git 仓内（.tmp 在 Abzu 仓里），夹具前提不成立:该目录不「非 git 仓」，git -C 会向上命中外层仓；CI 的 TEMP 在仓外会真跑')
     const err = lastCommitOf(bare, '作品契约/契约.md')
     expect(err.ok).toBe(false)
     if (!err.ok) expect(err.kind).toBe('error')
