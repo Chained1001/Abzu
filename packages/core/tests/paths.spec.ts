@@ -19,6 +19,13 @@ describe('路径白名单(机制 B2)', () => {
     expect(validateSegment('名字.').length).toBeGreaterThan(0) // 尾点
     expect(validateSegment('').length).toBeGreaterThan(0)
   })
+  it('前导点或空格拒绝(0.0.46:对齐 validateAuthorRelativePath 与书架点目录跳过)', () => {
+    expect(validateSegment('.git')).toEqual(['以点或空格开头(点前缀目录对书架扫描不可见)'])
+    expect(validateSegment('.abzu')).toEqual(['以点或空格开头(点前缀目录对书架扫描不可见)'])
+    expect(validateSegment('.x')).toEqual(['以点或空格开头(点前缀目录对书架扫描不可见)'])
+    expect(validateSegment('.隐藏章名')).toEqual(['以点或空格开头(点前缀目录对书架扫描不可见)'])
+    expect(validateSegment(' 章名').length).toBeGreaterThan(0) // 前导空格(首尾空白＋前导点空格双报)
+  })
   it('assertSegment 抛错带字段名', () => {
     expect(() => assertSegment('a/b', '章名')).toThrow(/B2/)
   })

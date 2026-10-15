@@ -64,13 +64,14 @@ const RESERVED = new Set([
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9].flatMap((i) => [`COM${i}`, `LPT${i}`]),
 ])
 
-/** 路径段白名单校验(机制 B2):非法字符、保留名、长度、首尾空白。 */
+/** 路径段白名单校验(机制 B2):非法字符、保留名、长度、首尾空白、点前缀。 */
 export function validateSegment(name: string): ReadonlyArray<string> {
   const problems: string[] = []
   if (name !== name.trim()) problems.push('首尾含空白')
   if (name.length === 0) problems.push('为空')
   if (name.length > 100) problems.push('超过 100 字符')
   if (/[\x00-\x1f<>:"/\\|?*]/.test(name)) problems.push('含非法字符(控制符或 <>:"/\\|?*)')
+  if (/^[. ]/.test(name)) problems.push('以点或空格开头(点前缀目录对书架扫描不可见)')
   if (name === '.' || name === '..') problems.push('为路径保留段')
   if (RESERVED.has(name.toUpperCase())) problems.push('为系统保留名')
   if (/[. ]$/.test(name)) problems.push('以点或空格结尾(Windows 不允许)')

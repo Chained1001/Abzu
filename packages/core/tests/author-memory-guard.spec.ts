@@ -72,4 +72,18 @@ describe('作者记忆写入守卫（0.0.30：新增不覆盖＋更新须原文�
     expect(badNew).toMatchObject({ ok: false })
     if (!badNew.ok) expect(badNew.reason).toContain('不接受更新原文')
   })
+
+  it('条目与索引走事务原子写(0.0.46):落盘后运行目录无半账,索引行同步', () => {
+    const workspace = root()
+    const first = writeAuthorMemory(workspace, { ...base, 名称: '原子写', 正文: '第一条' })
+    expect(first).toMatchObject({ ok: true, updated: false })
+    const second = writeAuthorMemory(workspace, { ...base, 名称: '第二条', 正文: '第二条正文' })
+    expect(second).toMatchObject({ ok: true, updated: false })
+    const dir = path.join(workspace, '书房/作者记忆')
+    // 写入边界在记忆目录本身(对齐 inspire/pool.ingestNote 的书房锁先例):事务已提交清账
+    expect(fs.readdirSync(path.join(dir, '.abzu', 'transactions'))).toEqual([])
+    const index = fs.readFileSync(path.join(dir, '索引.md'), 'utf8')
+    expect(index).toContain('[原子写](原子写.md)')
+    expect(index).toContain('[第二条](第二条.md)')
+  })
 })

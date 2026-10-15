@@ -5,7 +5,6 @@
 import * as path from 'node:path'
 import {
   composeBody,
-  demoteOtherPendingDrafts,
   prepareDraftDemotions,
   findPendingReviewDraft,
   nextDraftFileName,
@@ -13,7 +12,7 @@ import {
   草稿字段序,
 } from '../repo/drafts'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
-import { writeBatchAtomic, writeFileAtomic, type FileOp } from '../repo/atomic'
+import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { paths } from '../repo/paths'
 import { applyVersionFields, bumpVersion, extractVersionFields, initialVersion } from '../provenance'
 import { loadReviewRecord, readReviewRecordForUpdate, serializeReviewRecord, reviewRecordHashOf, 处置状态列表, type ReviewRecord, type 处置状态 } from '../evidence/record'
@@ -325,12 +324,15 @@ function ingestAuthorRevisionLocked(
   const baseVer = parent === null ? initialVersion('作者手改') : bumpVersion(parent, '作者手改')
   const ver = { ...baseVer, 生成模块: '作者手改' }
   const relPath = path.posix.join(paths.草稿目录(key.卷, key.章名), nextDraftFileName(bookRoot, key))
-  demoteOtherPendingDrafts(bookRoot, key, relPath)
+  // 降级集与新稿同一 writeBatchAtomic 事务(与 applyRevision/applyRevisionBatch 同款):
+  // 崩溃时要么旧态要么新态,不出现「旧待审稿已降级而新稿未落」的半写态。
+  const ops: FileOp[] = [...prepareDraftDemotions(bookRoot, key, relPath)]
   const fields = applyVersionFields(
     { ...doc.data.fields, 角色: '待审稿', 选定: true },
     ver,
   )
-  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, body, 草稿字段序))
+  ops.push({ relPath, content: serializeDocument(fields, body, 草稿字段序) })
+  writeBatchAtomic(bookRoot, ops)
 
   const record = loadReviewRecord(bookRoot, key)
   const followup = followupReport(bookRoot, key, body, record)

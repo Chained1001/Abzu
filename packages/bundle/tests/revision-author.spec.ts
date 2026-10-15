@@ -9,7 +9,7 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline } from '@abzu/core'
+import { seedMinDesign, serializeDocument, writeCandidate, confirmOutline, listChapterDrafts } from '@abzu/core'
 import { applyRevision, ingestAuthorRevision, replayLines } from '@abzu/core'
 import { parseDocument } from '@abzu/core'
 import { registerDefaultChecks, resetChecks, runReview, recordAuthorFinding, computeReview, ingestFindings } from '@abzu/review'
@@ -196,6 +196,37 @@ describe('M1:ingestAuthorRevision 原样落盘', () => {
     fs.rmSync(path.join(root, '草稿区/草稿/卷01-开篇任务'), { recursive: true, force: true })
     const r = ingestAuthorRevision(root, key, BASE)
     expect(r.ok).toBe(false)
+  })
+
+  it('多稿场景:降级集与新稿同一事务落盘,批次提交无残留(0.0.46 事务统一)', () => {
+    const root = mkBook()
+    withRecord(root)
+    const dir = path.join(root, '草稿区/草稿/卷01-开篇任务')
+    // 降级集两类:遗留选定草稿(稿1,选定但非待审)与旧待审稿(稿2);稿0 为无关普通草稿,不在集内
+    fs.writeFileSync(path.join(dir, '稿1.md'), serializeDocument({ 角色: '草稿', 选定: true, 版本: 1, 父版本: null, 生成模块: '写稿' }, '遗留选定草稿'), 'utf-8')
+    fs.writeFileSync(path.join(dir, '稿2.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 2, 父版本: 1, 生成模块: '写稿' }, BASE), 'utf-8')
+    const untouched = serializeDocument({ 角色: '草稿', 选定: false }, '无关普通草稿,一字不动')
+    fs.writeFileSync(path.join(dir, '稿0.md'), untouched, 'utf-8')
+
+    const r = ingestAuthorRevision(root, key, '作者重写的整章正文。')
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿3.md')
+
+    const drafts = listChapterDrafts(root, key)
+    expect(drafts.filter((d) => d.角色 === '待审稿').map((d) => d.file)).toEqual(['稿3.md'])
+    expect(drafts.filter((d) => d.选定).map((d) => d.file)).toEqual(['稿3.md'])
+    for (const file of ['稿1.md', '稿2.md']) {
+      const d = drafts.find((x) => x.file === file)
+      expect(d?.角色).toBe('草稿')
+      expect(d?.选定).toBe(false)
+    }
+    const 新稿 = drafts.find((d) => d.file === '稿3.md')
+    expect(新稿?.版本).toBe(3)
+    // 无关普通草稿不在降级集,字节不动
+    expect(fs.readFileSync(path.join(dir, '稿0.md'), 'utf-8')).toBe(untouched)
+    // 降级＋新稿是同一已提交事务,运行目录不留半账
+    expect(fs.readdirSync(path.join(root, '.abzu', 'transactions'))).toEqual([])
   })
 })
 

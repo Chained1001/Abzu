@@ -114,6 +114,10 @@ describe('建书动作(PRD §3.2 / R20 / N2 构想确认)', () => {
     const ws = mkRoot()
     expect(createBook({ workspaceRoot: ws, 书名: 'a/b', concept: sampleConcept }).ok).toBe(false)
     expect(createBook({ workspaceRoot: ws, 书名: 'CON', concept: sampleConcept }).ok).toBe(false)
+    // 点/空格前缀书名拒绝(0.0.46):点前缀目录对书架扫描不可见,建了就是隐书写
+    expect(createBook({ workspaceRoot: ws, 书名: '.隐书', concept: sampleConcept }).ok).toBe(false)
+    expect(fs.existsSync(path.join(ws, '.隐书'))).toBe(false)
+    expect(createBook({ workspaceRoot: ws, 书名: ' 略章', concept: sampleConcept }).ok).toBe(false)
   })
 
   it('拒绝同名目录,失败无残留', () => {

@@ -5,7 +5,7 @@ import * as os from 'node:os'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { spawn, spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
-import { withBookWrite, writeBatchAtomic, writeContract, paths } from '../src'
+import { withBookWrite, writeBatchAtomic, writeContract, paths, parseDocument } from '../src'
 import { removeSync } from '../src/repo/remove'
 
 const roots: string[] = []
@@ -15,6 +15,7 @@ function root(): string {
   return value
 }
 let moduleUrl: string
+let ingestUrl: string
 beforeAll(() => {
   const localRequire = createRequire(import.meta.url)
   const vitestRequire = createRequire(localRequire.resolve('vitest/package.json'))
@@ -23,6 +24,18 @@ beforeAll(() => {
   const outfile = path.join(root(), 'atomic.mjs')
   buildSync({ entryPoints: [fileURLToPath(new URL('../src/repo/atomic.ts', import.meta.url))], outfile, bundle: true, platform: 'node', format: 'esm' })
   moduleUrl = pathToFileURL(outfile).href
+  const ingestFile = path.join(root(), 'ingest.mjs')
+  // 打包进来的 yaml(CJS)在 ESM 输出里需要真 require:banner 注入 createRequire,
+  // 否则 esbuild 的 CJS 互操作垫片对 require('process') 抛 Dynamic require。
+  buildSync({
+    entryPoints: [fileURLToPath(new URL('../src/revise/apply.ts', import.meta.url))],
+    outfile: ingestFile,
+    bundle: true,
+    platform: 'node',
+    format: 'esm',
+    banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
+  })
+  ingestUrl = pathToFileURL(ingestFile).href
 })
 afterAll(() => { for (const value of roots.reverse()) removeSync(value) })
 
@@ -193,5 +206,70 @@ describe('real process interruption', () => {
     fs.symlinkSync(value, alias, process.platform === 'win32' ? 'junction' : 'dir')
     withBookWrite(alias, () => writeBatchAtomic(value, [{ relPath: 'alias.md', content: 'ok' }]))
     expect(fs.readFileSync(path.join(value, 'alias.md'), 'utf8')).toBe('ok')
+  })
+})
+
+/** ingestAuthorRevision 崩溃一致性(0.0.46 事务统一):降级集与新稿同批,中断即整批回滚。 */
+const ingestChildSource = `
+import fs from 'node:fs';
+import path from 'node:path';
+import { syncBuiltinESMExports } from 'node:module';
+const [url, root, mode, count, rawKey, body] = process.argv.slice(1);
+const rename = fs.renameSync;
+let applied = 0;
+fs.renameSync = (from, to) => {
+  const result = rename(from, to);
+  if (mode === 'rename' && path.basename(String(from)).startsWith('.abzu-txn-') && ++applied === Number(count)) process.exit(88);
+  if (mode === 'commit' && path.basename(String(to)) === 'manifest.json' && JSON.parse(fs.readFileSync(to, 'utf8')).phase === 'committed') process.exit(88);
+  return result;
+};
+syncBuiltinESMExports();
+const { ingestAuthorRevision } = await import(url);
+const r = ingestAuthorRevision(root, JSON.parse(rawKey), body);
+if (!r.ok) throw new Error('ingest failed: ' + r.reason);
+`
+
+const ingestKey = { 卷: 1, 章: 1, 章名: '开篇任务' }
+const ingestDraftDir = (value: string) => path.join(value, '草稿区/草稿/卷01-开篇任务')
+function ingestFixture(): string {
+  const value = root()
+  fs.mkdirSync(ingestDraftDir(value), { recursive: true })
+  // 事务次序:稿1(遗留选定)降级 → 稿2(旧待审稿)降级 → 稿3(新稿)落位,三次内容改名
+  fs.writeFileSync(path.join(ingestDraftDir(value), '稿1.md'), '---\n角色: 草稿\n选定: true\n---\n遗留选定草稿\n', 'utf8')
+  fs.writeFileSync(path.join(ingestDraftDir(value), '稿2.md'), '---\n角色: 待审稿\n选定: true\n---\n待审正文\n', 'utf8')
+  return value
+}
+function crashIngest(value: string, mode: string, count: number): void {
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e', ingestChildSource, ingestUrl, value, mode, String(count), JSON.stringify(ingestKey), '作者重写的整章正文。'], { encoding: 'utf8', windowsHide: true, timeout: 10000 })
+  expect(child.status, child.stderr).toBe(88)
+}
+
+describe('ingestAuthorRevision 事务统一(0.0.46:降级集与新稿同批)', () => {
+  it.each([1, 2, 3])('降级改名后、提交标记前中断(%s/3) → 恢复回旧态,不出现半写', (count) => {
+    const value = ingestFixture()
+    crashIngest(value, 'rename', count)
+    withBookWrite(value, () => {
+      const r1 = parseDocument(fs.readFileSync(path.join(ingestDraftDir(value), '稿1.md'), 'utf8'))
+      const r2 = parseDocument(fs.readFileSync(path.join(ingestDraftDir(value), '稿2.md'), 'utf8'))
+      expect(r1.ok && r1.data.fields['选定']).toBe(true) // 遗留选定草稿未被降级
+      expect(r2.ok && r2.data.fields['角色']).toBe('待审稿') // 旧待审稿未被降级
+      expect(fs.existsSync(path.join(ingestDraftDir(value), '稿3.md'))).toBe(false) // 新稿未半落
+    })
+    expect(fs.readdirSync(path.join(value, '.abzu/transactions'))).toEqual([])
+  })
+
+  it('commit 标记落盘后进程退出 → 新态完整(两旧稿降级、新稿在位),下次写入清账', () => {
+    const value = ingestFixture()
+    crashIngest(value, 'commit', 0)
+    withBookWrite(value, () => {
+      const r1 = parseDocument(fs.readFileSync(path.join(ingestDraftDir(value), '稿1.md'), 'utf8'))
+      const r2 = parseDocument(fs.readFileSync(path.join(ingestDraftDir(value), '稿2.md'), 'utf8'))
+      const r3 = parseDocument(fs.readFileSync(path.join(ingestDraftDir(value), '稿3.md'), 'utf8'))
+      expect(r1.ok && r1.data.fields['选定']).toBe(false)
+      expect(r2.ok && r2.data.fields['角色']).toBe('草稿')
+      expect(r3.ok && r3.data.fields['角色']).toBe('待审稿')
+      expect(r3.ok && r3.data.fields['选定']).toBe(true)
+    })
+    expect(fs.readdirSync(path.join(value, '.abzu/transactions'))).toEqual([])
   })
 })

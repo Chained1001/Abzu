@@ -3,10 +3,10 @@
  * 建书前提案落作者层 提案/;书仓 草稿区/提案/ 待有书后再写。
  */
 
-import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { serializeDocument } from '../repo/frontmatter'
 import { assertSegment } from '../repo/paths'
+import { withBookWrite, writeFileAtomic } from '../repo/atomic'
 
 export const 摄入分流 = ['设定候选', '文风候选', '方法候选'] as const
 export type IntakeBucket = (typeof 摄入分流)[number]
@@ -46,12 +46,15 @@ export function routeIntake(source: string, bucket: IntakeBucket, authorRoot?: s
   if (authorRoot !== undefined) {
     assertSegment(id, '提案id')
     const dir = path.join(authorRoot, '提案')
-    fs.mkdirSync(dir, { recursive: true })
     const text = serializeDocument(
       { 状态: '候选', 身份: id, 来源快照: source },
       [`# ${bucket}`, '', `去向:${dest}`, '', source].join('\n'),
     )
-    fs.writeFileSync(path.join(dir, `${id}.md`), text, 'utf-8')
+    // 提案文件走原子写＋书房写入边界(对齐 inspire/pool.ingestNote 先例):
+    // id 虽唯一无覆盖竞争,但直写 fs.writeFileSync 半写可现、崩溃无恢复。
+    withBookWrite(dir, () => {
+      writeFileAtomic(dir, `${id}.md`, text)
+    })
   }
   return { bucket, dest, proposal }
 }

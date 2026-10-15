@@ -112,4 +112,13 @@ describe('参考摄入三分流', () => {
     expect(files.some((f) => f.endsWith('.md'))).toBe(true)
     expect(fs.existsSync(path.join(author, '世界书'))).toBe(false)
   })
+
+  it('提案文件走事务原子写(0.0.46):落盘后运行目录无半账', () => {
+    const author = mkRoot()
+    const r = routeIntake('文风摘录', '文风候选', author)
+    expect(r.proposal.id).toMatch(/^p/)
+    const dir = path.join(author, '提案')
+    expect(fs.readdirSync(dir).some((f) => f.startsWith('p') && f.endsWith('.md'))).toBe(true)
+    expect(fs.readdirSync(path.join(dir, '.abzu', 'transactions'))).toEqual([])
+  })
 })

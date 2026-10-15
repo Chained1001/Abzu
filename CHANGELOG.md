@@ -2,6 +2,20 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.46] — 2026-10-15
+
+### Fixed（A1 审查 P1·纪律统一批——审查修复第八票：写入纪律四件收口）
+
+**ingestAuthorRevision 事务统一**：作者全文摄入此前把「降级旧待审稿集」（demoteOtherPendingDrafts，内部逐文件 writeFileAtomic）与「新稿落盘」（又一次 writeFileAtomic）拆成两笔事务——两笔之间崩溃会留下「旧稿已降级、新稿未落」的半写态。现照同域 applyRevision/applyRevisionBatch 同款改为 prepareDraftDemotions 备降级集＋writeBatchAtomic 单事务一次落（行为语义不变，崩溃时要么旧态要么新态）。新增崩溃一致性测试（对照 transaction-process 既有真子进程 rename 钩模式，esbuild 打包 revise/apply 入子进程）：三次内容改名任一处中断（含「全部改名后、提交标记前」这一旧双事务布局必出混态的判别点）恢复后一律回旧态零半写；commit 标记后中断恢复出新态完整、下次写入清账。另补多稿同批用例：遗留选定草稿＋旧待审稿降级与新稿（稿3）同批、唯一待审稿/唯一选定收敛到新稿、无关普通草稿字节不动、事务目录无残留。
+
+**memory/author.ts 原子写**：作者层记忆条目此前 fs.writeFileSync 直写、读-检-写可交错。现条目与索引.md 均走 writeFileAtomic，读-检-写（防过期覆盖守卫）与索引重建收进 withBookWrite 同一写入边界——对齐 inspire/pool.ingestNote 的书房锁先例（书房目录锁＋事务恢复；.abzu 运行目录不进书房 git 提交，draft-git add 既有 :(exclude).abzu 路径排除覆盖）。防过期覆盖逻辑（新增拒覆盖/更新全文比对）一字不动；边界如实注记：锁粒度为 书房/作者记忆 目录级，与灵感池同。rebuildAuthorMemoryIndex 维护入口同边界。
+
+**inspire/intake.ts 原子写**：参考摄入提案文件此前 writeFileSync 直写。现走 writeFileAtomic＋withBookWrite（提案目录级边界，同 pool 先例）；id 唯一无覆盖竞争，修的是半写可现与崩溃无恢复。
+
+**validateSegment 拒前导点/空格**：路径段白名单（B2）此前不拒点前缀段——「.隐书」可建书，而书架扫描（book/identity 经 validateAuthorRelativePath）跳过点前缀目录，建书即隐书。现 `/^[. ]/` 拒（前导空格原已由首尾空白检查拒，双报无害），对齐 revise/document.validateAuthorRelativePath 的 part.startsWith('.') 与书架点目录跳过。复核 create-book/paths 既有测试无点开头名当正例；补负例（.git/.abzu/.x/.隐藏章名/前导空格）＋建书面（书名 .隐书 拒且目录不落、前导空格书名拒）。
+
+版本纪律全套 0.0.46：package.json×2、README×2、docs/user 8 件 27 处 0.0.45→0.0.46（升级节「升级到 0.0.45」随版翻「升级到 0.0.46」，0.0.4/0.0.2–0.0.3 等历史版本号不动）；docs/maintenance 无涉及；CHANGELOG 头插本条；skills-batches 版本钉位块推进 0.0.45→0.0.46＋docs 扫描口径 0.0.45 零残留（纪律统一批接力）；skills-core 净版戳 v2.4.7 不动（KB 未动）。五闸绿：lint、check:version（0.0.46）、check:public（701 文件/99 提交全史）、build（10 个薄入口接缝校验过）、全量 vitest TEMP=仓内 .tmp/w8：1339 passed｜42 skipped，0 条测试红；唯一文件级红 host-loader（SIGTERM 满载子进程预算）为已登记环境项，单独复跑 37/37 绿（98s）。kb-extract --check 环境缺口如实记录：票面 v2.4.7 源（交接档案 知识库/方法论）在本机已不存在（交接档案根仅余 交接文档/参考项目/小说原文/测试成果 四项，其交接文档.md 仍列 知识库\ 5.3M，目录 mtime 2026-10-15 19:50）；对照禁用的 Desktop/知识库 v2.5 源诊断跑出 3 处漂移且逐一对应 v2.5 总目录登记的三节增量（§1.6→开书-读者与情绪定位、§4.6→大纲-换图与支线、§4.16→大纲-牌局与结构检查），其余 32 件逐字节一致——证明仓内分发仍是 v2.4.7 原貌，本批 skills references 与 kb-extract.mjs 零改动（git status 证），35 件零漂移闸当前环境不可复跑、非本批回归。
+
 ## [0.0.45] — 2026-10-15
 
 ### Added（A3 审查 P1·测试补齐批——审查修复第七票：三件零直测面各补 spec）
