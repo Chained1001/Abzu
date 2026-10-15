@@ -1,7 +1,7 @@
 /** Reference-library data never participates in a target book's fact graph. */
 export const REFERENCE_PROTOCOL = 'reference-1'
 export const PARSE_VERSION = 'txt-epub-1'
-export const REFERENCE_LIMITS = { sourceBytes: 64 * 1024 * 1024, entries: 20_000, entryBytes: 32 * 1024 * 1024, expandedBytes: 256 * 1024 * 1024, batchChars: 6000, overlapChars: 200, outputChars: 48_000 } as const
+export const REFERENCE_LIMITS = { sourceBytes: 64 * 1024 * 1024, entries: 20_000, entryBytes: 32 * 1024 * 1024, expandedBytes: 256 * 1024 * 1024, maxDomNodes: 2_000_000, maxTextChars: 16_000_000, batchChars: 6000, overlapChars: 200, outputChars: 48_000 } as const
 export class ReferenceError extends Error {
   constructor(readonly code: string, message: string) { super(message); this.name = 'ReferenceError' }
 }

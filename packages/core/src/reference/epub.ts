@@ -2,7 +2,9 @@ import * as path from 'node:path'
 import { crc32 } from 'node:zlib'
 import * as yauzl from 'yauzl'
 import { SaxesParser } from 'saxes'
-import { REFERENCE_LIMITS as limits, ReferenceError, type ParsedSource, type ReadingUnit, type SourceIssue, type SourceLocation } from './types'
+import { REFERENCE_LIMITS, ReferenceError, type ParsedSource, type ReadingUnit, type SourceIssue, type SourceLocation } from './types'
+
+type Limits = { [K in keyof typeof REFERENCE_LIMITS]: number }
 
 interface XmlNode { name: string; attrs: Record<string, string>; children: (XmlNode | string)[] }
 function xml(bytes: Uint8Array): XmlNode {
@@ -46,7 +48,7 @@ function href(base: string, raw: string): { href: string; anchor?: string } {
 }
 
 /** Never extracts archive entries to disk. Counts the actual decompressed stream. */
-async function unzip(bytes: Buffer, signal?: AbortSignal): Promise<Map<string, Buffer>> {
+async function unzip(bytes: Buffer, signal: AbortSignal | undefined, limits: Limits): Promise<Map<string, Buffer>> {
   signal?.throwIfAborted()
   return new Promise((resolve, reject) => {
     yauzl.fromBuffer(bytes, { lazyEntries: true, strictFileNames: true, validateEntrySizes: true }, (error, zip) => {
@@ -101,8 +103,10 @@ async function unzip(bytes: Buffer, signal?: AbortSignal): Promise<Map<string, B
   })
 }
 
-export async function parseEpub(bytes: Buffer, signal?: AbortSignal): Promise<ParsedSource> {
-  const files = await unzip(bytes, signal)
+/** Limits are injectable so tests can trip the caps with small documents instead of multi-megabyte fixtures. */
+export async function parseEpub(bytes: Buffer, signal?: AbortSignal, overrides: Partial<Limits> = {}): Promise<ParsedSource> {
+  const limits: Limits = { ...REFERENCE_LIMITS, ...overrides }
+  const files = await unzip(bytes, signal, limits)
   const read = (name: string) => { const data = files.get(name); if (!data) throw new ReferenceError('epub-missing', 'EPUB 缺少目录或正文资源'); return xml(data) }
   if (files.get('mimetype')?.toString('ascii').trim() !== 'application/epub+zip') throw new ReferenceError('epub-format', 'EPUB mimetype 缺失或不正确')
   const roots = descendants(read('META-INF/container.xml'), 'rootfile')
@@ -142,6 +146,9 @@ export async function parseEpub(bytes: Buffer, signal?: AbortSignal): Promise<Pa
   const readingOrder = descendants(opf, 'itemref')
   const queued = new Set(readingOrder.map(item => item.attrs.idref))
   const anchorTargets = new Set<string>()
+  // Every element node pushes a location object, so DOM totals are capped across the whole book:
+  // a small compressed entry of repeated elements must not amplify into gigabytes of heap.
+  let domNodes = 0, textChars = 0
   for (const spine of readingOrder) {
     signal?.throwIfAborted()
     const item = manifest.get(spine.attrs.idref ?? '')
@@ -158,6 +165,7 @@ export async function parseEpub(bytes: Buffer, signal?: AbortSignal): Promise<Pa
     const newline = () => { if (text && !text.endsWith('\n')) text += '\n' }
     const walk = (node: XmlNode) => {
       if (['script', 'style', 'head'].includes(node.name)) return
+      if (++domNodes > limits.maxDomNodes) throw new ReferenceError('epub-dom-limit', `EPUB 正文节点总数超过上限 ${limits.maxDomNodes}，未继续解析`)
       const block = /^(?:p|div|section|article|aside|h[1-6]|li|blockquote|br|tr)$/.test(node.name)
       if (block) newline()
       const anchor = node.attrs.id ?? node.attrs['xml:id']
@@ -165,7 +173,7 @@ export async function parseEpub(bytes: Buffer, signal?: AbortSignal): Promise<Pa
       if (['img', 'svg', 'math', 'object', 'iframe', 'audio', 'video'].includes(node.name)) issues.push({ code: 'non-text-content', message: `正文包含未解读的非文字内容：${item.href}`, blocking: true })
       locations.push({ char: text.length, href: item.href, ...(anchor ? { anchor } : {}), node: ++nodeNumber })
       if (node.name === 'a' && node.attrs.href && !/^[a-z][a-z\d+.-]*:|^\/\//i.test(node.attrs.href)) links.push({ at: text.length, ...href(item.href, node.attrs.href) })
-      for (const child of node.children) { if (typeof child === 'string') text += child.replace(/\s+/g, ' '); else walk(child) }
+      for (const child of node.children) { if (typeof child === 'string') { const piece = child.replace(/\s+/g, ' '); text += piece; if ((textChars += piece.length) > limits.maxTextChars) throw new ReferenceError('epub-dom-limit', `EPUB 正文文字总量超过上限 ${limits.maxTextChars}，未继续解析`) } else walk(child) }
       if (block) newline()
     }
     walk(body)

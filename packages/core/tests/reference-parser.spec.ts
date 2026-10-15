@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { previewReference, referencePreviewView, REFERENCE_LIMITS } from '../src/reference'
+import { parseEpub } from '../src/reference/epub'
 import { epubFiles, referenceZip } from './fixtures/reference'
 
 describe('本地 TXT 与 EPUB 接入', () => {
@@ -69,5 +70,31 @@ describe('本地 TXT 与 EPUB 接入', () => {
     expect(result.parsed.issues).toContainEqual(expect.objectContaining({ code: 'image-content', blocking: true }))
     await expect(previewReference(referenceZip([...epubFiles(), ['OPS/large', Buffer.alloc(REFERENCE_LIMITS.entryBytes + 1, 65)]]), 'book.epub')).rejects.toMatchObject({ code: 'epub-limit' })
     await expect(previewReference(referenceZip(epubFiles()), 'book.epub', {}, AbortSignal.abort())).rejects.toBeDefined()
+  })
+  it('EPUB 正文节点与文字量设总量上限：同一文件注入小上限拒绝，默认上限正常通过', async () => {
+    const manyNodes = epubFiles().map(([name, value]): [string, string] => [name, name === 'OPS/a.xhtml' ? `<html><body>${'<a/>'.repeat(12)}</body></html>` : value])
+    await expect(parseEpub(referenceZip(manyNodes), undefined, { maxDomNodes: 6 })).rejects.toMatchObject({ code: 'epub-dom-limit' })
+    const manyText = epubFiles().map(([name, value]): [string, string] => [name, name === 'OPS/a.xhtml' ? `<html><body><p>${'字'.repeat(64)}</p></body></html>` : value])
+    await expect(parseEpub(referenceZip(manyText), undefined, { maxTextChars: 32 })).rejects.toMatchObject({ code: 'epub-dom-limit' })
+    expect((await parseEpub(referenceZip(manyNodes))).units).toHaveLength(1)
+    expect((await parseEpub(referenceZip(manyText))).units).toHaveLength(2)
+  })
+  it('EPUB 条目数达真实上限即拒绝，恰好在上限内可越过条目闸', async () => {
+    // 伪造中央目录（目录条目、名字以 / 结尾）：不占解压体积即可触达条目计数闸。
+    const forgedEntries = (count: number) => {
+      const directory: Buffer[] = []
+      for (let index = 0; index < count; index++) {
+        const name = Buffer.from(`d/${String(index).padStart(5, '0')}/`)
+        const record = Buffer.alloc(46)
+        record.writeUInt32LE(0x02014b50); record.writeUInt16LE(20, 4); record.writeUInt16LE(20, 6); record.writeUInt16LE(8, 10)
+        record.writeUInt16LE(name.length, 28); record.writeUInt32LE(0x10, 38)
+        directory.push(record, name)
+      }
+      const central = Buffer.concat(directory), end = Buffer.alloc(22)
+      end.writeUInt32LE(0x06054b50); end.writeUInt16LE(count, 8); end.writeUInt16LE(count, 10); end.writeUInt32LE(central.length, 12)
+      return Buffer.concat([central, end])
+    }
+    await expect(parseEpub(forgedEntries(REFERENCE_LIMITS.entries + 1))).rejects.toMatchObject({ code: 'epub-zip' })
+    await expect(parseEpub(forgedEntries(REFERENCE_LIMITS.entries))).rejects.toMatchObject({ code: 'epub-format' })
   })
 })

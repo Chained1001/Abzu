@@ -2,6 +2,16 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.43] — 2026-10-15
+
+### Fixed（P1-1 epub 解析健壮性＋悬案口径回补——快修批第一票）
+
+**epub 正文 DOM 总量上限（P1-1）**：`parseEpub` 的 `walk()` 此前对每个元素节点无条件 push 一个 location 对象且无总量上限——32 MiB 单条目重复 `<a/>` 可放大 50-70 倍至 GB 级堆占用。现 walk 按全书累计节点数与文字量，超限抛既有 ReferenceError 族新码 `epub-dom-limit`（中文 message 注明上限值）；上限入 `REFERENCE_LIMITS`：`maxDomNodes: 2_000_000`、`maxTextChars: 16_000_000`（全书口径——location 对象随 spine 累积，单篇闸拦不住全书放大）；`parseEpub` 增可选 limits 覆盖参数（注入缝，测试小值触发）。测试（reference-parser.spec 新增 2 用例，正负成对、用例名中文）：①「EPUB 正文节点与文字量设总量上限」——同一文件注入小上限拒绝 `epub-dom-limit`（节点闸＋文字闸各一），默认上限正常通过（同字节对照，证拒绝来自上限而非内容）；②「EPUB 条目数达真实上限即拒绝，恰好在上限内可越过条目闸」——小体积伪造中央目录（全目录条目、约 1.1 MiB、不解压任何流）20 001 条拒绝 `epub-zip`，恰 20 000 条越过条目闸、续在 `epub-format` 处失败（边界证明）。
+
+**悬案口径两处**：docs/来源声明.md §三 KB 源「v2.4.1 文本源」→「v2.4.7 文本源」（只改版本号——权威本 00_总目录 已是 v2.4.7，kb-extract KB_VERSION 同为 v2.4.7）；docs/design/KB重构裁定.md 执行记录补两行——v2.4.6（T2 附录蒸馏批，提交 c83626d）与 v2.4.7（T3 小修回补批·收官，提交 28303f5），照既有阶段条目格式一行一条。
+
+版本纪律全套 0.0.43：package.json×2、README×2、docs/user、docs/maintenance 0.0.42 零残留；skills-batches 版本钉位块推进 0.0.42→0.0.43；skills-core 净版戳 v2.4.7 不动（KB 未动）。五闸绿：lint、check:version（0.0.43）、check:public（704 文件/90 提交）、build、kb-extract --check 35 件零漂移；core 全量 646 passed|4 skipped（新增 2 用例）、bundle spec 两件 75 passed（skills-batches 53＋skills-core 22）。
+
 ## [0.0.42] — 2026-10-14
 
 ### Added（KB v2.4.7 T3 小修回补批·内容刀下——「十件小修（盘点总账）」清账，9 项新落＋1 项核实已在位，KB 内容面收官）
