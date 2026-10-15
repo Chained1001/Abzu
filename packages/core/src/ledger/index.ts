@@ -1,5 +1,6 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { readBookText } from '../repo/read'
 import { parseDocument } from '../repo/frontmatter'
 import { isLegacySeedPlan } from '../design/legacy-seed'
 import {
@@ -46,7 +47,8 @@ export type LedgerQueryResult =
   | { readonly ok: true; readonly entries: readonly LedgerEntry[]; readonly files: readonly string[] }
   | {
       readonly ok: false
-      readonly kind: 'missing' | 'parse-error'
+      /** `unreadable` 为 A-2 步 3 新增第三态：文件在、但读不了（io）——不得说成「缺失」。 */
+      readonly kind: 'missing' | 'parse-error' | 'unreadable'
       readonly reason: string
       readonly file?: string
       readonly entries: readonly LedgerEntry[]
@@ -57,7 +59,8 @@ export type MemoryQueryResult =
   | { readonly ok: true; readonly entries: readonly MemoryEntry[]; readonly files: readonly string[] }
   | {
       readonly ok: false
-      readonly kind: 'missing' | 'parse-error'
+      /** `unreadable` 为 A-2 步 3 新增第三态：文件在、但读不了（io）——不得说成「本书记忆不存在」。 */
+      readonly kind: 'missing' | 'parse-error' | 'unreadable'
       readonly reason: string
       readonly file?: string
       readonly entries: readonly MemoryEntry[]
@@ -100,7 +103,7 @@ export interface LedgerReconciliation {
 
 export type LedgerReconciliationResult =
   | { readonly ok: true; readonly report: LedgerReconciliation }
-  | { readonly ok: false; readonly kind: 'missing' | 'parse-error'; readonly reason: string; readonly file?: string }
+  | { readonly ok: false; readonly kind: 'missing' | 'parse-error' | 'unreadable'; readonly reason: string; readonly file?: string }
 
 export interface DueLedgerItem {
   readonly 名称: string
@@ -124,7 +127,7 @@ export type DueLedgerResult =
     }
   | {
       readonly ok: false
-      readonly kind: 'missing' | 'parse-error'
+      readonly kind: 'missing' | 'parse-error' | 'unreadable'
       readonly reason: string
       readonly file?: string
       readonly 到期: readonly DueLedgerItem[]
@@ -140,7 +143,7 @@ export interface BookLedgerReconciliation {
 
 export type BookLedgerReconciliationResult =
   | { readonly ok: true; readonly report: BookLedgerReconciliation }
-  | { readonly ok: false; readonly kind: 'missing' | 'parse-error'; readonly reason: string; readonly file?: string }
+  | { readonly ok: false; readonly kind: 'missing' | 'parse-error' | 'unreadable'; readonly reason: string; readonly file?: string }
 
 const FIELD_RE = /^\s*(?:[-*]\s*)?([^：:]+)[：:]\s*(.*?)\s*$/
 const GENERIC_PLAN_HEADINGS = new Set(['窗口覆盖', '窗口外锚点', '计划', '时间线'])
@@ -155,12 +158,15 @@ const STRUCTURED_FIELDS = new Set([
   '埋设点', '预期兑现区间', '弃因', '事件', '章号', '类',
 ])
 
-function read(root: string, relPath: string, label: string): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly kind: 'missing'; readonly reason: string } {
-  try {
-    return { ok: true, text: fs.readFileSync(path.join(root, relPath), 'utf-8') }
-  } catch {
-    return { ok: false, kind: 'missing', reason: `${label}不存在:${relPath}` }
-  }
+/**
+ * 读书仓内文本（A-2 步 3）：`missing`（不存在）与 `unreadable`（读不了）分开报，
+ * 读不了不再冒充「不存在」——`reason` 带 errno 与原始 message。
+ */
+function read(root: string, relPath: string, label: string): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly kind: 'missing' | 'unreadable'; readonly reason: string } {
+  const result = readBookText(root, relPath)
+  if (result.ok) return { ok: true, text: result.text }
+  if (result.reason === 'missing') return { ok: false, kind: 'missing', reason: `${label}不存在:${relPath}` }
+  return { ok: false, kind: 'unreadable', reason: `${label}不可读:${relPath}——${result.detail}` }
 }
 
 interface ParsedEntry<T extends string> {
@@ -305,12 +311,19 @@ export function queryLedger(bookRoot: string, filter?: LedgerEntryFilter): Ledge
   const entries: LedgerEntry[] = []
   const files: string[] = []
   const missing: string[] = []
+  const unreadable: string[] = []
   const failures: string[] = []
   let firstFailure: string | undefined
+  let firstUnreadable: string | undefined
   for (const category of LEDGER_NAMES) {
     const source = paths.账本(category)
     const result = read(bookRoot, source, '账本文件')
     if (!result.ok) {
+      if (result.kind === 'unreadable') {
+        unreadable.push(result.reason)
+        firstUnreadable ??= source
+        continue
+      }
       missing.push(source)
       continue
     }
@@ -344,6 +357,9 @@ export function queryLedger(bookRoot: string, filter?: LedgerEntryFilter): Ledge
   if (failures.length > 0) {
     return { ok: false, kind: 'parse-error', reason: failures.join('；'), file: firstFailure, entries: current, files }
   }
+  if (unreadable.length > 0) {
+    return { ok: false, kind: 'unreadable', reason: unreadable.join('；'), file: firstUnreadable, entries: current, files }
+  }
   if (missing.length > 0) {
     return { ok: false, kind: 'missing', reason: `账本文件缺失:${missing.join('、')}`, file: missing[0], entries: current, files }
   }
@@ -362,7 +378,9 @@ export function queryMemory(
   const collected: MemoryEntry[] = []
   const files: string[] = []
   const failures: string[] = []
+  const unreadable: string[] = []
   let firstFailure: string | undefined
+  let firstUnreadable: string | undefined
   const dir = path.join(bookRoot, '本书记忆')
   let names: string[] = []
   try {
@@ -373,7 +391,13 @@ export function queryMemory(
   for (const name of names) {
     const source = paths.本书记忆条目(name.replace(/\.md$/i, ''))
     const result = read(bookRoot, source, '本书记忆文件')
-    if (!result.ok) continue
+    if (!result.ok) {
+      if (result.kind === 'unreadable') {
+        unreadable.push(result.reason)
+        firstUnreadable ??= source
+      }
+      continue
+    }
     const doc = parseDocumentFs(result.text)
     const 类 = doc?.fields['类']
     if (doc !== null && typeof 类 === 'string' && (MEMORY_KINDS as readonly string[]).includes(类)) {
@@ -418,6 +442,9 @@ export function queryMemory(
     .filter((entry) => memoryMatches(entry, filter))
   if (failures.length > 0) {
     return { ok: false, kind: 'parse-error', reason: failures.join('；'), file: firstFailure, entries: current, files }
+  }
+  if (unreadable.length > 0) {
+    return { ok: false, kind: 'unreadable', reason: unreadable.join('；'), file: firstUnreadable, entries: current, files }
   }
   if (files.length === 0) {
     return { ok: false, kind: 'missing', reason: '本书记忆不存在', entries: current, files }

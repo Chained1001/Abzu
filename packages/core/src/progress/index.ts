@@ -17,6 +17,7 @@ import { parseLabeledStates, parseVolumeAllocations, 契约六部, 故事骨架�
 import { isWindowEntryReady } from '../derive/states'
 import { scanDesign, type DesignContentIssue } from '../derive/design'
 import { hasDesignContent, parseDesignContent } from '../design/content'
+import { degraded } from '../recovery'
 import type { LastCommitResult } from '../commit/history'
 import { bookWriter } from '../repo/atomic'
 
@@ -55,6 +56,11 @@ export interface ChapterProgress {
 
 export interface DesignDetail {
   readonly 内容问题?: readonly DesignContentIssue[]
+  /**
+   * io 读不了的设计工件（A-2 步 3）：不是「缺失」，也不是「未初始化」。
+   * 状态词取 recovery 的 degraded() 词表（不可读／部分不可读），文件列出读不了的工件。
+   */
+  readonly 读取降级?: { readonly 状态: string; readonly 文件: readonly string[] }
   readonly 契约: DesignDocDetail
   readonly 骨架: DesignDocDetail
   readonly 分卷: DesignDocDetail & { readonly 各卷: readonly { readonly 卷号: number; readonly 状态: string }[] }
@@ -104,9 +110,19 @@ function walkFiles(dir: string, fn: (abs: string) => void): void {
 export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetail {
   const selection = selectCurrentVolume(bookRoot)
   const 卷 = volume ?? (selection.kind === 'active' ? selection.卷 : selection.kind === 'planning' ? (selection.已完成卷 ?? selection.规划卷) : 1)
-  const 契约文 = readText(bookRoot, paths.契约())
-  const 骨架文 = readText(bookRoot, paths.故事骨架())
-  const 分卷文 = readText(bookRoot, paths.分卷布局())
+  // io（读不了）与 missing（确实没写）分开：本函数读过的工件里凡是 io 的都记进降级位，
+  // 免得作者把「读不了」当成「契约没写」/「窗口未初始化」。
+  const 不可读: string[] = []
+  let 可读 = 0
+  const read = (rel: string): string | null => {
+    const result = readBookText(bookRoot, rel)
+    if (result.ok) { 可读++; return result.text }
+    if (result.reason === 'io') 不可读.push(rel)
+    return null
+  }
+  const 契约文 = read(paths.契约())
+  const 骨架文 = read(paths.故事骨架())
+  const 分卷文 = read(paths.分卷布局())
 
   // 契约分部按六部全量给出(未写的部标「留白」),骨架/分卷按实际标注行。
   const 契约标注 = new Map(parseDocDetail(契约文 ?? '').map((p) => [p.名称, p]))
@@ -138,9 +154,9 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
   }
   for (const name of 卷目录) {
     const 卷号 = Number(name.replace(/^卷/, ''))
-    const 卷纲文 = readText(bookRoot, paths.卷纲(卷号))
-    const 时间线文 = readText(bookRoot, paths.计划时间线(卷号))
-    const 窗口文 = readText(bookRoot, paths.近期窗口(卷号))
+    const 卷纲文 = read(paths.卷纲(卷号))
+    const 时间线文 = read(paths.计划时间线(卷号))
+    const 窗口文 = read(paths.近期窗口(卷号))
     const 时间线条目 = 时间线文 === null ? [] : parseLabeledStates(时间线文)
     const 窗口条目 = 窗口文 === null ? [] : parseWindow(窗口文)
     卷规划.push({
@@ -158,7 +174,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
   }
 
   // 世界书:声明 + 目录扫描。
-  const 声明文 = readText(bookRoot, '世界书/模块声明.md')
+  const 声明文 = read('世界书/模块声明.md')
   const 已声明模块 = 声明文 === null ? [] : (声明文.split('\n').map((l) => /^\s*[-#]\s*(.+?)\s*$/.exec(l)?.[1]?.trim() ?? '').filter((n) => n !== '' && !n.includes('〔') && n !== '模块声明'))
   let 模块目录: string[] = []
   try {
@@ -177,7 +193,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
     let 已确认数 = 0
     const 无正文: string[] = []
     for (const n of names) {
-      const text = readText(bookRoot, `世界书/${m}/${n}`)
+      const text = read(`世界书/${m}/${n}`)
       const r = text === null ? { ok: false } as const : parseDocument(text)
       if (!r.ok || r.data.fields['状态'] !== '已确认') continue
       已确认数++
@@ -199,6 +215,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
 
   return {
     内容问题: scanDesign(bookRoot, 卷).内容问题 ?? [],
+    ...(不可读.length === 0 ? {} : { 读取降级: { 状态: degraded('unreadable', 可读), 文件: 不可读 } }),
     契约: { 路径: paths.契约(), 分部: 契约分部 },
     骨架: { 路径: paths.故事骨架(), 分部: parseDocDetail(骨架文 ?? '') },
     分卷: { 路径: paths.分卷布局(), 分部: parseDocDetail(分卷文 ?? ''), 各卷 },
@@ -397,13 +414,24 @@ function collectFinalized(bookRoot: string): { readonly 卷: number; readonly �
 /**
  * 当前卷选择(任务21, B3):只读;完成事实与规划目标分字段,禁止同一卷号代两者。
  * activeChapterLine 与 bundle 侧 scanDesign/默认对账卷共用本选择器,按职责消费。
+ * `读取降级`（可选，A-2 步 3）只表示「有真源读不了」——卷选择本身不变，
+ * 免得把 io 当成「这卷没写」而静默换卷。
  */
 export type CurrentVolumeSelection =
-  | { readonly kind: 'active'; readonly 卷: number }
-  | { readonly kind: 'planning'; readonly 已完成卷: number | null; readonly 规划卷: number }
-  | { readonly kind: 'empty' }
+  | { readonly kind: 'active'; readonly 卷: number; readonly 读取降级?: readonly string[] }
+  | { readonly kind: 'planning'; readonly 已完成卷: number | null; readonly 规划卷: number; readonly 读取降级?: readonly string[] }
+  | { readonly kind: 'empty'; readonly 读取降级?: readonly string[] }
 
 export function selectCurrentVolume(bookRoot: string): CurrentVolumeSelection {
+  const 不可读: string[] = []
+  const read = (rel: string): string | null => {
+    const result = readBookText(bookRoot, rel)
+    if (result.ok) return result.text
+    if (result.reason === 'io') 不可读.push(rel)
+    return null
+  }
+  const 降级 = (base: CurrentVolumeSelection): CurrentVolumeSelection =>
+    不可读.length === 0 ? base : { ...base, 读取降级: [...不可读] }
   const 定稿卷 = new Map<number, Set<number>>()
   for (const c of collectFinalized(bookRoot)) {
     const set = 定稿卷.get(c.卷) ?? new Set<number>()
@@ -420,9 +448,9 @@ export function selectCurrentVolume(bookRoot: string): CurrentVolumeSelection {
   }
   for (const name of 卷目录) {
     const v = Number(name.replace(/^卷/, ''))
-    const hasOutline = (readText(bookRoot, paths.卷纲(v)) ?? '').trim() !== ''
-    const hasTimeline = (readText(bookRoot, paths.计划时间线(v)) ?? '').trim() !== ''
-    const windowText = readText(bookRoot, paths.近期窗口(v))
+    const hasOutline = (read(paths.卷纲(v)) ?? '').trim() !== ''
+    const hasTimeline = (read(paths.计划时间线(v)) ?? '').trim() !== ''
+    const windowText = read(paths.近期窗口(v))
     const hasWindow = windowText !== null && parseWindow(windowText).length > 0
     let hasOutlineFiles = false
     try {
@@ -437,12 +465,12 @@ export function selectCurrentVolume(bookRoot: string): CurrentVolumeSelection {
     }
   } catch { /* 无候选目录 */ }
   const 窗口就绪 = (v: number): boolean => {
-    const t = readText(bookRoot, paths.近期窗口(v))
+    const t = read(paths.近期窗口(v))
     return t !== null && parseWindow(t).some((e) => isWindowEntryReady(e.state))
   }
   // 完成证明沿用任务19规则:卷纲明确章数可读且本卷去重定稿数达到;未知/冲突不算完成。
   const 证完成 = (v: number): boolean => {
-    const 卷纲文 = readText(bookRoot, paths.卷纲(v))
+    const 卷纲文 = read(paths.卷纲(v))
     if (卷纲文 === null) return false
     const 计划章数 = declaredVolumeChapters(卷纲文)
     if (计划章数 === null) return false
@@ -450,17 +478,17 @@ export function selectCurrentVolume(bookRoot: string): CurrentVolumeSelection {
   }
   if (定稿卷.size > 0) {
     const C = Math.max(...定稿卷.keys())
-    if (!证完成(C)) return { kind: 'active', 卷: C }
+    if (!证完成(C)) return 降级({ kind: 'active', 卷: C })
     const N = C + 1
-    if (窗口就绪(N)) return { kind: 'active', 卷: N }
-    return { kind: 'planning', 已完成卷: C, 规划卷: N }
+    if (窗口就绪(N)) return 降级({ kind: 'active', 卷: N })
+    return 降级({ kind: 'planning', 已完成卷: C, 规划卷: N })
   }
   if (准备卷.size > 0) {
     const P = Math.min(...准备卷)
-    if (窗口就绪(P)) return { kind: 'active', 卷: P }
-    return { kind: 'planning', 已完成卷: null, 规划卷: P }
+    if (窗口就绪(P)) return 降级({ kind: 'active', 卷: P })
+    return 降级({ kind: 'planning', 已完成卷: null, 规划卷: P })
   }
-  return { kind: 'empty' }
+  return 降级({ kind: 'empty' })
 }
 
 /**

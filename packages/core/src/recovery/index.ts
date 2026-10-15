@@ -25,9 +25,11 @@ export interface ResumeSnapshot {
 }
 
 function read(root: string, rel: string): string {
-  // A-2：整函数换成读原语，判据不变——非 missing 也仍返回空串（收紧留待步 3）。
+  // A-2 步 3：io（读不了）与 missing（确实没有）分开——io 出「读取失败」标记，
+  // missing 仍返回空串（缺失就是没有，不是故障）。
   const result = readBookText(root, rel)
-  return result.ok ? result.text : ''
+  if (result.ok) return result.text
+  return result.reason === 'io' ? `（${result.detail}）` : ''
 }
 
 function advice(环节: string): string {
@@ -54,8 +56,14 @@ interface BookStatus {
   readonly lines: readonly string[]
 }
 
-function degraded(kind: 'missing' | 'parse-error', available: number): string {
+/**
+ * 降级词表（读侧状态面共用）：`unreadable` 是 A-2 步 3 新增的第三态——
+ * 「读不了」既不是「没写」（missing/未初始化）也不是「写坏了」（parse-error/解析失败）。
+ * progress 的设计明细降级位也取这里的措辞，全仓一份词表。
+ */
+export function degraded(kind: 'missing' | 'parse-error' | 'unreadable', available: number): string {
   if (kind === 'parse-error') return available > 0 ? '部分解析失败' : '解析失败'
+  if (kind === 'unreadable') return available > 0 ? '部分不可读' : '不可读'
   return available > 0 ? '部分缺失' : '未初始化'
 }
 
@@ -71,7 +79,7 @@ function bookStatus(bookRoot: string, volume: number): BookStatus {
     : `本书记忆：${degraded(memory.kind, memory.entries.length)}（${memory.entries.length} 条可用）`
   const reconcileLine = reconciliation.ok
     ? `计划对账：${reconciliation.report.状态}（匹配${reconciliation.report.已匹配.length}，待兑现${reconciliation.report.计划未兑现.length}，未计划${reconciliation.report.事实未计划.length}，待核对${reconciliation.report.章级待核对.length + (reconciliation.report.疑似占位待核对?.length ?? 0)}）`
-    : `计划对账：${reconciliation.kind === 'missing' ? '数据未初始化' : '解析失败'}`
+    : `计划对账：${reconciliation.kind === 'missing' ? '数据未初始化' : reconciliation.kind === 'unreadable' ? degraded('unreadable', 0) : '解析失败'}`
   return { ledger, memory, reconciliation, lines: [ledgerLine, memoryLine, reconcileLine] }
 }
 

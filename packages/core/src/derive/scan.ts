@@ -50,12 +50,19 @@ export interface ChapterFacts {
   readonly 已定稿: boolean
   /** 叠加标记:「细纲」需复核、审核证据对当前稿过期须重审(格式规格 §8 叠加标记)。 */
   readonly 需复核标记: readonly string[]
+  /**
+   * io 读不了真源（A-2 步 3）：不是「缺失」。行判定一律按不成立 fail-closed，
+   * 恢复视图据此把「读不了」与「没写」分开报。
+   */
+  readonly 读取降级?: true
 }
 
-function readText(root: string, rel: string): string | null {
-  // A-2：读原语单源（剥 BOM 口径已内建，与 scan 原先一致）；判据不变——非 missing 也仍返回 null。
+function readText(root: string, rel: string, 不可读: string[]): string | null {
+  // A-2 步 3：io 与 missing 分开——io 记入降级事实位，missing 仍是「没有」。
   const result = readBookText(root, rel)
-  return result.ok ? result.text : null
+  if (result.ok) return result.text
+  if (result.reason === 'io') 不可读.push(rel)
+  return null
 }
 
 /** 近期窗口条目行式:`- <名称> 〔状态〕`(parseWindow 与重建保留行判定共用同一正则)。 */
@@ -96,17 +103,18 @@ const 待定稿包文件 = ['清单.json', '正文.md', '事实变更.md', '时�
 export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   const { 卷, 章, 章名 } = key
   const 卷NN = String(卷).padStart(2, '0')
+  const 不可读: string[] = []
 
-  const 窗口文 = readText(root, `大纲/卷规划/卷${卷NN}/近期窗口.md`)
+  const 窗口文 = readText(root, `大纲/卷规划/卷${卷NN}/近期窗口.md`, 不可读)
   const 窗口就绪 = 窗口文 !== null && parseWindow(窗口文).some((e) => isWindowEntryReady(e.state))
 
-  const 候选文 = readText(root, `草稿区/章细纲/卷${卷NN}-${章名}.md`)
+  const 候选文 = readText(root, `草稿区/章细纲/卷${卷NN}-${章名}.md`, 不可读)
   const 候选细纲 = 候选文 !== null && stateOf(候选文) === '候选'
 
-  const 确认文 = readText(root, `大纲/卷规划/卷${卷NN}/章细纲/${chapterNo(章)}-${章名}.md`)
+  const 确认文 = readText(root, `大纲/卷规划/卷${卷NN}/章细纲/${chapterNo(章)}-${章名}.md`, 不可读)
   const 确认细纲 = 确认文 !== null && stateOf(确认文) === '已确认'
 
-  const 材料清单 = readText(root, `草稿区/材料包/卷${卷NN}-${章名}/材料清单.json`)
+  const 材料清单 = readText(root, `草稿区/材料包/卷${卷NN}-${章名}/材料清单.json`, 不可读)
   let 材料包状态: string | null = null
   if (材料清单 !== null) {
     const r = parseMachineJson(材料清单, MACHINE_SCHEMA_VERSION)
@@ -131,7 +139,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
     }
   }
 
-  const 审核文 = readText(root, `草稿区/审核/卷${卷NN}-${章名}.json`)
+  const 审核文 = readText(root, `草稿区/审核/卷${卷NN}-${章名}.json`, 不可读)
   const 审核 = parseReview(审核文)
   const 有审核记录 = 审核 !== null
   // F5(2026-09-05):审核证据绑定被审正文哈希——记录哈希与当前唯一待审稿哈希失配(或
@@ -168,9 +176,9 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
     })
 
   const 包目录 = `草稿区/定稿准备/卷${卷NN}-${章名}`
-  const 待定稿包完整 = 待定稿包文件.every((f) => readText(root, `${包目录}/${f}`) !== null)
+  const 待定稿包完整 = 待定稿包文件.every((f) => readText(root, `${包目录}/${f}`, 不可读) !== null)
   let 裁决: ChapterFacts['裁决'] = null
-  const 裁决文 = readText(root, `${包目录}/清单.json`)
+  const 裁决文 = readText(root, `${包目录}/清单.json`, 不可读)
   if (裁决文 !== null) {
     const r = parseMachineJson(裁决文, MACHINE_SCHEMA_VERSION)
     if (r.ok) {
@@ -179,7 +187,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
     }
   }
 
-  const 已定稿 = readText(root, `定稿/卷${卷NN}/${chapterNo(章)}-${章名}.md`) !== null
+  const 已定稿 = readText(root, `定稿/卷${卷NN}/${chapterNo(章)}-${章名}.md`, 不可读) !== null
 
   // 「草稿需复核」的写侧落盘通道已退役(impact),草稿侧不再枚举;活来源只有细纲状态与审核证据过期
   const 需复核标记: string[] = []
@@ -188,6 +196,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   if (审核证据过期) 需复核标记.push('审核证据对当前稿过期→须重审')
 
   return { key, 窗口就绪, 候选细纲, 确认细纲, 材料包状态, 有草稿, 唯一待审稿, 有审核记录, 审核完成, 待定稿包完整, 裁决, 已定稿, 需复核标记, 审核证据过期,
+    ...(不可读.length === 0 ? {} : { 读取降级: true as const }),
     ...(审核文 === null ? {} : { 审核记录哈希: reviewRecordHashOf(审核文) }),
   }
 }

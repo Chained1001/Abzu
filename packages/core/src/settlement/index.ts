@@ -57,9 +57,23 @@ const placeholderText = new Set([
 const normal = (text: string): string => text.replace(/\r\n/g, '\n').replace(/\n+$/, '')
 
 function readOptional(packageAbs: string, file: string): string {
-  // A-2：读原语单源，判据不变——非 missing 也仍返回空串（收紧留待步 3）。
+  // A-2：读原语单源，判据不变——非 missing 也仍返回空串（io 与 missing 的分开在
+  // unreadableCandidate 里做：进到这里的 io 已经被拦成失败，不落到「无候选」通道）。
   const result = readBookText(packageAbs, file)
   return result.ok ? result.text : ''
+}
+
+/**
+ * 候选文件「读不了」（io）与「没有候选」（missing）是两回事（A-2 步 3）：
+ * io 必须走失败通道，否则作者会以为沉淀已发生/无需沉淀。
+ * 返回第一条 io 的失败原因；没有 io 时返回 null。
+ */
+function unreadableCandidate(packageAbs: string): string | null {
+  for (const file of Object.values(candidateFiles)) {
+    const result = readBookText(packageAbs, file)
+    if (!result.ok && result.reason === 'io') return `沉淀候选不可读:${file}——${result.detail}`
+  }
+  return null
 }
 
 /**
@@ -283,7 +297,9 @@ function factOps(bookRoot: string, sections: readonly FactSection[], chapter: Ch
     }
     const rel = `世界书/${section.module}/${section.title}.md`
     const existing = readExisting(bookRoot, rel)
-    if (existing === null) {
+    if (!existing.ok) {
+      // A-2 步 3：读不了 ≠ 不存在。io 一律失败，别让作者以为条目没建过。
+      if (!existing.missing) throw new Error(`世界书条目不可读:${rel}——${existing.detail}`)
       if (mode === '更正') throw new Error(`世界书更正目标条目不存在:${rel}`)
       ops.push({
         relPath: rel,
@@ -302,7 +318,7 @@ function factOps(bookRoot: string, sections: readonly FactSection[], chapter: Ch
       })
       continue
     }
-    const doc = parseDocument(existing)
+    const doc = parseDocument(existing.text)
     if (!doc.ok) throw new Error(`世界书条目解析失败:${rel}——${doc.detail}`)
     const parent = extractVersionFields(doc.data.fields).版本
     const generator = mode === '更正' ? '吃书补偿' : '事实沉淀'
@@ -482,6 +498,8 @@ function planSettlementUnsafe(
   expectedChapter: ChapterKey | undefined,
   mode: SettlementMode,
 ): SettlementPlanResult {
+  const 候选不可读 = unreadableCandidate(packageAbs)
+  if (候选不可读 !== null) return { ok: false, reason: 候选不可读 }
   const candidates = Object.values(candidateFiles).some((file) => candidateIsNonEmpty(packageAbs, file))
   if (!candidates) return { ok: true, ops: [], 有候选: false }
   if (approval === undefined) return { ok: false, reason: '存在沉淀候选但缺少作者批准' }
@@ -510,12 +528,14 @@ function planSettlementUnsafe(
   if (timeline.length > 0) {
     const target = paths.账本('时间线')
     const existing = readExisting(bookRoot, target)
-    if (existing === null) return { ok: false, reason: `真源不存在:${target}` }
+    if (!existing.ok) {
+      return { ok: false, reason: existing.missing ? `真源不存在:${target}` : `真源不可读:${target}——${existing.detail}` }
+    }
     ops.push({
       relPath: target,
       content: timeline.reduce(
         (text, item) => write(text, item.title, timelineBlock(item, chapter, source, approval.裁决记录), '时间线'),
-        existing,
+        existing.text,
       ),
     })
   }
@@ -535,12 +555,14 @@ function planSettlementUnsafe(
     }
     const target = paths.账本(kind)
     const existing = readExisting(bookRoot, target)
-    if (existing === null) return { ok: false, reason: `真源不存在:${target}` }
+    if (!existing.ok) {
+      return { ok: false, reason: existing.missing ? `真源不存在:${target}` : `真源不可读:${target}——${existing.detail}` }
+    }
     ops.push({
       relPath: target,
       content: entries.reduce(
         (text, item) => write(text, item.title, ledgerBlock(item, chapter, source, approval.裁决记录), `账本「${kind}」`),
-        existing,
+        existing.text,
       ),
     })
   }
@@ -568,9 +590,14 @@ function planSettlementUnsafe(
   return { ok: true, ops, 有候选: true }
 }
 
-function readExisting(root: string, relPath: string): string | null {
-  // A-2：读原语单源；判据不变——非 missing 也仍返回 null。
+type ExistingRead =
+  | { readonly ok: true; readonly text: string }
+  | { readonly ok: false; readonly missing: boolean; readonly detail: string }
+
+function readExisting(root: string, relPath: string): ExistingRead {
+  // A-2 步 3：io（读不了）与 missing（确实没有）分开——io 不再冒充「不存在」。
   const result = readBookText(root, relPath)
-  return result.ok ? result.text : null
+  if (result.ok) return { ok: true, text: result.text }
+  return { ok: false, missing: result.reason === 'missing', detail: result.detail }
 }
 export { writeSettlementDecision } from './decision'
