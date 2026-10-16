@@ -332,4 +332,66 @@ describe('运行链路接线(工具面验收)', () => {
     const design = status.design as { 建议?: string }
     expect(design.建议).toBe('分卷布局')
   })
+  it('0.0.52 幕纲批：novel_confirm_volume_outline 目标幕纲——写入/提交/版本＋反例（缺幕号/缺段/幕名非法）', async () => {
+    const ws = mkWs()
+    const { call } = makeTools(ws)
+    const { bookId } = await makeBook(ws, call)
+    const bookRoot = path.join(ws, '链路书')
+    const 幕纲文 = [
+      '# 幕纲', '',
+      '## 本幕故事', '', '起因一行。', '',
+      '## 线与伏笔', '', '无。', '',
+      '## 出场人物', '', '人物：主角｜想要：查案｜状态：平静→警觉', '',
+      '## 查证清单', '', '场景所在地：世界书/地图/渡口.md', '',
+      '## 章组排布', '', '第一组：开场与发现。', '',
+      '## 幕末结算', '', '〔留白〕', '',
+    ].join('\n')
+    const rel = '大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md'
+
+    // 正例：写入真源、产生 design: 提交、版本 1
+    const ok = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 2, 幕名: '渡口疑云', 正文: 幕纲文, summary: '幕纲·卷01·幕02' })
+    expect(ok.ok, JSON.stringify(ok)).toBe(true)
+    expect(String(ok.message)).toContain('幕纲·卷01·幕02')
+    expect(fs.existsSync(path.join(bookRoot, rel))).toBe(true)
+    const written = fs.readFileSync(path.join(bookRoot, rel), 'utf-8')
+    expect(written).toContain('## 本幕故事')
+    expect(written.endsWith('\n')).toBe(true)
+    expect(git(bookRoot, ['log', '-1', '--pretty=%s', '--', rel]).stdout?.trim()).toMatch(/^design: 幕纲·卷01·幕02/)
+
+    // 反例一：缺幕号（未传 幕）
+    const noAct = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕名: '渡口疑云', 正文: 幕纲文 })
+    expect(noAct.ok).toBe(false)
+    expect(String(noAct.reason)).toContain('幕 必填且须为正整数')
+
+    // 反例二：幕号非正整数
+    const badAct = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 0, 幕名: '渡口疑云', 正文: 幕纲文 })
+    expect(badAct.ok).toBe(false)
+    expect(String(badAct.reason)).toContain('幕 必填且须为正整数')
+
+    // 反例三：缺幕名
+    const noName = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 1, 正文: 幕纲文 })
+    expect(noName.ok).toBe(false)
+    expect(String(noName.reason)).toContain('幕名 必填')
+
+    // 反例四：缺段（无「查证清单」）→ reason＋gaps
+    const 缺段 = 幕纲文.replace('## 查证清单\n\n场景所在地：世界书/地图/渡口.md\n\n', '')
+    const gaps = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 1, 幕名: '渡口疑云', 正文: 缺段 })
+    expect(gaps.ok).toBe(false)
+    expect(String(gaps.reason)).toContain('幕纲段落不完整:查证清单')
+    expect(Array.isArray(gaps.gaps) ? (gaps.gaps as string[]) : []).toContain('幕纲段落不完整:查证清单')
+    // 拒写不落盘
+    expect(fs.existsSync(path.join(bookRoot, '大纲/卷规划/卷01/幕纲/幕01-渡口疑云.md'))).toBe(false)
+
+    // 反例五：幕名非法（含路径分隔符）→ 抛错（工具 catch 后 ok:false）
+    const badName = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 1, 幕名: 'a/b', 正文: 幕纲文 })
+    expect(badName.ok).toBe(false)
+    expect(String(badName.reason)).toMatch(/B2 路径白名单/)
+
+    // 版本协议：同幕再写＝版本 +1（覆盖式）
+    const 重写 = 幕纲文.replace('起因一行。', '起因改写：渡口商船失踪。')
+    const again = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 2, 幕名: '渡口疑云', 正文: 重写 })
+    expect(again.ok, JSON.stringify(again)).toBe(true)
+    // 幕纲无 frontmatter（段级状态写在段标题尾注里）——版本由提交与文件内容体现，正文改写落到文件
+    expect(fs.readFileSync(path.join(bookRoot, rel), 'utf-8')).toContain('起因改写：渡口商船失踪。')
+  })
 })

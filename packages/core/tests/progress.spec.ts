@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { activeChapterLine, listConfirmedEmpty, parseVolumeAllocations, renderBookProgress, scanDesign, scanDesignDetail, selectCurrentVolume, seedMinDesign, writePending, serializeDocument } from '../src/index'
+import { activeChapterLine, checkVolumeReady, listConfirmedEmpty, parseVolumeAllocations, renderBookProgress, scanDesign, scanDesignDetail, selectCurrentVolume, seedMinDesign, writePending, serializeDocument } from '../src/index'
 import type { LastCommitResult } from '../src/commit/history'
 
 const roots: string[] = []
@@ -398,6 +398,50 @@ describe('卷行确认门槛(任务21, B2)', () => {
     expect(scanDesign(root, 1).当前卷分配完整).toBe(true)
     // ③当前卷仍是卷01（远期暂定卷不参与当前卷选择）
     expect(selectCurrentVolume(root)).toMatchObject({ 卷: 1 })
+  })
+})
+
+describe('幕纲不进设计面必要条件(0.0.52 幕纲批)', () => {
+  const 布局 = [
+    '# 分卷布局', '',
+    '## 故事阶段分配', '',
+    '- 卷01：入门立足 〔已确认〕', '',
+  ].join('\n')
+  const 幕纲文 = '# 幕纲\n\n## 本幕故事\n\n在场。\n\n## 线与伏笔\n\n## 出场人物\n\n## 查证清单\n\n## 章组排布\n\n## 幕末结算\n\n〔留白〕\n'
+  const mk = (withMemo: boolean): string => {
+    const root = mkBook(false)
+    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '大纲/分卷布局.md'), 布局, 'utf-8')
+    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/卷纲.md'), '# 卷纲\n\n## 叙事结构 〔已确认〕\n\nx\n\n## 弧线 〔已确认〕\n\nx\n\n## 线索推进 〔已确认〕\n\nx\n\n## 卷末兑现 〔已确认〕\n\nx\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/计划时间线.md'), '# 计划时间线\n\n## 窗口覆盖\n\n- 第1章 · 开篇\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/近期窗口.md'), '# 近期窗口\n\n- 开篇 〔已确认〕\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/契约占位.md'), '', 'utf-8')
+    if (withMemo) {
+      fs.mkdirSync(path.join(root, '大纲/卷规划/卷01/幕纲'), { recursive: true })
+      fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/幕纲/幕01-渡口疑云.md'), 幕纲文, 'utf-8')
+      fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/幕纲/幕02-旧账.md'), 幕纲文, 'utf-8')
+    }
+    return root
+  }
+
+  it('卷目录下有 幕纲/ 与幕纲文件时，scanDesign 的当前卷推导与无幕纲时逐项相等', () => {
+    const 无幕纲 = scanDesign(mk(false), 1)
+    const 有幕纲 = scanDesign(mk(true), 1)
+    expect(有幕纲).toEqual(无幕纲)
+    expect(有幕纲.卷纲缺段).toEqual([])
+    expect(有幕纲.内容问题.filter((i) => i.路径.includes('幕纲'))).toEqual([])
+  })
+
+  it('幕纲不影响当前卷选择与卷规划列举；checkVolumeReady 只看卷纲/时间线/窗口', () => {
+    expect(selectCurrentVolume(mk(true))).toMatchObject({ 卷: 1 })
+    expect(scanDesignDetail(mk(true)).卷规划.map((v) => v.卷号)).toEqual([1])
+    expect(checkVolumeReady(mk(true), 1)).toMatchObject({ ok: true })
+  })
+
+  it('无幕纲的旧书行为不变', () => {
+    const root = mk(false)
+    expect(scanDesign(root, 1).卷纲存在).toBe(true)
+    expect(scanDesign(root, 1).内容问题.filter((i) => i.路径.includes('幕纲'))).toEqual([])
   })
 })
 

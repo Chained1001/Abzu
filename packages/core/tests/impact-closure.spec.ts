@@ -246,4 +246,30 @@ describe('影响闭包:传递闭包', () => {
     expect(report.可入批次文件).toEqual([paths.卷纲(1)])
     expect(report.可入批次文件.every((rel) => zoneOf(rel) === '真源未定稿')).toBe(true)
   })
+  it('0.0.52 幕纲批：章细纲来源引用写幕纲，改幕纲后影响分析列出该细纲（反向边走通）', () => {
+    const root = mkRoot()
+    write(root, paths.契约(), doc({}, '契约正文\n'))
+    const 幕纲路径 = paths.幕纲(1, 1, '渡口疑云')
+    write(root, 幕纲路径, doc({}, '幕纲正文\n'))
+    // 章细纲同时引卷纲与幕纲（0.0.52 起「来源引用幕纲」的新形态）
+    write(root, paths.卷纲(1), doc({ 来源引用: ['作品契约/契约.md@1'] }, '卷纲\n'))
+    write(root, paths.确认细纲(1, 1, '开篇'), doc({
+      状态: '已确认',
+      来源引用: ['作品契约/契约.md@1', `${paths.卷纲(1)}@2`, `${幕纲路径}@1`],
+    }, '细纲\n'))
+
+    // 图里存在 章细纲 → 幕纲 这条引用边（反向图键 幕纲，from 为章细纲）
+    const graph = buildRefGraph(root)
+    const edges = [...(graph.reverse.get(normalizeNodeKey(幕纲路径)!) ?? [])]
+    expect(edges.map((e) => e.from)).toContain(normalizeNodeKey(paths.确认细纲(1, 1, '开篇')))
+    expect(edges.map((e) => e.version)).toContain('1')
+
+    // 改幕纲 → 影响分析列出该细纲（真源未定稿，可入批次文件）
+    const report = analyzeImpact(root, 幕纲路径)
+    expect(report.changed).toBe(幕纲路径)
+    expect(report.references.map((ref) => ref.relPath)).toContain(paths.确认细纲(1, 1, '开篇'))
+    expect(report.references.find((ref) => ref.relPath === paths.确认细纲(1, 1, '开篇'))?.分区).toBe('真源未定稿')
+    expect(report.可入批次文件).toContain(paths.确认细纲(1, 1, '开篇'))
+    expect(report.悬空引用).toEqual([])
+  })
 })

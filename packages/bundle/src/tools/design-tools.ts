@@ -2,7 +2,7 @@
  * 设计域工具：书架选书/建书/契约分部/占位设计（测试）/骨架/分卷/近期窗口/世界书/卷纲/待补便签/进度卡。
  */
 import { dispositionMentions, finishDesignCommit, provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { checkCommitPath, commitConfirmed, createBook, listBookMemoryEntries, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareSkeleton, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
+import { checkCommitPath, commitConfirmed, createBook, listBookMemoryEntries, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareSkeleton, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, actOutlineGaps, prepareActOutline, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { bookMemoryCatalogText, progressLineOf, renderCurrentBook } from '../status-context'
@@ -457,13 +457,15 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
     },
     {
       name: 'novel_confirm_volume_outline',
-      description: '确认当前卷规划（卷纲或计划时间线，真源）或卷摘要（卷末复盘后经候选确认落盘，真源）。随确认产生 design: 提交；提案批次整批文件经「批次文件」一并入提交。卷摘要沿用版本协议：首次 v1、正文变化 +1、原样重跑复用版本。',
+      description: '确认当前卷规划（卷纲或计划时间线，真源）、幕纲（卷与章之间的剧情单元，真源）或卷摘要（卷末复盘后经候选确认落盘，真源）。随确认产生 design: 提交；提案批次整批文件经「批次文件」一并入提交。卷摘要沿用版本协议：首次 v1、正文变化 +1、原样重跑复用版本。目标为幕纲时另必填 幕 与 幕名。',
       parameters: {
         type: 'object',
         properties: {
           bookId: { type: 'string', description: '书id（必填）' },
           卷: { type: 'number', description: '卷号（如 1）' },
-          目标: { type: 'string', enum: ['卷纲', '计划时间线', '卷摘要'], description: '写哪一件' },
+          目标: { type: 'string', enum: ['卷纲', '计划时间线', '幕纲', '卷摘要'], description: '写哪一件' },
+          幕: { type: 'number', description: '幕号（正整数；仅 目标=幕纲 时必填）' },
+          幕名: { type: 'string', description: '幕名（不可含路径字符与保留字；仅 目标=幕纲 时必填）' },
           正文: { type: 'string', description: '完整正文（Markdown）' },
           summary: { type: 'string', description: '提交摘要（可选）' },
           批次文件: { type: 'array', items: { type: 'string' }, description: '同批整改的受影响未定稿下游文件' },
@@ -477,7 +479,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
             ...DESIGN_COMMIT_FIELDS,
             ok: { type: 'boolean', description: '是否成功' },
             relPath: { type: 'string', description: '卷大纲真源相对路径' },
-            gaps: { type: 'array', description: '卷纲段落缺口' },
+            gaps: { type: 'array', description: '卷纲或幕纲段落缺口' },
             message: { type: 'string', description: '结果说明' },
             reason: { type: 'string', description: '失败原因' },
           },
@@ -492,6 +494,21 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         if (!Number.isSafeInteger(卷) || 卷 < 1) return { ok: false, reason: `卷必须是正整数（收到：${String(args['卷'] ?? '未传')}）` }
         const 目标 = String(args['目标'])
         try {
+          if (目标 === '幕纲') {
+            // 幕号/幕名只在幕纲目标下必填:缺了就点名参数拒,不给「写到哪去了」的模糊报文
+            const 幕 = Number(args['幕'])
+            if (args['幕'] === undefined || !Number.isSafeInteger(幕) || 幕 < 1) {
+              return { ok: false, reason: `目标为幕纲时 幕 必填且须为正整数（收到：${String(args['幕'] ?? '未传')}）` }
+            }
+            const 幕名 = args['幕名'] === undefined ? '' : String(args['幕名']).trim()
+            if (幕名 === '') return { ok: false, reason: '目标为幕纲时 幕名 必填（不可为空）' }
+            const 正文 = String(args['正文'])
+            const gaps = actOutlineGaps(正文)
+            if (gaps.length > 0) return { ok: false, reason: gaps.join(';'), gaps }
+            const op = prepareActOutline(卷, 幕, 幕名, 正文)
+            await writeNative(book.bookRoot, op, sessionContext)
+            return finishDesignCommit(book.bookRoot, [op.relPath], args, `幕纲·卷${String(卷).padStart(2, '0')}·幕${String(幕).padStart(2, '0')}`, null, sessionContext)
+          }
           const rel = 目标 === '卷纲' ? paths.卷纲(卷) : 目标 === '卷摘要' ? paths.卷摘要(卷) : paths.计划时间线(卷)
           if (目标 === '卷纲') {
             const 正文 = String(args['正文'])

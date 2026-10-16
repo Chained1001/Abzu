@@ -98,6 +98,8 @@ export const paths = {
   卷纲: (卷: number) => `${LAYOUT.卷规划(卷)}/卷纲.md`,
   计划时间线: (卷: number) => `${LAYOUT.卷规划(卷)}/计划时间线.md`,
   近期窗口: (卷: number) => `${LAYOUT.卷规划(卷)}/近期窗口.md`,
+  幕纲: (卷: number, 幕: number, 幕名: string) =>
+    `${LAYOUT.卷规划(卷)}/幕纲/幕${pad(幕)}-${幕名}.md`,
   确认细纲: (卷: number, 章: number, 章名: string) =>
     `${LAYOUT.卷规划(卷)}/章细纲/${chapterNo(章)}-${章名}.md`,
   章摘要: (卷: number, 章: number, 章名: string) =>

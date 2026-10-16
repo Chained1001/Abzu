@@ -7,7 +7,7 @@ import * as path from 'node:path'
 import { parseWindow } from '../derive/scan'
 import { assertWindowEntryState, isWindowEntryReady } from '../derive/states'
 import { writeFileAtomic, type FileOp } from '../repo/atomic'
-import { pad, paths } from '../repo/paths'
+import { assertSegment, pad, paths } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
 import { prepareDesignDoc, type DesignWriteResult } from './skeleton'
 
@@ -29,14 +29,29 @@ export interface TimelineAnchor {
 
 export const 卷纲脚手架段 = ['叙事结构', '弧线', '线索推进', '卷末兑现'] as const
 
-export function volumeOutlineGaps(body: string): string[] {
+/** 幕纲六个必备段(规格单源:novel-design/templates/幕纲固定段规格.md)。 */
+export const 幕纲必备段 = ['本幕故事', '线与伏笔', '出场人物', '查证清单', '章组排布', '幕末结算'] as const
+
+/** 正文里的 `## 标题` 集合(去 〔已确认/留白/暂定〕 尾注);卷纲与幕纲的段名校验共用。 */
+function sectionTitles(body: string): ReadonlySet<string> {
   const titles = new Set<string>()
   for (const line of body.split(/\r?\n/)) {
     const match = /^##\s+(.+?)\s*$/.exec(line.trim())
     if (match === null) continue
     titles.add((match[1] ?? '').replace(/\s*[〔(](?:已确认|留白|暂定)[〕)]\s*$/, '').trim())
   }
+  return titles
+}
+
+export function volumeOutlineGaps(body: string): string[] {
+  const titles = sectionTitles(body)
   return 卷纲脚手架段.filter((name) => !titles.has(name)).map((name) => `卷纲段落不完整:${name}`)
+}
+
+/** 幕纲段名缺口:六个必备段缺一即报(幕末结算开幕时留白合法,但标题须在位)。 */
+export function actOutlineGaps(body: string): string[] {
+  const titles = sectionTitles(body)
+  return 幕纲必备段.filter((name) => !titles.has(name)).map((name) => `幕纲段落不完整:${name}`)
 }
 
 function writeVolumeOutlineLocked(bookRoot: string, 卷: number, body: string): void {
@@ -46,6 +61,18 @@ function writeVolumeOutlineLocked(bookRoot: string, 卷: number, body: string): 
 
 export function prepareVolumeOutline(卷: number, body: string): FileOp {
   return { relPath: paths.卷纲(卷), content: body.endsWith('\n') ? body : `${body}\n` }
+}
+
+/**
+ * 幕纲落盘准备(0.0.52 幕纲批):幕是卷与章之间的完整剧情单元,幕纲是可选真源工件。
+ * 幕名过路径白名单(同章名/模块名的 assertSegment 习惯),幕号须正整数;纯文本写入、补末尾换行。
+ */
+export function prepareActOutline(卷: number, 幕: number, 幕名: string, body: string): FileOp {
+  assertSegment(幕名, '幕名')
+  if (!Number.isSafeInteger(幕) || 幕 < 1) {
+    throw new Error(`幕号必须是正整数(收到:${String(幕)})`)
+  }
+  return { relPath: paths.幕纲(卷, 幕, 幕名), content: body.endsWith('\n') ? body : `${body}\n` }
 }
 
 export const writeVolumeOutline = bookWriter(writeVolumeOutlineLocked)

@@ -3,9 +3,9 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
 import {
-  contractTemplate, parseDocument, parseWindow, prepareContract, prepareEntry, preparePlanTimeline,
-  prepareRecentWindow, prepareSkeleton, prepareVolumeLayout, prepareVolumeOutline,
-  serializeDocument, updateSkeleton, updateVolumeLayout, windowExtraLines, writeContract,
+  actOutlineGaps, contractTemplate, parseDocument, parseWindow, prepareActOutline, prepareContract, prepareEntry,
+  preparePlanTimeline, prepareRecentWindow, prepareSkeleton, prepareVolumeLayout, prepareVolumeOutline,
+  serializeDocument, updateSkeleton, updateVolumeLayout, volumeOutlineGaps, windowExtraLines, writeContract,
 } from '../src'
 import { removeSync } from '../src/repo/remove'
 
@@ -79,8 +79,65 @@ describe('单文件设计准备', () => {
   })
 })
 
-describe('近期窗口写侧防护(状态词表/保留行)', () => {
-  it('词表外状态被拒且错误指明全部合法值(已确/confirmed 等自造近义词静默写入=永远进不了细纲)', () => {
+const 幕纲正文 = [
+  '# 幕纲',
+  '',
+  '## 本幕故事',
+  '',
+  '起因一行。',
+  '',
+  '## 线与伏笔',
+  '',
+  '## 出场人物',
+  '',
+  '## 查证清单',
+  '',
+  '## 章组排布',
+  '',
+  '## 幕末结算',
+  '',
+  '〔留白〕',
+  '',
+].join('\n')
+
+describe('幕纲准备与段名校验(0.0.52 幕纲批)', () => {
+  it('prepareActOutline 纯文本写入、补末尾换行、不建目录；幕号两位', () => {
+    const op = prepareActOutline(1, 2, '渡口疑云', 幕纲正文.trimEnd())
+    expect(op.relPath).toBe('大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md')
+    expect(op.content.endsWith('\n')).toBe(true)
+    expect(op.content).toContain('## 本幕故事')
+    expect(fs.readdirSync(root)).toEqual([])
+  })
+
+  it('合法段名照过；缺段逐个报「幕纲段落不完整:<段名>」', () => {
+    expect(actOutlineGaps(幕纲正文)).toEqual([])
+    const 缺两段 = 幕纲正文.replace('## 查证清单\n\n', '').replace('## 章组排布\n\n', '')
+    expect(actOutlineGaps(缺两段)).toEqual(['幕纲段落不完整:查证清单', '幕纲段落不完整:章组排布'])
+  })
+
+  it('段标题带〔已确认/留白/暂定〕尾注仍认段名；可选段「备料自查」不参与校验', () => {
+    const 带尾注 = 幕纲正文.replace('## 幕末结算', '## 幕末结算 〔留白〕') + '\n## 备料自查\n\n随便一句\n'
+    expect(actOutlineGaps(带尾注)).toEqual([])
+  })
+
+  it('幕名非法或幕号非正整数即抛错（B2 路径白名单，不落盘）', () => {
+    expect(() => prepareActOutline(1, 1, 'a/b', 幕纲正文)).toThrow(/B2/)
+    expect(() => prepareActOutline(1, 1, '幕名.', 幕纲正文)).toThrow(/B2/)
+    expect(() => prepareActOutline(1, 0, '渡口', 幕纲正文)).toThrow(/幕号必须是正整数/)
+    expect(() => prepareActOutline(1, 1.5, '渡口', 幕纲正文)).toThrow(/幕号必须是正整数/)
+    expect(fs.readdirSync(root)).toEqual([])
+  })
+
+  it('卷纲段校验与幕纲段校验互不串味', () => {
+    expect(actOutlineGaps('# 卷纲\n## 叙事结构 〔已确认〕\n')).toEqual([
+      '幕纲段落不完整:本幕故事', '幕纲段落不完整:线与伏笔', '幕纲段落不完整:出场人物',
+      '幕纲段落不完整:查证清单', '幕纲段落不完整:章组排布', '幕纲段落不完整:幕末结算',
+    ])
+    expect(volumeOutlineGaps(幕纲正文)).toEqual(['卷纲段落不完整:叙事结构', '卷纲段落不完整:弧线', '卷纲段落不完整:线索推进', '卷纲段落不完整:卷末兑现'])
+  })
+})
+
+describe('近期窗口写侧防护(状态词表/保留行)', () => {  it('词表外状态被拒且错误指明全部合法值(已确/confirmed 等自造近义词静默写入=永远进不了细纲)', () => {
     for (const 非法 of ['已确', 'confirmed', '可进入']) {
       expect(() => prepareRecentWindow(1, [{ 名称: '开篇', 状态: 非法 }]), 非法).toThrow(/不在词表内/)
     }

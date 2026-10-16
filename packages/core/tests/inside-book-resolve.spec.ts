@@ -9,7 +9,9 @@ import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { resolveInsideBook, resolveInsideBookOrNull } from '../src/gate/paths'
+import { classifyRelPath, gateFileAccess, resolveInsideBook, resolveInsideBookOrNull } from '../src/gate/paths'
+import { prepareActOutline } from '../src/design/volume'
+import { writeFileAtomic } from '../src/repo/atomic'
 
 const roots: string[] = []
 function mkDir(prefix: string): string {
@@ -72,4 +74,29 @@ describe('resolveInsideBookOrNull（收敛后的唯一入口）', () => {
       expect(authoritative.ok, target).toBe(resolveInsideBookOrNull(root, target) !== null)
     }
   })
+describe('幕纲门禁归类(0.0.52 幕纲批)', () => {
+  it('大纲/卷规划/卷01/幕纲/幕01-X.md 被自动归类为真源：文件工具直写被拒', () => {
+    const root = mkDir('abzu-gate-memo-')
+    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01/幕纲'), { recursive: true })
+    const rel = '大纲/卷规划/卷01/幕纲/幕01-渡口疑云.md'
+    expect(classifyRelPath(rel)).toBe('真源')
+    expect(classifyRelPath('大纲/卷规划/卷01/幕纲')).toBe('真源')
+    const denied = gateFileAccess(root, path.join(root, rel))
+    expect(denied.allow).toBe(false)
+    expect(denied.zone).toBe('真源')
+    expect(denied.allow === false ? denied.reason : '').toContain('真源区仅书仓写入器可写')
+    // 草稿区/定稿区归类不因幕纲受扰（对照组）
+    expect(classifyRelPath('草稿区/章细纲/卷01-开篇.md')).toBe('草稿区')
+    expect(classifyRelPath('定稿/卷01/0001-开篇.md')).toBe('定稿')
+  })
+
+  it('经写入器（prepareActOutline + writeFileAtomic）落幕纲成功，文件工具仍拒', () => {
+    const root = mkDir('abzu-gate-memo-')
+    const op = prepareActOutline(1, 1, '渡口疑云', '# 幕纲\n\n## 本幕故事\n\nx\n')
+    expect(op.relPath).toBe('大纲/卷规划/卷01/幕纲/幕01-渡口疑云.md')
+    writeFileAtomic(root, op.relPath, op.content)
+    expect(fs.existsSync(path.join(root, op.relPath))).toBe(true)
+    expect(gateFileAccess(root, path.join(root, op.relPath)).allow).toBe(false)
+  })
+})
 })
