@@ -36,7 +36,7 @@ function seedChainFixture(root: string): void {
     来源引用: ['作品契约/契约.md@1', `${paths.卷纲(1)}@2`],
     来源细纲版本: `${paths.确认细纲(1, 1, '开篇')}@3`,
   }, '正文\n'))
-  write(root, paths.候选细纲(1, '开篇'), doc({ 来源引用: [`${paths.卷纲(1)}@2`] }, '候选\n'))
+  write(root, paths.候选细纲(1, 1, '开篇'), doc({ 来源引用: [`${paths.卷纲(1)}@2`] }, '候选\n'))
 }
 
 function edgeCount(graph: RefGraph): { forward: number; reverse: number } {
@@ -236,11 +236,11 @@ describe('影响闭包:传递闭包', () => {
     const root = mkRoot()
     write(root, paths.契约(), doc({}, '契约正文\n'))
     write(root, paths.卷纲(1), doc({ 来源引用: ['作品契约/契约.md@1'] }, '卷纲\n'))
-    write(root, paths.候选细纲(1, '开篇'), doc({ 来源引用: ['作品契约/契约.md@1'] }, '候选\n'))
+    write(root, paths.候选细纲(1, 1, '开篇'), doc({ 来源引用: ['作品契约/契约.md@1'] }, '候选\n'))
     write(root, paths.定稿章(1, 1, '开篇'), doc({ 状态: '已定稿', 来源引用: ['作品契约/契约.md@1'] }, '正文\n'))
     const report = analyzeImpact(root, paths.契约())
     const byRel = new Map(report.references.map((ref) => [ref.relPath, ref.分区]))
-    expect(byRel.get(paths.候选细纲(1, '开篇'))).toBe('草稿区')
+    expect(byRel.get(paths.候选细纲(1, 1, '开篇'))).toBe('草稿区')
     expect(byRel.get(paths.卷纲(1))).toBe('真源未定稿')
     expect(byRel.get(paths.定稿章(1, 1, '开篇'))).toBe('已定稿')
     expect(report.可入批次文件).toEqual([paths.卷纲(1)])

@@ -89,6 +89,16 @@ describe('#165 内容与就绪建议同源', () => {
     expect(scanDesignDetail(root).内容问题).toEqual(result.内容问题)
   })
 
+  it('计划时间线 frontmatter 已确认不掩蔽空正文:仍报缺少内容(0.0.60)', () => {
+    const root = readyBook()
+    put(root, paths.计划时间线(1), serializeDocument({ 状态: '已确认' }, ''))
+    const result = deriveDesign(scanDesign(root))
+    expect(result.内容问题).toContainEqual(expect.objectContaining({ 路径: paths.计划时间线(1), 分部: '计划时间线', 问题: '缺少内容' }))
+    // 反例:同一 frontmatter 加真内容则不报——判据只看正文
+    put(root, paths.计划时间线(1), serializeDocument({ 状态: '已确认' }, '# 计划时间线\n## 窗口覆盖\n- 开篇任务:少年在雨夜追查铜铃。\n'))
+    expect(deriveDesign(scanDesign(root)).内容问题?.some(issue => issue.路径 === paths.计划时间线(1))).toBe(false)
+  })
+
   it('行级与小节级矛盾显式呈报，不能静默挑一个放行', () => {
     const root = readyBook()
     put(root, paths.分卷布局(), '# 分卷布局\n## 故事阶段分配 〔留白〕\n- 卷01：追查铜铃 〔已确认〕\n')

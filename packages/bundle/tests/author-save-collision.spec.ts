@@ -25,7 +25,7 @@ describe('editor save recovery collision', () => {
     const root = path.join(ws, '作品')
     const put = (relative: string, content: string) => { const target = path.join(root, relative); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.writeFileSync(target, content) }
     put('作品契约/契约.md', serializeDocument({ 书id: 'b-audit' }, '测试作品'))
-    const originalPath = path.posix.join(paths.草稿目录(1, '开篇'), '稿1.md')
+    const originalPath = path.posix.join(paths.草稿目录(1, 1, '开篇'), '稿1.md')
     put(originalPath, serializeDocument({ 身份: { 卷: 1, 章: 1, 章名: '开篇' }, 版本: 1, 角色: '待审稿', 选定: true }, '原稿'))
     const service = new StudyService(ws)
     let loseSaveResponse = true

@@ -34,13 +34,16 @@ export function parseChineseVolume(text: string): number | undefined {
   if (chars.length === 0 || chars.length > 3) return undefined
   const values = chars.map((c) => CN_NUMERAL[c])
   if (values.some((v) => v === undefined)) return undefined
+  // 数字字＝词表里 1-9 的单字(十=10 是位符不是数字字):十X/X十 的 X、X十Y 的 X 与 Y
+  // 都必须是数字字——`十十`(位符叠位)按非法组合返回 undefined(0.0.60 表驱动钉死)。
+  const isDigit = (v: number) => v >= 1 && v <= 9
   if (chars.length === 1) return values[0]!
   if (chars.length === 2) {
-    if (chars[0] === '十') return 10 + values[1]!
-    if (chars[1] === '十') return values[0]! * 10
+    if (chars[0] === '十') return isDigit(values[1]!) ? 10 + values[1]! : undefined
+    if (chars[1] === '十') return isDigit(values[0]!) ? values[0]! * 10 : undefined
     return undefined
   }
-  if (chars[1] === '十') return values[0]! * 10 + values[2]!
+  if (chars[1] === '十') return isDigit(values[0]!) && isDigit(values[2]!) ? values[0]! * 10 + values[2]! : undefined
   return undefined
 }
 

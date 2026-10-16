@@ -243,6 +243,26 @@ export function loadReviewRecord(bookRoot: string, key: Pick<ChapterKey, '卷' |
 }
 
 /**
+ * 润色承接认定(0.0.60 抽出,三处共用——derive/scan、review/run 的 computeReview 与
+ * ingestFindings):当前稿哈希与当前审读指纹是否仍落在记录的承接链上。
+ * - 已润色:哈希=润色.稿哈希 ∧ 润色.父稿哈希=审稿哈希 ∧ 指纹=润色.审读指纹;
+ * - 已跳过:哈希=审稿哈希=润色.稿哈希 ∧ 指纹=审读指纹。
+ * 其余(无承接、润色后又改字、细纲升版、材料刷新)一律 false——按现行过期/重置规则处理。
+ */
+export function carryoverApplicable(record: ReviewRecord, 当前稿哈希: string | null, 当前指纹: string | null): boolean {
+  const 承接 = record.润色
+  if (承接 === undefined || 当前稿哈希 === null || 当前指纹 === null) return false
+  if (承接.状态 === '已润色') {
+    return 当前稿哈希 === 承接.稿哈希
+      && 承接.父稿哈希 === record.审稿哈希
+      && 当前指纹 === 承接.审读指纹
+  }
+  return 当前稿哈希 === record.审稿哈希
+    && 当前稿哈希 === 承接.稿哈希
+    && 当前指纹 === record.审读指纹
+}
+
+/**
  * 审核记录单一解析器：derive 扫描与 review/revise 写侧共用——方案规范化、处置词表
  * 回退、模块态整形在此一次完成，两侧喂给 reviewInputFingerprintOf 的输入才同口径。
  * 解析失败返回空记录（完成:false）——调用方按「有记录、未完成」处理（B4:不当无）。
@@ -358,10 +378,9 @@ export function readReviewRecordForUpdate(bookRoot: string, key: Pick<ChapterKey
   const 模块 = Object.fromEntries(Object.entries(record.模块).map(([name, state]) => [name, {
     ...(rawModules[name] as object), ...state,
   }]))
-  return { ok: true, hash: reviewRecordHashOf(text), record: {
-    ...parsed.data, ...record, 问题, 模块,
-    ...(record.方案 === undefined ? {} : { 方案: { ...(parsed.data['方案'] as object), ...record.方案 } }),
-  } }
+  // 0.0.60:方案与其余字段统一取 parseReviewRecord 的规范化结果——不再 spread raw 的
+  // 多余键(旧版工具遗留字段不进指纹口径,两口径分叉即 此处 与 parse 的规则漂移)。
+  return { ok: true, hash: reviewRecordHashOf(text), record: { ...record, 问题, 模块 } }
 }
 
 function writeReviewRecordLocked(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }, record: ReviewRecord): string {

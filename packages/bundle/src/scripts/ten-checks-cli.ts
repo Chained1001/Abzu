@@ -169,8 +169,9 @@ function previousChapter(book: string, 卷: number, 章: number): PreviousChapte
 /** ③伏笔到期:到期/逾期/区间不明三组机械列行(候选行,不是结论)。 */
 function dueRows(book: string, 卷: number, 章: number): Record<string, unknown> {
   const due = queryDueLedger(book, { 卷, 章 })
-  // 三态与承诺账本同口径:queryLedger 对多本账本任一缺失即 ok:false,
-  // 但线索条目仍可能读进来了——按「线索.md 是否在读入文件里」判在读,再看 read 失败原因。
+  // 三态与承诺账本同口径:批8 分类单本降载后 queryLedger({分类:'线索'}) 只读线索这一本账,
+  // ok:false 即线索账本自身缺失/不可读/解析失败(不再因其余账本缺失连坐)——仍按
+  // 「线索.md 是否在读入文件里」判在读,再看 read 失败原因。
   const ledger = queryLedger(book, { 分类: '线索' })
   const 账本状态 = 承诺账本状态(ledger, paths.账本('线索'))
   const row = (item: { readonly 名称: string; readonly 预期兑现区间: string; readonly 状态: string; readonly 超出幅度?: number }) =>

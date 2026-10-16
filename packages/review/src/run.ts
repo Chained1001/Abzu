@@ -2,15 +2,15 @@
  * 审核编排辅助:方案留痕 + 注册检查执行。
  */
 
-import * as fs from 'node:fs'
-import * as path from 'node:path'
 import {
   MACHINE_SCHEMA_VERSION,
+  carryoverApplicable,
   countPendingReviewDrafts,
   countProseText,
   chapterLengthIdentity,
   checkChapterLength,
   readChapterLength,
+  readBookText,
   emptyReviewRecord,
   findPendingReviewDraft,
   loadReviewRecord,
@@ -61,11 +61,10 @@ export interface ReviewProseStats extends ProseTextCounts {
 }
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // 0.0.60:细纲读取改 core 的 readBookText——剥 BOM 与 scan/derive 同口径,
+  // 外部编辑器带 BOM 保存的细纲不再让审读指纹永远失配(承接永不成立)。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 function reviewId(key: ReviewKey): string {
@@ -157,7 +156,13 @@ export function computeReview(bookRoot: string, key: ReviewKey): RunReviewResult
   }
   const 审稿哈希 = inputIdentity.bodyHash
   const 审读指纹 = inputIdentity.fingerprint
-  const stale = existing.审读指纹 !== 审读指纹
+  // F5(2026-09-05):审核证据绑定被审正文哈希。换稿(哈希失配)→新审读轮:模块态重置、
+  // 旧稿发现项不保留(作者意见条目除外——作者指示跨稿有效),旧完成态不再冒充当前稿已审。
+  // 0.0.60:指纹失配先认润色承接(carryoverApplicable,与 derive/scan 同口径)——承接成立
+  // 则不重置:保留 润色 与既有问题(确定性模块照常重算替换),证据身份仍绑被审稿
+  // (审稿哈希/审读指纹照旧,承接另记);承接不成立(润色后又改字/细纲升版/材料刷新)才重开轮次。
+  const 承接仍适用 = carryoverApplicable(existing, 审稿哈希, 审读指纹)
+  const stale = existing.审读指纹 !== 审读指纹 && !承接仍适用
   const 审核编号 = reviewId(key)
   // 检查与指纹消费同一份读入快照，读取间作者改动不能把旧结果绑定到新输入。
   const pending = inputIdentity.pending
@@ -231,10 +236,10 @@ export function computeReview(bookRoot: string, key: ReviewKey): RunReviewResult
     问题,
     模块,
     方案: plan,
-    审稿哈希,
-    审读指纹,
+    ...(承接仍适用 && existing.审稿哈希 !== undefined ? { 审稿哈希: existing.审稿哈希 } : { 审稿哈希 }),
+    ...(承接仍适用 && existing.审读指纹 !== undefined ? { 审读指纹: existing.审读指纹 } : { 审读指纹 }),
     待继承处置: remainingDispositions(existing, stale, new Set([...deterministicNames, ...skips.keys()])),
-    // 0.0.54:重开审读轮(指纹陈旧)后旧润色承接作废——新证据须重新润色并重新登记承接。
+    // 0.0.54:重开审读轮(指纹陈旧且承接不适用)后旧润色承接作废——新证据须重新润色并重新登记承接。
     ...(stale || existing.润色 === undefined ? {} : { 润色: existing.润色 }),
   }
   const 正文统计: ReviewProseStats = {
@@ -297,8 +302,13 @@ function ingestFindingsLocked(
     return { ok: false, reason: `材料需要核对：${inputIdentity.materials.问题.join('；')}`, record: null }
   }
   const hasPriorReviewState = existing.完成 || existing.问题.length > 0 || Object.keys(existing.模块).length > 0
-  const stale = (existing.审读指纹 !== undefined && existing.审读指纹 !== inputIdentity.fingerprint)
-    || (existing.审读指纹 === undefined && hasPriorReviewState)
+  // 0.0.60:指纹失配先认润色承接(carryoverApplicable,与 computeReview/derive 同口径)——
+  // 承接成立则不整轮重置:保留 润色 与既有问题(本模块发现项照常整批替换),证据身份仍绑
+  // 被审稿(审稿哈希/审读指纹不随回写改绑到润色稿);承接不成立才按 F5 语义重置。
+  const 承接仍适用 = carryoverApplicable(existing, inputIdentity.bodyHash, inputIdentity.fingerprint)
+  const stale = ((existing.审读指纹 !== undefined && existing.审读指纹 !== inputIdentity.fingerprint)
+    || (existing.审读指纹 === undefined && hasPriorReviewState))
+    && !承接仍适用
   // 重跑通道（2026-09-18 真机缺陷 D-002）：记录陈旧时，调用方传与当前输入一致的
   // 审读指纹（确定性脚本当轮产出）即证明发现项是新跑的，按 F5 语义重置旧轮次后
   // 接收——旧完成态与旧稿发现项不再冒充当前稿已审（作者意见条目跨稿保留，处置
@@ -342,7 +352,8 @@ function ingestFindingsLocked(
     完成,
     问题,
     模块,
-    ...(authorOpinion ? {} : { 审稿哈希: inputIdentity.bodyHash, 审读指纹: inputIdentity.fingerprint }),
+    // 承接仍适用(0.0.60):证据身份仍绑被审稿,不改绑到润色稿——承接链(父稿哈希=审稿哈希)不因回写断裂。
+    ...(authorOpinion || 承接仍适用 ? {} : { 审稿哈希: inputIdentity.bodyHash, 审读指纹: inputIdentity.fingerprint }),
     待继承处置: remainingDispositions(existing, resetting, new Set([模块名])),
     // 0.0.54:重开审读轮后旧润色承接作废(新一轮审读后需要重新润色);作者意见回写不动它。
     ...(resetting ? { 润色: undefined } : {}),

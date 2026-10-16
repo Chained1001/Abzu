@@ -177,6 +177,32 @@ describe('可丢弃缓存与真实内容校准', () => {
     expect(empty).toMatchObject({ status: 'no-finalized', hits: [], index: { chunks: 0 } })
   })
 
+  it('篡改后首查新词(0.0.60 固化已知残面):stat 档未变时首查漏检,直至 stat 变化才自愈', async () => {
+    const file = chapter(1, '林舟在渡口点了一盏灯。')
+    const before = fs.statSync(file)
+    expect(success(await searchFinalized(root, { query: '渡口' })).status).toBe('matches')
+    // 等长改写(新增可查词「玄铁令」)＋恢复 mtime——ctime 在粒度粗的文件系统(win32 残面)上
+    // 可能同样不变;本用例以旧 stat 喂指纹档,确定性固化「stat 档一致即复用快照」的设计残面:
+    // 首查改后新增的词,命中集为空→逐命中再读校验不触发→自愈不启动→如实漏检。
+    const raw = fs.readFileSync(file, 'utf8')
+    const tampered = raw.replace('点了一盏灯', '拾到玄铁令')
+    expect(Buffer.byteLength(tampered, 'utf8')).toBe(Buffer.byteLength(raw, 'utf8'))
+    fs.writeFileSync(file, tampered)
+    fs.utimesSync(file, before.atimeMs / 1000, before.mtimeMs / 1000)
+    const realLstat = fs.promises.lstat.bind(fs.promises)
+    vi.spyOn(fs.promises, 'lstat').mockImplementation(async target => String(target) === file ? before : realLstat(target))
+    const miss = success(await searchFinalized(root, { query: '玄铁令' }))
+    // 预期＝当前设计的已知残面:漏检直至 stat 变化(用例钉住该行为,改动须连本断言一起改)
+    expect(miss.status).toBe('no-matches')
+    expect(miss.hits).toEqual([])
+    // stat 变化后(下一次正常触碰/写入):指纹档失配→全量重扫→新词可查——设计在 stat 失配时自愈
+    vi.restoreAllMocks()
+    fs.utimesSync(file, before.atimeMs / 1000, before.mtimeMs / 1000 + 5)
+    const found = success(await searchFinalized(root, { query: '玄铁令' }))
+    expect(found.status).toBe('matches')
+    expect(found.hits[0]!.snippet).toContain('玄铁令')
+  })
+
   it('损坏和删除索引都能重建出相同结果，排序不随插入顺序变化', async () => {
     chapter(2, '线索在此')
     await searchFinalized(root, { query: '线索' })

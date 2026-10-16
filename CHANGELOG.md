@@ -2,6 +2,22 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.60] — 2026-10-17
+
+### Fixed（审查修复批：六批总审查 P2×4＋P3×15）
+
+- **P2-1 候选细纲认领按章号比对**：`core/src/repo/draft-paths.ts` 的 `resolveCandidateOutlineRel` 认领循环——已定位章（章>0）遇候选带号且与本章不等时跳过，不再错认领同卷同名不同章的候选（写覆盖/误删/误状态）；0000 占位与旧格式无号仍可认领。测试：`scan-derive.spec.ts`「候选细纲章号比对(0.0.60)」。
+- **P2-2 技能面草稿区路径批刷为带章号新键**：六技能 SKILL 共 16 处旧两段式 `卷<NN>-<章名>` 批刷为 `卷<NN>-<NNNN>-<章名>`（任务清单 12 行号＋同文件同工件同类 4 处一并清零）；`novel-drafting` 验收步 --稿件 句后补「稿件路径＝`草稿区/草稿/卷<NN>-<NNNN>-<章名>/稿<N>.md`（章号四位，与确认细纲同号）」；`skills-batches.spec.ts` settle 派发模板路径断言随改。
+- **P2-3 测试夹具代表真实书形**：tests 五处两参旧调用（`paths.草稿目录/候选细纲`，产出 `卷01-undefined-…` 畸形键）改三参；补一条干净的旧格式目录（`草稿区/草稿/卷01-旧章/稿1.md`）saveAuthorDocument 用例——新稿落同一旧目录，同章工件不分裂到新键目录。
+- **P2-4 账本章上限语义等价测试**：ledger 侧（章 5 在、章 99 剔除、无章号「某年冬」保留）＋材料包组装同口径抽测（「当前事实与连续性」段）。
+- **P3 逐条**：计划时间线判内容先 `parseDocument` 取 body（frontmatter 不再掩蔽空正文）；stale 认承接——抽 `carryoverApplicable` 三处共用（derive/scan、computeReview、ingestFindings），指纹失配先认承接，成立不重置、保留 润色 与既有问题、证据身份仍绑被审稿，改字后重跑才重置；polish/run 细纲读取改 core `readBookText`（剥 BOM 同口径，带 BOM 细纲承接不再永不成立）；`readReviewRecordForUpdate` 方案字段统一取 `parseReviewRecord` 结果（不再 spread raw 多余键）；retrieval 补「篡改后首查新词」用例（固化 stat 档未变时首查漏检直至 stat 变化的已知残面）；recovery 最近N章补 `Number.isFinite` 守卫（NaN/Infinity 回落默认 20）；ten-checks-cli 线索账本注释改分类单本降载后口径；`writeDraft`/`importAuthorDraft` 降级＋写新稿合入同一 `writeBatchAtomic`（照 applyRevision 批形态）；novel-outline「一次 N ≤5 章」改《参考标尺》指针句；幕纲固定段规格「≤3 章」补升级节点单源注；novel-revision 补润色承接登记句；技术文档 §3.4 薄脚本表补 `草稿清理.mjs` 行；persona 语序改「起草、审读、改稿、润色」；novel-outline 补同卷同名按章号认领句。
+- **测试补齐**：`parseChineseVolume` 表驱动（正例 十/十一/二十/二十一/两/九十/九十九；非法 一百/空串/一二/十十/混合字→undefined——两位分支补数字字判定，`十十` 不再误返回 20）；`novel_get_story_status` 工具层窗口化（60 章两卷书：总数/完整返回数/省略数/省略提示与 卷 展开）；min-chain 末尾串 `novel_settle_chapter`（mock askFn 批准）＋草稿区五处消失断言；draft-cleanup.spec 死表达式删除。
+- 文档：技术文档 §12 已知问题——「候选认领」「stale 不认承接」两条已修复移出（其余照旧）；skills-batches 版本纪律组 0.0.59→0.0.60＋新增「0.0.60 审查修复批」防回退钉组。
+
+### 验证
+
+pnpm lint；pnpm --filter abzu typecheck；pnpm build；pnpm --filter abzu dump-config-check；pnpm --filter abzu pack-check；pnpm check:version；pnpm check:public；pnpm test:release；npx vitest run（仓内 TEMP，全绿）。
+
 ## [0.0.59] — 2026-10-17
 
 ### Changed（标尺指针化批：判据件升级点数字改纯指针）

@@ -1993,14 +1993,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.59＋CHANGELOG 条目＋README×2（0.0.59 标尺指针化批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.60＋CHANGELOG 条目＋README×2（0.0.60 审查修复批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.59').toBe('0.0.59')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.59').toBe('0.0.59')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.59]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.60').toBe('0.0.60')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.60').toBe('0.0.60')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.60]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.59`).toContain('0.0.59')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.60`).toContain('0.0.60')
     }
   })
 
@@ -2089,7 +2089,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       '一次性排出来',
       '幕内分批',
       '幕内分批出细纲',
-      '一次 N ≤5 章',
+      //（0.0.60 审查修复批：「一次 N ≤5 章」数字退役，改《参考标尺》『幕内分批出细纲』行上限指针）
+      '一次按《参考标尺》『幕内分批出细纲』行上限取',
       '场景卡选择跨章看',
       '钩型配比跨章规划',
       '危机钩兑现章号跨章排、张力类占比按本幕窗口算而非单章',
@@ -2204,7 +2205,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('每 15 章（≈5-7 万字）章制')
     expect(scale).toContain('极值 48')
     expect(scale).toContain('常态卷（20-30 万）3.5 倍')
-    expect(settle).toContain('<粘贴 草稿区/草稿/卷<NN>-<章名>/稿<N>.md 全文>')
+    //（0.0.60 审查修复批：settle 派发模板路径随草稿区键带章号批刷为 `卷<NN>-<NNNN>-<章名>`）
+    expect(settle).toContain('<粘贴 草稿区/草稿/卷<NN>-<NNNN>-<章名>/稿<N>.md 全文>')
     expect(design).toContain('`大纲/卷规划/卷<NN>/近期窗口.md`')
     expect(design, 'design 工件表「卷NN」路径式应统一为「卷<NN>」').not.toContain('大纲/卷规划/卷NN/')
     // G. CHANGELOG 全量审查修复批节＋出处去向留痕——0.0.32 内追加节，2026-10-15 拆档后位于 CHANGELOG-archive.md
@@ -3424,5 +3426,30 @@ describe('skills 批次防回退断言组·0.0.59 标尺指针化批', () => {
     expect(reader).toContain('数量与节奏照《参考标尺》升级点行')
     // B. 负钉：判据件不再含升级点数字（单源在 参考标尺.md 升级点行，数字钉由 0.0.51 组「约 50 个撑 300 万字、每点约 20 章」守）
     expect(reader, '判据件不应残留「每点约 20 章」数字（单源在参考标尺）').not.toContain('每点约 20 章')
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.60 审查修复批', () => {
+  it('0.0.60 审查修复批：draft-paths 章号比对＋六技能新键路径抽查＋revision 承接句＋幕纲规格单源注＋outline N≤5 指针句', () => {
+    // A. P2-1 draft-paths 章号比对：认领循环带「已定位章不认领别章同名候选」守卫（0000 占位与旧格式无号仍可认领）
+    const draftPaths = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'repo', 'draft-paths.ts'), 'utf8')
+    expect(draftPaths, 'resolveCandidateOutlineRel 应含章号比对守卫').toContain('候选章 > 0 && 候选章 !== (key.章 ?? 0)')
+    // B. P2-2 六技能新键路径抽查两处＋全套负钉（旧两段式 `卷<NN>-<章名>` 清零）
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('稿件路径＝`草稿区/草稿/卷<NN>-<NNNN>-<章名>/稿<N>.md`（章号四位，与确认细纲同号）')
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('`草稿区/定稿准备/卷<NN>-<NNNN>-<章名>/`（七件＋`清单.json`）')
+    for (const name of ['novel-outline', 'novel-drafting', 'novel-review', 'novel-revision', 'novel-polish', 'novel-settle']) {
+      expect(readSkill(name), `${name} SKILL 不应残留旧两段式路径 卷<NN>-<章名>`).not.toContain('卷<NN>-<章名>')
+    }
+    // C. P3-15 revision 承接句
+    expect(readSkill('novel-revision')).toContain('润色经 `novel_record_polish` 登记承接（作者稿登记跳过）')
+    // D. P3-14 幕纲固定段规格「≤3 章」升级节点单源注
+    const actSpec = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
+    expect(actSpec).toContain('定义单源在《定调设计》技能包 templates/世界书/力量体系条目模板.md『升级节点』行')
+    // E. P3-13 outline N≤5 指针句（数字退役，单源在参考标尺「幕内分批出细纲」行）
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('一次按《参考标尺》『幕内分批出细纲』行上限取')
+    expect(outline, '「一次 N ≤5 章」数字应退役（单源在参考标尺）').not.toContain('一次 N ≤5 章')
   })
 })

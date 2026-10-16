@@ -2,12 +2,15 @@ import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
+import { execFileSync } from 'node:child_process'
 import {
+  APPROVE_LABEL,
   applyRevision,
   assembleMaterials,
   confirmOutline,
   deriveChapterFacts,
   loadReviewRecord,
+  paths,
   preparePack,
   scanChapter,
   seedMinDesign,
@@ -16,6 +19,7 @@ import {
 import { writeDraft } from '@abzu/drafting'
 import { polishDraft } from '@abzu/polish'
 import { ingestFindings, recordPolish, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
+import { createNovelTools } from '../src/novel-tools'
 
 const roots: string[] = []
 afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
@@ -73,7 +77,7 @@ function outlineBody(): string {
 }
 
 describe('最小链 e2e（0.0.54 新序：起草 → 审读 ⇄ 改稿 → 润色 → 承接 → 组包 → 裁决）', () => {
-  it('seedMinDesign → confirm → assemble → writeDraft(待审稿) → review → polish → recordPolish → preparePack → 作者定稿裁决', () => {
+  it('seedMinDesign → confirm → assemble → writeDraft(待审稿) → review → polish → recordPolish → preparePack → 作者定稿裁决 → novel_settle_chapter(0.0.60 串尾)', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-minchain-'))
     roots.push(root)
     seedMinDesign(root)
@@ -130,5 +134,39 @@ describe('最小链 e2e（0.0.54 新序：起草 → 审读 ⇄ 改稿 → 润�
 
     expect(preparePack(root, key).ok).toBe(true)
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('作者定稿裁决')
+
+    // 0.0.60 串尾:工具层 novel_settle_chapter(mock askFn 批准)——入档＋草稿区五处清理,链路真正闭环到「完成」
+    const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf-8', windowsHide: true })
+    git('init', '--quiet')
+    git('config', 'user.name', 'Min Chain')
+    git('config', 'user.email', 'min-chain@example.invalid')
+    git('config', 'commit.gpgsign', 'false')
+    git('config', 'core.autocrlf', 'false')
+    const tools = createNovelTools({
+      workspaceRoot: () => path.dirname(root),
+      bookRootOfBookId: () => root,
+      askFn: async () => ({ answers: [{ id: '定稿入档', selected: [APPROVE_LABEL] }] }),
+    })
+    const settle = tools.find((t) => t.name === 'novel_settle_chapter')!
+    expect(settle).toBeDefined()
+    const settled = await settle.execute(
+      { bookId: 'min-chain', ...key, summary: '第一章 开篇任务' },
+      { agent: { id: 'min-chain', session: { append: () => {} } } },
+    ) as { ok: boolean; message?: string; reason?: string }
+    expect(settled.ok, String(settled.reason)).toBe(true)
+    expect(settled.message).toContain('草稿区已清理')
+    // 入档在
+    expect(fs.existsSync(path.join(root, paths.定稿章(key.卷, key.章, key.章名)))).toBe(true)
+    // 草稿区五处消失(新键)
+    for (const rel of [
+      paths.草稿目录(key.卷, key.章, key.章名),
+      paths.材料包目录(key.卷, key.章, key.章名),
+      paths.待定稿包目录(key.卷, key.章, key.章名),
+      paths.审核记录(key.卷, key.章, key.章名),
+      paths.候选细纲(key.卷, key.章, key.章名),
+    ]) {
+      expect(fs.existsSync(path.join(root, rel)), rel).toBe(false)
+    }
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('完成')
   })
 })

@@ -9,7 +9,7 @@ import { readBookText } from '../repo/read'
 import { parseDocument } from '../repo/frontmatter'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { isWindowEntryReady } from './states'
-import { draftHashOf, parseReviewRecord, reviewInputFingerprintOf, reviewRecordHashOf, 处置状态列表, type ReviewRecord } from '../evidence/record'
+import { carryoverApplicable, draftHashOf, parseReviewRecord, reviewInputFingerprintOf, reviewRecordHashOf, 处置状态列表, type ReviewRecord } from '../evidence/record'
 import { chapterNo, isMarkdownFileName } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { materialReviewIdentity } from '../assembly/read'
@@ -161,21 +161,12 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   // 润色承接(0.0.54):审核记录登记了当前稿的润色承接时,当前稿哈希与指纹都不再等于
   // 「审稿哈希/审读指纹」(润色改字、指纹随之变),过期判定必须改按承接字段认——否则
   // 每章润色一改字就把审核证据判过期退回审核,与「先结构后文字」的流程相反。
-  // 三条认定(见批 5a 规格 1c):
+  // 认定口径单源在 evidence/record.ts carryoverApplicable(0.0.60 起,与 review/run 的
+  // stale 判定共用——derive 与写侧不再各写一套三条件):
   // - 无 `润色` 字段:照旧(当前稿哈希≠审稿哈希 或 指纹不符＝过期);承接=false。
-  // - 已润色:当前稿哈希 === 润色.稿哈希 且 润色.父稿哈希 === 审稿哈希 且 当前指纹 === 润色.审读指纹 → 未过期。
-  // - 已跳过:当前稿哈希 === 审稿哈希 === 润色.稿哈希 且 指纹未变 → 未过期。
+  // - 已润色/已跳过:按承接链比对(见 carryoverApplicable 注释),成立则未过期。
   // 其余(润色后又改字、细纲升版、材料刷新)按现行规则判过期,承接=false。
-  const 承接 = 审核?.润色
-  const 润色已承接 = 承接 !== undefined
-    && 当前待审稿哈希 !== null
-    && 当前审读指纹 !== null
-    && (承接.状态 === '已润色'
-      ? 当前待审稿哈希 === 承接.稿哈希 && 承接.父稿哈希 === 审核?.审稿哈希 && 当前审读指纹 === 承接.审读指纹
-      : 承接.状态 === '已跳过'
-        && 当前待审稿哈希 === 审核?.审稿哈希
-        && 当前待审稿哈希 === 承接.稿哈希
-        && 当前审读指纹 === 审核?.审读指纹)
+  const 润色已承接 = 审核 !== null && carryoverApplicable(审核, 当前待审稿哈希, 当前审读指纹)
   const 审核证据过期 = 审核 !== null && 唯一待审稿
     ? (润色已承接 ? false : (() => {
       if (审核.审稿哈希 === undefined) return true

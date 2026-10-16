@@ -4,6 +4,7 @@ export {
   isReviewIncomplete,
   draftHashOf,
   reviewInputFingerprintOf,
+  carryoverApplicable,
   loadReviewRecord,
   normalizeFinding,
   planReviewRecord,

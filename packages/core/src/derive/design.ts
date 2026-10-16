@@ -204,7 +204,13 @@ export function scanDesign(root: string, 卷 = 1): DesignFacts {
   for (const name of 卷纲缺段.filter(name => name !== '叙事结构')) 内容问题.push({ 路径: paths.卷纲(卷), 分部: name, 问题: '缺少分部', 阶段: '当前卷规划' })
   const planText = readText(root, paths.计划时间线(卷))
   const 计划时间线存在 = planText !== null
-  if (planText !== null && !hasDesignContent(planText.replace(/〔(?:已确认|暂定)〕/g, ''))) {
+  // 0.0.60:先 parseDocument 取 body 再判内容——frontmatter(如 状态: 已确认)不再掩蔽空正文
+  const planBody = (() => {
+    if (planText === null) return null
+    const doc = parseDocument(planText)
+    return doc.ok ? doc.data.body : planText
+  })()
+  if (planBody !== null && !hasDesignContent(planBody.replace(/〔(?:已确认|暂定)〕/g, ''))) {
     内容问题.push({ 路径: paths.计划时间线(卷), 分部: '计划时间线', 问题: '缺少内容', 阶段: '当前卷规划' })
   } else if (planText !== null && isLegacySeedPlan(planText)) {
     内容问题.push({ 路径: paths.计划时间线(卷), 分部: '计划时间线', 问题: '疑似模板占位', 阶段: '当前卷规划' })

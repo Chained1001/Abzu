@@ -4,6 +4,7 @@ import * as path from 'node:path'
 import * as os from 'node:os'
 import { canonicalizeChapterKeys, listChapters, scanChapter } from '../src/derive/scan'
 import { deriveChapterFacts } from '../src/derive/derive'
+import { resolveCandidateOutlineRel } from '../src/repo/draft-paths'
 import { draftHashOf, reviewInputFingerprintOf } from '../src/evidence/record'
 import { parseDocument } from '../src/repo/frontmatter'
 import { serializeDocument } from '../src/repo/frontmatter'
@@ -301,5 +302,25 @@ describe('草稿区键带章号(批8,0.0.57)——新键解析与旧目录 fallb
     // 旧书:候选在旧格式路径
     put(root2, '草稿区/章细纲/卷01-第七章.md', md({ 状态: '候选' }))
     expect(scanChapter(root2, key7).候选细纲).toBe(true)
+  })
+
+  it('候选细纲章号比对(0.0.60):同卷同名两章互不认领对方的候选;0000 占位与旧格式无号仍可被认领', () => {
+    const root = mkBook()
+    // 第 3 章已定位,存在 第3章 与 第7章 两个同名候选文件——各认各的
+    put(root, '草稿区/章细纲/卷01-0003-同名.md', md({ 状态: '候选' }))
+    put(root, '草稿区/章细纲/卷01-0007-同名.md', md({ 状态: '候选' }))
+    expect(resolveCandidateOutlineRel(root, { 卷: 1, 章: 3, 章名: '同名' })).toBe('草稿区/章细纲/卷01-0003-同名.md')
+    expect(resolveCandidateOutlineRel(root, { 卷: 1, 章: 7, 章名: '同名' })).toBe('草稿区/章细纲/卷01-0007-同名.md')
+
+    // 目标键不在时走认领循环:第 3 章只认 0000 占位,不碰 第7章 的候选
+    const root2 = mkBook()
+    put(root2, '大纲/卷规划/卷01/章细纲/0003-同名.md', md({ 状态: '已确认' }))
+    put(root2, '草稿区/章细纲/卷01-0000-同名.md', md({ 状态: '候选' }))
+    put(root2, '草稿区/章细纲/卷01-0007-同名.md', md({ 状态: '候选' }))
+    expect(resolveCandidateOutlineRel(root2, { 卷: 1, 章: 3, 章名: '同名' })).toBe('草稿区/章细纲/卷01-0000-同名.md')
+    expect(resolveCandidateOutlineRel(root2, { 卷: 1, 章: 7, 章名: '同名' })).toBe('草稿区/章细纲/卷01-0007-同名.md')
+    expect(scanChapter(root2, { 卷: 1, 章: 3, 章名: '同名' }).候选细纲).toBe(true)
+    // 第 7 章的候选文件未被第 3 章读写走位
+    expect(fs.readFileSync(path.join(root2, '草稿区/章细纲/卷01-0007-同名.md'), 'utf-8')).toContain('候选')
   })
 })

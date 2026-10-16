@@ -27,6 +27,24 @@ function mkBook(): string {
 afterAll(() => { for (const root of roots) { try { fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
 
 describe('故事账本查询', () => {
+  it('章上限语义等价(0.0.60):晚于上限的条目剔除,无章号条目保留', () => {
+    const root = mkBook()
+    writeFileAtomic(root, paths.账本('时间线'), [
+      '# 时间线', '',
+      '## 渡口开市', '事件：开市', '章号：5', '',
+      '## 终局之战', '事件：决战', '章号：99', '',
+      '## 某年冬', '事件：初雪', '',
+    ].join('\n'))
+    const bounded = queryLedger(root, { 分类: '时间线', 章上限: 10 })
+    expect(bounded.ok).toBe(true)
+    if (!bounded.ok) return
+    expect(bounded.entries.map((entry) => entry.名称)).toEqual(['渡口开市', '某年冬'])
+    // 无上限照旧全量——上限只影响带号且晚于上限的条目
+    const all = queryLedger(root, { 分类: '时间线' })
+    expect(all.ok).toBe(true)
+    if (all.ok) expect(all.entries.map((entry) => entry.名称)).toEqual(['渡口开市', '终局之战', '某年冬'])
+  })
+
   it('查询五类账本并支持分类/状态筛选', () => {
     const root = mkBook()
     writeFileAtomic(root, paths.账本('故事线'), '# 故事线\n\n## 主线启动\n状态：进行中\n计划来源：卷纲#1\n')

@@ -63,7 +63,7 @@ describe('host adversarial repro', () => {
     const ws = workspace('draft-case-')
     const root = path.join(ws, '作品')
     put(root, '作品契约/契约.md', serializeDocument({ 书id: 'b-audit' }, '测试作品'))
-    const relative = path.posix.join(paths.草稿目录(1, '开篇'), '稿1.md')
+    const relative = path.posix.join(paths.草稿目录(1, 1, '开篇'), '稿1.md')
     const original = put(root, relative, serializeDocument({ 身份: { 卷: 1, 章: 1, 章名: '开篇' }, 版本: 1, 角色: '待审稿', 选定: true }, '原稿正文'))
     const agent = { id: 'audit', session: { header: { cwd: ws } }, followup: () => {} }
     const runtime: StudyWebRuntime = { agents: { get: id => id === 'audit' ? agent : undefined, roots: () => [agent] } }

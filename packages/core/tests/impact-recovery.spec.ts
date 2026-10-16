@@ -134,4 +134,17 @@ describe('状态查询窗口化(批8,0.0.57)', () => {
     expect(first).toBeDefined()
     expect(first && '摘要' in first && first.建议环节).toBe('未完成')
   })
+
+  it('最近N章 非有限值(NaN/Infinity,0.0.60 守卫)回落默认 20,窗口化不失效', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-window-'))
+    roots.push(root)
+    makeFixtureBook(root, 60)
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      const rows = listResumable(root, { 最近N章: bad })
+      // 与默认 20 同窗口:61 行,20+1 完整,40 摘要——Infinity 不吞掉降载,NaN 不清空窗口
+      expect(rows).toHaveLength(61)
+      expect(rows.filter((r) => !('摘要' in r))).toHaveLength(RECOVERY_DEFAULT_RECENT + 1)
+      expect(rows.filter((r) => '摘要' in r)).toHaveLength(40)
+    }
+  })
 })

@@ -153,7 +153,10 @@ export interface ListResumableOptions {
  * 完成/未完成,不 scanChapter)。千章书返回体从数 MB 降到常数级;传 最近N章/卷 可展开。
  */
 export function listResumable(bookRoot: string, opts: ListResumableOptions = {}): ReadonlyArray<ResumeSnapshot | ResumeSummary> {
-  const recent = Math.max(1, Math.floor(opts.最近N章 ?? RECOVERY_DEFAULT_RECENT))
+  // 0.0.60:最近N章 裸调守卫——NaN/Infinity(如字符串数字被 Number() 后的非有限值)回落默认 20,
+  // 不让 slice(0, Infinity) 失去窗口化降载或 NaN 使窗口恒空。
+  const raw = opts.最近N章
+  const recent = Math.max(1, Math.floor(raw !== undefined && Number.isFinite(raw) ? raw : RECOVERY_DEFAULT_RECENT))
   const keys = listChapters(bookRoot)
   const full = new Set<string>()
   for (const k of keys.filter((k) => k.章 > 0).sort((a, b) => b.章 - a.章).slice(0, recent)) {

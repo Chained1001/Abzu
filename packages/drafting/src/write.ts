@@ -9,20 +9,21 @@ import {
   assertSegment,
   bumpVersion,
   composeBody,
-  demoteOtherPendingDrafts,
   extractVersionFields,
   filenameCase,
   initialVersion,
   isMarkdownFileName,
   parseDocument,
-  paths,
+  prepareDraftDemotions,
   resolveDraftRel,
   scanChapter,
   serializeDocument,
   splitCandidateFacts,
+  writeBatchAtomic,
   writeFileAtomic,
   草稿字段序,
   type ChapterKey,
+  type FileOp,
 } from '@abzu/core'
 import { bookWriter } from '@abzu/core'
 
@@ -163,8 +164,9 @@ function writeDraftLocked(bookRoot: string, input: WriteDraftInput): WriteDraftR
   const file = nextFileName(bookRoot, key)
   const relPath = path.posix.join(draftDir(bookRoot, key), file)
   // 0.0.54 起草收稿即待审稿:起草子代理产出与作者稿一样直接交审,不再等润色标待审稿。
-  // 重写稿先降级旧待审稿再写新稿(与改稿同一纪律),保证任一时刻待审稿唯一。
-  demoteOtherPendingDrafts(bookRoot, key, relPath)
+  // 重写稿先降级旧待审稿再写新稿(与改稿同一纪律),保证任一时刻待审稿唯一;
+  // 0.0.60:降级集与新稿同一 writeBatchAtomic 事务(照 applyRevision 的批形态)——
+  // 崩溃时要么旧态要么新态,不出现「旧待审稿已降级而新稿未落」的半写态。
   const fields = applyVersionFields(
     {
       身份: { 卷: input.卷, 章: input.章, 章名: input.章名 },
@@ -173,7 +175,11 @@ function writeDraftLocked(bookRoot: string, input: WriteDraftInput): WriteDraftR
     },
     ver,
   )
-  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(prose, facts), 草稿字段序))
+  const ops: FileOp[] = [
+    ...prepareDraftDemotions(bookRoot, key, relPath),
+    { relPath, content: serializeDocument(fields, composeBody(prose, facts), 草稿字段序) },
+  ]
+  writeBatchAtomic(bookRoot, ops)
 
   return { ok: true, relPath, gaps: [], 播报 }
 }
@@ -221,7 +227,6 @@ function importAuthorDraftLocked(bookRoot: string, input: ImportAuthorDraftInput
   const ver = explicitParent === null ? initialVersion('作者稿导入') : bumpVersion(explicitParent, '作者稿导入')
   const file = nextFileName(bookRoot, key)
   const relPath = path.posix.join(draftDir(bookRoot, key), file)
-  if (input.角色 === '待审稿') demoteOtherPendingDrafts(bookRoot, key, relPath)
   const fields = applyVersionFields(
     {
       身份: { 卷: input.卷, 章: input.章, 章名: input.章名 },
@@ -230,7 +235,13 @@ function importAuthorDraftLocked(bookRoot: string, input: ImportAuthorDraftInput
     },
     { ...ver, 生成模块: input.生成模块 },
   )
-  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(prose, facts), 草稿字段序))
+  // 0.0.60:待审稿角色的降级集与新稿同一 writeBatchAtomic 事务(照 applyRevision 的批形态,
+  // 与 writeDraft 同款)——不再「先降级、后写新稿」两批,半写态不可再现。
+  const ops: FileOp[] = [
+    ...(input.角色 === '待审稿' ? prepareDraftDemotions(bookRoot, key, relPath) : []),
+    { relPath, content: serializeDocument(fields, composeBody(prose, facts), 草稿字段序) },
+  ]
+  writeBatchAtomic(bookRoot, ops)
   return { ok: true, relPath, 播报 }
 }
 

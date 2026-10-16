@@ -83,7 +83,7 @@ describe('定稿后清理草稿区(批8,0.0.57)', () => {
     const log = spawnSync('git', ['-C', path.join(root, '草稿区'), 'log', '--format=%s'], { encoding: 'utf-8', windowsHide: true })
     expect(log.status).toBe(0)
     expect(log.stdout).toContain('定稿后清理:卷01-开篇任务')
-    expect(draftChapterResidue(root, key)).toEqual([]), 30_000, 30_000
+    expect(draftChapterResidue(root, key)).toEqual([])
   })
 
   it('清理失败不阻断入档:如实进返回消息,可跑存量脚本补清', async () => {

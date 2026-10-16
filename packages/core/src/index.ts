@@ -54,6 +54,7 @@ export {
   findPendingReviewDraft,
   listChapterDrafts,
   nextDraftFileName,
+  prepareDraftDemotions,
   splitCandidateFacts,
   草稿字段序,
   type DraftFile,
@@ -61,4 +62,5 @@ export {
 } from './repo/drafts'
 
 export { scanWorkspaceBooks, uniqueBookRoot, hasBooks, type WorkspaceBook } from './book/identity'
+export { readBookText, type BookTextResult } from './repo/read'
 export * from './reference'

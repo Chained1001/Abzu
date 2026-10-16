@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateSegment, assertSegment, paths, legacyPaths, pad, chapterNo } from '../src/repo/paths'
+import { validateSegment, assertSegment, paths, legacyPaths, pad, chapterNo, parseChineseVolume } from '../src/repo/paths'
 
 describe('路径白名单(机制 B2)', () => {
   it('合法中文名通过', () => {
@@ -52,5 +52,36 @@ describe('路径构造(格式规格 §2)', () => {
   it('幕纲路径:卷号两位、幕号两位(0.0.52 幕纲批)', () => {
     expect(paths.幕纲(1, 2, '渡口疑云')).toBe('大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md')
     expect(paths.幕纲(12, 10, '终局')).toBe('大纲/卷规划/卷12/幕纲/幕10-终局.md')
+  })
+})
+
+describe('parseChineseVolume 卷号复合数解析(批8,0.0.60 表驱动补齐)', () => {
+  it.each([
+    ['十', 10],
+    ['十一', 11],
+    ['二十', 20],
+    ['二十一', 21],
+    ['两', 2],
+    ['九十', 90],
+    ['九十九', 99],
+  ])('正例:%s → %s', (input, expected) => {
+    expect(parseChineseVolume(input as string)).toBe(expected)
+  })
+
+  it.each([
+    ['一百'], // 支持上限 99,百位不在表内
+    [''], // 空串
+    ['一二'], // 两位但无十位结构
+    ['十十'], // 十不能作数字字
+    ['3卷'], // 混合字
+    ['第3'], // 非纯数字串带前缀
+  ])('非法:%s → undefined', input => {
+    expect(parseChineseVolume(input as string)).toBeUndefined()
+  })
+
+  it('阿拉伯数字直取;超过三位中文数拒绝', () => {
+    expect(parseChineseVolume('3')).toBe(3)
+    expect(parseChineseVolume('99')).toBe(99)
+    expect(parseChineseVolume('一二三')).toBeUndefined()
   })
 })

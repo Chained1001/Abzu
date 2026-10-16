@@ -38,6 +38,8 @@ export function resolveDraftRel(bookRoot: string, kind: DraftPathKind, key: Draf
  * 候选细纲认领(批8):候选细纲在章定位**之前**落盘(novel_write_outline 不带章号),
  * 可能带 0000 占位号、旧格式无号、或早期定位号——章细纲目录里任何 `卷NN[-NNNN]-章名.md`
  * 形态的同卷同名候选都算本章的;目标新键在则优先(重写走最新落点)。
+ * 章号比对(0.0.60):已定位章(章>0)不认领别的章的同名候选——候选带号且与 key.章 不等
+ * 时跳过;0000 占位与旧格式无号仍可认领(先于定位落盘的正当形态)。
  */
 export function resolveCandidateOutlineRel(bookRoot: string, key: DraftChapterKeyLike): string {
   const target = paths.候选细纲(key.卷, key.章 ?? 0, key.章名)
@@ -47,6 +49,8 @@ export function resolveCandidateOutlineRel(bookRoot: string, key: DraftChapterKe
     for (const name of fs.readdirSync(dirAbs).sort()) {
       const m = /^卷(\d+)(?:-(\d{1,4}))?-(.+?)\.md$/i.exec(name)
       if (m === null || Number(m[1]) !== key.卷 || m[3] !== key.章名) continue
+      const 候选章 = m[2] === undefined ? 0 : Number(m[2])
+      if ((key.章 ?? 0) > 0 && 候选章 > 0 && 候选章 !== (key.章 ?? 0)) continue
       return `草稿区/章细纲/${name}`
     }
   } catch {

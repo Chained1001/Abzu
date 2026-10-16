@@ -13,6 +13,7 @@ import {
   serializeDocument,
   writeCandidate,
   writeRecentWindow,
+  writeFileAtomic,
   材料包十段,
 } from '../src/index'
 import { sectionFileName } from '../src/assembly/sections'
@@ -32,7 +33,7 @@ afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, 
 const key = { 卷: 1, 章: 1, 章名: '开篇任务' } as const
 const refs = ['作品契约/契约.md@1', '世界书/人物档案/主角.md@1'] as const
 
-function confirmReady(root: string): void {
+function confirmReady(root: string, k: { readonly 卷: number; readonly 章: number; readonly 章名: string } = key): void {
   const body = [
     '# 章细纲', '', '## 定位段', '',
     '### 来源窗口项及拆并关系', '开篇任务，单章承接', '',
@@ -48,8 +49,8 @@ function confirmReady(root: string): void {
     '- 目标: 找到异常', '- 人物: 主角', '- 时空: 城门口',
     '- 行动/冲突: 盘问与发现', '- 信息披露: 异常线索', '- 状态变化: 从平静到警觉', '',
   ].join('\n')
-  writeCandidate(root, { 卷: 1, 章: 1, 章名: '开篇任务', 来源引用: refs, body })
-  const r = confirmOutline(root, key)
+  writeCandidate(root, { 卷: k.卷, 章: k.章, 章名: k.章名, 来源引用: refs, body })
+  const r = confirmOutline(root, k)
   if (!r.ok) throw new Error(`confirm failed:${r.gaps.join(';')}`)
 }
 
@@ -80,6 +81,21 @@ describe('写作备料(格式规格 §9.2)', () => {
     expect(readManifest(root, key)?.状态).toBe('段齐备')
     const facts = scanChapter(root, key)
     expect(deriveChapterFacts(facts).建议).toEqual({ row: 4, 环节: '写稿' })
+  })
+
+  it('章上限同口径(0.0.60):F4「世界已发生」边界在组装里剔除晚于目标章的条目、保留无章号条目', () => {
+    const root = mkBook()
+    const key10 = { 卷: 1, 章: 10, 章名: '开篇任务' } as const
+    confirmReady(root, key10)
+    writeFileAtomic(root, paths.账本('时间线'), '# 时间线\n\n## 渡口开市\n事件：开市\n章号：5\n\n## 终局之战\n事件：决战\n章号：99\n\n## 某年冬\n事件：初雪\n')
+    const r = assembleMaterials(root, key10)
+    expect(r.ok).toBe(true)
+    expect(r.状态).toBe('段齐备')
+    const sectionAbs = path.join(root, paths.材料包目录(1, 10, '开篇任务'), sectionFileName(2, '当前事实与连续性'))
+    const section = fs.readFileSync(sectionAbs, 'utf-8')
+    expect(section).toContain('渡口开市')
+    expect(section, '章 99 晚于目标章 10，不入本章材料').not.toContain('终局之战')
+    expect(section).toContain('某年冬')
   })
 
   it('missing referenced 仓内 file → 段有缺, not 段齐备', () => {

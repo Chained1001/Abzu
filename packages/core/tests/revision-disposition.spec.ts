@@ -61,9 +61,16 @@ describe('处置只改所选字段，审核证据保持原始适用范围', () =
     expect(result.更新条数).toBe(1)
     expect(result.审核记录哈希).toBe(reviewRecordHashOf(f.text()))
     const expected = structuredClone(f.record)
+    // 0.0.60:readReviewRecordForUpdate 统一取 parseReviewRecord 的规范化结果——顶层 raw
+    // 扩展键(扩展证据)与 方案 的扩展字段(扩展说明)不再随定点更新回写;发现项/模块内的
+    // 扩展字段仍原样保留(下方问题/模块断言不变)。
+    expected.方案 = { 动作: f.record.方案.动作, 理由: f.record.方案.理由, 跳过: f.record.方案.跳过 }
+    delete (expected as Record<string, unknown>)['扩展证据']
     expected.问题[0]!.处置 = expected.问题[0]!.处置状态 = '作者保留'
     expected.问题[0]!.处置说明 = '作者确认保留。'
     expect(JSON.parse(f.text())).toEqual(expected)
+    expect(JSON.parse(f.text()).问题[5]).toMatchObject({ 扩展字段: { 定位: 5 } })
+    expect(JSON.parse(f.text()).模块['设定核对']).toMatchObject({ 扩展字段: 17 })
     expect(scanChapter(f.root, key)).toMatchObject({ 审核完成: true, 审核证据过期: false })
     expect(fs.readFileSync(path.join(f.root, pendingRel), 'utf8')).toBe(f.draft)
   })

@@ -1,4 +1,5 @@
 import { writeReadyDesign } from '../../core/tests/fixtures/ready-design'
+import { makeFixtureBook } from '../../core/tests/helpers/fixture-book'
 import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
@@ -466,6 +467,48 @@ describe('运行链路接线(工具面验收)', () => {
     const again = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 2, 幕名: '渡口疑云', 正文: 重写 })
     expect(again.ok, JSON.stringify(again)).toBe(true)
     // 幕纲无 frontmatter（段级状态写在段标题尾注里）——版本由提交与文件内容体现，正文改写落到文件
-    expect(fs.readFileSync(path.join(bookRoot, rel), 'utf-8')).toContain('起因改写：渡口商船失踪。')
+    expect(fs.readFileSync(path.join(bookRoot, rel), 'utf8')).toContain('起因改写：渡口商船失踪。')
+  })
+
+  it('novel_get_story_status 窗口化(0.0.60 工具层):60 章书默认完整回最近 20 章,摘要行省略有提示,传 卷 展开', async () => {
+    const ws = mkWs()
+    const { call } = makeTools(ws)
+    const { bookId } = await makeBook(ws, call)
+    const bookRoot = path.join(ws, '链路书')
+    // 60 章两卷书(每卷 30 章,每章确认细纲+定稿+章摘要);seedMinDesign 的窗口未定位键(开篇任务,章:0)恒完整重建
+    makeFixtureBook(bookRoot, 60, { 每卷章数: 30 })
+    type Row = { key: { 卷: number; 章: number; 章名: string }; 摘要?: true; 建议环节?: string }
+    const pick = async (args: Record<string, unknown>) => {
+      const r = await call('novel_get_story_status', { bookId, ...args })
+      expect(r.ok, JSON.stringify(r)).toBe(true)
+      return { rows: r.chapters as Row[], 总数: r.总数 as number, 完整返回数: r.完整返回数 as number, 省略数: r.省略数 as number, message: r.message as string | undefined }
+    }
+    // 默认窗口:60 带号章＋1 个 章:0 键=61 行;完整=章号最大 20 章(41-60,全在卷2)+章:0 键
+    const base = await pick({})
+    expect(base.总数).toBe(61)
+    expect(base.完整返回数).toBe(21)
+    expect(base.省略数).toBe(40)
+    expect(base.message).toContain('传 卷 或 最近N章 展开')
+    const brief = base.rows.filter((c) => c.摘要 === true)
+    expect(brief).toHaveLength(40)
+    for (const line of brief) expect(line.建议环节).toBe('完成')
+    const fullNos = base.rows.filter((c) => c.摘要 !== true && c.key.章 > 0).map((c) => c.key.章)
+    expect(fullNos).toEqual(Array.from({ length: 20 }, (_, i) => 41 + i))
+    // 传 卷=1 展开:卷1 三十章全量完整(与近章窗口并集),卷2 只剩 31-40 十章摘要
+    const vol1 = await pick({ 卷: 1 })
+    expect(vol1.总数).toBe(61)
+    expect(vol1.完整返回数).toBe(51)
+    expect(vol1.省略数).toBe(10)
+    expect(vol1.rows.filter((c) => c.key.卷 === 1 && c.key.章 > 0 && c.摘要 !== true)).toHaveLength(30)
+    // 传 卷=2 展开:窗口(41-60)⊂卷2,完整=卷2 三十章;卷1 三十章全为摘要行
+    const vol2 = await pick({ 卷: 2 })
+    expect(vol2.完整返回数).toBe(31)
+    expect(vol2.省略数).toBe(30)
+    expect(vol2.rows.filter((c) => c.key.卷 === 1 && c.key.章 > 0 && c.摘要 !== true), '卷2 展开时卷1 带号章全为摘要(章:0 键除外)').toHaveLength(0)
+    // 传 最近N章 展开:60 → 全量完整,无省略提示
+    const all = await pick({ 最近N章: 60 })
+    expect(all.完整返回数).toBe(61)
+    expect(all.省略数).toBe(0)
+    expect(all.message).toBeUndefined()
   })
 })

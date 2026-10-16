@@ -72,6 +72,23 @@ describe('作者文档保存边界', () => {
     expect(saved.ok && saved.data.fields).toMatchObject({ 身份: draftKey, 父版本: 1, 生成模块: '作者手改', 来源快照: { 细纲: 1 } })
   })
 
+  it('旧格式草稿目录(卷NN-章名,0.0.57 前)照常保存:新稿落同一旧目录,不分裂到新键目录', () => {
+    // 真实旧书形:目录无章号段,frontmatter 身份也未定位(无 章 字段)
+    const relative = '草稿区/草稿/卷01-旧章/稿1.md'
+    const legacyKey = { 卷: 1, 章: 0, 章名: '旧章' }
+    const text = put(relative, serializeDocument({ 身份: { 卷: 1, 章名: '旧章' }, 版本: 1, 角色: '待审稿', 选定: true, 来源快照: { 细纲: 1 } }, '旧书正文。\n\n## 草稿候选事实\n\n- 人物：旧章角色到港。'))
+    const saved = saveAuthorDocument(root, { path: relative, expectedHash: documentHash(text), body: '作者在旧书上的新正文', provenance, operationId })
+    expect(saved.previousPath).toBe(relative)
+    expect(saved.path).toBe('草稿区/草稿/卷01-旧章/稿2.md')
+    expect(fs.existsSync(path.join(root, saved.path))).toBe(true)
+    expect(fs.existsSync(path.join(root, '草稿区/草稿/卷01-0000-旧章')), '同章工件不分裂到新键目录').toBe(false)
+    const drafts = listChapterDrafts(root, legacyKey)
+    expect(drafts).toHaveLength(2)
+    expect(drafts.filter(item => item.角色 === '待审稿')).toHaveLength(1)
+    expect(drafts.find(item => item.file === '稿1.md')?.body).toContain('旧书正文')
+    expect(scanChapter(root, legacyKey).唯一待审稿).toBe(true)
+  })
+
   it('实际大写扩展名在 Windows 仍是草稿，POSIX 保持区分大小写', () => {
     const { relative, text } = draft('待审稿', 1, '稿1.MD')
     expect(fs.readdirSync(path.dirname(path.join(root, relative)))).toContain('稿1.MD')

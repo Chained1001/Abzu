@@ -243,3 +243,70 @@ describe('computeReview 重置轮次清掉 润色', () => {
     expect(loadReviewRecord(root, key)?.润色).toBeUndefined()
   })
 })
+
+describe('stale 认承接(0.0.60):承接登记后核对型重跑不整轮重置', () => {
+  it('已润色承接后重跑 runReview:承接保留、模块态不重置、证据身份仍绑被审稿;改字后重跑才重置', () => {
+    const root = mkBook()
+    const parentBody = `巷口风大。${HARD}。他没有回头。`
+    reviewedChapter(root, parentBody)
+    putDraft(root, { 角色: '草稿', 选定: false, 版本: 1, 生成模块: '写稿' }, parentBody)
+    const polishedRel = putDraft(root, { 角色: '待审稿', 选定: true, 版本: 2, 父版本: 1, 生成模块: '润色' }, `巷口的风很急。${HARD}。他没有回头。`, '稿2.md')
+    expect(recordPolish(root, { ...key, 稿件: polishedRel }).ok).toBe(true)
+    const before = loadReviewRecord(root, key)!
+    expect(before.润色).toBeDefined()
+    expect(before.完成).toBe(true)
+
+    // 核对型重跑:指纹失配(润色改字)但承接成立(carryoverApplicable)——不整轮重置
+    const rerun = runReview(root, key)
+    expect(rerun.ok).toBe(true)
+    const after = loadReviewRecord(root, key)!
+    expect(after.润色?.稿件).toBe(polishedRel)
+    expect(after.完成, '模块态未被重置为待回写').toBe(true)
+    expect(Object.values(after.模块).every((st) => st.完成 === true)).toBe(true)
+    // 证据身份仍绑被审稿——承接链(父稿哈希=审稿哈希)不因重跑断裂
+    expect(after.审稿哈希).toBe(before.审稿哈希)
+    expect(after.审读指纹).toBe(before.审读指纹)
+    const facts = scanChapter(root, key)
+    expect(facts.润色已承接).toBe(true)
+    expect(facts.审核完成).toBe(true)
+
+    // 改字后重跑:承接不成立(哈希脱离承接稿)→ 重置、润色作废
+    putDraft(root, { 角色: '待审稿', 选定: true, 版本: 2, 父版本: 1, 生成模块: '润色' }, `巷口的风更急了。${HARD}。他始终没有回头。`, '稿2.md')
+    runReview(root, key)
+    const reset = loadReviewRecord(root, key)!
+    expect(reset.润色).toBeUndefined()
+    expect(reset.完成).toBe(false)
+  })
+
+  it('已跳过承接后核对型重跑(指纹本就未变):承接与完成照旧保留', () => {
+    const root = mkBook()
+    reviewedChapter(root)
+    expect(recordPolish(root, { ...key, 跳过: true, 理由: '作者稿不润色' }).ok).toBe(true)
+    const rerun = runReview(root, key)
+    expect(rerun.ok).toBe(true)
+    const after = loadReviewRecord(root, key)!
+    expect(after.润色?.状态).toBe('已跳过')
+    expect(after.完成).toBe(true)
+    expect(scanChapter(root, key).润色已承接).toBe(true)
+  })
+
+  it('带 BOM 细纲的承接成功(0.0.60):外部编辑器存 BOM 不再阻断承接认定', () => {
+    const root = mkBook()
+    const parentBody = `巷口风大。${HARD}。他没有回头。`
+    reviewedChapter(root, parentBody)
+    // 审核通过后,外部编辑器给确认细纲存了 BOM——指纹三方(scan/review/polish)须同口径
+    const outlinePath = path.join(root, ...paths.确认细纲(1, 1, '开篇任务').split('/'))
+    fs.writeFileSync(outlinePath, '\uFEFF' + fs.readFileSync(outlinePath, 'utf-8'), 'utf-8')
+    putDraft(root, { 角色: '草稿', 选定: false, 版本: 1, 生成模块: '写稿' }, parentBody)
+    const polishedRel = putDraft(root, { 角色: '待审稿', 选定: true, 版本: 2, 父版本: 1, 生成模块: '润色' }, `巷口的风很急。${HARD}。他没有回头。`, '稿2.md')
+    const r = recordPolish(root, { ...key, 稿件: polishedRel })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    const facts = scanChapter(root, key)
+    expect(facts.润色已承接).toBe(true)
+    expect(facts.审核完成).toBe(true)
+    // 重跑同口径:带 BOM 细纲下核对型重跑承接仍成立
+    expect(runReview(root, key).ok).toBe(true)
+    expect(scanChapter(root, key).润色已承接).toBe(true)
+  })
+})
