@@ -2,7 +2,8 @@
  * 装机(PRD §6.1 / plugin-spec §12 / §16「接线」)——工作范围注册 + 书房脚手架。
  *
  * 首次运行(workspaceRegistry 为空)时:选目录 → 校验 → 注册那一个 workspace →
- * 落 `书房/{构想,灵感池,作者记忆,知识库}` 四空目录(幂等)。
+ * 落 `书房/{构想,灵感池,知识库}` 三空目录(幂等;0.0.50 起不再创建 作者记忆——该层已删除,
+ * 已有用户磁盘上的 `书房/作者记忆/` 不删除、不迁移,代码只是不再读写)。
  *
  * 纯逻辑(校验/脚手架)与宿主接入分离:本文件校验与脚手架为纯函数可测,
  * `pickWorkspaceDirectory` 为判别式 switch(directoryPicker capability)。
@@ -11,8 +12,8 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
-/** 书房子目录(PRD §9.1 术语表:构想草案/灵感池/作者记忆/知识库)。 */
-export const STUDY_DIRS = ['构想', '灵感池', '作者记忆', '知识库'] as const
+/** 书房子目录(PRD §9.1 术语表:构想草案/灵感池/知识库;0.0.50 删作者记忆目录)。 */
+export const STUDY_DIRS = ['构想', '灵感池', '知识库'] as const
 
 /** 目录校验结果(装机前对候选工作范围的检查,PRD §4.5 / plugin-spec §12)。 */
 export type WorkspaceValidation =
@@ -68,7 +69,7 @@ function insideGitRepo(start: string): boolean {
 }
 
 /**
- * 落书房脚手架(幂等):`<工作范围>/书房/{构想,灵感池,作者记忆,知识库}`。
+ * 落书房脚手架(幂等):`<工作范围>/书房/{构想,灵感池,知识库}`。
  * 返回实际存在的子目录列表(已存在不重复建)。
  */
 export function scaffoldStudy(workspaceRoot: string): readonly string[] {

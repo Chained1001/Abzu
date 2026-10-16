@@ -51,20 +51,29 @@ describe('故事账本查询', () => {
   it('旧格式记忆部分文件在时按条目读并标旧;全无记忆才报缺失', () => {
     const root = mkBook()
     for (const 类 of MEMORY_KINDS) {
-      if (类 === '灵感') continue
       writeFileAtomic(root, paths.记忆(类), `# ${类}\n\n## 条目-${类}\n类：${类}\n状态：已确认\n`)
     }
+    // 0.0.50 退役类别（对话/灵感）的旧格式文件:照常在盘、查询不报错、按只读跳过（不迁移）
+    writeFileAtomic(root, '本书记忆/对话.md', '# 对话\n\n## 条目-对话\n类：对话\n状态：已确认\n')
+    writeFileAtomic(root, '本书记忆/灵感.md', '# 灵感\n\n## 条目-灵感\n类：灵感\n状态：已确认\n')
     const partial = queryMemory(root, { 类: '文风' })
     expect(partial.ok).toBe(true)
     if (partial.ok) {
       expect(partial.entries.map((entry) => entry.名称)).toEqual(['条目-文风'])
       expect(partial.entries[0]!.格式).toBe('旧')
     }
-    // 新格式一事一文件:条目文件带 类 字段,不标旧
+    const allKinds = queryMemory(root)
+    expect(allKinds.ok).toBe(true)
+    if (allKinds.ok) expect(allKinds.entries.map((entry) => entry.名称).sort()).toEqual(['条目-决策', '条目-文风'])
+    // 新格式一事一文件:条目文件带 类 字段,不标旧;类为退役类别的条目文件同样只读跳过
     writeFileAtomic(root, paths.本书记忆条目('克制叙述'), '---\n名称: 克制叙述\n类: 文风\n状态: 已确认\n来源: x\n---\n短句。\n')
+    writeFileAtomic(root, paths.本书记忆条目('主角语气'), '---\n名称: 主角语气\n类: 对话\n状态: 已确认\n来源: x\n---\n避免长篇解释。\n')
     const mixed = queryMemory(root, { 类: '文风' })
     expect(mixed.ok).toBe(true)
     if (mixed.ok) expect(mixed.entries.map((entry) => entry.名称).sort()).toEqual(['克制叙述', '条目-文风'])
     if (mixed.ok) expect(mixed.entries.find((entry) => entry.名称 === '克制叙述')?.格式).toBeUndefined()
+    const all2 = queryMemory(root)
+    expect(all2.ok).toBe(true)
+    if (all2.ok) expect(all2.entries.map((entry) => entry.名称)).not.toContain('主角语气')
   })
 })

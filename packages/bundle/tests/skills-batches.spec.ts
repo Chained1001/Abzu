@@ -136,9 +136,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
     expect(sweep).toContain('节缺失（旧格式）')
     expect(sweep).toContain('不为格式差异产出伪缺陷')
-    // C5. 卷末体感回灌
-    expect(readSkill('novel-settle')).toContain('本卷写作过程有什么踩坑或方法论不对的地方')
-    expect(readSkill('novel-settle')).toContain('下次开卷时对齐')
+    // C5.（0.0.50：体感回灌改为下卷注意事项——问句与去处随批改写，断言钉新口径）
+    expect(readSkill('novel-settle')).toContain('有什么要提醒下一卷注意的')
+    expect(readSkill('novel-settle')).toContain('下卷注意·卷<NN+1>')
+    expect(readSkill('novel-settle')).toContain('这条属于产品反馈，不记进书里')
     // D. 灵感域两处轻接线（可选判据不阻塞＋书名候选步）
     const inspiration = readSkill('novel-inspiration')
     expect(inspiration).toContain('收敛时可参考（可选）')
@@ -315,21 +316,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(drafting).toContain('吊他胃口')
     expect(drafting).toContain('自评：最得意')
     expect(readSkill('novel-polish'), '旧「没劲段」标签应全 polish 清零（0.0.41 翻正）').not.toContain('没劲段')
-    // C. 首章文风建档门二支＋四层画像：文风默认化（不留参考书学习口子）＋关键词与入档工具实接
-    expect(drafting).toContain('首章文风建档门')
+    // C.（0.0.50 删作者记忆与默认文风批：首章文风建档门整节删除，本组 C 块断言随功能退役——
+    //     替代断言见「0.0.50 删作者记忆与默认文风批」组；负断言保留防回退）
     expect(drafting, '文风默认化裁定：不留从其他作品学习文风的口子').not.toContain('从已导入的参考书归纳')
-    expect(drafting).toContain('自带满意段')
-    expect(drafting).toContain('默认推导')
-    expect(drafting).toContain('这是兜底不是建议')
-    expect(drafting).toContain('句法层')
-    expect(drafting).toContain('手法层')
-    expect(drafting).toContain('逻辑层')
-    expect(drafting).toContain('语态层')
     expect(drafting, '梗密度档不设（例子型机械不入产品）').not.toContain('梗密度档')
-    expect(drafting).toContain('保留技法采集')
-    expect(drafting).toContain('novel_record_memory')
-    expect(drafting).toContain('书房/开书/<书名>/种子底子.md')
-    expect(drafting).toContain('矛盾项呈作者裁决')
     // C2. 拆书消费接线：细纲期机制卡参照（借魂不借形＋novel_reference_query）＋重推演四步（机制与灵感.md＋analyze SKILL）
     const outline = readSkill('novel-outline')
     expect(outline).toContain('借魂不借形')
@@ -667,20 +657,17 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(drafting).toContain('来源快照')
     expect(drafting).toContain('保真风险')
     expect(drafting).toContain('由流程各阶段补')
-    // 11. 建档门防撞名＋文风条目措辞统一（作者层/本书记忆两通道）
-    expect(drafting).toContain('文风画像·{书名}')
-    expect(drafting).toContain('记忆文风条目（作者层')
-    expect(drafting).toContain('本书记忆文风条目')
-    expect(settle).toContain('带书名后缀')
+    // 11.（0.0.50：作者层文风画像删除——防撞名断言随功能退役；drafting 改钉三样文风基准措辞）
+    expect(drafting).toContain('文风基准')
+    expect(drafting).toContain('本书记忆里的文风锚点条目')
+    expect(settle).toContain('## 决策')
     // 12. POV 接力章合法态：序列写法（主 POV＋接力副 POV）
     expect(sect).toContain('序列写法')
     expect(sect).toContain('接力副 POV')
     // 13. 卷级情绪基调行
     expect(vol).toContain('情绪基调')
     expect(vol).toContain('溺水感')
-    // 14. 章名风格进画像手法层
-    expect(drafting).toContain('章名风格')
-    expect(drafting).toContain('梗化情绪式')
+    // 14.（0.0.50：章名风格原钉在画像手法层，画像删除后断言退役——章名风格属本书契约第五部调整，不再单设画像层）
     // 15. 取数速查表补 200 万字·都市算例行
     expect(scale).toContain('200 万字·都市')
     // 16. 升级关系第四来源：三来源扩四
@@ -844,8 +831,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // 首章定稿呈报的升格问（0.0.16 升格问机制）——问句本体与首章限定词都在位才防回退：
     // 限定词丢了＝每章都问（退化）；问句丢了＝锚点段采集断链
     const settle = readSkill('novel-settle')
-    expect(settle, '首章末升格问应在位').toContain('挑一段满意的收进文风锚点吗')
-    expect(settle, '升格问应限定首章').toContain('首章呈报时加问一句')
+    expect(settle, '锚点段问句应在位').toContain('挑一段满意的收进文风锚点吗')
+    expect(settle, '锚点问应限定前五章（0.0.50 由首章扩到前五章）').toContain('本书前五章（第 1–5 章）定稿呈报时各问一次')
+    expect(settle, '五问之后改作者点名').toContain('之后作者主动点名时再收')
   })
 
   it('0.0.19 审查修复批：共享测试 helper', () => {
@@ -902,7 +890,6 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(text, `${label}: 不应残留裸书房路径`).not.toContain('`书房/')
       expect(text, `${label}: 不应残留 {工作范围根} 旧记法`).not.toContain('{工作范围根}')
     }
-    expect(drafting).toContain('<工作范围>/书房/开书/<书名>/种子底子.md')
     expect(design).toContain('<工作范围>/书房/开书/<书名>/种子底子.md')
     // A3. 构想快照孤例改裸书仓式（书仓根工件不带 <书仓>/ 前缀）
     expect(inspiration).toContain('| 构想快照 | `构想/构想快照.md` |')
@@ -914,7 +901,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
     expect(clean).toContain('词表单源在审读 novel-review 技能包 SKILL「参考线速览表」')
     const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
-    expect(reshape).toContain('总判据是契约「叙事方式与文风基调」分部')
+    expect(reshape).toContain('总判据是本书文风基准（契约第五部调整＋本书锚点＋默认文风）')
     // A6. director 排障入口跨包定位句＋改稿章程加载名（全表唯一断点修复）
     expect(director).toContain('§4.x/§5.x＝《定调设计》技能包 references/ 下大纲-*与卷纲-*拆分件')
     expect(director).toContain('§6.x＝《细纲备料》技能包 references/ 下章纲-*拆分件（§6.7 在《章纲-信息与情绪》）')
@@ -925,10 +912,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(checks).toContain('候选细纲落盘后')
     expect(sectSpec).toContain('候选细纲正文')
     expect(readSkill('novel-review')).toContain('**全量审读（默认）**')
-    // B2. 记忆文风条目：两处改口＋条目名不变
-    expect(outline).toContain('本书记忆有记忆文风条目时')
-    expect(sectSpec).toContain('本书记忆有记忆文风条目时')
-    expect(drafting).toContain('文风画像·{书名}')
+    // B2.（0.0.50：文风类条目措辞随作者层删除改口——「记忆文风条目」退役）
+    expect(outline).toContain('本书记忆有文风类条目时')
+    expect(sectSpec).toContain('本书记忆有文风类条目时')
     // B4. 旧词全树清零（确认章细纲/细纲候选/全量体检/全量章程）
     const skillsRoot = path.join(__dirname, '..', 'skills')
     const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
@@ -1552,13 +1538,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(review).toContain('core 契约解析器接受浮动行落地前脚本遇浮动行报「配置错误」')
     expect(sect).toContain('目标带＝作品契约「章节篇幅」主区间')
     expect(sect).toContain('合计低于目标带下限＝细纲事件量不足')
-    // B. F11 仲裁句＋长句配额：画像优先、卡组兜底＋SD 带兜底下限＋句法层长句配额行（首次建档推导；独立审查 R2——示例改 M27 试运行原参数「每章 ≥3 处 ≥40 字」；Nit①——SD 三批批型事实句）
-    expect(drafting).toContain('画像优先、卡组兜底')
-    expect(drafting).toContain('散文卡组句长 SD 带作兜底下限、不低于带下缘')
-    expect(drafting).toContain('长句配额：每章 ≥3 处 ≥40 字')
+    // B.（0.0.50：画像卡组仲裁句与长句配额行随首章文风建档门删除退役——文风立场单源默认文风、密度数值单源写作卡；负断言保留防回退）
     expect(drafting).not.toContain('每段至少一句')
     expect(drafting).not.toContain('试运行实证')
-    expect(drafting).toContain('首次建档时推导')
     // C. F3 前史隐喻行：力量体系条目模板金手指轨道位
     expect(power).toContain('前史隐喻：<能力与人物前史的呼应——能力形态即创伤/执念的具象')
     expect(power).toContain('无呼应留白，不硬造')
@@ -1579,13 +1561,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(game).toContain('程序细则（正文生长）：<正文自创的程序条款——复现 ≥2 次必须回写此行，防设定漂移>')
     expect(world).toContain('程序细则（正文生长）：<正文自创的程序条款——复现 ≥2 次必须回写此行，防设定漂移>')
     // H. F19 卷末触发句＋契约三行（独立审查 C1——次序改先对账后摘要，对齐同节既有句与 F19 原文）
-    expect(settle).toContain('卷对账→卷摘要→段级刷新→体感回灌，四件一批')
+    expect(settle).toContain('卷对账→卷摘要→段级刷新→下卷注意事项，四件一批')
     expect(settle).toContain('| 卷摘要 | `大纲/卷规划/卷<NN>/卷摘要.md` |')
     expect(settle).toContain('| 卷对账（卷级） | `<工作范围>/书房/卷末/<书名>/卷<NN>-卷对账.md` |')
     expect(settle).toContain('| 段级刷新 | `<工作范围>/书房/卷末/<书名>/卷<NN>-段级刷新.md` |')
-    // I. F13/F1 文风画像文件名防漂移：间隔号·无空格＋漂移字形清单
-    expect(drafting).toContain('间隔符用间隔号「·」且两侧无空格')
-    expect(drafting).toContain('均为漂移字形')
+    // I.（0.0.50：文风画像条目随作者层删除，文件名防漂移断言退役；AI 痕迹行画像措辞改基准）
     // K. 版本纪律全套钉随当前版走——0.0.29 收尾批起移入 0.0.29 组接力（本组原 0.0.28 钉同步退役；当前口径随版本走，见 0.0.19 组 A 注）
   })
 
@@ -1614,7 +1594,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // 0.0.33 判据瘦身批起：连接词上下限数值带三句随自查卡连接词条指针化退役（判据单源散文卡组连接词卡，
     // 数值带另存润色 tier4「3-6 处/千字」），断言随裁同步——指针句详断言见 0.0.33 流程修复批组
     expect(selfCheck).toContain('模型倾向按固定间距均匀洒满')
-    expect(selfCheck).toContain('文风画像句法层冲突时画像优先')
+    expect(selfCheck).toContain('与本书文风基准〔契约第五部调整＋本书锚点〕冲突时基准优先')
     expect(selfCheck, '旧「修辞预算四条」独立节应退役').not.toContain('修辞预算四条')
     expect(selfCheck, '旧出处「人类五书 0-2.1/千字」应退役').not.toContain('人类五书 0-2.1/千字')
     expect(selfCheck, '旧出处「中文网文人类近零」应退役').not.toContain('中文网文人类近零')
@@ -1732,12 +1712,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(lockSrc).toContain('class BookLockError')
     expect(lockSrc).toContain('请等 30 秒后重试一次')
     expect(fs.existsSync(path.join(__dirname, '..', '..', 'core', 'src', 'repo', 'rel-path.ts')), 'rel-path.ts 单源应存在').toBe(true)
-    // D. 族④ 记忆守卫：新增不覆盖＋更新须原文（scope=book 不跟——上游直写绕裁决链，见 CHANGELOG 声明）
-    const authorSrc = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'memory', 'author.ts'), 'utf8')
-    expect(authorSrc).toContain('不得用新增覆盖')
-    expect(authorSrc).toContain('记忆原文已变化')
-    expect(authorSrc).toContain('更新记忆须先读取并提供完整原文')
-    expect(tools).toContain('同名条目已存在时新增被拒')
+    // D.（0.0.50：作者层记忆模块 memory/author.ts 与 novel_record_memory 删除，记忆守卫断言随功能退役；
+    //     本书记忆唯一写入路径是定稿沉淀，同名冲突由沉淀的「旧格式或未知条目冲突」守卫承接，见 core settlement/memory 测试）
     // E. 新增 spec 文件存在性（上游 10 个新 spec 的落位核对）
     for (const spec of ['transaction-fsync.spec.ts', 'transaction-quarantine.spec.ts', 'lock-recovery.spec.ts', 'rel-path.spec.ts', 'draft-length-feedback.spec.ts']) {
       expect(fs.existsSync(path.join(__dirname, '..', '..', 'core', 'tests', spec)), `core/tests/${spec} 应存在`).toBe(true)
@@ -1889,7 +1865,6 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       .map((f) => fs.readFileSync(path.join(__dirname, '..', 'src', 'tools', f), 'utf8')).join('\n')
     expect(novelTools, '作者稿导入后应快照草稿区').toContain('快照: 作者稿导入')
     expect(novelTools, '作者手改摄入后应快照草稿区').toContain('快照: 作者手改')
-    expect(novelTools, '作者记忆写入后应快照书房').toContain('快照: 作者记忆')
     const gates = fs.readFileSync(path.join(__dirname, '..', 'src', 'gates.ts'), 'utf8')
     expect(gates, '文件工具写后快照应挂 tools/result 观察者').toContain("'tools/result'")
     expect(gates).toContain('attachDraftSnapshotToAgent')
@@ -1988,15 +1963,83 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.49＋CHANGELOG 条目＋README×2（纪律统一批接力）
+    // C. 版本纪律全套：两 package.json 0.0.50＋CHANGELOG 条目＋README×2（纪律统一批接力；0.0.50 起版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.49').toBe('0.0.49')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.49').toBe('0.0.49')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.49]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.50').toBe('0.0.50')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.50').toBe('0.0.50')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.50]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.49`).toContain('0.0.49')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.50`).toContain('0.0.50')
     }
+  })
+
+  it('0.0.50 删作者记忆与默认文风批：默认文风文件＋drafting 三样文风基准＋settle 决策去向与下卷注意事项＋作者记忆全树清零＋注册单源', () => {
+    // A. 默认文风：文件存在＋五层标题在位＋不含数字（数值单源在写作卡）
+    const stylePath = skillFile('novel-drafting', 'references/默认文风.md')
+    expect(fs.existsSync(stylePath), 'novel-drafting/references/默认文风.md 应存在').toBe(true)
+    const style = fs.readFileSync(stylePath, 'utf8')
+    for (const layer of ['## 叙述者', '## 表达逻辑', '## 节奏', '## 语言', '## 情绪与趣味', '## 数值参照']) {
+      expect(style, `默认文风应含「${layer}」层`).toContain(layer)
+    }
+    expect(style).toContain('优先于本文件')
+    expect(style).toContain('数值单源在《正文起草》技能包 agents/写作卡.md')
+    for (const line of style.split('\n')) {
+      expect(line, `默认文风不得含数字（数值单源在写作卡）：${line.slice(0, 30)}`).not.toMatch(/[0-9]/)
+    }
+    // B. drafting：首章文风建档门与文风画像清零＋文风基准三样
+    const drafting = readSkill('novel-drafting')
+    expect(drafting, '首章文风建档门应整节删除').not.toContain('首章文风建档门')
+    expect(drafting).not.toContain('文风画像·')
+    expect(drafting).toContain('①作品契约「叙事方式与文风基调」分部原文（本书相对默认文风的调整，优先）')
+    expect(drafting).toContain('②本书记忆里的文风锚点条目')
+    expect(drafting).toContain('默认文风.md` 全文')
+    expect(drafting).toContain('①②与③冲突时以①②为准')
+    // C. settle：偏离处置走本书层记忆·决策＋锚点扩前五章＋novel_record_memory 清零
+    const settle = readSkill('novel-settle')
+    expect(settle, 'settle SKILL 不应再引用 novel_record_memory').not.toContain('novel_record_memory')
+    expect(settle).toContain('把处置结论作为 `## 决策` 下的一个条目补进沉淀候选的本书层记忆段')
+    expect(settle).toContain('本书前五章（第 1–5 章）定稿呈报时各问一次「从本章挑一段满意的收进文风锚点吗」')
+    expect(settle).toContain('| 本书层记忆·决策条目 | `本书记忆/<条目名>.md` |')
+    expect(settle).toContain('下卷注意·卷<NN+1>')
+    expect(settle).toContain('`relPath: 大纲/分卷布局.md`，`节名: 卷间衔接`')
+    expect(settle).toContain('这条属于产品反馈，不记进书里')
+    const reconcile = fs.readFileSync(skillFile('novel-settle', 'agents/沉淀对账.md'), 'utf8')
+    expect(reconcile, '沉淀对账底本记忆类别应收窄为两类').toContain('本书层记忆两类是 `文风`／`决策`')
+    // D. design：第五部只记相对默认的调整＋卷规划读「下卷注意」便签
+    const design = readSkill('novel-design')
+    expect(design).toContain('只写本书相对默认文风的调整')
+    expect(design).toContain('沿用默认文风')
+    expect(design).toContain('「卷间衔接」节的待补便签')
+    expect(design).toContain('下卷注意·卷NN')
+    // E. 润色与审读：同一套文风基准
+    expect(readSkill('novel-polish')).toContain('文风基准和硬约束')
+    expect(readSkill('novel-polish')).toContain('references/默认文风.md 全文')
+    const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
+    expect(reshape).toContain('以本书文风基准（契约第五部调整＋本书锚点＋默认文风）为准')
+    const review = readSkill('novel-review')
+    expect(review).toContain('默认文风全文')
+    expect(review).toContain('references/默认文风.md 原样全文内联')
+    const styleReview = fs.readFileSync(skillFile('novel-review', 'agents/文风与表达审读.md'), 'utf8')
+    expect(styleReview).toContain('文风贴合对照本书文风基准')
+    const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
+    expect(sweep).toContain('贴合本书文风基准（契约第五部调整＞本书锚点＞默认文风')
+    // F. 注册单源：artifact-contract 登记默认文风
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract, 'artifact-contract 应登记 默认文风').toContain("'默认文风'")
+    // G. 全树清零：skills 下 grep 不到 novel_record_memory 与「作者记忆」；工具名单不含该工具
+    const skillsRoot = path.join(__dirname, '..', 'skills')
+    const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walkMd(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+      .filter((p) => p.endsWith('.md'))
+    for (const f of walkMd(skillsRoot)) {
+      const text2 = fs.readFileSync(f, 'utf8')
+      expect(text2, `${path.relative(skillsRoot, f)}: novel_record_memory 应清零`).not.toContain('novel_record_memory')
+      expect(text2, `${path.relative(skillsRoot, f)}: 「作者记忆」应清零`).not.toContain('作者记忆')
+      expect(text2, `${path.relative(skillsRoot, f)}: 「文风画像」应清零`).not.toContain('文风画像')
+    }
+    const toolNames = fs.readFileSync(path.join(__dirname, '..', 'src', 'tools', 'index.ts'), 'utf8')
+    expect(toolNames, '工具名单不应再含 novel_record_memory').not.toContain("'novel_record_memory'")
   })
 
   it('0.0.35 流程修复后沿批（flow-fix 03+07）：批量细纲＋连写叠加＋审读沉淀并行＋十查⑥⑧脚本化＋批量滚窗——同版本 0.0.32，版本件由前批管', () => {
@@ -2371,7 +2414,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // E. 停机条件三句：作者手改稿不跑（现行句对齐钉）＋定向单批只扫相关维度＋文风未定不编造
     expect(polish).toContain('的待审稿都不主动派，作者点名要润色才派')
     expect(polish).toContain('定向单批时润色心智的弱段定位扫描只扫该节相关维度，重点段清单不越节')
-    expect(reshape).toContain('分部未定时如实按「未定」处理,不编造特征——改写与接缝核只对照原稿存量语态判')
+    expect(reshape).toContain('基准缺书级内容时按「未定」处理,不编造特征——改写与接缝核只对照原稿存量语态判')
   })
 
   it('0.0.42 判据微修批：破折号双判＋段长变异上限＋语态样本移至＋释放量对账锚', () => {
@@ -2383,7 +2426,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const selfCheckStart = cards.indexOf('## 行文自查卡')
     expect(selfCheckStart, '写作卡应有行文自查卡').toBeGreaterThanOrEqual(0)
     const selfCheck = cards.slice(selfCheckStart)
-    expect(selfCheck).toContain('破折号解释装置（双判：位置判＋功能判，密度参考带 0-1/千字【待实测校准】）：数「——」——位置判：高显著位才合法，不在高显著位＝候选；功能判：引出解释／限定／点题即候选，不论密度；命中候选自查哪些在引解释，拆句或删、让上下文自明（文风画像句法层申报破折号为保留技法时按画像另判）')
+    expect(selfCheck).toContain('破折号解释装置（双判：位置判＋功能判，密度参考带 0-1/千字【待实测校准】）：数「——」——位置判：高显著位才合法，不在高显著位＝候选；功能判：引出解释／限定／点题即候选，不论密度；命中候选自查哪些在引解释，拆句或删、让上下文自明（本书文风基准申报破折号为保留技法时按基准另判）')
     expect(cards, '旧单密度线「≤4/千字」应全文件清零（含修辞上探卡引用行）').not.toContain('≤4/千字')
     expect(cards).toContain('密度上限同行文自查卡 AI 痕迹六条中三对带数值行（格言 ≤2/章、比喻 ≤2/千字、破折号 0-1/千字）')
     // B. 段长变异上限：短句对合并抬方差不得过头上限——段长变异对照参照带（人类 0.55-0.75）【待实测定值】，方差不是越大越人味
@@ -2421,7 +2464,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const struct = fs.readFileSync(skillFile('novel-review', 'agents/章节结构审读.md'), 'utf8')
     const style = fs.readFileSync(skillFile('novel-review', 'agents/文风与表达审读.md'), 'utf8')
     // A. C1 润色密度互斥修复：三对数值行参照带（软预算）＋画像优先；旧「不设跨作品统一数量上限」清零
-    expect(reshape).toContain('**密度判断**：以随包三对数值行为参照带（软预算——超标先自查哪句可删哪句该留），本书文风画像申报疏密偏好时画像优先')
+    expect(reshape).toContain('**密度判断**：以随包三对数值行为参照带（软预算——超标先自查哪句可删哪句该留），本书文风基准申报疏密偏好时基准优先')
     expect(reshape).not.toContain('不设跨作品统一数量上限')
     // B. R1 开篇钩位两尺：写作卡删「前 1000 字给钩」（负断言在 0.0.31 组随裁）＋「在乎」句折入 300 字项；review 两底本补适用边界
     expect(cards).toContain('读者脑子里得有一个「然后呢？」的问题——悬念前先建立在乎：读者还不在乎结果时悬置它只是干等')

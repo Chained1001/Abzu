@@ -82,9 +82,9 @@ describe('草稿区/书房独立仓版本化(数据保护三件套 #2)', () => {
     expect(again.committed).toBe(false)
   })
 
-  it('书房同口径:初始化＋快照＋幂等(作者记忆写入场景)', () => {
+  it('书房同口径:初始化＋快照＋幂等(书房侧写入场景)', () => {
     const ws = mkRoot()
-    const study = path.join(ws, '书房', '作者记忆')
+    const study = path.join(ws, '书房', '灵感池')
     fs.mkdirSync(study, { recursive: true })
     fs.writeFileSync(path.join(study, '守则.md'), '---\n名称: 守则\n---\n夜航船不夜行。\n', 'utf-8')
     const first = ensureStudyGit(ws)

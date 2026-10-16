@@ -2,7 +2,7 @@
  * 草稿区/书房版本化(数据保护三件套 #2):各落一个独立 git 仓做快照,不进真源提交面。
  *
  * 真源 git 只含已确认内容——书仓 `.gitignore` 排除 `草稿区/`,提交路径校验(commit/paths.ts)
- * 拒收草稿区;书房作者层资产本就不在书仓内。未确认草稿与书房资产原先零版本,误删误改不可
+ * 拒收草稿区;书房作者层资产本就不在书仓内(0.0.50 起作者层记忆删除,书房其余资产同口径)。未确认草稿与书房资产原先零版本,误删误改不可
  * 恢复。本模块在 `草稿区/.git`、`书房/.git` 各初始化独立仓:嵌套仓被书仓 .gitignore 挡住,
  * 版本史与真源完全隔离。快照=add-all+commit,无变化不提交(幂等);`.abzu/` 运行态不入快照。
  * git 不可用或仓损坏时如实返回失败由调用方播报,绝不抛出中断写作主流程。
@@ -101,7 +101,7 @@ export function ensureStudyGit(workspaceRoot: string): ZoneGitState {
   return ensureZoneGit(path.join(workspaceRoot, '书房'))
 }
 
-/** 书房快照:作者层记忆等写入后调用;无变化不提交。 */
+/** 书房快照:书房侧写入(灵感池、提案、卷末轮次工件等)后调用;无变化不提交。 */
 export function snapshotStudy(workspaceRoot: string, message: string): ZoneSnapshot {
   return snapshotZone(path.join(workspaceRoot, '书房'), message)
 }

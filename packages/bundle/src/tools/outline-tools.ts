@@ -143,7 +143,7 @@ export function createOutlineTools(shared: ToolShared): NovelToolDefinition[] {
                 来源: {
                   type: 'object', required: ['域', '路径'], properties: {
                     域: { type: 'string', enum: ['本书', '书房'] },
-                    路径: { type: 'string', description: '对应域内相对原文路径；书房示例 作者记忆/决策.md；不能引用索引' },
+                    路径: { type: 'string', description: '对应域内相对原文路径；书房示例 构想/<书名>.md；不能引用索引' },
                     起行: { type: 'integer', minimum: 1, description: '从1开始，省略从首行读' },
                     终行: { type: 'integer', minimum: 1, description: '包含该行；省略读到末行' },
                     读取哈希: { type: 'string', description: '预览自动返回；保存时原样带回，拒绝来源漂移' },

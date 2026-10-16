@@ -48,7 +48,7 @@ describe('建书动作(PRD §3.2 / R20 / N2 构想确认)', () => {
     expect(fs.existsSync(path.join(root, '世界书/模块声明.md'))).toBe(true)
     expect(fs.existsSync(path.join(root, '定稿/卷01'))).toBe(true)
     expect(fs.existsSync(path.join(root, '账本/时间线.md'))).toBe(true)
-    expect(fs.existsSync(path.join(root, '本书记忆/灵感.md'))).toBe(true)
+    expect(fs.existsSync(path.join(root, '本书记忆/决策.md'))).toBe(true)
     expect(fs.existsSync(path.join(root, '草稿区/提案'))).toBe(true)
 
     // 书id: b- 前缀且写入契约 frontmatter

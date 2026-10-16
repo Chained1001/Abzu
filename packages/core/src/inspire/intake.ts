@@ -1,6 +1,6 @@
 /**
  * 参考摄入三分流(插件规格 §5 灵感节点):只登记提案,不写入真源。
- * 建书前提案落作者层 提案/;书仓 草稿区/提案/ 待有书后再写。
+ * 建书前提案落书房 提案/;书仓 草稿区/提案/ 待有书后再写。
  */
 
 import * as path from 'node:path'
@@ -37,7 +37,7 @@ export function destOf(bucket: IntakeBucket): IntakeDest {
   return DEST[bucket]
 }
 
-/** 按建议桶路由;可选持久化到作者层 提案/。不写真源。 */
+/** 按建议桶路由;可选持久化到书房 提案/。不写真源。 */
 export function routeIntake(source: string, bucket: IntakeBucket, authorRoot?: string): IntakeRoute {
   const dest = destOf(bucket)
   const recordedAt = new Date().toISOString()

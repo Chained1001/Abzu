@@ -138,7 +138,7 @@ try {
 
   await check('主 Agent 工具与全局隔离', async () => {
     assert.equal(main.session.header.version, host === undefined ? baseline.registry.sessionFormat : baseline.source.sessionFormat)
-    assert.equal(schemas(main).length, 31)
+    assert.equal(schemas(main).length, 30)
     assert.deepEqual(schemas(undefined), [])
     const result = await execute(main, 'novel_select_book', { bookId: 'loader-book' })
     assert.equal(result.value.ok, true, JSON.stringify(result))
@@ -240,7 +240,7 @@ try {
       assert.ok(!service('agents').roots().includes(unmarked.agent))
       assert.ok(service('agents').roots().includes(restoredRoot.agent))
       assert.deepEqual(schemas(unmarked.agent), [])
-      assert.equal(schemas(restoredRoot.agent).length, 31)
+      assert.equal(schemas(restoredRoot.agent).length, 30)
       assert.equal(service('approval').overrideOf(unmarked.agent.session), 'never')
       assert.notEqual(service('approval').overrideOf(restoredRoot.agent.session), 'never')
     } finally {
@@ -250,12 +250,12 @@ try {
   })
   await check('同一会话恢复后重新装机', async () => {
     const previous = await service('agents').create({ sessionId: 'loader-resume', meta: { cwd: workspace } })
-    assert.equal(schemas(previous.agent).length, 31)
+    assert.equal(schemas(previous.agent).length, 30)
     await service('sessionPersistence').flush()
     await previous.dispose()
     const resumed = await service('agents').resume({ resumeSessionId: 'loader-resume' })
     try {
-      assert.equal(schemas(resumed.agent).length, 31)
+      assert.equal(schemas(resumed.agent).length, 30)
       assert.match((await presentation(resumed.agent)).status[0].text, /【工作区总览】/)
     }
     finally { await resumed.dispose() }
@@ -265,7 +265,7 @@ try {
     const whileMissing = schemas(main)
     await toggle('user-questions', false)
     assert.deepEqual(whileMissing, [])
-    assert.equal(schemas(main).length, 31)
+    assert.equal(schemas(main).length, 30)
     assert.deepEqual(schemas(child), [])
   })
   await check('审批依赖晚到仍拒绝子 Agent', async () => {
@@ -453,7 +453,7 @@ try {
     const fresh = await service('agents').create({ sessionId: 'loader-after-tools', meta: { cwd: workspace } })
     const delegated = await fresh.agent.ctx.get('agents').create({ parentAgent: fresh.agent, sessionId: 'loader-after-tools-child', meta: { cwd: workspace, origin: 'subagent' } })
     try {
-      assert.equal(schemas(fresh.agent).length, 31)
+      assert.equal(schemas(fresh.agent).length, 30)
       assert.deepEqual(schemas(delegated.agent), [])
       assert.equal((await presentation(fresh.agent)).status.length, 1)
       assert.equal((await execute(fresh.agent, 'novel_select_book', { bookId: 'loader-book' })).value.ok, true)
@@ -522,14 +522,11 @@ try {
     await completeTurn(ctx, previous.agent, '继续写《测试书》，保留原生上下文标记。')
     assert.equal(authorQuestions, 1)
     assert.equal(adapter.requests.length, 3)
-    // 15A：作者记忆目录只在第一次模型输入的快照里出现一次；同会话后续请求沿用历史，不重复注入
+    // 0.0.50：作者记忆目录注入已删除——任何模型输入都不再出现「作者记忆目录」快照
     const snapshotMessages = request => request.messages.filter(message => message.role === 'user'
-      && (message.content ?? []).some(part => part.type === 'text' && part.text.includes('【作者记忆目录】会话开始时')))
+      && (message.content ?? []).some(part => part.type === 'text' && part.text.includes('【作者记忆目录】')))
     const catalogHits = adapter.requests.map(request => snapshotMessages(request).length)
-    assert.deepEqual(catalogHits, [1, 1, 1], JSON.stringify(catalogHits))
-    assert.equal(snapshotMessages(adapter.requests[0])[0].source?.form, 'snapshot')
-    assert.equal(snapshotMessages(adapter.requests[0])[0].source?.kind, 'plugin:abzu-memory-catalog')
-    assert.match(JSON.stringify(adapter.requests[0].messages), /- 冷开场 — 作者偏好 \{\{冷开场\}\} 直接入戏/)
+    assert.deepEqual(catalogHits, [0, 0, 0], JSON.stringify(catalogHits))
     assert.match(JSON.stringify(adapter.requests[1].messages), /【本书记忆目录】选书时/)
     assert.ok(events(previous.agent).some(event => event.type === 'tool/result'))
     assert.ok(events(previous.agent).every(event => !event.type.startsWith('novel/')))
@@ -547,9 +544,8 @@ try {
       assert.match(history, /近况/)
       assert.match(history, /未获作者批准/)
       assert.match(history, /继续/)
-      // The plugin recognizes its already delivered ordinary message; changed runtime
-      // context in the restored Host does not append another author catalog.
-      assert.equal(snapshotMessages(adapter.requests.at(-1)).length, 1)
+      // 0.0.50：作者层记忆已删除——恢复后的会话同样不再出现作者记忆目录。
+      assert.equal(snapshotMessages(adapter.requests.at(-1)).length, 0)
       assert.equal(adapter.requests.at(-1).messages.filter(message => JSON.stringify(message).includes('【本书记忆目录】选书时')).length, 1)
       assert.ok(events(restored.agent).every(event => !event.type.startsWith('novel/')))
       report.nativeContinuation = { restored: true, previousUserText: true, bookAndProgress: true, priorToolOutcome: true, customEvents: 0 }

@@ -14,7 +14,7 @@ function makeWorkspace(): { ws: string; bookRoot: string } {
   const bookRoot = path.join(ws, '星辰')
   fs.mkdirSync(path.join(bookRoot, '草稿区', '草稿', '卷01-第一章'), { recursive: true })
   fs.mkdirSync(path.join(bookRoot, '定稿'), { recursive: true })
-  fs.mkdirSync(path.join(ws, '书房', '作者记忆'), { recursive: true })
+  fs.mkdirSync(path.join(ws, '书房', '灵感池'), { recursive: true })
   fs.mkdirSync(path.join(ws, '书房', '参考书', '.analysis'), { recursive: true })
   return { ws, bookRoot }
 }
@@ -52,7 +52,7 @@ describe('文件工具写后自动快照(数据保护批 #2,tools/result 观察�
     expect(fs.existsSync(path.join(bookRoot, '草稿区', '.git'))).toBe(true)
     expect(commitCount(path.join(bookRoot, '草稿区'))).toBe(1)
 
-    const memory = path.join(ws, '书房', '作者记忆', '守则.md')
+    const memory = path.join(ws, '书房', '灵感池', '守则.md')
     fs.writeFileSync(memory, '守则正文。\n', 'utf-8')
     h.emit('write', { file_path: memory }, {})
     expect(fs.existsSync(path.join(ws, '书房', '.git'))).toBe(true)

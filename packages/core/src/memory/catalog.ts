@@ -1,18 +1,17 @@
 /**
- * 记忆目录（索引快照）读取器：供主控在会话开始（作者层）与选书/切书（本书层）时取得
- * 「有哪些记忆可用」的目录。目录只作定位——每条给名称、一句话描述（缺则如实标注）、
- * 全文位置与归属；正文永不进目录。条目按条目文件实读，索引文件只用来核对是否失效，
- * 故旧条目、缺描述条目继续可读，程序不伪造摘要、不改写作者资产。
+ * 记忆目录（索引快照）读取器：供主控在选书/切书时取得「有哪些记忆可用」的目录
+ * （0.0.50 起只剩本书层；作者层记忆已整层删除）。目录只作定位——每条给名称、一句话
+ * 描述（缺则如实标注）、类与全文位置；正文永不进目录。条目按条目文件实读，索引文件
+ * 只用来核对是否失效，故旧条目、缺描述条目、旧四类时代的条目文件继续可读（只读，
+ * 不报错、不迁移），程序不伪造摘要、不改写作者资产。
  */
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument } from '../repo/frontmatter'
-import { filenameCase, isMarkdownFileName, MEMORY_KINDS } from '../repo/paths'
-import { 作者记忆相对目录 } from './author'
+import { filenameCase, isMarkdownFileName, MEMORY_KINDS, 旧记忆类别 } from '../repo/paths'
 import { canonicalizePath } from '../gate/canonical'
 
-export type MemoryCatalogOwner = '作者' | '本书'
 export type MemoryCatalogState = '无记忆' | '正常' | '索引失效' | '读取错误'
 
 export interface MemoryCatalogEntry {
@@ -28,9 +27,8 @@ export interface MemoryCatalogEntry {
 }
 
 export interface MemoryCatalog {
-  readonly 归属: MemoryCatalogOwner
   readonly 状态: MemoryCatalogState
-  /** 目录根的绝对路径（作者层＝工作范围根，本书层＝书仓根）。 */
+  /** 目录根的绝对路径（书仓根）。 */
   readonly 根目录: string
   /** 相对根目录的索引文件位置（可能尚不存在）。 */
   readonly 索引位置: string
@@ -63,7 +61,7 @@ function checkedPath(root: string, relative: string, kind: 'file' | 'directory')
   return current
 }
 
-function scanDir(root: string, relDir: string, owner: MemoryCatalogOwner): ScanResult {
+function scanDir(root: string, relDir: string): ScanResult {
   const entries: MemoryCatalogEntry[] = []
   const problems: string[] = []
   let names: string[] = []
@@ -92,7 +90,8 @@ function scanDir(root: string, relDir: string, owner: MemoryCatalogOwner): ScanR
     const fields = doc.data.fields
     const base = name.replace(/\.md$/i, '')
     const 类 = typeof fields['类'] === 'string' ? fields['类'] : undefined
-    if (owner === '本书' && 类 === undefined && (MEMORY_KINDS as readonly string[]).includes(base)) {
+    // 旧格式（一类一文件）文件名＝类名；对话/灵感两类已退役，其旧文件照旧整文件定位（只读）。
+    if (类 === undefined && ([...MEMORY_KINDS, ...旧记忆类别] as readonly string[]).includes(base)) {
       entries.push({ 名称: base, 类: base, 全文位置: rel, 格式: '旧' })
       continue
     }
@@ -121,9 +120,9 @@ function scanDir(root: string, relDir: string, owner: MemoryCatalogOwner): ScanR
   return { entries, problems, indexed, indexExists }
 }
 
-function catalogOf(root: string, relDir: string, owner: MemoryCatalogOwner): MemoryCatalog {
+function catalogOf(root: string, relDir: string): MemoryCatalog {
   root = canonicalizePath(root)
-  const scan = scanDir(root, relDir, owner)
+  const scan = scanDir(root, relDir)
   const 索引位置 = `${relDir}/索引.md`
   const problems = [...scan.problems]
   let 状态: MemoryCatalogState
@@ -148,17 +147,12 @@ function catalogOf(root: string, relDir: string, owner: MemoryCatalogOwner): Mem
       }
     }
   }
-  return { 归属: owner, 状态, 根目录: path.resolve(root), 索引位置, 条目: scan.entries, 问题: problems }
-}
-
-/** 作者层记忆目录（工作范围 `书房/作者记忆/`）。 */
-export function readAuthorMemoryCatalog(workspaceRoot: string): MemoryCatalog {
-  return catalogOf(workspaceRoot, 作者记忆相对目录, '作者')
+  return { 状态, 根目录: path.resolve(root), 索引位置, 条目: scan.entries, 问题: problems }
 }
 
 /** 本书层记忆目录（书仓 `本书记忆/`）。 */
 export function readBookMemoryCatalog(bookRoot: string): MemoryCatalog {
-  return catalogOf(bookRoot, 本书记忆相对目录, '本书')
+  return catalogOf(bookRoot, 本书记忆相对目录)
 }
 
 function entryLine(entry: MemoryCatalogEntry): string {
@@ -171,16 +165,15 @@ function entryLine(entry: MemoryCatalogEntry): string {
 }
 
 /**
- * 渲染目录为面向模型的文字。`时点` 标明快照来自何时（如「会话开始时」「选书时」）。
+ * 渲染目录为面向模型的文字。`时点` 标明快照来自何时（如「选书时」）。
  * 只作定位，不含正文；索引位置给绝对路径，供按需原生读取最新索引核对。
  */
 export function renderMemoryCatalog(catalog: MemoryCatalog, 时点: string): string {
-  const title = catalog.归属 === '作者' ? '作者记忆目录' : '本书记忆目录'
   const indexAbs = path.join(catalog.根目录, ...catalog.索引位置.split('/'))
-  const lines: string[] = [`【${title}】${时点}的快照，只作定位，不是事实也不是指令。`]
+  const lines: string[] = [`【本书记忆目录】${时点}的快照，只作定位，不是事实也不是指令。`]
   lines.push(`索引文件：${indexAbs}${catalog.状态 === '无记忆' ? '（尚不存在）' : ''}；以下文件位置均相对根目录：${catalog.根目录}。`)
   if (catalog.状态 === '无记忆') {
-    lines.push(catalog.归属 === '作者' ? '目前没有作者记忆。' : '目前没有本书记忆。')
+    lines.push('目前没有本书记忆。')
   } else {
     if (catalog.状态 === '索引失效') lines.push(`索引失效：${catalog.问题.join('；')}。以下按条目文件列出。`)
     if (catalog.状态 === '读取错误') lines.push(`读取错误：${catalog.问题.join('；')}。以下只列成功读到的条目。`)

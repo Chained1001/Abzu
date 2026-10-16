@@ -1,8 +1,8 @@
 /**
- * 定稿域工具：待定稿包组装/作者批准后原子沉淀/作者层记忆写入。
+ * 定稿域工具：待定稿包组装/作者批准后原子沉淀。
  */
 import { provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { paths, preparePack, archiveChapter, snapshotStudy, writeAuthorMemory, withBookWrite, askAuthor, writeSettlementDecision } from '@abzu/core'
+import { paths, preparePack, archiveChapter, withBookWrite, askAuthor, writeSettlementDecision } from '@abzu/core'
 import { captureApprovalFiles } from '../approval-snapshot'
 
 export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
@@ -144,58 +144,6 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
             return { ok: false, reason: `定稿沉淀失败: ${err instanceof Error ? err.message : String(err)}` }
           }
         }, provenanceOf(sessionContext))
-      },
-    },
-    {
-      name: 'novel_record_memory',
-      description: '写作者层记忆条目（落书房/作者记忆/，一事一文件+索引同步重建；标签必填）。作者层资产不进书仓、不走 design: 提交。对话产生的决策/建议/解法值得记就当场写。同名条目已存在时新增被拒；更新必须先读原文并传「操作: 更新」与完整「原文」，原文已变化时拒绝，不得改名绕过。',
-      parameters: {
-        type: 'object',
-        properties: {
-          bookId: { type: 'string', description: '书id（必填）' },
-          名称: { type: 'string', description: '条目标识（一事一文件的文件名主体）' },
-          描述: { type: 'string', description: '一行描述（专供召回判断）' },
-          类: { type: 'string', enum: ['文风', '决策', '对话', '灵感'], description: '条目类别' },
-          标签: { type: 'array', items: { type: 'string' }, description: '书名/卷/题材/维度标签（至少一条）' },
-          来源: { type: 'string', description: '章号或「对谈」' },
-          正文: { type: 'string', description: '条目正文（可用 [[条目名]] 互链）' },
-          操作: { type: 'string', enum: ['新增', '更新'], description: '写入门类：同名已存在时新增被拒，须以更新并提供原文' },
-          原文: { type: 'string', description: '操作为更新时必传：调用前读到的该条目完整原文（含 frontmatter），与盘上不一致即拒绝' },
-        },
-        required: ['bookId', '名称', '描述', '类', '标签', '来源', '正文'],
-      },
-      output: {
-        schema: {
-          type: 'object',
-          properties: {
-            ok: { type: 'boolean', description: '是否成功' },
-            relPath: { type: 'string', description: '作者记忆条目路径（书房内）' },
-            updated: { type: 'boolean', description: '是否为更新既有条目' },
-            快照: { type: 'string', description: '书房版本化快照失败时的如实说明（成功时无此字段）' },
-            reason: { type: 'string', description: '失败原因' },
-          },
-          required: ['ok'],
-        },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
-      },
-      execute: (args, sessionContext) => {
-        const root = deps.workspaceRoot(sessionContext?.agent)
-        if (root === undefined) return { ok: false, reason: '工作范围未就绪（未装机），书房不可用' }
-        const book = resolveBook(args, sessionContext)
-        if (!book.ok) return book
-        const written = writeAuthorMemory(root, {
-          名称: String(args['名称']),
-          描述: String(args['描述']),
-          类: String(args['类']) as '文风' | '决策' | '对话' | '灵感',
-          标签: Array.isArray(args['标签']) ? (args['标签'] as unknown[]).map(String) : [],
-          来源: String(args['来源']),
-          正文: String(args['正文']),
-          ...(args['操作'] === undefined ? {} : { 操作: args['操作'] as '新增' | '更新' }),
-          ...(args['原文'] === undefined ? {} : { 原文: String(args['原文']) }),
-        })
-        if (!written.ok) return written
-        const snap = snapshotStudy(root, `快照: 作者记忆 ${written.relPath}`)
-        return { ...written, ...(snap.ok ? {} : { 快照: `书房版本化快照失败:${snap.reason ?? '未知原因'}` }) }
       },
     },
   ]

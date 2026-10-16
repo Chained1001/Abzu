@@ -32,13 +32,13 @@ function fixture() {
   put(root, '大纲/卷规划/卷01/卷纲.md', '# 卷纲\n\n' + ['叙事结构', '弧线', '线索推进', '卷末兑现'].map(name => `## ${name}\n\n章3承接城门事件，核对铜符。\n`).join('\n'))
   put(root, '草稿区/草稿/卷01-章3/稿1.md', serializeDocument({ 角色: '待审稿', 版本: 1 }, '主角继续前行，铜符仍在袖中。'))
   put(root, '世界书/人物档案/关系补记.md', '# 关系原文\n第二章后两人约定共同守门。【关系变化样本】\n')
-  put(workspace, '书房/作者记忆/早期决定.md', '# 作者决定\n主角始终拒绝加入内卫。【早期决策样本】\n')
+  put(workspace, '书房/构想/早期决定.md', '# 作者决定\n主角始终拒绝加入内卫。【早期决策样本】\n')
   const earlier = path.join(root, '定稿/卷01/0001-章1.md')
   fs.appendFileSync(earlier, '\n守门人遗落一枚旧铜符。【伏笔回收样本】\n')
   const operations: SupplementEdit[] = [
     { 操作: '设置', 编号: 'earlier', 标题: '早期伏笔', 理由: '本章回收第一章线索', 性质: '原文', 来源: { 域: '本书', 路径: '定稿/卷01/0001-章1.md' } },
     { 操作: '设置', 编号: 'relationship', 标题: '关系变化', 理由: '核对两人当前约定', 性质: '原文', 来源: { 域: '本书', 路径: '世界书/人物档案/关系补记.md' } },
-    { 操作: '设置', 编号: 'decision', 标题: '作者早期决定', 理由: '保持早期裁决', 性质: '建议', 来源: { 域: '书房', 路径: '作者记忆/早期决定.md' } },
+    { 操作: '设置', 编号: 'decision', 标题: '作者早期决定', 理由: '保持早期裁决', 性质: '建议', 来源: { 域: '书房', 路径: '构想/早期决定.md' } },
   ]
   const preview = (edits = operations) => computeMaterials(root, { ...key, 仅预览: true, 补充操作: edits })
   const save = (edits = operations) => {
@@ -136,7 +136,7 @@ describe('持久补料与实际消费（15B）', () => {
   it('预览后来源/材料包被修改时拒绝旧版本，清单不被覆盖', () => {
     const f = fixture()
     const p = f.preview()
-    fs.appendFileSync(path.join(f.workspace, '书房/作者记忆/早期决定.md'), '修改')
+    fs.appendFileSync(path.join(f.workspace, '书房/构想/早期决定.md'), '修改')
     const stale = assembleMaterials(f.root, { ...key, 材料清单哈希: p.已有清单哈希, 补充操作: p.补充预览!.map(item => item.操作) })
     expect(stale.ok).toBe(false)
     expect(fs.existsSync(f.dir)).toBe(false)
@@ -158,7 +158,7 @@ describe('持久补料与实际消费（15B）', () => {
     if (kind === 'range') op = { ...op, 来源: { ...op.来源, 起行: 99999 } }
     if (kind === 'link') {
       fs.symlinkSync(path.join(f.workspace, '书房'), path.join(f.root, '链接'), process.platform === 'win32' ? 'junction' : 'dir')
-      op = { ...op, 来源: { 域: '本书', 路径: '链接/作者记忆/早期决定.md' } }
+      op = { ...op, 来源: { 域: '本书', 路径: '链接/构想/早期决定.md' } }
     }
     const p = f.preview(kind === 'duplicate' ? [op, op] : [op])
     expect(p.ok).toBe(false)

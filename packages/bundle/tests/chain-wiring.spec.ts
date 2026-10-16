@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process'
 import { createNovelTools } from '../src/novel-tools'
 import { computeReview, listChecks, registerDefaultChecks } from '@abzu/review'
 import { nativeWriteStub } from './fixtures/native-write-stub'
-import { paths, serializeDocument } from '@abzu/core'
+import { paths, serializeDocument, writeBookMemory } from '@abzu/core'
 
 const roots: string[] = []
 function mkWs(): string {
@@ -227,37 +227,26 @@ describe('运行链路接线(工具面验收)', () => {
     expect(reset.message).toContain('上一轮已给处置 1 条暂存待继承')
   })
 
-  it('novel_record_memory 落书房,不进书仓 git;索引与条目一致', async () => {
+  it('0.0.50 偏离处置改记本书层记忆·决策:决策条目提到偏离项名即扣减未决偏离', async () => {
     const ws = mkWs()
     const { call } = makeTools(ws)
     const { bookId } = await makeBook(ws, call)
     const bookRoot = path.join(ws, '链路书')
 
-    const r = await call('novel_record_memory', {
-      bookId, 名称: '反派动机-折剑人', 描述: '作者拍板:折剑人毁剑是为阻止剑灾', 类: '决策',
-      标签: ['链路书', '卷01', '人物动机'], 来源: '对谈', 正文: '[[主角]] 与折剑人的冲突根源。',
-    })
-    expect(r.ok).toBe(true)
-    const entry = path.join(ws, '书房/作者记忆/反派动机-折剑人.md')
-    expect(fs.existsSync(entry)).toBe(true)
-    const index = fs.readFileSync(path.join(ws, '书房/作者记忆/索引.md'), 'utf-8')
-    expect(index).toContain('反派动机-折剑人')
-    expect(index).toContain('作者拍板:折剑人毁剑是为阻止剑灾')
-    // 作者层资产不在书仓工作树状态中
-    const status = git(bookRoot, ['status', '--porcelain']).stdout ?? ''
-    expect(status).not.toContain('书房')
-    expect(git(bookRoot, ['ls-files']).stdout ?? '').not.toContain('作者记忆')
-
-    // 进度卡:未决偏离 = 对账偏离 − 作者层已处置(拍板 4)
+    // 进度卡:未决偏离 = 对账偏离 − 本书层记忆·决策已处置(0.0.50 起经定稿沉淀写入,这里直接用写入器落同格式条目)
     const progress1 = await call('novel_get_book_progress', { bookId })
     expect(progress1.ok).toBe(true)
     const before = (progress1.未决偏离 as string[]).length
     expect(before).toBeGreaterThan(0)
     const devName = (progress1.未决偏离 as string[])[0]!
-    await call('novel_record_memory', {
-      bookId, 名称: `偏离处置-${devName}`, 描述: `作者接受偏离:${devName}`, 类: '决策',
-      标签: ['链路书', '卷01'], 来源: '对谈', 正文: `偏离项「${devName}」处置:接受偏离,不改后续计划。`,
-    })
+    expect(writeBookMemory(bookRoot, {
+      类: '决策', 名称: `偏离处置-${devName}`, 描述: `作者接受偏离:${devName}`,
+      来源: '对谈', 裁决记录: '作者批准', 正文: `偏离项「${devName}」处置:接受偏离,不改后续计划。`,
+    }).ok).toBe(true)
+    const entry = path.join(bookRoot, '本书记忆', `偏离处置-${devName}.md`)
+    expect(fs.existsSync(entry)).toBe(true)
+    const index = fs.readFileSync(path.join(bookRoot, '本书记忆', '索引.md'), 'utf-8')
+    expect(index).toContain(`偏离处置-${devName}`)
     const progress2 = await call('novel_get_book_progress', { bookId }) as { ok: boolean; 未决偏离: string[] }
     expect(progress2.ok).toBe(true)
     expect(progress2.未决偏离).not.toContain(devName)
@@ -276,20 +265,20 @@ describe('运行链路接线(工具面验收)', () => {
     fs.writeFileSync(path.join(bookRoot, paths.计划时间线(1)), '# 计划时间线\n## 窗口覆盖\n- 出发\n- 夜探渡口\n## 窗口外锚点\n- 〔留白〕\n', 'utf8')
 
     // 反例:无关决策正文只把「出发」裹在「出发点」一词内部 → 不得误扣,进度卡不静默少报
-    await call('novel_record_memory', {
-      bookId, 名称: '主角动机-讨论', 描述: '记录主角动机讨论', 类: '决策',
-      标签: ['链路书'], 来源: '对谈', 正文: '主角的出发点是复仇，先在市集收集消息。',
-    })
+    expect(writeBookMemory(bookRoot, {
+      类: '决策', 名称: '主角动机-讨论', 描述: '记录主角动机讨论',
+      来源: '对谈', 裁决记录: '作者批准', 正文: '主角的出发点是复仇，先在市集收集消息。',
+    }).ok).toBe(true)
     const p1 = await call('novel_get_book_progress', { bookId }) as { ok: boolean; 未决偏离: string[] }
     expect(p1.ok).toBe(true)
     expect(p1.未决偏离).toContain('出发')
     expect(p1.未决偏离).toContain('夜探渡口')
 
     // 正例:真实裁决文本按惯例以标点/引号界定短名 → 扣减;长名「夜探渡口」不受影响仍呈报
-    await call('novel_record_memory', {
-      bookId, 名称: '偏离处置-出发', 描述: '作者裁决:「出发」并入下一章', 类: '决策',
-      标签: ['链路书'], 来源: '对谈', 正文: '偏离项「出发」处置:接受,并入第 3 章,不改出发点设定。',
-    })
+    expect(writeBookMemory(bookRoot, {
+      类: '决策', 名称: '偏离处置-出发', 描述: '作者裁决:「出发」并入下一章',
+      来源: '对谈', 裁决记录: '作者批准', 正文: '偏离项「出发」处置:接受,并入第 3 章,不改出发点设定。',
+    }).ok).toBe(true)
     const p2 = await call('novel_get_book_progress', { bookId }) as { ok: boolean; 未决偏离: string[] }
     expect(p2.ok).toBe(true)
     expect(p2.未决偏离).not.toContain('出发')

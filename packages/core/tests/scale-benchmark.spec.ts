@@ -5,7 +5,7 @@ import * as path from 'node:path'
 import {
   assembleMaterials, deriveChapterFacts, listChapters, loadMaterialPackage,
   paths, queryLedger, scanChapter, serializeDocument, syncFinalizedIndex,
-  searchFinalized, writeAuthorMemory,
+  searchFinalized, writeBookMemory,
 } from '../src/index'
 import { makeFixtureBook } from './helpers/fixture-book'
 import type { EmbeddingProvider } from '../src/retrieval/types'
@@ -64,11 +64,11 @@ function makeBook(label: string, chapters: number, opts?: { 记忆条数?: numbe
   fs.appendFileSync(path.join(root, paths.卷纲(lateVol)), `\n- 卷末收束：章${chapters} 〔已确认〕\n`, 'utf-8')
   const memoryCount = opts?.记忆条数 ?? 0
   for (let i = 1; i <= memoryCount; i++) {
-    const r = writeAuthorMemory(root, {
+    const r = writeBookMemory(root, {
       名称: `决策样本${String(i).padStart(3, '0')}`, 类: '决策',
-      描述: `第${i}条作者决策的一句话描述`,
-      标签: ['容量夹具'],
-      来源: '对谈共创', 正文: `这是第${i}条作者决策的正文，记录当时的判断依据与适用边界。`.repeat(3),
+      描述: `第${i}条决策的一句话描述`,
+      来源: '对谈共创', 裁决记录: '基准夹具',
+      正文: `这是第${i}条决策的正文，记录当时的判断依据与适用边界。`.repeat(3),
     })
     if (!r.ok) throw new Error(`记忆写入失败:${r.reason}`)
   }

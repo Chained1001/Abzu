@@ -58,19 +58,21 @@ describe('影响分析与断更恢复', () => {
       ['线索', '## 纸鹤\n状态：已埋\n计划来源：卷纲#4\n埋设点：第1章\n预期兑现区间：第8章\n'],
       ['时间线', '## 城门异响\n事件：发现异常\n章号：第0001章\n'],
     ] as const) writeFileAtomic(root, `账本/${name}.md`, `# ${name}\n\n${body}`)
-    for (const name of ['文风', '决策', '对话', '灵感']) {
+    for (const name of ['文风', '决策']) {
       writeFileAtomic(root, `本书记忆/${name}.md`, `# ${name}\n\n## 条目\n状态：已确认\n正文：已沉淀\n`)
     }
+    // 0.0.50 退役两类的旧文件:照常在盘、查询只读跳过(不迁移)
+    writeFileAtomic(root, '本书记忆/对话.md', '# 对话\n\n## 条目\n状态：已确认\n正文：旧条目\n')
     writeFileAtomic(root, paths.计划时间线(1), '# 计划时间线\n\n## 窗口覆盖\n- 城门异响〔已确认〕\n- 尚未发生〔暂定〕\n')
     const snapshot = rebuildResume(root, { 卷: 1, 章: 1, 章名: '开篇任务' })
     expect(snapshot.ledger.ok).toBe(true)
     expect(snapshot.memory.ok).toBe(true)
     expect(snapshot.reconciliation.ok).toBe(true)
     if (snapshot.ledger.ok) expect(snapshot.ledger.entries).toHaveLength(5)
-    if (snapshot.memory.ok) expect(snapshot.memory.entries).toHaveLength(4)
+    if (snapshot.memory.ok) expect(snapshot.memory.entries).toHaveLength(2)
     if (snapshot.reconciliation.ok) expect(snapshot.reconciliation.report.状态).toBe('有偏离')
     expect(snapshot.statusCard).toMatch(/账本：5 条/)
-    expect(snapshot.statusCard).toMatch(/本书记忆：4 条/)
+    expect(snapshot.statusCard).toMatch(/本书记忆：2 条/)
     expect(snapshot.statusCard).toMatch(/计划对账：有偏离/)
     expect(snapshot.statusCard).not.toMatch(/到期：/)
     expect(snapshot.statusCard).not.toMatch(/到期清单/)

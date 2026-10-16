@@ -370,6 +370,8 @@ export function queryLedger(bookRoot: string, filter?: LedgerEntryFilter): Ledge
  * 查询本书记忆，只读并区分缺失与解析失败。
  * 新格式＝一事一文件(`本书记忆/<条目名>.md`,frontmatter 带 类);旧格式＝
  * 一类一文件(`本书记忆/<类>.md`,`## 条目` 分节),条目标 `格式:'旧'`,不自动迁移。
+ * 0.0.50 收窄为 文风/决策 两类:类为已退役类别(对话/灵感)的条目文件与旧格式文件
+ * 不报错、不迁移,只是不再进查询结果(读侧只读跳过;目录侧 memory/catalog 仍整文件列出)。
  */
 export function queryMemory(
   bookRoot: string,

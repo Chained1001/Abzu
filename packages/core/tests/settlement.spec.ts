@@ -116,8 +116,6 @@ describe('定稿沉淀', () => {
         '# 本书层记忆候选',
         '## 文风', '### 克制叙述', '状态：候选', '短句，少用解释性旁白。', '例：他没有回头。',
         '## 决策', '### 开篇视角', '状态：候选', '开篇固定使用主角限知视角。',
-        '## 对话', '### 主角语气', '状态：候选', '主角遇险时避免长篇解释。',
-        '## 灵感', '### 纸鹤回响', '状态：候选', '纸鹤可在卷末作为回响意象。',
         '',
       ].join('\n'),
     })
@@ -133,12 +131,15 @@ describe('定稿沉淀', () => {
     for (const [file, item] of [['人物弧线', '主角警觉'], ['承诺', '查明异响'], ['线索', '纸鹤']]) {
       expect(fs.readFileSync(path.join(root, `账本/${file}.md`), 'utf-8')).toContain(item)
     }
-    for (const [item, file] of [['克制叙述', '本书记忆/克制叙述.md'], ['开篇视角', '本书记忆/开篇视角.md'], ['主角语气', '本书记忆/主角语气.md'], ['纸鹤回响', '本书记忆/纸鹤回响.md']]) {
+    for (const [item, file] of [['克制叙述', '本书记忆/克制叙述.md'], ['开篇视角', '本书记忆/开篇视角.md']]) {
       expect(fs.readFileSync(path.join(root, file), 'utf-8')).toContain(item)
     }
     // 一事一文件:索引同步重建,旧 类 文件不被写入新条目
     expect(fs.readFileSync(path.join(root, '本书记忆/索引.md'), 'utf-8')).toContain('[克制叙述]')
     expect(fs.readFileSync(path.join(root, '本书记忆/文风.md'), 'utf-8')).not.toContain('克制叙述')
+    // 旧四类时代的 对话/灵感 文件原样保留(只读兼容,不迁移不报错)
+    expect(fs.readFileSync(path.join(root, '本书记忆/对话.md'), 'utf-8')).toBe('# 对话\n既有记忆\n')
+    expect(fs.readFileSync(path.join(root, '本书记忆/灵感.md'), 'utf-8')).toBe('# 灵感\n既有记忆\n')
     const memories = queryMemory(root)
     expect(memories.ok).toBe(true)
     if (memories.ok) expect(memories.entries.find((entry) => entry.名称 === '克制叙述')?.正文).toContain('例：他没有回头。')
@@ -161,6 +162,9 @@ describe('定稿沉淀', () => {
       { candidate: { '账本变更.md': '# 账本变更\n\n## 线索\n### 伏笔\n状态：已弃\n计划来源：卷纲#2\n埋设点：第1章\n预期兑现区间：卷一\n' }, error: /弃因/ },
       { candidate: { '账本变更.md': '# 账本变更\n\n## 承诺\n### 回乡\n状态：进行中\n' }, error: /计划来源/ },
       { candidate: { '事实变更.md': '# 事实变更\n\n## 世界规则\n### 新律\n新增规则\n' }, error: /不猜模块/ },
+      // 0.0.50 收窄:对话/灵感两类已退役——解析器给出只接受文风/决策的清楚原因,不崩溃
+      { candidate: { '本书层记忆候选.md': '# 本书层记忆候选\n\n## 对话\n\n### 主角语气\n状态：候选\n避免长篇解释。\n' }, error: /记忆分类未知:对话——只接受 文风\/决策；「对话」「灵感」两类已退役/ },
+      { candidate: { '本书层记忆候选.md': '# 本书层记忆候选\n\n## 灵感\n\n### 纸鹤回响\n状态：候选\n卷末回响意象。\n' }, error: /记忆分类未知:灵感——只接受 文风\/决策；「对话」「灵感」两类已退役/ },
     ]
     for (const entry of cases) {
       const root = mkRoot()

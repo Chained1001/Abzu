@@ -23,9 +23,9 @@ function fixture(): { ws: string; book: string; study: string; profiles: string 
   fs.writeFileSync(path.join(book, '定稿', '卷01', '0001-夜渡.md'), '第一章。\n', 'utf-8')
   fs.writeFileSync(path.join(book, '草稿区', '草稿', '卷01-夜渡', '稿1.md'), '草稿一。\n', 'utf-8')
   fs.writeFileSync(path.join(book, '.git', 'objects', 'stub'), 'git-obj', 'utf-8')
-  fs.mkdirSync(path.join(study, '作者记忆'), { recursive: true })
+  fs.mkdirSync(path.join(study, '灵感池'), { recursive: true })
   fs.mkdirSync(path.join(study, '.git', 'objects'), { recursive: true })
-  fs.writeFileSync(path.join(study, '作者记忆', '守则.md'), '夜航船不夜行。\n', 'utf-8')
+  fs.writeFileSync(path.join(study, '灵感池', '守则.md'), '夜航船不夜行。\n', 'utf-8')
   fs.writeFileSync(path.join(study, '.git', 'objects', 'stub'), 'study-git-obj', 'utf-8')
   fs.mkdirSync(profiles, { recursive: true })
   fs.writeFileSync(path.join(profiles, '风格.md'), 'profile。\n', 'utf-8')
@@ -58,7 +58,7 @@ describe('一键备份 CLI(数据保护三件套 #3)', () => {
     expect(manifest.文件数).toBe(data!.文件数)
     expect(manifest.文件数).toBe(6)
     const paths = manifest.条目.map((e) => e.路径)
-    for (const expected of ['书仓/定稿/卷01/0001-夜渡.md', '书仓/草稿区/草稿/卷01-夜渡/稿1.md', '书仓/.git/objects/stub', '书房/作者记忆/守则.md', '书房/.git/objects/stub', 'profiles/风格.md']) {
+    for (const expected of ['书仓/定稿/卷01/0001-夜渡.md', '书仓/草稿区/草稿/卷01-夜渡/稿1.md', '书仓/.git/objects/stub', '书房/灵感池/守则.md', '书房/.git/objects/stub', 'profiles/风格.md']) {
       expect(paths, `备份清单应含 ${expected}`).toContain(expected)
     }
     for (const entry of manifest.条目) {

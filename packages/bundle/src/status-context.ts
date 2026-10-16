@@ -14,12 +14,7 @@ function sysPromptOf(ctx: Context): SystemPromptLike | undefined {
 /** 书架事实随请求现算；选书与近况由普通工具回复进入宿主对话。 */
 import { type Context } from '@deepseek-ai/cordis'
 import { scanBooks, type BookOverview } from './bookshelf'
-import { activeChapterLine, readAuthorMemoryCatalog, readBookMemoryCatalog, renderMemoryCatalog } from '@abzu/core'
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import { MEMORY_CATALOG_SOURCE, isMemoryCatalogSource } from './message-sources'
-export { MEMORY_CATALOG_SOURCE } from './message-sources'
-import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
-import type { SessionSeq } from '@deepseek-ai/dsh-session'
+import { activeChapterLine, readBookMemoryCatalog, renderMemoryCatalog } from '@abzu/core'
 
 /** 渲染工作区总览：书列表 + 新建入口；已有对话沿用作者选择。 */
 export function renderOverview(
@@ -60,15 +55,6 @@ export function bookMemoryCatalogText(bookRoot: string): string {
   }
 }
 
-/** 作者记忆目录的初始快照文字（会话开始时）。 */
-export function authorMemoryCatalogText(workspaceRoot: string): string {
-  try {
-    return renderMemoryCatalog(readAuthorMemoryCatalog(workspaceRoot), '会话开始时')
-  } catch (error) {
-    return `【作者记忆目录】读取错误：${error instanceof Error ? error.message : String(error)}`
-  }
-}
-
 /** 从书仓读取当前章节的一行近况，不依赖聊天记录。 */
 export function progressLineOf(bookRoot: string): string {
   try {
@@ -88,43 +74,15 @@ export interface SystemPromptLike {
   }): () => void
 }
 
-/** Only our own delivery is inspected; this never derives or stores a current book. */
-function catalogWasDelivered(agent: Agent): boolean {
-  for (let seq = agent.session.seq - 1; seq >= 0; seq--) {
-    const event = agent.session.eventAt(seq as SessionSeq)
-    if (event?.type !== 'user/message') continue
-    if (isMemoryCatalogSource(event.data.source)) return true
-  }
-  return false
-}
-
-/** Append once on an admitted step. Rejected/cancelled steps do not mark a delivery. */
-export function attachInitialMemoryCatalog(ctx: Context, deps: StatusDeps): () => void {
-  let delivered = false
-  return ctx.on('agent/pre-step', async ({ agent, signal }, next): Promise<PreStepDecision> => {
-    const decision = await next()
-    if (decision.kind === 'reject' || signal.aborted || delivered || agent.ctx !== ctx) return decision
-    delivered = catalogWasDelivered(agent)
-    if (delivered || decision.messages.some(message => isMemoryCatalogSource(message.source))) return decision
-    const root = deps.workspaceRoot()
-    if (root === undefined) return decision
-    const text = authorMemoryCatalogText(root)
-    return { ...decision, messages: [...decision.messages, createUserMessage({
-      content: [{ type: 'text', text }],
-      source: { kind: MEMORY_CATALOG_SOURCE, form: 'snapshot', sections: [{ name: 'abzu.memory', text }] },
-    })] }
-  }, { prepend: true })
-}
-
 /** agent/created 时挂到该 agent scoped ctx 的依赖面。 */
 export interface StatusDeps {
-  /** 工作范围根;未装机时为 undefined(此时不注入)。 */
+  /** 工作范围根;未装机时为 undefined(此时书架 context 输出空串)。 */
   readonly workspaceRoot: () => string | undefined
 }
 
 /**
- * 注册书架 context（每次现扫）及作者记忆目录的一次性原生消息。
- * 作者目录独立于整份 runtime snapshot，其他 context 变化也不会再次附带它。
+ * 注册书架 context（每次现扫）。0.0.50 起不再注入会话开始的作者记忆目录（作者层记忆已删除）；
+ * 本书记忆目录随 `novel_select_book` 结果附带（见 bookMemoryCatalogText）。
  *
  * 审计 B2(对称修正)：要交回的是两样 —— `sys.context()` 回的注销函数
  * (dsh system-prompt 真类型 `context(context: PromptContext): () => void`)，
@@ -139,7 +97,6 @@ export function attachStatusToAgent(
   if (sysPromptOf(agentCtx) === undefined) return undefined
   try {
     let off: (() => void) | undefined
-    const offMemory = typeof agentCtx.on === 'function' ? attachInitialMemoryCatalog(agentCtx, deps) : undefined
     const fiber = agentCtx.inject(['systemPrompt'], (scope) => {
       const sys = sysPromptOf(scope as Context)
       if (sys === undefined) return
@@ -154,7 +111,6 @@ export function attachStatusToAgent(
       if (typeof undo === 'function') off = undo
     })
     return async () => {
-      offMemory?.()
       off?.()
       if (typeof fiber?.dispose === 'function') await fiber.dispose()
     }

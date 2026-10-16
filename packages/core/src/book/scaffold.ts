@@ -13,7 +13,8 @@ import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { LEDGER_NAMES, LAYOUT, MEMORY_KINDS, DRAFT_DIRS, paths } from '../repo/paths'
 
 export const 账本五文件 = LEDGER_NAMES
-export const 本书记忆四文件 = MEMORY_KINDS
+/** 建书即落的本书记忆占位文件（0.0.50 收窄为两类：文风/决策；旧书仓的四类文件不迁移）。 */
+export const 本书记忆两类文件 = MEMORY_KINDS
 
 function labeledHeadings(names: readonly string[], state: string): string {
   return names.map((n) => `## ${n} 〔${state}〕\n`).join('\n')
@@ -67,7 +68,7 @@ export function scaffoldBookFiles(bookRoot: string, concept: Concept | string, o
     // 最小模块建书即登记:scanDesign 只认模块声明里登记过的模块,确认条目工具只写条目本身
     { relPath: '世界书/模块声明.md', content: ['# 模块声明', '', ...世界书最小模块.map((名) => `- ${名}`), ''].join('\n') },
     ...账本五文件.map((名) => ({ relPath: `账本/${名}.md`, content: `# ${名}\n` })),
-    ...本书记忆四文件.map((名) => ({ relPath: `本书记忆/${名}.md`, content: `# ${名}\n` })),
+    ...本书记忆两类文件.map((名) => ({ relPath: `本书记忆/${名}.md`, content: `# ${名}\n` })),
   ]
   writeBatchAtomic(bookRoot, ops)
 

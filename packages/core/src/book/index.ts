@@ -8,6 +8,6 @@ export {
   emptyVolumeOutlineBody,
   emptyWindowBody,
   scaffoldBookFiles,
-  本书记忆四文件,
+  本书记忆两类文件,
   账本五文件,
 } from './scaffold'

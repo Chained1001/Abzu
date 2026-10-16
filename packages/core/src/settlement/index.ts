@@ -167,7 +167,9 @@ export function parseMemorySections(text: string): MemorySection[] {
     if (category !== undefined) {
       flush()
       if (!(memoryKinds as readonly string[]).includes(category)) {
-        throw new Error(`记忆分类未知:${category}`)
+        // 0.0.50 收窄：对话/灵感两类已退役。报错说明只接受文风/决策（含旧类别名提示），fail-closed 不崩溃。
+        const retired = (['对话', '灵感'] as const).includes(category as '对话' | '灵感')
+        throw new Error(`记忆分类未知:${category}——只接受 ${memoryKinds.join('/')}${retired ? '；「对话」「灵感」两类已退役，值得留的判断改写进 决策 或按文风锚点收进 文风' : ''}`)
       }
       kind = category as MemoryKind
       title = null

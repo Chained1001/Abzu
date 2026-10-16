@@ -11,7 +11,10 @@ export interface RepoPaths {
 
 export const LEDGER_KINDS = ['故事线', '人物弧线', '承诺', '线索'] as const
 export const LEDGER_NAMES = [...LEDGER_KINDS, '时间线'] as const
-export const MEMORY_KINDS = ['文风', '决策', '对话', '灵感'] as const
+/** 本书记忆类别（0.0.50 收窄）：只余 文风（锚点段）与 决策（偏离处置等）。 */
+export const MEMORY_KINDS = ['文风', '决策'] as const
+/** 0.0.50 前的旧四类里已退役的两类：旧书仓里这两类的旧格式文件/条目照常列出与读取（只读，不迁移），新沉淀不再接受。 */
+export const 旧记忆类别 = ['对话', '灵感'] as const
 export type LedgerName = (typeof LEDGER_NAMES)[number]
 export type MemoryKind = (typeof MEMORY_KINDS)[number]
 

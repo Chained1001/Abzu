@@ -2,7 +2,7 @@
  * 设计域工具：书架选书/建书/契约分部/占位设计（测试）/骨架/分卷/近期窗口/世界书/卷纲/待补便签/进度卡。
  */
 import { dispositionMentions, finishDesignCommit, provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { checkCommitPath, commitConfirmed, createBook, listAuthorMemory, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareSkeleton, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
+import { checkCommitPath, commitConfirmed, createBook, listBookMemoryEntries, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareSkeleton, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { bookMemoryCatalogText, progressLineOf, renderCurrentBook } from '../status-context'
@@ -640,18 +640,17 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           for (const p of docPaths) {
             if (history[p] === undefined) history[p] = lastCommitOf(book.bookRoot, p)
           }
-          // 未决偏离 = 对账偏离项 − 作者层已处置条目（按本书标签筛,拍板 4）;短名按 dispositionMentions 的边界规则匹配,防子串误扣
+          // 未决偏离 = 对账偏离项 − 本书层记忆已处置条目(0.0.50 起记进 本书层记忆·决策,经定稿沉淀写入);
+          // 短名按 dispositionMentions 的边界规则匹配,防子串误扣
           let 未决偏离: string[] = []
           let 待核对: { 名称: string; 章号: number; 本章事实: string[] }[] = []
           let 疑似占位待核对: { 名称: string; 来源: string }[] = []
           const recon = reconcileLedger(book.bookRoot, 卷)
           if (recon.ok) {
             const 偏离 = [...recon.report.计划未兑现, ...recon.report.事实未计划].map((item) => item.名称)
-            const ws = deps.workspaceRoot(sessionContext?.agent)
-            const 书名 = nodePath.basename(book.bookRoot)
-            const 处置文本 = ws === undefined ? [] : listAuthorMemory(ws)
-              .filter((e) => e.类 === '决策' && e.标签.some((t) => t === 书名 || t === String(args['bookId'] ?? '')))
-              .map((e) => `${e.名称} ${e.描述} ${e.正文}`)
+            const 处置文本 = listBookMemoryEntries(book.bookRoot)
+              .filter((e) => e.类 === '决策')
+              .map((e) => `${e.名称} ${e.描述 ?? ''} ${e.正文}`)
             未决偏离 = 偏离.filter((名) => !处置文本.some((text) => dispositionMentions(text, 名)))
             // 章级待核对单独计数呈报(任务21, B1):不进未决偏离;非空时不得呈报无偏离
             待核对 = recon.report.章级待核对.map((p) => ({ 名称: p.计划项.名称, 章号: p.章号, 本章事实: p.本章事实.map((f) => f.名称) }))

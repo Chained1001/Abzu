@@ -18,7 +18,6 @@
  * - novel_apply_revision_batch: 处置批落实（改稿主路：一次写新稿并回写全部处置）
  * - novel_import_draft: 作者稿导入（作者手写/作者手改，与 AI 稿地位相同）
  * - novel_record_review_findings: 隔离子 Agent 发现项回写（堵空审通过；「作者意见」模块同此通道）
- * - novel_record_memory: 作者层记忆写入（书房，一事一文件＋索引同步；不进书仓 git）
  * - novel_record_proposal / novel_resolve_proposal: 提案登记（acquisition）与裁决回写（S4）
  * - novel_apply_retcon: 吃书补偿执行（emission，必过作者裁决；retcon: 提交＋补偿事件留痕，S4）
  * - novel_editor_suggest: 回复书房编辑器请求，只把结果交回编辑器，不写文件
@@ -73,7 +72,6 @@ export const NOVEL_TOOL_NAMES: readonly string[] = [
   'novel_record_proposal',
   'novel_resolve_proposal',
   'novel_apply_retcon',
-  'novel_record_memory',
   'novel_note_pending',
   'novel_get_book_progress',
   'novel_editor_suggest',

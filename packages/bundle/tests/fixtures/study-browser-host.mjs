@@ -105,7 +105,7 @@ export async function apply(ctx) {
   }
   if (!exists) seedGraphFixture(path.join(root, '验收作品甲'))
   put('书房/知识库/写作笔记.md', '# 写作笔记\n\n共享资料的原始内容。\n')
-  put('书房/作者记忆/偏好.md', '# 作者偏好\n\n保留作者自己的句子。\n')
+  put('书房/灵感池/偏好.md', '# 作者偏好\n\n保留作者自己的句子。\n')
   const report = { requests: 0, savesReceived: 0, indexErrorsReceived: 0, complete: 0, customEvents: 0, resumed: exists }
   // Restored cards describe an earlier export. The book may have changed since;
   // resume its runtime without reseeding files, revalidating old exports or replaying tools.
