@@ -61,7 +61,7 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     confirmReady(root)
     const assembled = assembleMaterials(root, key)
     expect(assembled.ok).toBe(true)
-    const r = writeDraft(root, { ...key, body: '他走进雨里。', 选定: true })
+    const r = writeDraft(root, { ...key, body: '他走进雨里。' })
     expect(r.ok).toBe(true)
     expect(r.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿1.md')
     const text = fs.readFileSync(path.join(root, r.relPath), 'utf-8')

@@ -1986,14 +1986,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.54＋CHANGELOG 条目＋README×2（0.0.54 润色后移批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.55＋CHANGELOG 条目＋README×2（0.0.55 章节循环技能批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.54').toBe('0.0.54')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.54').toBe('0.0.54')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.54]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.55').toBe('0.0.55')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.55').toBe('0.0.55')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.55]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.54`).toContain('0.0.54')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.55`).toContain('0.0.55')
     }
   })
 
@@ -2234,10 +2234,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       '**双位视角**：场景内只写他能知道、感到、害怕的；埋伏笔挖钩放烟幕时切出来对信息差——读者读到而角色不知道的部分由你控制',
       '**在场**：直接呈现画面（他看到的/听到的/闻到的），不写"这时他看到了..."',
       '**节奏跟随**：按场景类型给节奏：打斗快、独白慢、对话跳；笔墨花在读者最关心的地方，不平均用力',
-      '**角色自决**：写到"他不会这么说"就跟角色走，候选事实段注明偏离与原因；牵动伏笔或窗口的停笔走轻量改纲，不硬掰',
+      //（0.0.55 章节循环技能批：角色自决加停笔报告、一气呵成改对包核对——句面随批更新）
+      '**角色自决**：写到"他不会这么做"就跟角色走，候选事实段注明偏离与原因；某个叙事单元立不住（人物不肯动、因果接不上、细纲事件量明显不够写）时不硬写到底——**停笔交停笔报告**：只交一份报告不交稿，写明「哪个单元、为什么立不住、建议细纲怎么改（一两句）」，主控按《细纲备料》重入节的轻量改纲通道改细纲后再派；牵动伏笔或窗口的停笔走轻量改纲，不硬掰',
       '**找乐子**：开写前问哪里好玩：能埋会心的梗、能反的套路、能更活的人物就做；平淡过渡段生个事——小意外/小冲突/小反转；梗必须从人物嘴里长出来',
       '**读者在场**：落笔前想一下：他此刻盼着什么、你在哪吊他胃口、他会猜到吗——会猜到就绕开或放假烟雾弹引他猜错',
-      '**一气呵成**：从第一句写到章末钩，不中断不查证不换语态——中断会把分析腔带进后文；不确定的先写过去标待定；禁入泄露/POV 漂当场自改，事实错对材料包核验再改',
+      '**一气呵成**：从第一句写到章末钩不中断——中断会把分析腔带进后文；**对包核对**——写到衣着、称谓、物价、能力表现等具体处对照材料包；包里没有的不编造具体数值与专名，写过去并就地标 `〔待查：…〕`；禁入泄露/POV 漂当场自改，事实错对材料包核验再改',
     ]
     let prev = -1
     for (const pin of mindPins) {
@@ -2541,7 +2542,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     ]) {
       expect(review, `参考线速览表应含「${row}」`).toContain(row)
     }
-    expect(review).toContain('**参考线速览表单源**：九份审读底本（全量审读＋八份单维底本）的参考线数值一律对照第二部分速览表')
+    expect(review).toContain('**参考线速览表单源**：十份审读底本（全量审读＋九份单维底本）的参考线数值一律对照第二部分速览表')
     expect(review).toContain('段末格言化参照（对白金句密度）：从《正文起草》技能包 agents/写作卡.md「AI 痕迹六条」原样摘录段末格言化行随包')
     const agentDir = path.join(__dirname, '..', 'skills', 'novel-review', 'agents')
     for (const f of ['全量审读.md', '章节结构审读.md', '人物与关系审读.md', '情节与因果审读.md', '信息披露审读.md', '线索与伏笔审读.md', '节奏与张力审读.md', '文风与表达审读.md']) {
@@ -2688,9 +2689,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(cards, '0.0.49 方法论冲突批：附录出处标注应移出运行时').not.toContain('〔知识库附录')
     // 项9：行文自查卡插入语行（§7.13 话语标记/语序域，判据式）
     expect(cards).toContain('- 插入语：「说实话／不得不说／某种程度上」式句首插入语成串即删')
-    // 项2：附.4 残留四词入 tier4＋其余七词已有位锚（含「不分发」诚实标注——附录指针闸）
+    // 项2：附.4 残留四词入 tier4＋其余七词已有位锚（0.0.55 清理：「（附.4，附录不分发）」半句已删，钉句随批更新）
     const clean = ref('novel-polish', 'references/1-表达清理.md')
-    expect(clean).toContain('慎用句式清单（附.4，附录不分发）残留四词')
+    expect(clean).toContain('慎用句式清单残留四词')
     for (const w of ['眼神微眯（高频套路表情', 'A市／法拉利（偷懒地名品牌名', '车祸失忆（狗血梗契机']) {
       expect(clean, `tier4 应含残留词目「${w}」`).toContain(w)
     }
@@ -3090,5 +3091,84 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(text, `${path.relative(skillsRoot, f)}: 不应再含旧播报「初稿完成，进入《精修润色》」`).not.toContain('初稿完成，进入《精修润色》')
       expect(text, `${path.relative(skillsRoot, f)}: 不应再含旧播报「润色完成播报进入《全面审读》」`).not.toContain('润色完成播报进入《全面审读》')
     }
+  })
+
+  it('0.0.55 章节循环技能批：查证行＋停笔报告＋待查＋九维审读＋默认处置口径＋沉淀六段与三行制＋取舍行＋规模跟随主角＋对白过句＋三处清理', () => {
+    const ref = (skill: string, file: string) => fs.readFileSync(skillFile(skill, file), 'utf8')
+    // A. 细纲查证行：规格行式＋outline SKILL 定位段说明（前置条件核对结果节内＋全路径自动切片口径）
+    const outlineSpec = ref('novel-outline', 'templates/章细纲固定小节规格.md')
+    expect(outlineSpec).toContain('`- 查证：<世界书条目仓内路径>｜<查什么>`')
+    expect(outlineSpec).toContain('查证行（写在「前置条件核对结果」节内）')
+    const outline = readSkill('novel-outline')
+    expect(outline).toContain('查证行（行式见规格「既有节固定行」节）写在「前置条件核对结果」节内')
+    expect(outline).toContain('查证行务必写条目全路径')
+    // B. 起草停笔报告＋对包核对与待查
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('**停笔交停笔报告**：只交一份报告不交稿')
+    expect(drafting).toContain('停笔报告优于硬写凑稿')
+    expect(drafting).toContain('整章新稿**（含候选事实段）或**停笔报告**（不产稿，草稿区无新文件，状态不变）')
+    expect(drafting).toContain('**对包核对**——写到衣着、称谓、物价、能力表现等具体处对照材料包')
+    expect(drafting).toContain('`- 待查：<缺的东西>｜<出现在哪一段>`')
+    expect(drafting).toContain('**待查项汇总**：收稿后把候选事实段待查项汇总')
+    expect(drafting, '负断言：写作心智旧句「不中断不查证」应清零').not.toContain('不中断不查证')
+    // C. 九维审读：review SKILL＋全量审读.md＋新单维底本存在＋director agents 计数
+    const review = readSkill('novel-review')
+    expect(review).toContain('一次派发跑完 9 维')
+    expect(review).toContain('一次全量报告要回写 9 次')
+    expect(review).toContain('十份审读底本（全量审读＋九份单维底本）')
+    expect(review).toContain('世界常量与量级切片：')
+    const sweep = ref('novel-review', 'agents/全量审读.md')
+    expect(sweep).toContain('# 审读底本：全量审读（9 维合并章程）')
+    expect(sweep).toContain('## 维度 9:世界内合理性审读')
+    expect(sweep).toContain('依此 9 个维度逐节给出')
+    expect(sweep).toContain('世界内合理性审读', 'frontmatter 模块名清单应含第九维')
+    const worldConsistencyPath = skillFile('novel-review', 'agents/世界内合理性审读.md')
+    expect(fs.existsSync(worldConsistencyPath), 'novel-review/agents/世界内合理性审读.md 应存在').toBe(true)
+    const worldConsistency = fs.readFileSync(worldConsistencyPath, 'utf8')
+    expect(worldConsistency).toContain('模块名: 世界内合理性审读')
+    expect(worldConsistency).toContain('## 查什么（六条）')
+    expect(worldConsistency).toContain('未建世界常量')
+    const director = readSkill('novel-director')
+    expect(director).toContain('共 9 份；连同全量审读，agents 目录共 10 个文件')
+    // D. 默认处置口径：review SKILL 步骤 6＋director 章内接续
+    expect(review).toContain('**默认处置口径（0.0.55）**')
+    expect(director).toContain('建议级按《全面审读》默认处置口径处理，定稿呈报汇总')
+    // E. 沉淀六段与三行制呈报：沉淀对账第六节＋settle 步骤 1/3/4＋director 交接表
+    const reconcile = ref('novel-settle', 'agents/沉淀对账.md')
+    expect(reconcile).toContain('# 入档后回写候选')
+    for (const section of ['## 人物认知增量', '## 金手指代价', '## 常量回写候选', '## 写时发现分拣建议']) {
+      expect(reconcile, `第六节应含 ${section}`).toContain(section)
+    }
+    expect(reconcile).toContain('不进待定稿包七件、只供主控呈报')
+    const settle = readSkill('novel-settle')
+    expect(settle).toContain('六段 Markdown（五段时间线变更/账本变更/本书层记忆候选/章摘要/事实变更＋第六节「入档后回写候选」')
+    expect(settle).toContain('「**本章只需看这几处**」三行制')
+    expect(settle).toContain('按作者在定稿呈报里的表态逐件回写')
+    expect(director).toContain('六段候选（五段＋入档后回写候选），不写文件')
+    // F. 取舍行：规格可选增补＋outline 写时整合
+    expect(outlineSpec).toContain('`- 取舍：为保 <A> 弃 <B>，理由一句`')
+    expect(outline).toContain('**取舍显形**')
+    // G. 规模跟随主角：幕纲出场人物段＋写前十查②
+    const memo = ref('novel-design', 'templates/幕纲固定段规格.md')
+    expect(memo).toContain('**人物规模跟随主角当前位阶**')
+    const tenChecks = ref('novel-outline', 'agents/写前十查.md')
+    expect(tenChecks).toContain('出场人物规模是否跟随主角当前位阶（对照幕纲『出场人物』段）一并核')
+    // H. 对白过句：polish 润色心智＋批 2 判据
+    const polish = readSkill('novel-polish')
+    expect(polish).toContain('**对白过句**：批 2 时对白逐句过三问')
+    expect(ref('novel-polish', 'references/2-节奏与重塑.md')).toContain('对白逐句过三问')
+    // I. 三处清理：附录不分发清零＋全仓（skills＋docs）旧敏感词清零（字面量用转义拼，保证 grep 核对面也干净）
+    expect(ref('novel-polish', 'references/1-表达清理.md'), '附录不分发应清零').not.toContain('附录不分发')
+    const skillsRoot = path.join(__dirname, '..', 'skills')
+    const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walkMd(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+      .filter((p) => p.endsWith('.md'))
+    for (const f of [...walkMd(skillsRoot), ...walkMd(path.join(__dirname, '..', '..', '..', 'docs'))]) {
+      const text = fs.readFileSync(f, 'utf8')
+      const legacyWord = '\u732B\u817B' // 旧措辞字面不落盘（含本测试文件），转义拼接
+      expect(text, `${f}: 不应含旧敏感词`).not.toContain(legacyWord)
+    }
+    // J. 润色承接后再要求润色＝换稿
+    expect(polish).toContain('**承接登记后再要求润色＝换稿**')
   })
 })

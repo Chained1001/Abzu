@@ -2,7 +2,7 @@ export const skills = ['novel-director', 'novel-inspiration', 'novel-design', 'n
 /** Dispatch references must travel with the skills that consume them. */
 export const referenceDocs = [
   ...['导入与覆盖', '事实提取', '机制与灵感'].map(name => `skills/novel-analyze/references/${name}.md`),
-  ...['全量', '章节结构', '人物与关系', '情节与因果', '信息披露', '线索与伏笔', '节奏与张力', '读者承诺', '文风与表达']
+  ...['全量', '章节结构', '人物与关系', '情节与因果', '信息披露', '线索与伏笔', '节奏与张力', '读者承诺', '文风与表达', '世界内合理性']
     .map(name => `skills/novel-review/agents/${name}审读.md`),
   ...['1-表达清理', '2-节奏与重塑'].map(name => `skills/novel-polish/references/${name}.md`),
   'skills/novel-revision/agents/改稿章程.md',

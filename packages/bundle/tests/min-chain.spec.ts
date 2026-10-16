@@ -87,7 +87,6 @@ describe('最小链 e2e（0.0.54 新序：起草 → 审读 ⇄ 改稿 → 润�
     const drafted = writeDraft(root, {
       ...key,
       body: `巷口风大。${HARD}。他没有回头。`,
-      选定: true,
     })
     expect(drafted.ok).toBe(true)
     expect(scanChapter(root, key).唯一待审稿).toBe(true)

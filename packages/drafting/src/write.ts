@@ -33,7 +33,6 @@ export interface WriteDraftInput {
   readonly 章: number
   readonly 章名: string
   readonly body: string
-  readonly 选定?: boolean
   readonly 候选事实?: readonly string[]
 }
 

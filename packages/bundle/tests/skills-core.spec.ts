@@ -288,7 +288,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(text).toContain('不设上限、不截断')
   })
 
-  it('全面审读：含 8 维标准 + Subagent 派发指引 + 发现项规范', () => {
+  it('全面审读：含 9 维标准 + Subagent 派发指引 + 发现项规范', () => {
     const text = readSkill('novel-review')
     expect(text).toContain('章节结构')
     expect(text).toContain('人物与关系')
@@ -298,6 +298,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(text).toContain('节奏与张力')
     expect(text).toContain('读者承诺')
     expect(text).toContain('文风与表达')
+    expect(text).toContain('世界内合理性')
     expect(text).toContain('Subagent')
     expect(text).toContain('发现项')
     expect(text).toContain('绝不直接修改正文')

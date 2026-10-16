@@ -86,7 +86,7 @@ function readyDraft(root: string, body: string): void {
   confirmWithHard(root)
   const assembled = assembleMaterials(root, key)
   if (!assembled.ok) throw new Error(`assemble failed:${assembled.gaps.join(';')}`)
-  const w = writeDraft(root, { ...key, body, 选定: true })
+  const w = writeDraft(root, { ...key, body })
   if (!w.ok) throw new Error(`writeDraft failed:${w.gaps.join(';')}`)
 }
 
