@@ -86,9 +86,9 @@ describe('机器态文本统一读取(0.0.20 批 bug7:带 BOM 的机器态文件
 
   it('带 BOM 的审核记录:loadReviewRecord 与 readReviewRecordForUpdate 同口径可读', () => {
     const root = mkBook()
-    const key = { 卷: 1, 章名: '初见' }
+    const key = { 卷: 1, 章: 1, 章名: '初见' }
     const record = serializeReviewRecord({ schemaVersion: MACHINE_SCHEMA_VERSION, 完成: true, 问题: [], 模块: { '章节结构审读': { 完成: true, 失败: false } } })
-    putBom(root, paths.审核记录(key.卷, key.章名), record)
+    putBom(root, paths.审核记录(key.卷, key.章, key.章名), record)
     const loaded = loadReviewRecord(root, key)
     expect(loaded?.完成).toBe(true)
     expect(loaded?.模块['章节结构审读']?.完成).toBe(true)
@@ -98,19 +98,19 @@ describe('机器态文本统一读取(0.0.20 批 bug7:带 BOM 的机器态文件
 
   it('带 BOM 的待定稿包清单:writeSettlementDecision 可读可回写', () => {
     const root = mkBook()
-    const key = { 卷: 1, 章名: '初见' }
-    putBom(root, path.posix.join(paths.待定稿包目录(key.卷, key.章名), '清单.json'), serializeMachineJson({ 正文: 'x' }, MACHINE_SCHEMA_VERSION))
+    const key = { 卷: 1, 章: 1, 章名: '初见' }
+    putBom(root, path.posix.join(paths.待定稿包目录(key.卷, key.章, key.章名), '清单.json'), serializeMachineJson({ 正文: 'x' }, MACHINE_SCHEMA_VERSION))
     const result = writeSettlementDecision(root, key, '已批准')
     expect(result.ok).toBe(true)
-    const rewritten = fs.readFileSync(path.join(root, paths.待定稿包目录(key.卷, key.章名), '清单.json'), 'utf-8')
+    const rewritten = fs.readFileSync(path.join(root, paths.待定稿包目录(key.卷, key.章, key.章名), '清单.json'), 'utf-8')
     expect(JSON.parse(rewritten)['裁决']).toBe('已批准')
   })
 
   it('带 BOM 的材料清单:readManifest 可读且与无 BOM 行为一致', () => {
     const root = mkBook()
-    const key = { 卷: 1, 章名: '初见' }
+    const key = { 卷: 1, 章: 1, 章名: '初见' }
     const manifest = serializeMachineJson({ 状态: '段齐备', 合计字数: 0, 段: [] }, MACHINE_SCHEMA_VERSION)
-    putBom(root, path.posix.join(paths.材料包目录(key.卷, key.章名), '材料清单.json'), manifest)
+    putBom(root, path.posix.join(paths.材料包目录(key.卷, key.章, key.章名), '材料清单.json'), manifest)
     const m = readManifest(root, key)
     expect(m?.状态).toBe('段齐备')
     expect(m?.合计字数).toBe(0)

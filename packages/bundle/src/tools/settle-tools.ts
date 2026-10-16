@@ -2,7 +2,7 @@
  * 定稿域工具：待定稿包组装/作者批准后原子沉淀。
  */
 import { provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { paths, preparePack, archiveChapter, withBookWrite, askAuthor, writeSettlementDecision } from '@abzu/core'
+import { archiveDraftChapter, pad, paths, preparePack, archiveChapter, withBookWrite, askAuthor, writeSettlementDecision, resolveDraftRel, snapshotDraft } from '@abzu/core'
 import { captureApprovalFiles } from '../approval-snapshot'
 
 export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
@@ -108,7 +108,7 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
         const keyResult = chapterKeyOf(args)
         if (!keyResult.ok) return keyResult
         const key = keyResult.key
-        const approvalFiles = [paths.待定稿包目录(key.卷, key.章名), paths.契约()]
+        const approvalFiles = [resolveDraftRel(bookRoot, '待定稿包目录', key), paths.契约()]
         const before = captureApprovalFiles(bookRoot, approvalFiles, args)
         if (!before.ok) return before
         const decision = await askAuthor(deps.askFn, '定稿入档', { 范围: `卷${key.卷.toString().padStart(2, '0')}/${key.章名}` }, { agent: sessionContext?.agent, signal: sessionContext?.signal })
@@ -133,13 +133,24 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
           try {
             const res = archiveChapter({
               bookRoot,
-              packageDir: paths.待定稿包目录(key.卷, key.章名),
+              packageDir: resolveDraftRel(bookRoot, '待定稿包目录', key),
               summary: String(args['summary']).trim(),
               settlement: { 章节: key, 批准: true, 裁决记录: `作者于 ${new Date().toISOString()} 批准定稿入档（kind=${decision.kind}, 决定=${decision.决定}）` },
               provenance: provenanceOf(sessionContext),
             })
             if (!res.ok) return { ok: false, reason: res.reason }
-            return { ok: true, message: `定稿沉淀完成（${res.message}），入档：${res.dests.join('、')}` }
+            // 定稿后清理草稿区五处(批8,0.0.57):入档已原子完成,清掉本章草稿/材料包/审核记录/待定稿包/候选细纲
+            // ——draft-git 的 add -A 全量索引不再随书膨胀。清理失败不回滚入档,如实进返回。
+            // 写时发现须在沉淀步分拣完毕后才清(口径见 novel-settle SKILL 沉淀步)。
+            let cleanupNote = ''
+            try {
+              const cleanup = archiveDraftChapter(bookRoot, key)
+              const snap = snapshotDraft(bookRoot, `定稿后清理:卷${pad(key.卷)}-${key.章名}`)
+              cleanupNote = `草稿区已清理（删 ${cleanup.removed.length} 处，快照${snap.committed ? '已提交' : '无变化'}）。`
+            } catch (cleanupErr) {
+              cleanupNote = `草稿区清理失败:${cleanupErr instanceof Error ? cleanupErr.message : String(cleanupErr)}（入档不受影响，可跑 草稿清理.mjs --执行 true 补清）。`
+            }
+            return { ok: true, message: `定稿沉淀完成（${res.message}），入档：${res.dests.join('、')}。${cleanupNote}` }
           } catch (err) {
             return { ok: false, reason: `定稿沉淀失败: ${err instanceof Error ? err.message : String(err)}` }
           }

@@ -90,12 +90,12 @@ describe('运行链路接线(工具面验收)', () => {
     expect(progress.疑似占位待核对).toHaveLength(2)
     expect(progress.渲染).toContain('疑似模板占位待核对')
     const key = { 卷: 1, 章: 1, 章名: '开篇任务' }
-    const dir = path.join(root, paths.草稿目录(1, key.章名))
+    const dir = path.join(root, paths.草稿目录(1, key.章, key.章名))
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(path.join(dir, '稿1.md'), serializeDocument({ 角色: '待审稿', 选定: true }, '少年在雨中听见铜铃。'))
     const pack = await call('novel_prepare_pack', { bookId, ...key })
     expect(pack.ok, JSON.stringify(pack)).toBe(true)
-    const report = fs.readFileSync(path.join(root, paths.待定稿包目录(1, key.章名), '卷对账.md'), 'utf8')
+    const report = fs.readFileSync(path.join(root, paths.待定稿包目录(1, key.章, key.章名), '卷对账.md'), 'utf8')
     expect(report).toContain('疑似模板占位待核对')
     expect(report).not.toContain('计划未兑现：开篇任务')
     expect(report).not.toContain('无偏离')
@@ -135,7 +135,7 @@ describe('运行链路接线(工具面验收)', () => {
     expect(replay).toMatchObject({ commitState: 'unchanged', retryable: false })
     expect(String(replay.message)).toMatch(/幂等重放|无改动/)
     expect(count()).toBe(String(Number(candidateCount) + 1))
-    expect(fs.existsSync(path.join(bookRoot, '草稿区/章细纲/卷01-开篇任务.md'))).toBe(false)
+    expect(fs.existsSync(path.join(bookRoot, '草稿区/章细纲/卷01-0001-开篇任务.md'))).toBe(false)
   })
 
   it('窗口滚动与设计侧更新产生 design: 提交;新建书状态含 design 段', async () => {
@@ -180,14 +180,14 @@ describe('运行链路接线(工具面验收)', () => {
     expect(bad.ok).toBe(false)
 
     // Review evidence must have a current manuscript to bind to.
-    const draftDir = path.join(ws, '链路书', '草稿区/草稿/卷01-开篇任务')
+    const draftDir = path.join(ws, '链路书', '草稿区/草稿/卷01-0001-开篇任务')
     fs.mkdirSync(draftDir, { recursive: true })
     fs.writeFileSync(path.join(draftDir, '稿1.md'), '---\n角色: 待审稿\n---\n\n主角走进城门。\n', 'utf-8')
 
     const r = await call('novel_record_review_findings', {
       bookId, 卷: 1, 章: 1, 章名: '开篇任务', 模块名: '章节结构审读',
       审读指纹: computeReview(path.join(ws, '链路书'), { 卷: 1, 章: 1, 章名: '开篇任务' }).record!.审读指纹,
-      发现项: [{ 严重程度: '中', 证据位置: '草稿区/草稿/卷01-开篇任务/稿1.md:1', 问题说明: '开场未点名主角', 所依据材料及版本: '稿1@1', 影响范围: '本章', 修改建议: '补点名', 建议返回节点: '改稿', 建议复审模块: '', 不确定性说明: '', 材料完整性: '完整' }],
+      发现项: [{ 严重程度: '中', 证据位置: '草稿区/草稿/卷01-0001-开篇任务/稿1.md:1', 问题说明: '开场未点名主角', 所依据材料及版本: '稿1@1', 影响范围: '本章', 修改建议: '补点名', 建议返回节点: '改稿', 建议复审模块: '', 不确定性说明: '', 材料完整性: '完整' }],
     })
     expect(r.ok).toBe(true)
     // 仅回写一个模块:其余模块未回写,审核不判完成
@@ -199,7 +199,7 @@ describe('运行链路接线(工具面验收)', () => {
     const { call } = makeTools(ws)
     const { bookId } = await makeBook(ws, call)
     const bookRoot = path.join(ws, '链路书')
-    const draft = path.join(bookRoot, '草稿区/草稿/卷01-开篇任务/稿1.md')
+    const draft = path.join(bookRoot, '草稿区/草稿/卷01-0001-开篇任务/稿1.md')
     fs.mkdirSync(path.dirname(draft), { recursive: true })
     fs.writeFileSync(draft, '---\n角色: 待审稿\n---\n\n主角走进城门。\n', 'utf-8')
     registerDefaultChecks()
@@ -245,7 +245,7 @@ describe('运行链路接线(工具面验收)', () => {
     const assembled = await call('novel_assemble_materials', { bookId, ...key })
     expect(assembled.ok, JSON.stringify(assembled)).toBe(true)
     const HARD = '开场必须点名主角现身'
-    const draftDir = path.join(bookRoot, '草稿区/草稿/卷01-开篇任务')
+    const draftDir = path.join(bookRoot, '草稿区/草稿/卷01-0001-开篇任务')
     fs.mkdirSync(draftDir, { recursive: true })
     fs.writeFileSync(path.join(draftDir, '稿1.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 1, 生成模块: '写稿' }, `巷口风大。${HARD}。他没有回头。`), 'utf-8')
 
@@ -286,13 +286,13 @@ describe('运行链路接线(工具面验收)', () => {
     fs.writeFileSync(path.join(draftDir, '稿2.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 2, 父版本: 99, 生成模块: '润色' }, `巷口的风很急。${HARD}。他没有回头看一眼。`), 'utf-8')
 
     // 反例四：润色稿不是被审稿的直接子稿（父版本不符）→ 拒
-    const indirect = await call('novel_record_polish', { bookId, ...key, 稿件: '草稿区/草稿/卷01-开篇任务/稿2.md' })
+    const indirect = await call('novel_record_polish', { bookId, ...key, 稿件: '草稿区/草稿/卷01-0001-开篇任务/稿2.md' })
     expect(indirect.ok).toBe(false)
     expect(String(indirect.reason)).toMatch(/直接子稿/)
 
     // 正例：父版本指向被审稿 → 登记承接成功，推导进入定稿准备
     fs.writeFileSync(path.join(draftDir, '稿2.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 2, 父版本: 1, 生成模块: '润色' }, `巷口的风很急。${HARD}。他没有回头看一眼。`), 'utf-8')
-    const carried = await call('novel_record_polish', { bookId, ...key, 稿件: '草稿区/草稿/卷01-开篇任务/稿2.md', 审核记录哈希: scanChapter(bookRoot, key).审核记录哈希 })
+    const carried = await call('novel_record_polish', { bookId, ...key, 稿件: '草稿区/草稿/卷01-0001-开篇任务/稿2.md', 审核记录哈希: scanChapter(bookRoot, key).审核记录哈希 })
     expect(carried.ok, JSON.stringify(carried)).toBe(true)
     expect(carried.状态).toBe('已润色')
     expect(String(carried.message)).toContain('定稿沉淀')

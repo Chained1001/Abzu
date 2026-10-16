@@ -92,7 +92,7 @@ describe('幕纲门禁归类(0.0.52 幕纲批)', () => {
 
   it('经写入器（prepareActOutline + writeFileAtomic）落幕纲成功，文件工具仍拒', () => {
     const root = mkDir('abzu-gate-memo-')
-    const op = prepareActOutline(1, 1, '渡口疑云', '# 幕纲\n\n## 本幕故事\n\nx\n')
+    const op = prepareActOutline(root, 1, 1, '渡口疑云', '# 幕纲\n\n## 本幕故事\n\nx\n')
     expect(op.relPath).toBe('大纲/卷规划/卷01/幕纲/幕01-渡口疑云.md')
     writeFileAtomic(root, op.relPath, op.content)
     expect(fs.existsSync(path.join(root, op.relPath))).toBe(true)

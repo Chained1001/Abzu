@@ -13,17 +13,21 @@ export function isDraftRelPath(relPath: string): boolean {
   return p === '草稿区/草稿' || p.startsWith('草稿区/草稿/')
 }
 
-/** 从 `草稿区/草稿/卷NN-章名/...` 取章键;章号未知时为 0。 */
+/**
+ * 从 `草稿区/草稿/卷NN-NNNN-章名/...`(批8 起,章号四位)或旧格式 `草稿区/草稿/卷NN-章名/...`
+ * 取章键;旧格式/无第二段 → 章:0(定位由 resolveDraftKey 归并兜住)。与 scan.ts 草稿区
+ * 枚举同一正则,两处不漂移。
+ */
 export function parseDraftChapterKey(relPath: string): ChapterKey | null {
   const p = toPosixRel(relPath)
   const rest = p.replace(/^草稿区\/草稿\/?/, '')
   if (!rest) return null
   const first = rest.split('/')[0] ?? ''
-  const m = /^卷(\d+)-(.+?)(?:\.md)?$/.exec(first)
+  const m = /^卷(\d+)(?:-(\d{1,4}))?-(.+?)(?:\.md)?$/i.exec(first)
   if (!m) return null
-  const 章名 = m[2]!
+  const 章名 = m[3]!
   if (章名 === '') return null
-  return { 卷: Number(m[1]), 章: 0, 章名 }
+  return { 卷: Number(m[1]), 章: m[2] === undefined ? 0 : Number(m[2]), 章名 }
 }
 
 /** 章键归并与 listChapters 同一实现(避免两处规则漂移):真源侧章号权威。 */

@@ -29,7 +29,7 @@ describe('章细纲(格式规格 §3.3)', () => {
   it('write candidate → scan/derive 章细纲(待确认)', () => {
     const root = mkBook()
     const rel = writeCandidate(root, { 卷: 1, 章名: '开篇任务' })
-    expect(rel).toBe(paths.候选细纲(1, '开篇任务'))
+    expect(rel).toBe(paths.候选细纲(1, 0, '开篇任务'))
     expect(fs.existsSync(path.join(root, rel))).toBe(true)
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('章细纲(待确认)')
   })
@@ -43,7 +43,7 @@ describe('章细纲(格式规格 §3.3)', () => {
     const confirmed = confirmOutline(root, key)
     expect(confirmed.ok).toBe(false)
     expect(fs.existsSync(path.join(root, paths.确认细纲(1, 1, '开篇任务')))).toBe(false)
-    expect(fs.existsSync(path.join(root, paths.候选细纲(1, '开篇任务')))).toBe(true)
+    expect(fs.existsSync(path.join(root, paths.候选细纲(1, 0, '开篇任务')))).toBe(true)
   })
 
   it('confirm with valid refs + window item → 真源区, candidate gone, derive 写作备料', () => {
@@ -73,7 +73,7 @@ describe('章细纲(格式规格 §3.3)', () => {
     const confirmed = confirmOutline(root, key)
     expect(confirmed).toEqual({ ok: true })
     expect(fs.existsSync(path.join(root, paths.确认细纲(1, 1, '开篇任务')))).toBe(true)
-    expect(fs.existsSync(path.join(root, paths.候选细纲(1, '开篇任务')))).toBe(false)
+    expect(fs.existsSync(path.join(root, paths.候选细纲(1, 0, '开篇任务')))).toBe(false)
     const text = fs.readFileSync(path.join(root, paths.确认细纲(1, 1, '开篇任务')), 'utf-8')
     expect(text).toMatch(/状态:\s*已确认/)
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('写作备料')
@@ -180,7 +180,7 @@ describe('已定稿章细纲勘误(候选→再确认, F-001/任务19)', () => {
     expect(text).toMatch(/版本:\s*2/)
     expect(text).toMatch(/父版本:\s*1/)
     expect(text).toContain('只披露他所见')
-    expect(fs.existsSync(path.join(root, paths.候选细纲(1, '第十章 急殓')))).toBe(false)
+    expect(fs.existsSync(path.join(root, paths.候选细纲(1, 0, '第十章 急殓')))).toBe(false)
     // 定稿 frontmatter 来源细纲版本不回写,定稿字节不变
     expect(fs.readFileSync(finalizedAbs, 'utf-8')).toBe(finalizedBytes)
     // scanChapter:候选 false、确认 true、已定稿 true

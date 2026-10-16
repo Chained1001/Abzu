@@ -23,6 +23,7 @@ import {
   parseDocument,
   paths,
   readChapterLength,
+  resolveDraftRel,
   readReviewRecordForUpdate,
   reviewInputFingerprintOf,
   reviewRecordHashOf,
@@ -69,7 +70,7 @@ function readText(root: string, rel: string): string | null {
 }
 
 function draftViews(root: string, key: Pick<ChapterKey, '卷' | '章名'>): DraftView[] {
-  const dir = paths.草稿目录(key.卷, key.章名)
+  const dir = resolveDraftRel(root, '草稿目录', key)
   let files: string[]
   try { files = fs.readdirSync(path.join(root, ...dir.split('/'))) } catch { return [] }
   const views: DraftView[] = []
@@ -152,7 +153,7 @@ function skipCarryover(root: string, input: RecordPolishInput, record: ReviewRec
     时间: new Date().toISOString(),
   }
   const content = serializeReviewRecord({ ...record, 润色: carryover })
-  writeFileAtomic(root, paths.审核记录(input.卷, input.章名), content)
+  writeFileAtomic(root, resolveDraftRel(root, '审核记录', input), content)
   return { ok: true, 审核记录哈希: reviewRecordHashOf(content), 润色: carryover }
 }
 
@@ -190,7 +191,7 @@ function polishCarryover(root: string, input: RecordPolishInput, record: ReviewR
   }
   // 不改 问题/模块/审稿哈希/审读指纹——证据仍绑被审稿,承接另记。
   const content = serializeReviewRecord({ ...record, 润色: carryover })
-  writeFileAtomic(root, paths.审核记录(input.卷, input.章名), content)
+  writeFileAtomic(root, resolveDraftRel(root, '审核记录', input), content)
   return { ok: true, 审核记录哈希: reviewRecordHashOf(content), 润色: carryover }
 }
 

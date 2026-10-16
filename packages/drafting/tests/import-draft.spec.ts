@@ -57,7 +57,7 @@ describe('作者稿导入(A9)', () => {
       生成模块: '作者手写',
     })
     expect(r1.ok).toBe(true)
-    expect(r1.relPath).toBe(`草稿区/草稿/卷01-${key.章名}/稿1.md`)
+    expect(r1.relPath).toBe(`草稿区/草稿/卷01-0001-${key.章名}/稿1.md`)
     const doc = parseDocument(fs.readFileSync(path.join(root, r1.relPath), 'utf-8'))
     expect(doc.ok).toBe(true)
     if (doc.ok) {
@@ -73,16 +73,16 @@ describe('作者稿导入(A9)', () => {
       生成模块: '作者手写',
     })
     expect(r2.ok).toBe(true)
-    expect(r2.relPath).toBe(`草稿区/草稿/卷01-${key.章名}/稿2.md`)
+    expect(r2.relPath).toBe(`草稿区/草稿/卷01-0001-${key.章名}/稿2.md`)
     expect(fs.readFileSync(path.join(root, r1.relPath), 'utf-8')).toContain('作者亲写的第一章')
   })
 
   it('作者手改:角色 待审稿 时旧待审稿降级、父版本指向被改的稿、选定唯一', () => {
     const root = mkDir('abzu-import-2-')
     readyBook(root)
-    fs.mkdirSync(path.join(root, `草稿区/草稿/卷01-${key.章名}`), { recursive: true })
+    fs.mkdirSync(path.join(root, `草稿区/草稿/卷01-0001-${key.章名}`), { recursive: true })
     fs.writeFileSync(
-      path.join(root, `草稿区/草稿/卷01-${key.章名}/稿1.md`),
+      path.join(root, `草稿区/草稿/卷01-0001-${key.章名}/稿1.md`),
       `---\n角色: 待审稿\n选定: true\n版本: 1\n父版本: null\n生成模块: 写稿\n---\nAI 初稿。${HARD}。\n`,
       'utf-8',
     )

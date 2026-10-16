@@ -4,11 +4,11 @@ import { readBookText } from '../repo/read'
 import { parseDocument } from '../repo/frontmatter'
 import { isLegacySeedPlan } from '../design/legacy-seed'
 import {
-  CN_NUMERAL,
   LEDGER_NAMES,
   MEMORY_KINDS,
   filenameCase,
   isMarkdownFileName,
+  parseChineseVolume,
   type MemoryKind,
   type LedgerName,
   paths,
@@ -178,7 +178,7 @@ interface ParsedEntry<T extends string> {
   readonly 行号: number
 }
 
-function parseEntries<T extends string>(text: string, category: T, source: string): ParsedEntry<T>[] | { readonly reason: string; readonly line: number } {
+function parseEntries<T extends string>(text: string, category: T, source: string, 章上限?: number): ParsedEntry<T>[] | { readonly reason: string; readonly line: number } {
   const lines = text.replace(/\r\n/g, '\n').split('\n')
   const entries: ParsedEntry<T>[] = []
   let title: string | null = null
@@ -206,6 +206,15 @@ function parseEntries<T extends string>(text: string, category: T, source: strin
         continue
       }
       prose.push(item.text)
+    }
+    // 章上限下推(批8):「世界已发生」边界在解析流内生效——归属章号晚于上限的条目边解析边丢,
+    // 不构造条目对象;归属无法判定的条目(null)照旧保留由调用方标注不确定性。
+    if (章上限 !== undefined) {
+      const chapter = entryChapterNo({ 字段: fields })
+      if (chapter !== null && chapter > 章上限) {
+        body = []
+        return
+      }
     }
     const bodyText = prose.join('\n').trim()
     entries.push({ 分类: category, 名称: title, 字段: fields, 正文: bodyText, 来源文件: source, 行号: titleLine })
@@ -315,7 +324,13 @@ export function queryLedger(bookRoot: string, filter?: LedgerEntryFilter): Ledge
   const failures: string[] = []
   let firstFailure: string | undefined
   let firstUnreadable: string | undefined
-  for (const category of LEDGER_NAMES) {
+  // 读侧降载(批8):分类已知时只读该本账,其余不读不解析——长篇下材料包组装一次原先
+  // 4 遍全量读五本账;未分类(全书对账等)照旧全量。到期查询(queryDueLedger)带章上限,
+  // 解析流内按条丢弃晚于上限的条目,不再构造对象。
+  const categories: readonly LedgerName[] = filter?.分类 !== undefined && (LEDGER_NAMES as readonly string[]).includes(filter.分类)
+    ? [filter.分类]
+    : LEDGER_NAMES
+  for (const category of categories) {
     const source = paths.账本(category)
     const result = read(bookRoot, source, '账本文件')
     if (!result.ok) {
@@ -327,7 +342,7 @@ export function queryLedger(bookRoot: string, filter?: LedgerEntryFilter): Ledge
       missing.push(source)
       continue
     }
-    const parsed = parseEntries(result.text, category, source)
+    const parsed = parseEntries(result.text, category, source, filter?.章上限)
     if (!Array.isArray(parsed)) {
       const detail = `${source}:${parsed.line}:${parsed.reason}`
       failures.push(detail)
@@ -347,6 +362,7 @@ export function queryLedger(bookRoot: string, filter?: LedgerEntryFilter): Ledge
   // Apply the world-happened boundary before current-state folding. Folding
   // first would let a future update hide an earlier state needed by a past
   // chapter (for example, chapter 50 planted then chapter 199 collected).
+  // 章上限已在解析流内下推(批8),此处过滤兜底保留(语义同一,双保险)。
   const bounded = filter?.章上限 === undefined
     ? entries
     : entries.filter((entry) => {
@@ -562,29 +578,36 @@ function asFact(entry: LedgerEntry): ReconciliationItem {
   }
 }
 
-/** 章号解析(章级计划形态,任务21 B1):阿拉伯数字或中文数字(一至九十九),非法返回 null。 */
+/** 章号解析(章级计划形态,任务21 B1):阿拉伯数字或中文数字(一至九十九),非法返回 null——复合数逻辑与 parseChineseVolume 同款(批8 起后者为单源,本函数保留章号口径)。 */
 function chapterNoOf(text: string): number | null {
   if (/^\d{1,4}$/.test(text)) return Number(text)
-  const chars = [...text]
-  if (chars.length === 0 || chars.length > 3) return null
-  const values = chars.map((c) => CN_NUMERAL[c])
-  if (values.some((v) => v === undefined)) return null
-  if (chars.length === 1) return values[0]!
-  if (chars.length === 2) {
-    if (chars[0] === '十') return 10 + values[1]!
-    if (chars[1] === '十') return values[0]! * 10
-    return null
-  }
-  if (chars[1] === '十') return values[0]! * 10 + values[2]!
-  return null
+  const value = parseChineseVolume(text)
+  return value === undefined ? null : value
 }
 
 function timelineEntries(ledger: LedgerQueryResult): readonly LedgerEntry[] {
   return ledger.entries.filter((entry) => entry.分类 === '时间线')
 }
 
+/** 卷号复合数解析走 parseChineseVolume(批8,支持到 99):`第十一卷` 不再进「区间不明」。 */
 function chineseToNumber(text: string): number | undefined {
-  return CN_NUMERAL[text]
+  return parseChineseVolume(text)
+}
+
+/** 卷级区间单端解析:剥 第…卷/卷… 外壳后取卷号(阿拉伯或中文复合数)。 */
+function volumeNoOf(text: string): number | undefined {
+  const t = text.trim()
+  if (t.startsWith('第') && t.endsWith('卷') && t.length > 2) {
+    const inner = t.slice(1, -1)
+    if (/^\d+$/.test(inner)) return Number(inner)
+    return chineseToNumber(inner)
+  }
+  if (t.startsWith('卷') && t.length > 1) {
+    const inner = t.slice(1)
+    if (/^\d+$/.test(inner)) return Number(inner)
+    return chineseToNumber(inner)
+  }
+  return undefined
 }
 
 type DueInterval =
@@ -607,17 +630,18 @@ function parseDueInterval(raw: string): DueInterval | null {
       }
     }
   }
-  if (text.startsWith('第') && text.endsWith('卷')) {
-    const inner = text.slice(1, -1)
-    if (/^\d+$/.test(inner)) return { kind: 'volume', from: Number(inner) }
-    const from = chineseToNumber(inner)
-    if (from !== undefined) return { kind: 'volume', from }
-  }
-  if (text.startsWith('卷')) {
-    const inner = text.slice(1)
-    if (/^\d+$/.test(inner)) return { kind: 'volume', from: Number(inner) }
-    const from = chineseToNumber(inner)
-    if (from !== undefined) return { kind: 'volume', from }
+  // 卷级单端(批8 起中文复合数到 99;原先 `第十一卷` 进「区间不明」)
+  const single = volumeNoOf(text)
+  if (single !== undefined) return { kind: 'volume', from: single }
+  // 卷级区间(`第十一卷-第十二卷`/`第十一-十二卷`):取下界——卷级区间无上界、不判逾期
+  for (const sep of ['-', '—', '～'] as const) {
+    const index = text.indexOf(sep)
+    if (index <= 0) continue
+    const left = text.slice(0, index).trim()
+    const right = text.slice(index + sep.length).trim()
+    const from = volumeNoOf(left)
+    const to = volumeNoOf(right)
+    if (from !== undefined && to !== undefined) return { kind: 'volume', from: Math.min(from, to) }
   }
   return null
 }

@@ -67,7 +67,7 @@ function packableBook(): string {
   writeCandidate(root, { ...key, 来源引用: refs, body })
   const r = confirmOutline(root, key)
   if (!r.ok) throw new Error(`夹具细纲确认失败:${r.gaps.join(';')}`)
-  const rel = '草稿区/草稿/卷01-开篇任务/稿1.md'
+  const rel = '草稿区/草稿/卷01-0001-开篇任务/稿1.md'
   fs.mkdirSync(path.join(root, path.dirname(rel)), { recursive: true })
   fs.writeFileSync(path.join(root, rel), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 1, 父版本: null, 生成模块: '写稿' }, `巷口风大。${HARD}。`), 'utf-8')
   return root
@@ -115,11 +115,11 @@ describe('定稿备包薄入口 CLI(R21 纯算切割)', () => {
     const { code, data, err } = invoke(['--book', root, '--卷', '1', '--章', '1', '--章名', '开篇任务'])
     expect(code, err).toBe(0)
     expect(data!.ok).toBe(true)
-    expect(data!.dir).toBe('草稿区/定稿准备/卷01-开篇任务')
+    expect(data!.dir).toBe('草稿区/定稿准备/卷01-0001-开篇任务')
     const files = data!.files as string[]
     expect(files).toHaveLength(8)
     for (const 名 of [...七件, '清单.json']) {
-      expect(files, `载荷应含 ${名}`).toContain(`草稿区/定稿准备/卷01-开篇任务/${名}`)
+      expect(files, `载荷应含 ${名}`).toContain(`草稿区/定稿准备/卷01-0001-开篇任务/${名}`)
     }
     const 文件 = data!.文件 as { relPath: string; content: string }[]
     expect(文件).toHaveLength(8)

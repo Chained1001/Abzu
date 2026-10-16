@@ -17,6 +17,7 @@ import {
   nextDraftFileName,
   parseDocument,
   paths,
+  resolveDraftRel,
   serializeDocument,
   splitCandidateFacts,
   writeFileAtomic,
@@ -53,7 +54,7 @@ function readText(root: string, rel: string): string | null {
 }
 
 function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string[] {
-  const abs = path.join(bookRoot, paths.草稿目录(key.卷, key.章名))
+  const abs = path.join(bookRoot, resolveDraftRel(bookRoot, '草稿目录', key))
   if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
   return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh'))
 }
@@ -73,7 +74,7 @@ interface DraftView {
 }
 
 function loadDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): DraftView[] {
-  const dir = paths.草稿目录(key.卷, key.章名)
+  const dir = resolveDraftRel(bookRoot, '草稿目录', key)
   const views: DraftView[] = []
   for (const file of listDraftFiles(bookRoot, key)) {
     const rel = path.posix.join(dir, file)
@@ -123,7 +124,7 @@ function polishDraftLocked(bookRoot: string, key: PolishInput): PolishResult {
 
   const parent = extractVersionFields(src.fields).版本
   const ver = parent === null ? initialVersion('润色') : bumpVersion(parent, '润色')
-  const relPath = path.posix.join(paths.草稿目录(key.卷, key.章名), nextDraftFileName(bookRoot, key))
+  const relPath = path.posix.join(resolveDraftRel(bookRoot, '草稿目录', key), nextDraftFileName(bookRoot, key))
   // 先降级再写新稿:中途失败留下 0 份待审稿(可再润色),而不是 2 份(死锁)
   if (角色 === '待审稿') demoteOtherDrafts(bookRoot, relPath, key)
   const fields = applyVersionFields(

@@ -2,6 +2,8 @@
  * 事件与恢复(插件规格 §4.1/§8):恢复只从书仓推导，不依赖会话记忆。
  */
 
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import { readBookText } from '../repo/read'
 import { deriveChapterFacts, type ChapterDerivation } from '../derive/derive'
 import { listChapters, scanChapter, type ChapterFacts, type ChapterKey } from '../derive/scan'
@@ -123,16 +125,62 @@ export function rebuildResume(bookRoot: string, key: ChapterKey): ResumeSnapshot
   return rebuildResumeWithStatus(bookRoot, key, bookStatus(bookRoot, key.卷))
 }
 
-/** 新会话入口：列出可恢复章节，调用方不需要保存任何会话状态。 */
-export function listResumable(bookRoot: string): ReadonlyArray<ResumeSnapshot> {
+/** 窗口外章节的一行摘要(批8):不做 scanChapter——只回 key＋是否已定稿＋建议环节两值。 */
+export interface ResumeSummary {
+  readonly key: ChapterKey
+  /** 与完整行区分开的标记:窗口外摘要行,展开传 最近N章/卷。 */
+  readonly 摘要: true
+  readonly 已定稿: boolean
+  /** 两值:已定稿→完成;否则未完成。 */
+  readonly 建议环节: '完成' | '未完成'
+}
+
+/** 窗口化默认值:完整 rebuild 的「章号最大的 N 章」取 20(常量单源,工具默认不传时同值)。 */
+export const RECOVERY_DEFAULT_RECENT = 20
+
+export interface ListResumableOptions {
+  /** 完整 rebuild 的近章窗口大小(默认 RECOVERY_DEFAULT_RECENT);窗口外章节只回一行摘要。 */
+  readonly 最近N章?: number
+  /** 指定卷时该卷全量完整 rebuild(与近章窗口并集)。 */
+  readonly 卷?: number
+}
+
+/**
+ * 新会话入口：列出可恢复章节，调用方不需要保存任何会话状态。
+ *
+ * 窗口化(批8,0.0.57):完整 rebuild(每章 scanChapter＋材料包＋状态卡,长篇下 O(章×IO))只做
+ * 「章号最大的 N 章＋全部 章:0 未定位键＋指定卷的章」;**其余章只回一行摘要**(key＋已定稿＋
+ * 完成/未完成,不 scanChapter)。千章书返回体从数 MB 降到常数级;传 最近N章/卷 可展开。
+ */
+export function listResumable(bookRoot: string, opts: ListResumableOptions = {}): ReadonlyArray<ResumeSnapshot | ResumeSummary> {
+  const recent = Math.max(1, Math.floor(opts.最近N章 ?? RECOVERY_DEFAULT_RECENT))
   const keys = listChapters(bookRoot)
+  const full = new Set<string>()
+  for (const k of keys.filter((k) => k.章 > 0).sort((a, b) => b.章 - a.章).slice(0, recent)) {
+    full.add(`${k.卷}/${k.章}/${k.章名}`)
+  }
+  for (const k of keys) {
+    if (k.章 === 0 || (opts.卷 !== undefined && k.卷 === opts.卷)) full.add(`${k.卷}/${k.章}/${k.章名}`)
+  }
   const statuses = new Map<number, BookStatus>()
   return keys.map((key) => {
-    let status = statuses.get(key.卷)
-    if (status === undefined) {
-      status = bookStatus(bookRoot, key.卷)
-      statuses.set(key.卷, status)
+    if (full.has(`${key.卷}/${key.章}/${key.章名}`)) {
+      let status = statuses.get(key.卷)
+      if (status === undefined) {
+        status = bookStatus(bookRoot, key.卷)
+        statuses.set(key.卷, status)
+      }
+      return rebuildResumeWithStatus(bookRoot, key, status)
     }
-    return rebuildResumeWithStatus(bookRoot, key, status)
+    const 已定稿 = key.章 > 0 && finalizedExists(bookRoot, key)
+    return { key, 摘要: true as const, 已定稿, 建议环节: 已定稿 ? ('完成' as const) : ('未完成' as const) }
   })
+}
+
+function finalizedExists(bookRoot: string, key: ChapterKey): boolean {
+  try {
+    return fs.existsSync(path.join(bookRoot, paths.定稿章(key.卷, key.章, key.章名)))
+  } catch {
+    return false
+  }
 }

@@ -223,7 +223,7 @@ function mkOneFinalChapter(root: string): void {
 
 /** 唯一待审稿（待定稿包的前置）。 */
 function mkPendingDraft(root: string): void {
-  const dir = path.join(root, paths.草稿目录(1, '开篇任务'))
+  const dir = path.join(root, paths.草稿目录(1, 1, '开篇任务'))
   fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(path.join(dir, '稿1.md'), serializeDocument({ 角色: '待审稿' }, '第1章正文草稿。'), 'utf8')
 }

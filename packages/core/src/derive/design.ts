@@ -6,7 +6,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { readBookText } from '../repo/read'
 import { parseDocument } from '../repo/frontmatter'
-import { CN_NUMERAL, isMarkdownFileName, pad, paths } from '../repo/paths'
+import { isMarkdownFileName, pad, parseChineseVolume, paths } from '../repo/paths'
 import { parseWindow } from './scan'
 import { isWindowEntryReady } from './states'
 import { hasDesignContent, parseDesignContent } from '../design/content'
@@ -283,7 +283,8 @@ export function parseVolumeAllocations(分卷文: string): readonly VolumeAlloca
     const row = rowRe.exec(line)
     if (row === null) continue
     const numeral = row[1]!.slice(1)
-    const 卷 = /^\d+$/.test(numeral) ? Number(numeral) : CN_NUMERAL[numeral]
+    // 卷号解析走 parseChineseVolume(批8):中文复合数支持到 99(卷十一/卷二十三),单字表查不到不再整行静默丢弃
+    const 卷 = parseChineseVolume(numeral)
     if (卷 === undefined) continue
     const tail = tailStateRe.exec(row[2] ?? '')
     const tailState = tail?.[1]?.trim()

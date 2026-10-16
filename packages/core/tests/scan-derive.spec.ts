@@ -26,7 +26,7 @@ afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, 
 const key = { 卷: 1, 章: 3, 章名: '初见' } as const
 
 describe('扫描器→推导端到端(真实文件树)', () => {
-  it('链路推进:窗口→候选→确认→材料→草稿→待审→审核→包→裁决→入档', () => {
+  it('链路推进:窗口→候选→确认→材料→草稿→待审→审核→包→裁决→入档(0.0.57 起兼作旧格式 `卷NN-章名` 草稿区目录的回归夹具:读侧 fallback)', () => {
     const root = mkBook()
 
     // 窗口就绪
@@ -253,5 +253,53 @@ describe('章键归并与窗口失效过滤(拍板 7 配套)', () => {
       { 卷: 1, 章: 9, 章名: '重逢（下）' },
     ])
     expect(kept).toHaveLength(2)
+  })
+})
+
+describe('草稿区键带章号(批8,0.0.57)——新键解析与旧目录 fallback', () => {
+  const key7 = { 卷: 1, 章: 7, 章名: '第七章' } as const
+
+  it('listChapters 解析新格式 `卷NN-NNNN-章名`(章号四位);旧格式无第二段→章:0', () => {
+    const root = mkBook()
+    put(root, '草稿区/草稿/卷01-0007-第七章/稿1.md', md({ 角色: '待审稿' }))
+    put(root, '草稿区/章细纲/卷01-0012-新章.md', md({ 状态: '候选' }))
+    put(root, '草稿区/材料包/卷01-旧章/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
+    const keys = listChapters(root)
+    expect(keys).toContainEqual({ 卷: 1, 章: 7, 章名: '第七章' })
+    expect(keys).toContainEqual({ 卷: 1, 章: 12, 章名: '新章' })
+    expect(keys).toContainEqual({ 卷: 1, 章: 0, 章名: '旧章' })
+  })
+
+  it('scanChapter 旧目录 fallback:旧格式五处工件照常读,新键不存在时读旧键', () => {
+    const root = mkBook()
+    put(root, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    put(root, '草稿区/材料包/卷01-第七章/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
+    put(root, '草稿区/草稿/卷01-第七章/稿1.md', md({ 角色: '待审稿' }, '正文'))
+    put(root, '草稿区/审核/卷01-第七章.json', JSON.stringify({ schemaVersion: 1, 完成: false, 问题: [], 模块: {} }))
+    const facts = scanChapter(root, key7)
+    expect(facts.材料包状态).toBe('段齐备')
+    expect(facts.唯一待审稿).toBe(true)
+    expect(facts.有审核记录).toBe(true)
+  })
+
+  it('scanChapter 新键优先:两代目录同在时读新键(写侧产物权威)', () => {
+    const root = mkBook()
+    put(root, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    put(root, '草稿区/材料包/卷01-第七章/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
+    put(root, '草稿区/材料包/卷01-0007-第七章/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '组装中' }))
+    expect(scanChapter(root, key7).材料包状态).toBe('组装中')
+  })
+
+  it('候选细纲按 卷+章名 认领:0000 占位与旧格式同名候选都能被定位后的章读到', () => {
+    const root = mkBook()
+    put(root, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    // 候选先于定位落盘(工具不带章号 → 0000 占位)
+    put(root, '草稿区/章细纲/卷01-0000-第七章.md', md({ 状态: '候选' }))
+    expect(scanChapter(root, key7).候选细纲).toBe(true)
+    const root2 = mkBook()
+    put(root2, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    // 旧书:候选在旧格式路径
+    put(root2, '草稿区/章细纲/卷01-第七章.md', md({ 状态: '候选' }))
+    expect(scanChapter(root2, key7).候选细纲).toBe(true)
   })
 })

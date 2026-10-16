@@ -23,6 +23,27 @@ export const CN_NUMERAL: Readonly<Record<string, number>> = {
   一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10,
 }
 
+/**
+ * 卷号复合数解析(批8,支持到 99):阿拉伯数字直取;中文复合数照章号 chapterNoOf 同款
+ * 逻辑——`十一`→11、`二十三`→23、`二十`→20;非法(空、超三位、非数字字、非法组合)返回
+ * undefined。分卷布局卷行与账本到期区间共用,单源在此。
+ */
+export function parseChineseVolume(text: string): number | undefined {
+  if (/^\d+$/.test(text)) return Number(text)
+  const chars = [...text]
+  if (chars.length === 0 || chars.length > 3) return undefined
+  const values = chars.map((c) => CN_NUMERAL[c])
+  if (values.some((v) => v === undefined)) return undefined
+  if (chars.length === 1) return values[0]!
+  if (chars.length === 2) {
+    if (chars[0] === '十') return 10 + values[1]!
+    if (chars[1] === '十') return values[0]! * 10
+    return undefined
+  }
+  if (chars[1] === '十') return values[0]! * 10 + values[2]!
+  return undefined
+}
+
 /** 目录树常量(格式规格 §2.1)。 */
 export const LAYOUT = {
   契约: '作品契约',
@@ -89,6 +110,19 @@ export function assertSegment(name: string, field: string): void {
   }
 }
 
+/**
+ * 草稿区章键目录段(批8,0.0.57 起):`卷NN-NNNN-章名`——章号四位,与确认细纲/定稿一致;
+ * 未定位章(章:0,窗口新章)占位 0000。五处草稿区工件共用同一键段。
+ */
+export function draftKeySegment(卷: number, 章: number, 章名: string): string {
+  return `卷${pad(卷)}-${chapterNo(章)}-${章名}`
+}
+
+/** 旧格式草稿键段(0.0.57 前):`卷NN-章名`,无章号——只作读侧兼容 fallback,不再新写。 */
+export function legacyDraftKeySegment(卷: number, 章名: string): string {
+  return `卷${pad(卷)}-${章名}`
+}
+
 /** 常用路径构造(相对书仓根,正斜杠)。 */
 export const paths = {
   契约: () => '作品契约/契约.md',
@@ -112,9 +146,21 @@ export const paths = {
   记忆: (类: MemoryKind) => `本书记忆/${类}.md`,
   本书记忆条目: (名: string) => `本书记忆/${名}.md`,
   本书记忆索引: () => '本书记忆/索引.md',
-  候选细纲: (卷: number, 章名: string) => `草稿区/章细纲/卷${pad(卷)}-${章名}.md`,
-  材料包目录: (卷: number, 章名: string) => `草稿区/材料包/卷${pad(卷)}-${章名}`,
-  草稿目录: (卷: number, 章名: string) => `草稿区/草稿/卷${pad(卷)}-${章名}`,
-  待定稿包目录: (卷: number, 章名: string) => `草稿区/定稿准备/卷${pad(卷)}-${章名}`,
-  审核记录: (卷: number, 章名: string) => `草稿区/审核/卷${pad(卷)}-${章名}.json`,
+  候选细纲: (卷: number, 章: number, 章名: string) => `草稿区/章细纲/${draftKeySegment(卷, 章, 章名)}.md`,
+  材料包目录: (卷: number, 章: number, 章名: string) => `草稿区/材料包/${draftKeySegment(卷, 章, 章名)}`,
+  草稿目录: (卷: number, 章: number, 章名: string) => `草稿区/草稿/${draftKeySegment(卷, 章, 章名)}`,
+  待定稿包目录: (卷: number, 章: number, 章名: string) => `草稿区/定稿准备/${draftKeySegment(卷, 章, 章名)}`,
+  审核记录: (卷: number, 章: number, 章名: string) => `草稿区/审核/${draftKeySegment(卷, 章, 章名)}.json`,
+} as const
+
+/**
+ * 旧格式草稿区路径(0.0.57 前,无章号):仅供读侧兼容 fallback(见 repo/draft-paths.ts 的
+ * resolveDraftRel)与存量清理,不再新写。
+ */
+export const legacyPaths = {
+  候选细纲: (卷: number, 章名: string) => `草稿区/章细纲/${legacyDraftKeySegment(卷, 章名)}.md`,
+  材料包目录: (卷: number, 章名: string) => `草稿区/材料包/${legacyDraftKeySegment(卷, 章名)}`,
+  草稿目录: (卷: number, 章名: string) => `草稿区/草稿/${legacyDraftKeySegment(卷, 章名)}`,
+  待定稿包目录: (卷: number, 章名: string) => `草稿区/定稿准备/${legacyDraftKeySegment(卷, 章名)}`,
+  审核记录: (卷: number, 章名: string) => `草稿区/审核/${legacyDraftKeySegment(卷, 章名)}.json`,
 } as const

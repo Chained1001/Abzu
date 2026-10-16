@@ -32,7 +32,7 @@ function initGit(root: string): void {
 
 const key = { 卷: 1, 章: 1, 章名: '开篇任务' } as const
 const HARD = '开场必须点名主角现身'
-const PKG = '草稿区/定稿准备/卷01-开篇任务'
+const PKG = '草稿区/定稿准备/卷01-0001-开篇任务'
 
 function confirmWithHard(root: string): void {
   seedMinDesign(root)

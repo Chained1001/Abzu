@@ -2,6 +2,33 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.57] — 2026-10-17
+
+### Changed（长篇规模批：状态窗口化＋账本读侧＋定稿后清理＋草稿键带章号＋检索指纹缓存）
+
+- **状态查询窗口化**：`novel_get_story_status` 完整重建只做「章号最大的 20 章（`RECOVERY_DEFAULT_RECENT`）＋全部 章:0 未定位键＋指定卷」，其余章一行摘要（key＋已定稿＋建议环节两值，不 scanChapter）；新增参数 `最近N章`/`卷`，返回带 `总数/完整返回数/省略数` 与省略提示。千章书返回体从数 MB 降到常数级（`core/src/recovery/index.ts` 的 `listResumable`）。
+- **定稿后清理草稿区**：`novel_settle_chapter` 入档成功后在同一写临界区删本章草稿区五处（草稿/材料包/审核记录/待定稿包/候选细纲，`archiveDraftChapter` 新旧两代键都清）＋`snapshotDraft` 快照留痕；清理失败不回滚入档、如实进返回。draft-git 的 `add -A` 全量索引不再随书膨胀。配套口径同批改：幕末结算第 1 步改为「核对写时发现遗留」（分拣在每章沉淀步已执行，本步核对 pending 未消化条目＋沉淀第六节遗留）；settle 沉淀步补「入档成功后清理五处、写时发现须在本步分拣完毕后再清理」。
+- **账本读侧降载**：`queryLedger` 分类已知时只读该本账（他账缺失/损坏不再连坐，全书健康由不带分类的查询守）；`章上限` 下推到 `parseEntries` 流内，晚于上限的条目边解析边丢不构造对象。分片与解析缓存本批不做。
+- **草稿区章键带章号**：五处草稿区工件目录/文件名改 `卷NN-NNNN-章名`（章号四位，未定位章占位 0000）；旧格式 `卷NN-章名` 读侧兼容（`resolveDraftRel` 新键优先旧键 fallback，候选细纲按 卷+章名 认领；`revise/document.ts` 反查改路径正则直取，删全量 `listChapters` find）。同卷同名不同章不再撞目录。
+- **检索指纹缓存**：`scanFinalized` 先算 stat 档指纹（每文件 size+mtime+ctime+ino＋场景记录文件），与进程内缓存一致直接复用快照对象；一次检索最多三次复扫不再每次读+哈希+解析+分块全部定稿。逐命中再读校验保留；同尺寸同 mtime 篡改触发缓存失效＋原样重试一次（`searchFinalized` 自愈），场景边界遗忘主动失效。
+- **幕纲/卷纲版本字段**：`prepareVolumeOutline`/`preparePlanTimeline`/`prepareActOutline` 与 seed 改走 `prepareDesignDoc`——frontmatter `状态/版本/父版本/生成模块`（首次 v1、变化 +1、原样重跑复用）；影响分析对「引用版本大于文件当前版本」报「引用了未来版本」提示（只提示不改边；文件无版本沿用现状）。
+- **中文卷号到 99**：新函数 `parseChineseVolume`（复合数逻辑与章号 `chapterNoOf` 同源），分卷布局卷行与账本到期区间共用——`卷十一`/`卷二十三` 分配行不再静默丢弃，`第十一卷`、`第十一卷-第十二卷` 区间可解析。
+- **收据测试计时余量**：`archive-receipt`/`retcon-retry-receipt` 实测 >8s 用例逐个加 per-it `30_000`，`inProcess` spawnSync 超时收敛 `25_000`；`vitest.config.ts` 的 15s 不动。
+
+### Added
+
+- **草稿清理薄入口**：`skills/novel-settle/scripts/草稿清理.mjs`（动态引 lib，`draftCleanupCli`）——`--book <root> [--卷 N] [--执行 true]`，默认只算不写（列出「已定稿但草稿区残留」章键与将删路径计数），`--执行 true` 逐章 `archiveDraftChapter`＋快照；`artifact-contract.mjs` thinScripts 注册（scripts 10 → 11）。
+
+### 升级说明
+
+- **旧书无感**：草稿区旧格式 `卷NN-章名` 目录读侧兼容，写侧新章落新键、旧工件原位重写；定稿清理同时删新旧两代路径。存量残留可跑 `草稿清理.mjs`（默认只算不写）。
+- 旧书卷纲/计划时间线/幕纲无版本字段——下次确认时按 v1 起步，无需迁移；确认细纲里已写的 `幕纲@版本` 引用不受影响（影响分析对无版本文件沿用现状提示）。
+- 到期查询/卷摘要候选等分类查询不再因他账缺失或损坏失败——他账健康由全书状态查询与不带分类的对账守。
+
+### 验证
+
+见提交说明。
+
 ## [0.0.56] — 2026-10-17
 
 ### Added（边界重划批：拆出《卷幕规划》＋步骤卡试点）

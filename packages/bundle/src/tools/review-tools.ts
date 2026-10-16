@@ -15,6 +15,8 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
         type: 'object',
         properties: {
           bookId: { type: 'string', description: '书id（必填）' },
+          最近N章: { type: 'integer', minimum: 1, description: '完整返回章号最大的 N 章（默认 20；其余章只回一行摘要，不扫描）' },
+          卷: { type: 'number', minimum: 1, description: '指定卷时该卷全量完整返回（与最近N章并集），用于展开省略章节' },
         },
         required: ['bookId'],
       },
@@ -25,7 +27,11 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
             ok: { type: 'boolean', description: '是否成功' },
             bookId: { type: 'string', description: '书id' },
             design: { type: 'object', description: '设计面事实清单与建议（建议仅供参考）；「内容问题」影响就绪建议，「已确认无内容」保留全部已确认空分部的提示，合法远期留白不阻塞' },
-            chapters: { type: 'array', description: '章节事实清单列表（每章含逐行事实项与建议）' },
+            chapters: { type: 'array', description: '章节事实清单列表：窗口内每章含逐行事实项与建议；窗口外为摘要行（含 摘要: true、已定稿、建议环节=完成/未完成）' },
+            总数: { type: 'number', description: '全书章键总数（完整＋摘要）' },
+            完整返回数: { type: 'number', description: '完整重建（逐行事实）的章数' },
+            省略数: { type: 'number', description: '只回一行摘要的章数；传 卷 或 最近N章 展开' },
+            message: { type: 'string', description: '结果说明（有省略时注明展开方式）' },
             reason: { type: 'string', description: '失败原因' },
           },
           required: ['ok'],
@@ -38,6 +44,8 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
         const bookRoot = book.bookRoot
         const bookId = args['bookId'] ? String(args['bookId']).trim() : undefined
         if (!bookId) return { ok: false, reason: '未指定 bookId' }
+        const 最近N章 = Number.isInteger(args['最近N章']) && Number(args['最近N章']) >= 1 ? Number(args['最近N章']) : undefined
+        const 卷 = Number.isInteger(args['卷']) && Number(args['卷']) >= 1 ? Number(args['卷']) : undefined
         try {
           // 两段返回(设计面 + 章节面),均为 R1 事实清单形状:逐项事实 + 可选建议(无权威,判断归主 Agent)
           // 设计面事实按当前卷选择器取卷(任务21, B3):active 取该卷;planning 检查规划目标卷;empty 默认卷1
@@ -46,18 +54,31 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           // 原状态标注保留；必要内容问题已参与建议，全部空分部另列供作者核对。
           const 已确认无内容 = listConfirmedEmpty(scanDesignDetail(bookRoot))
           const design = 已确认无内容.length === 0 ? derived : { ...derived, 已确认无内容 }
-          const resumable = listResumable(bookRoot)
-          // 复用 listResumable 已算好的 statusCard(每卷一份 BookStatus 缓存)——原先每章重调
-          // renderStatusCard 会把 scanChapter＋账本/记忆/对账整套重跑一遍,长篇下 O(章×全卷扫描)。
-          const chapters = resumable.map((r) => ({
-            key: r.key,
-            建议: r.derived.建议,
-            事实项: r.derived.事实项,
-            叠加标记: r.derived.叠加标记,
-            statusCard: r.statusCard,
-            ...(r.facts.审核记录哈希 === undefined ? {} : { 审核记录哈希: r.facts.审核记录哈希 }),
-          }))
-          return { ok: true, bookId, design, chapters }
+          // 窗口化(批8):完整重建只做「章号最大的 N 章＋章:0 未定位键＋指定卷」,其余章一行摘要——
+          // 千章书不再对每章做 scanChapter＋材料包＋状态卡(O(章×全卷扫描) 返回数 MB)。
+          const resumable = listResumable(bookRoot, { ...(最近N章 === undefined ? {} : { 最近N章 }), ...(卷 === undefined ? {} : { 卷 }) })
+          const chapters = resumable.map((r) => '摘要' in r
+            ? { key: r.key, 摘要: true, 已定稿: r.已定稿, 建议环节: r.建议环节 }
+            : {
+              key: r.key,
+              建议: r.derived.建议,
+              事实项: r.derived.事实项,
+              叠加标记: r.derived.叠加标记,
+              statusCard: r.statusCard,
+              ...(r.facts.审核记录哈希 === undefined ? {} : { 审核记录哈希: r.facts.审核记录哈希 }),
+            })
+          const 完整返回数 = chapters.filter((c) => !('摘要' in c)).length
+          const 省略数 = chapters.length - 完整返回数
+          return {
+            ok: true,
+            bookId,
+            design,
+            chapters,
+            总数: chapters.length,
+            完整返回数,
+            省略数,
+            ...(省略数 > 0 ? { message: `其余 ${省略数} 章已省略（只回一行摘要），传 卷 或 最近N章 展开。` } : {}),
+          }
         } catch (err) {
           return { ok: false, reason: `推导状态失败: ${err instanceof Error ? err.message : String(err)}` }
         }

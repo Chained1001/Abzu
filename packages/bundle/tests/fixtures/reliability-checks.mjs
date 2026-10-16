@@ -15,8 +15,8 @@ export async function checkReliability({ root, book, main, ctx, service, execute
     return result.value
   }
   await check('纯处置保留证据、拒绝旧记录并允许上游保留', async () => {
-    const recordRel = '草稿区/审核/卷09-可靠性样本.json'
-    put('草稿区/草稿/卷09-可靠性样本/稿1.md', core.serializeDocument({ 角色: '待审稿', 版本: 1 }, '中文待审稿。'))
+    const recordRel = '草稿区/审核/卷09-9001-可靠性样本.json'
+    put('草稿区/草稿/卷09-9001-可靠性样本/稿1.md', core.serializeDocument({ 角色: '待审稿', 版本: 1 }, '中文待审稿。'))
     core.writeReviewRecord(book, key, {
       schemaVersion: 1, 完成: true, 审稿哈希: 'a'.repeat(64), 审读指纹: 'b'.repeat(64), 模块: { 设定核对: { 完成: true, 失败: false } },
       问题: Array.from({ length: 21 }, (_, i) => core.normalizeFinding({ 发现项编号: `reliable-${i}`, 模块名: '设定核对', 问题说明: `中文记录${i}`, 证据位置: `第${i}段`, 影响范围: i === 0 ? '世界书' : '正文', 处置状态: '待处理' })),
@@ -47,7 +47,7 @@ export async function checkReliability({ root, book, main, ctx, service, execute
   })
 
   await check('当前宿主中文候选生成编辑确认与失败恢复', async () => {
-    const candidate = '草稿区/章细纲/卷09-可靠性样本.md'
+    const candidate = '草稿区/章细纲/卷09-0000-可靠性样本.md'
     put('大纲/卷规划/卷09/近期窗口.md', '# 近期窗口\n\n- 可靠性样本 〔已确认〕\n')
     const unit = i => `### 单元 ${i}\n${core.单元字段.map(field => `- ${field}: 中文第${i}项，“引号”、破折号——😀 é A1。`).join('\n')}`
     const body = `# 章细纲\n\n## 定位段\n${core.定位段小节.map(name => `### ${name}\n${name === '章节功能' ? '- 〔硬〕' : ''}主角抵达城门，核对前置。`).join('\n\n')}\n\n## 细纲段\n\n${Array.from({ length: 12 }, (_, i) => unit(i + 1)).join('\n\n')}\n`

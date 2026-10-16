@@ -273,3 +273,32 @@ describe('影响闭包:传递闭包', () => {
     expect(report.悬空引用).toEqual([])
   })
 })
+
+describe('幕纲/卷纲版本绑定提示(批8,0.0.57)', () => {
+  it('引用版本 > 目标文件当前版本 → 提示「引用了未来版本」;边的存在性不变;文件无版本沿用现状不提示', () => {
+    const root = mkRoot('abzu-impact-ver-')
+    write(root, paths.卷纲(1), doc({ 状态: '已确认', 版本: 2 }, '卷纲 v2\n'))
+    // 引用 @3 > 文件 v2 → 未来版本提示
+    write(root, paths.确认细纲(1, 1, '开篇'), doc({ 来源引用: [`${paths.卷纲(1)}@3`] }, '细纲\n'))
+    const future = buildRefGraph(root)
+    expect(future.提示.some((t) => t.includes('未来版本') && t.includes('@3') && t.includes('v2'))).toBe(true)
+    // 边的存在性不变:细纲 → 卷纲 的反向边仍在
+    expect([...(future.reverse.get(normalizeNodeKey(paths.卷纲(1))!) ?? [])].map((e) => e.from)).toContain(paths.确认细纲(1, 1, '开篇'))
+
+    // 引用版本 ≤ 文件版本(2 ≤ 3)＝有效,不提示
+    const root2 = mkRoot('abzu-impact-ver2-')
+    write(root2, paths.卷纲(1), doc({ 状态: '已确认', 版本: 3 }, '卷纲 v3\n'))
+    write(root2, paths.确认细纲(1, 1, '开篇'), doc({ 来源引用: [`${paths.卷纲(1)}@2`] }, '细纲\n'))
+    expect(buildRefGraph(root2).提示.filter((t) => t.includes('未来版本'))).toEqual([])
+    // 边仍在
+    expect([...(buildRefGraph(root2).reverse.get(normalizeNodeKey(paths.卷纲(1))!) ?? [])]).toHaveLength(1)
+
+    // 旧文件无 frontmatter 版本:沿用现状(不新增提示),边照建
+    const root3 = mkRoot('abzu-impact-ver3-')
+    write(root3, paths.卷纲(1), '# 卷纲\n\n旧文件无版本。\n')
+    write(root3, paths.确认细纲(1, 1, '开篇'), doc({ 来源引用: [`${paths.卷纲(1)}@5`] }, '细纲\n'))
+    const legacy = buildRefGraph(root3)
+    expect(legacy.提示.filter((t) => t.includes('未来版本'))).toEqual([])
+    expect([...(legacy.reverse.get(normalizeNodeKey(paths.卷纲(1))!) ?? [])]).toHaveLength(1)
+  })
+})

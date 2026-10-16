@@ -505,7 +505,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
             const 正文 = String(args['正文'])
             const gaps = actOutlineGaps(正文)
             if (gaps.length > 0) return { ok: false, reason: gaps.join(';'), gaps }
-            const op = prepareActOutline(卷, 幕, 幕名, 正文)
+            const op = prepareActOutline(book.bookRoot, 卷, 幕, 幕名, 正文)
             await writeNative(book.bookRoot, op, sessionContext)
             return finishDesignCommit(book.bookRoot, [op.relPath], args, `幕纲·卷${String(卷).padStart(2, '0')}·幕${String(幕).padStart(2, '0')}`, null, sessionContext)
           }
@@ -514,10 +514,10 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
             const 正文 = String(args['正文'])
             const gaps = volumeOutlineGaps(正文)
             if (gaps.length > 0) return { ok: false, reason: gaps.join(';'), gaps }
-            await writeNative(book.bookRoot, prepareVolumeOutline(卷, 正文), sessionContext)
+            await writeNative(book.bookRoot, prepareVolumeOutline(book.bookRoot, 卷, 正文), sessionContext)
           }
           else if (目标 === '卷摘要') await writeNative(book.bookRoot, prepareVolumeSummary(book.bookRoot, 卷, String(args['正文'])), sessionContext)
-          else await writeNative(book.bookRoot, preparePlanTimeline(卷, String(args['正文'])), sessionContext)
+          else await writeNative(book.bookRoot, preparePlanTimeline(book.bookRoot, 卷, String(args['正文'])), sessionContext)
           return finishDesignCommit(book.bookRoot, [rel], args, `${目标}·卷${String(卷).padStart(2, '0')}`, null, sessionContext)
         } catch (err) {
           return { ok: false, reason: `确认${目标}失败: ${err instanceof Error ? err.message : String(err)}` }

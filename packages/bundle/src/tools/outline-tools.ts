@@ -195,7 +195,7 @@ export function createOutlineTools(shared: ToolShared): NovelToolDefinition[] {
           }
           const res = assembleMaterials(book.bookRoot, input)
           if (!res.ok) return { ok: false, 状态: res.状态, gaps: res.gaps, 材料清单哈希: res.材料清单哈希 ?? '', reason: `材料包组装失败:${res.gaps.join(';')}` }
-          const readiness = reportDraftReadiness(book.bookRoot, `草稿区/草稿/卷${String(卷).padStart(2, '0')}-${章名}/`)
+          const readiness = reportDraftReadiness(book.bookRoot, `${paths.草稿目录(卷, 章, 章名)}/`)
           return {
             ok: true,
             dir: res.dir,

@@ -118,32 +118,96 @@ describe('账本到期与跨卷对账', () => {
     })
   })
 
-  it('账本缺失时到期查询返回 kind，并保留已读线索派生项', () => {
+  it('0.0.57 规模批：中文卷号复合数到 99——`第十一卷` 与区间 `第十一卷-第十二卷` 不再进「区间不明」', () => {
+    const root = mkBook()
+    writeFileAtomic(root, paths.账本('线索'), [
+      '# 线索',
+      '',
+      '## 卷十一线索',
+      '状态：已埋',
+      '计划来源：卷纲#4',
+      '埋设点：第1章',
+      '预期兑现区间：第十一卷',
+      '',
+      '## 卷区间线索',
+      '状态：已埋',
+      '计划来源：卷纲#5',
+      '埋设点：第1章',
+      '预期兑现区间：第十一卷-第十二卷',
+      '',
+      '## 卷二十三线索',
+      '状态：已示',
+      '计划来源：卷纲#6',
+      '埋设点：第1章',
+      '预期兑现区间：卷二十三',
+      '',
+    ].join('\n'))
+    // 卷 10：都未到期（起点 11/23 均未进入）
+    const before = queryDueLedger(root, { 卷: 10, 章: 1 })
+    expect(before.ok).toBe(true)
+    if (!before.ok) return
+    expect(before.到期).toEqual([])
+    expect(before.区间不明).toEqual([])
+    // 卷 11：三条全部到期（区间取下界 11；卷级区间无上界、不判逾期）
+    const at11 = queryDueLedger(root, { 卷: 11, 章: 1 })
+    expect(at11.ok).toBe(true)
+    if (!at11.ok) return
+    expect(at11.到期.map((item) => item.名称)).toEqual(['卷十一线索', '卷区间线索'])
+    expect(at11.逾期).toEqual([])
+    expect(at11.区间不明).toEqual([])
+    // 卷 12：卷二十三线索仍未进入
+    const at12 = queryDueLedger(root, { 卷: 12, 章: 1 })
+    expect(at12.ok).toBe(true)
+    if (!at12.ok) return
+    expect(at12.到期.map((item) => item.名称)).toEqual(['卷十一线索', '卷区间线索'])
+    // 卷 23：`卷二十三` 形态进入
+    const at23 = queryDueLedger(root, { 卷: 23, 章: 1 })
+    expect(at23.ok).toBe(true)
+    if (!at23.ok) return
+    expect(at23.到期.map((item) => item.名称)).toEqual(['卷十一线索', '卷区间线索', '卷二十三线索'])
+  })
+
+  it('0.0.57 读侧降载：分类已知的到期查询只读线索本账，他账缺失不再连坐（全书健康由不带分类的查询守）', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-ledger-due-'))
     roots.push(root)
     seedMinDesign(root)
+    // 其余四本缺失(含时间线)——到期查询(分类=线索)不再整读五本,照常出结果
     for (const name of LEDGER_NAMES) {
-      if (name === '时间线') continue
-      writeFileAtomic(root, paths.账本(name), `# ${name}\n`)
+      if (name === '线索') continue
+      fs.rmSync(path.join(root, paths.账本(name)), { force: true })
     }
     writeFileAtomic(root, paths.账本('线索'), '# 线索\n\n## 纸鹤\n状态：已埋\n计划来源：卷纲#4\n埋设点：第1章\n预期兑现区间：第8-12章\n')
     const result = queryDueLedger(root, { 卷: 1, 章: 8 })
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.kind).toBe('missing')
-    expect(result.file).toBe(paths.账本('时间线'))
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
     expect(result.到期.map((item) => item.名称)).toEqual(['纸鹤'])
+    // 不带分类的全量查询照旧读五本,缺失如实报 kind(口径不退化)
+    const full = queryLedger(root)
+    expect(full.ok).toBe(false)
+    if (full.ok) return
+    expect(full.kind).toBe('missing')
   })
 
-  it('故事线解析失败时到期查询仍带 kind，并保留已读线索派生项', () => {
+  it('0.0.57 读侧降载：分类=线索 的到期查询不解析故事线；线索本账解析失败仍带 kind', () => {
     const root = mkBook()
+    // 故事线损坏——到期查询(只读线索)不受连坐;全量查询照旧报 parse-error
     writeFileAtomic(root, paths.账本('故事线'), '# 故事线\n\n## 重复\n状态：进行中\n状态：已兑现\n')
     writeFileAtomic(root, paths.账本('线索'), '# 线索\n\n## 纸鹤\n状态：已埋\n计划来源：卷纲#4\n埋设点：第1章\n预期兑现区间：第8-12章\n')
     const result = queryDueLedger(root, { 卷: 1, 章: 8 })
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.kind).toBe('parse-error')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
     expect(result.到期.map((item) => item.名称)).toEqual(['纸鹤'])
+    const full = queryLedger(root)
+    expect(full.ok).toBe(false)
+    if (full.ok) return
+    expect(full.kind).toBe('parse-error')
+    // 线索本账自身解析失败:到期查询照旧 fail-closed
+    writeFileAtomic(root, paths.账本('线索'), '# 线索\n\n## 重复\n状态：已埋\n状态：已收\n')
+    const broken = queryDueLedger(root, { 卷: 1, 章: 8 })
+    expect(broken.ok).toBe(false)
+    if (broken.ok) return
+    expect(broken.kind).toBe('parse-error')
+    expect(broken.file).toBe(paths.账本('线索'))
   })
 
   it('两卷书中卷2事实不进入卷1事实未计划，全书对账分卷汇总', () => {

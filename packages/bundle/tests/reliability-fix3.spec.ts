@@ -42,7 +42,7 @@ function makeBook(): string {
   put(root, '大纲/卷规划/卷01/近期窗口.md', '# 近期窗口\n\n- 审计章 〔已确认〕\n')
   const confirmed = confirmOutline(root, key)
   if (!confirmed.ok) throw new Error(confirmed.gaps.join(';'))
-  put(root, `${paths.草稿目录(key.卷, key.章名)}/稿1.md`, serializeDocument({ 角色: '待审稿', 选定: true }, '主角握住铜符，走进城门。'))
+  put(root, `${paths.草稿目录(key.卷, key.章, key.章名)}/稿1.md`, serializeDocument({ 角色: '待审稿', 选定: true }, '主角握住铜符，走进城门。'))
   return root
 }
 
@@ -64,8 +64,8 @@ describe('R1/R6/R7 review applicability', () => {
   it('rejects late findings after the pending draft changes', () => {
     const root = makeBook()
     finishSemanticModules(root)
-    const recordPath = path.join(root, paths.审核记录(key.卷, key.章名))
-    const draftPath = path.join(root, `${paths.草稿目录(key.卷, key.章名)}/稿1.md`)
+    const recordPath = path.join(root, paths.审核记录(key.卷, key.章, key.章名))
+    const draftPath = path.join(root, `${paths.草稿目录(key.卷, key.章, key.章名)}/稿1.md`)
     fs.writeFileSync(draftPath, serializeDocument({ 角色: '待审稿', 选定: true }, '完全不同的新稿。'), 'utf8')
     expect(scanChapter(root, key).审核证据过期).toBe(true)
     const late = ingestFindings(root, key, '章节结构审读', [])

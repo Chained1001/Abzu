@@ -226,3 +226,32 @@ export class SearchCache {
     throw new SearchError('damaged-cache', '关键词索引重建后仍与原文不一致')
   }
 }
+
+// ── 进程内定稿快照指纹缓存(批8,0.0.57) ──
+// scanFinalized 每次全量(读+哈希+解析+分块全部定稿文件);一次检索最多三次复扫,慢机
+// 阻塞写锁数秒。先取每文件 size+mtimeNs(+ino) 的 stat 档指纹(含场景记录文件),与上次
+// 一致直接复用快照对象,不一致才全量。进程内按 bookRoot 键、不落盘;逐命中再读校验
+// (readFinalizedBytes)在调用方保留,缓存过期不会冒充命中原文。
+
+interface CachedSnapshot {
+  readonly statFingerprint: string
+  readonly snapshot: SearchSnapshot
+}
+
+const snapshotCache = new Map<string, CachedSnapshot>()
+
+/** 命中判定:同一 bookRoot 且 stat 档指纹一致才复用;否则交还 undefined 走全量。 */
+export function takeCachedSnapshot(root: string, statFingerprint: string): SearchSnapshot | undefined {
+  const hit = snapshotCache.get(root)
+  return hit !== undefined && hit.statFingerprint === statFingerprint ? hit.snapshot : undefined
+}
+
+export function putCachedSnapshot(root: string, statFingerprint: string, snapshot: SearchSnapshot): void {
+  snapshotCache.set(root, { statFingerprint, snapshot })
+}
+
+/** 场景边界遗忘/测试清理时主动失效;不传 root 清整个进程缓存。 */
+export function forgetSnapshotCache(root?: string): void {
+  if (root === undefined) snapshotCache.clear()
+  else snapshotCache.delete(root)
+}

@@ -208,14 +208,18 @@ describe('卷摘要事实边界与账本失败(F21-1/F21-2)', () => {
     expect(fs.existsSync(path.join(root, paths.卷摘要(1)))).toBe(false)
   })
 
-  it('⑦部分账本可读但整体 ok:false(他卷账本损坏) → 仍不产候选', () => {
+  it('⑦0.0.57 读侧降载:候选只读线索本账,他账(故事线)损坏不再连坐——候选输入未受污染照常产出', () => {
     const root = mkBook()
     mkLedgerBook(root, 1, '# 线索\n\n## 铜灯钩\n状态：已收\n埋设点：第0001章\n\n### 正文\n钩上新划痕。\n')
     writeFileAtomic(root, paths.账本('故事线'), '# 故事线\n\n## 坏\n状态：进行中\n状态：已结束\n')
     const r = computeVolumeSummaryCandidate(root, 1)
-    expect(r.ok).toBe(false)
-    if (r.ok) return
-    expect(r.reason).toContain('解析')
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    // 线索本账自身损坏(⑥口径)仍 fail-closed
+    const broken = mkBook()
+    mkLedgerBook(broken, 1, '# 线索\n\n## 坏条目\n状态：已埋\n状态：已示\n\n### 正文\n重复字段。\n')
+    writeFileAtomic(broken, paths.账本('故事线'), '# 故事线\n\n## 坏\n状态：进行中\n状态：已结束\n')
+    expect(computeVolumeSummaryCandidate(broken, 1).ok).toBe(false)
   })
 
   it('⑧成功空线索 → 候选如实写无线索(ok:true)', () => {

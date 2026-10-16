@@ -3,6 +3,8 @@ import { withBookLockAsync } from '../repo/lock'
 import { annotate } from '../provenance'
 import { SearchCache } from './cache'
 import { digest, readFinalizedBytes, scanFinalized } from './source'
+import { forgetSnapshotCache } from './cache'
+import { canonicalizePath } from '../gate/canonical'
 import { cosine, fuseRanks, normalizedVector } from './vectors'
 import { SearchError, type EmbeddingProvider, type FinalizedSearchResult, type SearchDocument, type SearchChunk, type RerankingProvider } from './types'
 import { embeddingRevision } from './embedding'
@@ -33,6 +35,26 @@ function abortable<T>(operation: Promise<T>, signal?: AbortSignal): Promise<T> {
 
 /** Derived data only. Both source scans are locked, while all external calls are unlocked. */
 export async function searchFinalized(root: string, options: SearchOptions): Promise<FinalizedSearchResult> {
+  try {
+    return await searchFinalizedOnce(root, options)
+  } catch (error) {
+    // 指纹缓存自愈(批8):stat 档一致复用了过期快照时,逐命中再读校验抛带 staleSnapshot 标记的
+    // source-changed——失效缓存原样重试一次(重试走全量重扫),同尺寸同 mtime 篡改也能一次调用内校准。
+    if (!(error instanceof SearchError) || (error as SearchError & { readonly staleSnapshot?: boolean }).staleSnapshot !== true) throw error
+    forgetSnapshotCache(canonicalizePath(root))
+    try {
+      return await searchFinalizedOnce(root, options)
+    } catch (retryError) {
+      if (retryError instanceof SearchError) {
+        if (options.signal?.aborted) return { ok: false, code: 'cancelled', reason: '检索已取消' }
+        return { ok: false, code: retryError.code, reason: retryError.message }
+      }
+      throw retryError
+    }
+  }
+}
+
+async function searchFinalizedOnce(root: string, options: SearchOptions): Promise<FinalizedSearchResult> {
   const signal = options.signal
   try {
     signal?.throwIfAborted()
@@ -119,7 +141,10 @@ export async function searchFinalized(root: string, options: SearchOptions): Pro
         for (const match of selected) {
           const { document } = indexed.get(match.id)!
           if (checked.has(document.path)) continue
-          if (digest(await readFinalizedBytes(root, document.path, signal)) !== document.hash) throw new SearchError('source-changed', '命中原文已变化，请重新检索')
+          if (digest(await readFinalizedBytes(root, document.path, signal)) !== document.hash) {
+            // staleSnapshot 标记:stat 档没变而字节变了(同尺寸同 mtime 篡改/缓存过期)——外层失效缓存后自愈重试
+            throw Object.assign(new SearchError('source-changed', '命中原文已变化，请重新检索'), { staleSnapshot: true as const })
+          }
           checked.add(document.path)
         }
         signal?.throwIfAborted()
@@ -178,6 +203,8 @@ export async function searchFinalized(root: string, options: SearchOptions): Pro
     })
   } catch (error) {
     if (signal?.aborted) return { ok: false, code: 'cancelled', reason: '检索已取消' }
+    // 带 staleSnapshot 标记的照原样上抛,交 searchFinalized 自愈重试(其余 SearchError 照旧转结果)
+    if ((error as SearchError & { readonly staleSnapshot?: boolean }).staleSnapshot === true) throw error
     if (error instanceof SearchError) return { ok: false, code: error.code, reason: error.message }
     if (error instanceof Error && /书仓.*锁/.test(error.message)) return { ok: false, code: 'book-busy', reason: '书仓正被其他操作锁定，请稍后重试' }
     return { ok: false, code: 'index-error', reason: '本地索引或来源校验失败；未改动作品，请检查书仓读取与缓存写入权限' }

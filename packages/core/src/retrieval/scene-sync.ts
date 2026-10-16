@@ -2,6 +2,8 @@ import { withBookLockAsync } from '../repo/lock'
 import { readIndexState, writeIndexState, type IndexSyncState } from './state'
 import { currentSceneRecord, proseParagraphs, readSceneRecords, SCENE_RULE_VERSION, validateSceneEnds, writeSceneRecords, type SceneRecord } from './scenes'
 import { assertSourceSettled, digest, readFinalizedBytes, scanFinalized } from './source'
+import { forgetSnapshotCache } from './cache'
+import { canonicalizePath } from '../gate/canonical'
 import { SearchError, type SceneProvider, type SearchDocument } from './types'
 import { indexAbortable, indexFailure, retryDelayMs, type IndexRetryPolicy } from './retry'
 import type { IndexClock } from './sync'
@@ -131,5 +133,7 @@ export async function forgetSceneBoundaries(root: string, chapter?: number): Pro
       for (const doc of selected) delete records[doc.bodyHash]
       writeSceneRecords(root, records)
     }
+    // 场景记录已改:进程内快照缓存一并失效(stat 档指纹含场景文件,双保险)
+    forgetSnapshotCache(canonicalizePath(root))
   })
 }

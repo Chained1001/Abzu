@@ -3,7 +3,7 @@ import * as path from 'node:path'
 import { diffLines } from 'diff'
 import {
   AuthorDocumentError, authorDocumentPath, authorReadOnlyReason, documentHash, saveAuthorDocument, readAuthorSave,
-  parseDocument, listChapters, scanChapter, deriveChapterFacts, paths, retryAuthorSaveCommit, withBookWrite,
+  parseDocument, listChapters, scanChapter, deriveChapterFacts, paths, legacyPaths, retryAuthorSaveCommit, withBookWrite,
   canonicalizePath, isFullyQualifiedPath, isMarkdownFileName, findPendingReviewDraft,
   type OperationProvenance, type AuthorSaveResult,
 } from '@abzu/core'
@@ -243,7 +243,7 @@ export class StudyService {
         const facts = scanChapter(source.root, key)
         const status = deriveChapterFacts(facts)
         const pending = findPendingReviewDraft(source.root, key)
-        const candidates = [paths.定稿章(key.卷, key.章, key.章名), ...(pending ? [pending.relPath] : []), paths.确认细纲(key.卷, key.章, key.章名), paths.候选细纲(key.卷, key.章名)]
+        const candidates = [paths.定稿章(key.卷, key.章, key.章名), ...(pending ? [pending.relPath] : []), paths.确认细纲(key.卷, key.章, key.章名), paths.候选细纲(key.卷, key.章, key.章名), legacyPaths.候选细纲(key.卷, key.章名)]
         const relative = candidates.find(candidate => fs.existsSync(path.join(source.root, candidate)))
         return { volume: key.卷, chapter: key.章, title: key.章名, status: status.建议.环节, finalized: facts.已定稿, ...(relative ? { source: { space, path: relative } } : {}) }
       }),

@@ -1,5 +1,5 @@
 import * as fs from 'node:fs'
-import { currentSceneRecord, proseParagraphs, readSceneRecords, sceneBodyHash, sceneChunks } from './scenes'
+import { currentSceneRecord, proseParagraphs, readSceneRecords, sceneBodyHash, sceneChunks, SCENE_CACHE_PATH } from './scenes'
 import * as path from 'node:path'
 import { createHash } from 'node:crypto'
 import { authorDocumentPath, validateAuthorRelativePath } from '../revise/document'
@@ -8,6 +8,7 @@ import { parseDocument } from '../repo/frontmatter'
 import { splitCandidateFacts } from '../repo/drafts'
 import { isMarkdownFileName } from '../repo/paths'
 import { TRANSACTION_DIR } from '../repo/lock'
+import { takeCachedSnapshot, putCachedSnapshot } from './cache'
 import { SearchError, type SearchChunk, type SearchDocument, type SearchIssue, type SearchSnapshot } from './types'
 
 export const CHUNK_VERSION = 'paragraph-800-overlap-256-v1'
@@ -88,10 +89,54 @@ function chunksOf(relative: string, hash: string, body: string, precedingLines: 
   return chunks
 }
 
+/**
+ * stat 档指纹(批8,0.0.57):定稿树逐文件 `rel\0size\0mtime\0ctime\0ino`(符号链接与目录形态
+ * 如实入指纹)＋场景记录文件 stat(分块依据)。比内容哈希便宜一个量级——一致则复用快照,
+ * 不一致才全量重扫。逐命中再读校验(readFinalizedBytes)不受本缓存影响。
+ */
+async function statFingerprintOf(root: string, signal?: AbortSignal): Promise<string> {
+  const parts: string[] = []
+  const walkStat = async (relative: string): Promise<void> => {
+    signal?.throwIfAborted()
+    let entries: fs.Dirent[]
+    try { entries = await fs.promises.readdir(authorDocumentPath(root, relative), { withFileTypes: true }) }
+    catch (error) {
+      parts.push(`${relative}\u0000missing${(error as NodeJS.ErrnoException).code === 'ENOENT' ? '' : '-error'}`)
+      return
+    }
+    entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
+    for (const entry of entries) {
+      signal?.throwIfAborted()
+      if (entry.name.startsWith('.')) continue
+      const rel = path.posix.join(relative, entry.name)
+      if (entry.isSymbolicLink()) { parts.push(`${rel}\u0000symlink`); continue }
+      if (entry.isDirectory()) { await walkStat(rel); continue }
+      try {
+        const st = await fs.promises.lstat(path.join(root, rel))
+        parts.push(`${rel}\u0000${st.size}\u0000${st.mtimeMs}\u0000${st.ctimeMs}\u0000${st.ino}`)
+      } catch {
+        parts.push(`${rel}\u0000stat-error`)
+      }
+    }
+  }
+  await walkStat('定稿')
+  try {
+    const st = await fs.promises.stat(path.join(root, SCENE_CACHE_PATH))
+    parts.push(`scenes\u0000${st.size}\u0000${st.mtimeMs}\u0000${st.ctimeMs}\u0000${st.ino}`)
+  } catch {
+    parts.push('scenes\u0000missing')
+  }
+  return digest(parts.sort().join('\n'))
+}
+
 export async function scanFinalized(root: string, signal?: AbortSignal): Promise<SearchSnapshot> {
   root = canonicalizePath(root)
   assertSourceSettled(root)
   signal?.throwIfAborted()
+  // 指纹缓存(批8):stat 档一致直接复用上次快照——一次检索最多三次复扫,首次仍全量。
+  const statFingerprint = await statFingerprintOf(root, signal)
+  const cached = takeCachedSnapshot(root, statFingerprint)
+  if (cached !== undefined) return cached
   const documents: SearchDocument[] = []
   const issues: SearchIssue[] = []
   const observations: string[] = []
@@ -161,5 +206,7 @@ export async function scanFinalized(root: string, signal?: AbortSignal): Promise
   }
   await walk('定稿')
   documents.sort((a, b) => a.chapter - b.chapter || a.volume - b.volume || a.path.localeCompare(b.path, 'zh-CN'))
-  return { documents, issues, fingerprint: digest(observations.sort().join('\n')) }
+  const snapshot: SearchSnapshot = { documents, issues, fingerprint: digest(observations.sort().join('\n')) }
+  putCachedSnapshot(root, statFingerprint, snapshot)
+  return snapshot
 }

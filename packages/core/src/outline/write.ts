@@ -13,6 +13,7 @@ import { writeBatchAtomic, writeFileAtomic } from '../repo/atomic'
 import { removeSync } from '../repo/remove'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { assertSegment, paths } from '../repo/paths'
+import { resolveDraftRel } from '../repo/draft-paths'
 import { resolveInsideBookOrNull } from '../gate/paths'
 import { parseSourceRef, type SourceRef } from '../repo/sourceRef'
 import { parseOutline } from './parse'
@@ -96,7 +97,7 @@ function targetIsBlankSetting(bookRoot: string, rel: string): boolean {
   return r.data.fields['状态'] === '留白'
 }
 
-/** 写入草稿区候选细纲(状态:候选)。 */
+/** 写入草稿区候选细纲(状态:候选);0.0.57 起键带章号,旧格式候选在旧位置则原位重写。 */
 function writeCandidateLocked(bookRoot: string, input: WriteCandidateInput): string {
   assertSegment(input.章名, '章名')
   const body = input.body ?? emptyCandidateBody()
@@ -109,7 +110,7 @@ function writeCandidateLocked(bookRoot: string, input: WriteCandidateInput): str
     },
     initialVersion('章细纲'),
   )
-  const rel = paths.候选细纲(input.卷, input.章名)
+  const rel = resolveDraftRel(bookRoot, '候选细纲', input)
   writeFileAtomic(bookRoot, rel, serializeDocument(fields, body))
   return rel
 }
@@ -121,7 +122,7 @@ export function checkConfirmable(bookRoot: string, key: Pick<ChapterKey, '卷' |
   const 播报: string[] = []
   assertSegment(key.章名, '章名')
 
-  const candidateRel = paths.候选细纲(key.卷, key.章名)
+  const candidateRel = resolveDraftRel(bookRoot, '候选细纲', key)
   const candidateText = readText(bookRoot, candidateRel)
   if (candidateText === null) gaps.push('候选细纲不存在')
 
@@ -190,7 +191,7 @@ function confirmOutlineLocked(bookRoot: string, key: ConfirmOutlineInput): Confi
     return { ok: false, gaps: ['确认细纲要求章号 ≥ 1'] }
   }
   const confirmedRel = paths.确认细纲(key.卷, key.章, key.章名)
-  const candidateRel = paths.候选细纲(key.卷, key.章名)
+  const candidateRel = resolveDraftRel(bookRoot, '候选细纲', key)
   const candidateText = readText(bookRoot, candidateRel)
 
   // 幂等可重放(拍板 2):真源已落位、候选已删——重跑确认＝放行,由工具层补 design: 提交,不重写文件

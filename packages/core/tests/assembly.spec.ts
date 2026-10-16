@@ -60,7 +60,7 @@ describe('写作备料(格式规格 §9.2)', () => {
     expect(r.ok).toBe(false)
     expect(r.状态).toBe('段有缺')
     expect(r.gaps.some((g) => g.includes('确认细纲'))).toBe(true)
-    expect(fs.existsSync(path.join(root, paths.材料包目录(1, '开篇任务'), '材料清单.json'))).toBe(false)
+    expect(fs.existsSync(path.join(root, paths.材料包目录(1, 1, '开篇任务'), '材料清单.json'))).toBe(false)
   })
 
   it('after confirmOutline + assemble → 清单 段齐备, derive 建议写稿, compute/write 同源', () => {
@@ -70,7 +70,7 @@ describe('写作备料(格式规格 §9.2)', () => {
     expect(r.ok).toBe(true)
     expect(r.状态).toBe('段齐备')
 
-    const 清单Abs = path.join(root, paths.材料包目录(1, '开篇任务'), '材料清单.json')
+    const 清单Abs = path.join(root, paths.材料包目录(1, 1, '开篇任务'), '材料清单.json')
     const parsed = parseMachineJson(fs.readFileSync(清单Abs, 'utf-8'), MACHINE_SCHEMA_VERSION)
     expect(parsed.ok).toBe(true)
     if (parsed.ok) expect(parsed.data['状态']).toBe('段齐备')
@@ -91,7 +91,7 @@ describe('写作备料(格式规格 §9.2)', () => {
     expect(r.状态).toBe('段有缺')
     expect(r.gaps.some((g) => g.includes('世界书/人物档案/主角.md'))).toBe(true)
 
-    const 清单Abs = path.join(root, paths.材料包目录(1, '开篇任务'), '材料清单.json')
+    const 清单Abs = path.join(root, paths.材料包目录(1, 1, '开篇任务'), '材料清单.json')
     const parsed = parseMachineJson(fs.readFileSync(清单Abs, 'utf-8'), MACHINE_SCHEMA_VERSION)
     expect(parsed.ok).toBe(true)
     if (parsed.ok) expect(parsed.data['状态']).toBe('段有缺')
@@ -103,7 +103,7 @@ describe('写作备料(格式规格 §9.2)', () => {
     const root = mkBook()
     confirmReady(root)
     assembleMaterials(root, key)
-    const dir = path.join(root, paths.材料包目录(1, '开篇任务'))
+    const dir = path.join(root, paths.材料包目录(1, 1, '开篇任务'))
     for (const [i, name] of 材料包十段.entries()) {
       expect(fs.existsSync(path.join(dir, sectionFileName(i, name)))).toBe(true)
     }

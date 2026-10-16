@@ -3,9 +3,9 @@ import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import {
-  assembleMaterials, deriveChapterFacts, listChapters, loadMaterialPackage,
+  assembleMaterials, deriveChapterFacts, listChapters, listResumable, loadMaterialPackage,
   paths, queryLedger, scanChapter, serializeDocument, syncFinalizedIndex,
-  searchFinalized, writeBookMemory,
+  searchFinalized, writeBookMemory, RECOVERY_DEFAULT_RECENT,
 } from '../src/index'
 import { makeFixtureBook } from './helpers/fixture-book'
 import type { EmbeddingProvider } from '../src/retrieval/types'
@@ -112,6 +112,14 @@ async function benchBook(label: string, root: string, chapters: number): Promise
   timeOp('listChapters', label, () => {
     const keys = listChapters(root)
     expect(keys.filter((k) => k.章 > 0).length).toBeGreaterThanOrEqual(chapters)
+  })
+  timeOp('listResumable(默认窗口20)', label, () => {
+    const r = listResumable(root)
+    expect(r.filter((x) => !('摘要' in x)).length).toBeLessThanOrEqual(RECOVERY_DEFAULT_RECENT + 2)
+  })
+  timeOp('listResumable(全量展开)', label, () => {
+    const r = listResumable(root, { 最近N章: chapters })
+    expect(r.length).toBeGreaterThanOrEqual(chapters)
   })
   timeOp('scanChapter+derive(末章)', label, () => {
     const sc = scanChapter(root, late)

@@ -12,7 +12,7 @@ afterAll(() => removeSync(fixtures))
 fs.mkdirSync(fixtures, { recursive: true })
 const key = { 卷: 1, 章: 1, 章名: '开篇任务' }
 function pending(root: string, text: string) {
-  const dir = path.join(root, paths.草稿目录(1, key.章名))
+  const dir = path.join(root, paths.草稿目录(1, key.章, key.章名))
   fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(path.join(dir, '稿1.md'), serializeDocument({ 角色: '待审稿', 选定: true }, text))
 }

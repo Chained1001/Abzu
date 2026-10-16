@@ -121,7 +121,7 @@ describe('#165 内容与就绪建议同源', () => {
     expect(book.ok && book.report.状态).toBe('待核对')
     expect(fs.readFileSync(file, 'utf8')).toBe(original)
     const key = { 卷: 1, 章: 1, 章名: '开篇任务' }
-    put(root, `${paths.草稿目录(1, key.章名)}/稿1.md`, serializeDocument({ 角色: '待审稿', 选定: true }, '少年在雨中听见铜铃。'))
+    put(root, `${paths.草稿目录(1, key.章, key.章名)}/稿1.md`, serializeDocument({ 角色: '待审稿', 选定: true }, '少年在雨中听见铜铃。'))
     const pack = computePack(root, key)
     expect(pack.ok, pack.reason).toBe(true)
     const report = pack.文件?.find(file => file.relPath.endsWith('/卷对账.md'))?.content

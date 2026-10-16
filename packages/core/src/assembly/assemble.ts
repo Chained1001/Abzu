@@ -13,6 +13,7 @@ import { extractVersionFields } from '../provenance'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument } from '../repo/frontmatter'
 import { paths } from '../repo/paths'
+import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { parseSourceRef } from '../repo/sourceRef'
 import { 材料预算 } from './budget'
@@ -224,7 +225,7 @@ function renderLedgerEntry(entry: LedgerEntry): string {
 
 /** 组装材料包(R21 切割):纯算零写盘,返回精确写盘载荷;无确认细纲则失败、不产文件。 */
 function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedMaterials {
-  const dir = paths.材料包目录(input.卷, input.章名)
+  const dir = resolveDraftRel(bookRoot, '材料包目录', input)
   const confirmedRel = paths.确认细纲(input.卷, input.章, input.章名)
   const confirmedText = readText(bookRoot, confirmedRel)
   if (confirmedText === null) {
@@ -638,12 +639,12 @@ export function assembleMaterials(bookRoot: string, input: AssembleInput): Assem
   return writeMaterials(bookRoot, input)
 }
 
-export function readManifest(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): MaterialManifest | null {
+export function readManifest(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }): MaterialManifest | null {
   // 修复(0.0.20 批 bug7):材料清单是机器态 JSON,读取统一走 readMachineText(剥 BOM)——
   // 原先经本文件通用 readText 不剥 BOM,与 assembly/read.ts 的清单读侧双口径,存 BOM 即判 null
   let text: string
   try {
-    text = readMachineText(path.join(bookRoot, paths.材料包目录(key.卷, key.章名), '材料清单.json'))
+    text = readMachineText(path.join(bookRoot, resolveDraftRel(bookRoot, '材料包目录', key), '材料清单.json'))
   } catch {
     return null
   }

@@ -117,7 +117,7 @@ describe('材料备料薄入口 CLI(R21 纯算切割)', () => {
     expect(code, err).toBe(0)
     expect(data!.ok).toBe(true)
     expect(data!.状态).toBe('段齐备')
-    expect(data!.dir).toBe('草稿区/材料包/卷01-开篇任务')
+    expect(data!.dir).toBe('草稿区/材料包/卷01-0001-开篇任务')
     expect(data!.gaps).toEqual([])
     const 段 = data!.段 as { 段: string; 完整性: string }[]
     expect(段).toHaveLength(10)
@@ -126,7 +126,7 @@ describe('材料备料薄入口 CLI(R21 纯算切割)', () => {
     expect(文件).toHaveLength(11)
     const manifestFile = 文件.find((f) => f.relPath.endsWith('材料清单.json'))
     expect(manifestFile, '载荷应含 材料清单.json').toBeDefined()
-    expect(manifestFile!.relPath).toBe('草稿区/材料包/卷01-开篇任务/材料清单.json')
+    expect(manifestFile!.relPath).toBe('草稿区/材料包/卷01-0001-开篇任务/材料清单.json')
     const manifest = JSON.parse(manifestFile!.content) as { 状态: string; 合计字数: number; 段: { 段: string; 来源: string[] }[]; schemaVersion: number }
     expect(manifest.状态).toBe('段齐备')
     expect(manifest.合计字数).toBe(data!.合计字数)

@@ -93,7 +93,7 @@ function confirmWithHard(root: string): void {
 }
 
 function putPending(root: string, body: string, file = '稿1.md'): void {
-  const rel = `草稿区/草稿/卷01-开篇任务/${file}`
+  const rel = `草稿区/草稿/卷01-0001-开篇任务/${file}`
   fs.mkdirSync(path.join(root, path.dirname(rel)), { recursive: true })
   fs.writeFileSync(path.join(root, rel), serializeDocument({ 角色: '待审稿', 选定: true }, body), 'utf-8')
 }
@@ -230,7 +230,7 @@ describe('审核检查项库', () => {
     expect(isReviewIncomplete(loadReviewRecord(root, key)!)).toBe(false)
 
     fs.writeFileSync(
-      path.join(root, '草稿区/审核/卷01-开篇任务.json'),
+      path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'),
       JSON.stringify({ schemaVersion: 1, 完成: false, 问题: [] }),
       'utf-8',
     )
@@ -297,7 +297,7 @@ describe('审核检查项库', () => {
     // 上一轮注册过、本轮已摘掉的模块，当时跑失败了
     fs.mkdirSync(path.join(root, '草稿区/审核'), { recursive: true })
     fs.writeFileSync(
-      path.join(root, '草稿区/审核/卷01-开篇任务.json'),
+      path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'),
       JSON.stringify({
         schemaVersion: 1,
         完成: false,

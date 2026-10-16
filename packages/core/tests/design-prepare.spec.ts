@@ -21,7 +21,7 @@ describe('单文件设计准备', () => {
   it('所有准备函数只生成完整文件，不创建目录或写盘', () => {
     const ops = [
       prepareContract(root), prepareSkeleton(root, '# 骨架'), prepareVolumeLayout(root, '# 分卷'),
-      prepareVolumeOutline(1, '# 卷纲'), preparePlanTimeline(1, '# 时间线'),
+      prepareVolumeOutline(root, 1, '# 卷纲'), preparePlanTimeline(root, 1, '# 时间线'),
       prepareRecentWindow(1, [{ 名称: '开篇', 状态: '暂定' }]),
       prepareEntry('人物档案', '主角', { 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '对谈' }),
     ]
@@ -102,7 +102,7 @@ const 幕纲正文 = [
 
 describe('幕纲准备与段名校验(0.0.52 幕纲批)', () => {
   it('prepareActOutline 纯文本写入、补末尾换行、不建目录；幕号两位', () => {
-    const op = prepareActOutline(1, 2, '渡口疑云', 幕纲正文.trimEnd())
+    const op = prepareActOutline(root, 1, 2, '渡口疑云', 幕纲正文.trimEnd())
     expect(op.relPath).toBe('大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md')
     expect(op.content.endsWith('\n')).toBe(true)
     expect(op.content).toContain('## 本幕故事')
@@ -121,10 +121,10 @@ describe('幕纲准备与段名校验(0.0.52 幕纲批)', () => {
   })
 
   it('幕名非法或幕号非正整数即抛错（B2 路径白名单，不落盘）', () => {
-    expect(() => prepareActOutline(1, 1, 'a/b', 幕纲正文)).toThrow(/B2/)
-    expect(() => prepareActOutline(1, 1, '幕名.', 幕纲正文)).toThrow(/B2/)
-    expect(() => prepareActOutline(1, 0, '渡口', 幕纲正文)).toThrow(/幕号必须是正整数/)
-    expect(() => prepareActOutline(1, 1.5, '渡口', 幕纲正文)).toThrow(/幕号必须是正整数/)
+    expect(() => prepareActOutline(root, 1, 1, 'a/b', 幕纲正文)).toThrow(/B2/)
+    expect(() => prepareActOutline(root, 1, 1, '幕名.', 幕纲正文)).toThrow(/B2/)
+    expect(() => prepareActOutline(root, 1, 0, '渡口', 幕纲正文)).toThrow(/幕号必须是正整数/)
+    expect(() => prepareActOutline(root, 1, 1.5, '渡口', 幕纲正文)).toThrow(/幕号必须是正整数/)
     expect(fs.readdirSync(root)).toEqual([])
   })
 
@@ -156,3 +156,30 @@ describe('近期窗口写侧防护(状态词表/保留行)', () => {  it('词表
     expect(second.content).toBe(first.content)
   })
 })
+
+describe('卷纲/计划时间线/幕纲 frontmatter 版本字段(批8,0.0.57)', () => {
+  it('三个 prepare* 走 prepareDesignDoc:首次 v1、正文变化 +1、原样重跑复用版本', () => {
+    put('大纲/卷规划/卷01/卷纲.md', serializeDocument({ 状态: '已确认', 版本: 2 }, '# 卷纲\n'))
+    const op = prepareVolumeOutline(root, 1, '# 卷纲 新正文')
+    expect(parseDocument(op.content)).toMatchObject({ ok: true, data: { fields: { 版本: 3, 父版本: 2, 状态: '已确认', 生成模块: '卷纲确认' } } })
+    expect(op.result).toMatchObject({ relPath: '大纲/卷规划/卷01/卷纲.md', 版本: 3, 首次写入: false })
+    // 原样重跑复用版本(重试不产生新版本)
+    const again = prepareVolumeOutline(root, 1, '# 卷纲 新正文')
+    expect(again.result.版本).toBe(3)
+    // 首次写入 v1
+    const timeline = preparePlanTimeline(root, 1, '# 计划时间线')
+    expect(timeline.result).toMatchObject({ 版本: 1, 首次写入: true })
+    expect(parseDocument(timeline.content)).toMatchObject({ ok: true, data: { fields: { 版本: 1, 生成模块: '计划时间线确认' } } })
+    const act = prepareActOutline(root, 1, 2, '渡口疑云', '# 幕纲')
+    expect(act.result).toMatchObject({ relPath: '大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md', 版本: 1, 首次写入: true })
+    expect(parseDocument(act.content)).toMatchObject({ ok: true, data: { fields: { 版本: 1, 生成模块: '幕纲确认' } } })
+  })
+
+  it('volumeOutlineGaps/actOutlineGaps 按 ## 段名校验,不受 frontmatter 版本字段影响', () => {
+    const 卷纲全文 = serializeDocument({ 状态: '已确认', 版本: 1 }, '# 卷纲\n\n## 叙事结构\n\n在场。\n')
+    expect(volumeOutlineGaps(卷纲全文)).toEqual(['卷纲段落不完整:弧线', '卷纲段落不完整:线索推进', '卷纲段落不完整:卷末兑现'])
+    const 幕纲全文 = serializeDocument({ 版本: 2 }, '# 幕纲\n\n## 本幕故事\n\n## 线与伏笔\n\n## 出场人物\n\n## 查证清单\n\n## 章组排布\n\n## 幕末结算\n')
+    expect(actOutlineGaps(幕纲全文)).toEqual([])
+  })
+})
+

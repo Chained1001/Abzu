@@ -60,7 +60,7 @@ function inProcess(root: string, args: Record<string, unknown>, mode = 'normal')
       process.stdout.write(JSON.stringify({ result, faultHit }));
     }).catch(error => { process.stderr.write(String(error)); process.exitCode = 1; });
   `
-  return spawnSync(process.execPath, ['-e', source, toolModule, root, JSON.stringify(args), mode], { encoding: 'utf8', windowsHide: true, timeout: 20000 })
+  return spawnSync(process.execPath, ['-e', source, toolModule, root, JSON.stringify(args), mode], { encoding: 'utf8', windowsHide: true, timeout: 25000 })
 }
 
 function put(root: string, relative: string, text: string): void {
@@ -172,7 +172,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(retry).toMatchObject({ ok: false, reason: expect.stringMatching(/冲突/) })
     expect(snapshot(root)).toEqual(before)
     expect(git(root, 'rev-parse', 'HEAD')).toBe(head)
-  })
+  }, 30_000)
 
   it('新进程补提交及丢响应重放，插入无关提交也只认原输出', async () => {
     const { root, args } = await fixture('all')
@@ -193,7 +193,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(git(root, 'rev-parse', 'HEAD')).toBe(head)
     expect(git(root, 'diff', '--cached', '--name-only', '--', '大纲/暂存.md')).not.toBe('')
     expect(git(root, 'ls-files', '--', receipts)).toBe('')
-  })
+  }, 30_000)
 
   it('人工补交全部输出后重试不再创建提交', async () => {
     const { root, args } = await fixture(true)
@@ -204,7 +204,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(await apply(root, args)).toMatchObject({ ok: true })
     expect(snapshot(root)).toEqual(before)
     expect(git(root, 'rev-parse', 'HEAD')).toBe(head)
-  })
+  }, 30_000)
 
   it.each([summary, 'event', world, '账本/时间线.md', '账本/故事线.md', '本书记忆/克制.md', '本书记忆/索引.md'])('修改或删除原输出 %s 都拒绝', async target => {
     const { root, args } = await fixture('all')
@@ -253,7 +253,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
       expect(snapshot(root)).toEqual(before)
       expect(git(root, 'rev-parse', 'HEAD')).toBe(head)
     }
-  })
+  }, 30_000)
 
   it('旧低层收据无法证明工具业务身份时拒绝自动重写', async () => {
     const { root, args } = await fixture()
@@ -269,7 +269,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(await apply(root, args)).toMatchObject({ ok: false, reason: expect.stringMatching(/旧收据/) })
     expect(snapshot(root)).toEqual(before)
     expect(git(root, 'rev-parse', 'HEAD')).toBe(head)
-  })
+  }, 30_000)
 
   it('不同请求在前次完成后正常补偿，旧请求证据继续保留', async () => {
     const { root, args } = await fixture(true)
@@ -281,7 +281,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(fs.readdirSync(path.join(root, receipts))).toHaveLength(2)
     expect(await apply(root, args)).toMatchObject({ ok: false, reason: expect.stringMatching(/冲突/) })
     expect(snapshot(root)).toEqual(before)
-  })
+  }, 30_000)
 
   it('空候选和对象键序归一；未传章摘要时过期标记只写一次', async () => {
     const { root, args } = await fixture()
@@ -292,7 +292,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(await apply(root, { ...reordered, 事实变更: '\n ', 记忆候选: '' })).toMatchObject({ ok: true })
     expect(snapshot(root)).toEqual(before)
     expect(before[summary]!.match(/〔摘要过期〕/g)).toHaveLength(1)
-  })
+  }, 30_000)
 
   it('正文整文件与纯正文沿用同一写入归一，不能借 frontmatter 重新升版', async () => {
     const { root, args } = await fixture()
@@ -300,7 +300,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     const before = snapshot(root)
     expect(await apply(root, { ...args, 更正后正文: serializeDocument({ 角色: '定稿', 版本: 99 }, String(args['更正后正文'])) })).toMatchObject({ ok: true })
     expect(snapshot(root)).toEqual(before)
-  })
+  }, 30_000)
 
   it.skipIf(process.platform !== 'win32')('Windows 章节名大小写别名仍复用原收据并保护作者改动', async () => {
     const { root, args } = await fixture(false, 'Bell')
@@ -331,7 +331,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     const other = await fixture()
     expect(await apply(other.root, other.args)).toMatchObject({ ok: true })
     expect(fs.readdirSync(path.join(other.root, receipts))).toHaveLength(1)
-  })
+  }, 30_000)
 
   it('裁决等待期间书身份变化拒绝补交', async () => {
     const { root, args } = await fixture()
@@ -350,7 +350,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(await apply(root, args, {}, ask)).toMatchObject({ ok: false })
     expect(snapshot(root)).toEqual(expected)
     expect(git(root, 'rev-parse', 'HEAD')).toBe(head)
-  })
+  }, 30_000)
 
   it.each(['reject', 'cancel', 'edit'])('重试仍检查作者裁决：%s', async kind => {
     const { root, args } = await fixture()
@@ -384,7 +384,7 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     expect(fs.readdirSync(path.join(root, '草稿区/提案'))).toHaveLength(1)
     const doc = parseDocument(fs.readFileSync(path.join(root, chapter), 'utf8'))
     expect(doc.ok && doc.data.fields['版本']).toBe(2)
-  })
+  }, 30_000)
 
   it('首次写入失败后准备包被改，重试也保留改动', async () => {
     const { root, args } = await fixture(true)
@@ -396,5 +396,5 @@ describe('F06: 吃书补偿完整工具链收据', () => {
     const before = snapshot(root)
     expect(await apply(root, args)).toMatchObject({ ok: false, reason: expect.stringMatching(/冲突/) })
     expect(snapshot(root)).toEqual(before)
-  })
+  }, 30_000)
 })

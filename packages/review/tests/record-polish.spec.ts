@@ -31,7 +31,7 @@ beforeEach(() => { resetChecks(); registerDefaultChecks() })
 const key = { 卷: 1, 章: 1, 章名: '开篇任务' } as const
 const refs = ['作品契约/契约.md@1', '世界书/人物档案/主角.md@1'] as const
 const HARD = '本章必须出现「主角现身」'
-const DIR = paths.草稿目录(1, '开篇任务')
+const DIR = paths.草稿目录(1, 1, '开篇任务')
 
 function confirmWithHard(root: string): void {
   const body = [
@@ -211,7 +211,7 @@ describe('审核记录 润色 字段解析/序列化', () => {
     putDraft(root, { 角色: '待审稿', 选定: true, 版本: 1 }, `巷口风大。${HARD}。`)
     runReview(root, key)
     ingestAll(root)
-    const p = path.join(root, ...paths.审核记录(1, '开篇任务').split('/'))
+    const p = path.join(root, ...paths.审核记录(1, 1, '开篇任务').split('/'))
     const raw = JSON.parse(fs.readFileSync(p, 'utf8')) as Record<string, unknown>
     raw['润色'] = { 状态: '已跳过', 父稿哈希: 'a', 稿哈希: 'a', 审读指纹: 'a', 稿件: 'x', 时间: 't' } // 缺 理由
     fs.writeFileSync(p, JSON.stringify(raw), 'utf-8')

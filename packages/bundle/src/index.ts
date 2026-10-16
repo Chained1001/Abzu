@@ -79,6 +79,7 @@ export { tenChecksCli } from './scripts/ten-checks-cli'
 export { packCli } from './scripts/pack-cli'
 export { exportCli } from './scripts/export-cli'
 export { backupCli } from './scripts/backup-cli'
+export { draftCleanupCli } from './scripts/draft-cleanup-cli'
 /** 卷摘要候选脚本的 CLI 能力（任务21, 件一）：只算不写，薄入口经 lib 调用。 */
 export { volumeSummaryCli } from './scripts/volume-summary-cli'
 

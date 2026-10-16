@@ -54,25 +54,30 @@ export function actOutlineGaps(body: string): string[] {
   return 幕纲必备段.filter((name) => !titles.has(name)).map((name) => `幕纲段落不完整:${name}`)
 }
 
-function writeVolumeOutlineLocked(bookRoot: string, 卷: number, body: string): void {
-  const op = prepareVolumeOutline(卷, body)
+function writeVolumeOutlineLocked(bookRoot: string, 卷: number, body: string): DesignWriteResult {
+  const op = prepareVolumeOutline(bookRoot, 卷, body)
   writeFileAtomic(bookRoot, op.relPath, op.content)
-}
-
-export function prepareVolumeOutline(卷: number, body: string): FileOp {
-  return { relPath: paths.卷纲(卷), content: body.endsWith('\n') ? body : `${body}\n` }
+  return op.result
 }
 
 /**
- * 幕纲落盘准备(0.0.52 幕纲批):幕是卷与章之间的完整剧情单元,幕纲是可选真源工件。
- * 幕名过路径白名单(同章名/模块名的 assertSegment 习惯),幕号须正整数;纯文本写入、补末尾换行。
+ * 卷纲落盘准备(批8,0.0.57 起走 prepareDesignDoc):frontmatter 带 状态/版本/父版本/生成模块
+ * ——首次 v1、正文变化 +1、原样重跑复用版本(旧书无 frontmatter 的卷纲按 v1 起步,无需迁移)。
  */
-export function prepareActOutline(卷: number, 幕: number, 幕名: string, body: string): FileOp {
+export function prepareVolumeOutline(bookRoot: string, 卷: number, body: string): FileOp & { result: DesignWriteResult } {
+  return prepareDesignDoc(bookRoot, paths.卷纲(卷), body, '卷纲确认')
+}
+
+/**
+ * 幕纲落盘准备(0.0.52 幕纲批;批8 起走 prepareDesignDoc 带版本字段)。
+ * 幕名过路径白名单(同章名/模块名的 assertSegment 习惯),幕号须正整数。
+ */
+export function prepareActOutline(bookRoot: string, 卷: number, 幕: number, 幕名: string, body: string): FileOp & { result: DesignWriteResult } {
   assertSegment(幕名, '幕名')
   if (!Number.isSafeInteger(幕) || 幕 < 1) {
     throw new Error(`幕号必须是正整数(收到:${String(幕)})`)
   }
-  return { relPath: paths.幕纲(卷, 幕, 幕名), content: body.endsWith('\n') ? body : `${body}\n` }
+  return prepareDesignDoc(bookRoot, paths.幕纲(卷, 幕, 幕名), body, '幕纲确认')
 }
 
 export const writeVolumeOutline = bookWriter(writeVolumeOutlineLocked)
@@ -86,13 +91,15 @@ export function prepareVolumeSummary(bookRoot: string, 卷: number, body: string
   return prepareDesignDoc(bookRoot, paths.卷摘要(卷), body, '卷摘要确认')
 }
 
-function writePlanTimelineLocked(bookRoot: string, 卷: number, body: string): void {
-  const op = preparePlanTimeline(卷, body)
+function writePlanTimelineLocked(bookRoot: string, 卷: number, body: string): DesignWriteResult {
+  const op = preparePlanTimeline(bookRoot, 卷, body)
   writeFileAtomic(bookRoot, op.relPath, op.content)
+  return op.result
 }
 
-export function preparePlanTimeline(卷: number, body: string): FileOp {
-  return { relPath: paths.计划时间线(卷), content: body.endsWith('\n') ? body : `${body}\n` }
+/** 计划时间线落盘准备(批8 起走 prepareDesignDoc 带 frontmatter 版本字段;旧文件按 v1 起步)。 */
+export function preparePlanTimeline(bookRoot: string, 卷: number, body: string): FileOp & { result: DesignWriteResult } {
+  return prepareDesignDoc(bookRoot, paths.计划时间线(卷), body, '计划时间线确认')
 }
 
 export const writePlanTimeline = bookWriter(writePlanTimelineLocked)

@@ -66,7 +66,7 @@ function confirmWithHard(root: string): void {
 }
 
 function putPending(root: string, body: string, file = '稿1.md'): void {
-  const rel = `草稿区/草稿/卷01-开篇任务/${file}`
+  const rel = `草稿区/草稿/卷01-0001-开篇任务/${file}`
   fs.mkdirSync(path.join(root, path.dirname(rel)), { recursive: true })
   fs.writeFileSync(path.join(root, rel), serializeDocument({ 角色: '待审稿', 选定: true }, body), 'utf-8')
 }
@@ -102,7 +102,7 @@ describe('F05 每条自动审读结果绑定输入', () => {
     putPending(root, `新稿。${HARD}。`)
     const currentFingerprint = computeReview(root, key).record!.审读指纹
     expect(ingestFindings(root, key, '文本规范检查', [], currentFingerprint).ok).toBe(true)
-    const recordPath = path.join(root, '草稿区/审核/卷01-开篇任务.json')
+    const recordPath = path.join(root, '草稿区/审核/卷01-0001-开篇任务.json')
     const before = fs.readFileSync(recordPath, 'utf8')
     for (const fingerprint of [undefined, oldFingerprint]) {
       for (const name of ['文本规范检查', '章节结构审读']) {

@@ -53,7 +53,7 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(r.ok).toBe(true)
     expect(r.播报).toContain('细纲未确认')
     expect(r.播报).toContain('材料包未组装')
-    expect(fs.existsSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'))).toBe(true)
+    expect(fs.existsSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'))).toBe(true)
   })
 
   it('after assemble + writeDraft → derive 审核 (起草收稿即待审稿, 0.0.54)', () => {
@@ -63,7 +63,7 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(assembled.ok).toBe(true)
     const r = writeDraft(root, { ...key, body: '他走进雨里。' })
     expect(r.ok).toBe(true)
-    expect(r.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿1.md')
+    expect(r.relPath).toBe('草稿区/草稿/卷01-0001-开篇任务/稿1.md')
     const text = fs.readFileSync(path.join(root, r.relPath), 'utf-8')
     expect(text).toMatch(/角色:\s*待审稿/)
     expect(text).toMatch(/选定:\s*true/)
@@ -81,9 +81,9 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(second.ok).toBe(true)
     const facts = scanChapter(root, key)
     expect(facts.唯一待审稿).toBe(true)
-    const drafts = fs.readdirSync(path.join(root, '草稿区/草稿/卷01-开篇任务'))
+    const drafts = fs.readdirSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务'))
     const pending = drafts.filter((f) => {
-      const doc = parseDocument(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务', f), 'utf-8'))
+      const doc = parseDocument(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务', f), 'utf-8'))
       return doc.ok && doc.data.fields['角色'] === '待审稿'
     })
     expect(pending).toEqual(['稿2.md'])
@@ -94,13 +94,13 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     confirmReady(root)
     assembleMaterials(root, key)
     fs.mkdirSync(path.join(root, '草稿区/审核'), { recursive: true })
-    fs.writeFileSync(path.join(root, '草稿区/审核/卷01-开篇任务.json'), '{"schemaVersion":1,"完成":false,"问题":[]}', 'utf-8')
+    fs.writeFileSync(path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'), '{"schemaVersion":1,"完成":false,"问题":[]}', 'utf-8')
     const ctx = loadDraftContext(root, key)
     expect(ctx.细纲).toMatch(/章细纲/)
     expect(Object.keys(ctx.材料段).some((k) => k.includes('本章任务'))).toBe(true)
     const dumped = JSON.stringify(ctx)
     expect(dumped).not.toContain('草稿区/审核')
-    expect(dumped).not.toContain('卷01-开篇任务.json')
+    expect(dumped).not.toContain('卷01-0001-开篇任务.json')
     expect(dumped).not.toMatch(/"完成"\s*:/)
   })
 
@@ -142,17 +142,17 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     const root = mkBook()
     const first = writeDraft(root, { ...key, body: '第一稿正文。' })
     expect(first.ok).toBe(true)
-    const dir = path.join(root, '草稿区/草稿/卷01-开篇任务')
+    const dir = path.join(root, '草稿区/草稿/卷01-0001-开篇任务')
     fs.renameSync(path.join(dir, '稿1.md'), path.join(dir, '稿1.MD'))
     const second = writeDraft(root, { ...key, body: '第二稿正文。' })
     expect(second.ok).toBe(true)
     if (process.platform !== 'win32') {
-      expect(second.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿1.md')
+      expect(second.relPath).toBe('草稿区/草稿/卷01-0001-开篇任务/稿1.md')
       expect(fs.readdirSync(dir).sort()).toEqual(['稿1.MD', '稿1.md'])
       expect(scanChapter(root, key).有草稿).toBe(true)
       return
     }
-    expect(second.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿2.md')
+    expect(second.relPath).toBe('草稿区/草稿/卷01-0001-开篇任务/稿2.md')
     expect(fs.readdirSync(dir).sort()).toEqual(['稿1.MD', '稿2.md'])
     const doc = parseDocument(fs.readFileSync(path.join(root, second.relPath), 'utf-8'))
     expect(doc.ok && doc.data.fields['版本']).toBe(2)

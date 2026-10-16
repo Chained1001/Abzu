@@ -49,8 +49,8 @@ function readyBook(root: string, 正文: string): void {
   writeCandidate(root, { 卷: 1, 章: 1, 章名: key.章名, 来源引用: refs, body })
   const r = confirmOutline(root, key)
   if (!r.ok) throw new Error(`confirm failed:${r.gaps.join(';')}`)
-  fs.mkdirSync(path.join(root, '草稿区/草稿/卷01-开篇任务'), { recursive: true })
-  fs.writeFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), serializeDocument({ 角色: '待审稿', 选定: true }, 正文), 'utf-8')
+  fs.mkdirSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务'), { recursive: true })
+  fs.writeFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), serializeDocument({ 角色: '待审稿', 选定: true }, 正文), 'utf-8')
 }
 
 const BASE = `沈青梧走进城门，开场必须点名主角现身的规矩她记得清楚。
@@ -63,7 +63,7 @@ function withRecord(root: string): void {
   if (!r.ok) throw new Error(`runReview failed:${r.reason ?? ''}`)
   // 干净正文零确定性发现项;补一条语义发现项作为可处置对象(处置编号由回写生成)
   const w = ingestFindings(root, key, '章节结构审读', [{
-    证据位置: '草稿区/草稿/卷01-开篇任务/稿1.md:1',
+    证据位置: '草稿区/草稿/卷01-0001-开篇任务/稿1.md:1',
     问题说明: '开场节奏偏快,接印一段可再压半句',
     严重程度: '建议',
     是否建议阻断: false,
@@ -79,13 +79,13 @@ describe('M1:applyRevision 契约加固', () => {
   it('待处理 带补丁 → 拒绝，零写入', () => {
     const root = mkBook()
     withRecord(root)
-    const before = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), 'utf-8')
+    const before = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), 'utf-8')
     const r = applyRevision(root, key, {
       发现项编号: FINDING, 处置: '待处理',
       补丁: { old: '沈青梧', new: '别人' },
     })
     expect(r.ok).toBe(false)
-    expect(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), 'utf-8')).toBe(before)
+    expect(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), 'utf-8')).toBe(before)
   })
 
   it('已解决 带未命中补丁 → 失败；带命中补丁 → 产新稿+diff+followup，原稿降级', () => {
@@ -104,11 +104,11 @@ describe('M1:applyRevision 契约加固', () => {
     })
     expect(r.ok).toBe(true)
     if (!r.ok) return
-    expect(r.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿2.md')
+    expect(r.relPath).toBe('草稿区/草稿/卷01-0001-开篇任务/稿2.md')
     expect(r.diff?.some((d) => d.kind === '增' && d.text.includes('多看了一眼她的旗牌'))).toBe(true)
     expect(r.followup).toBeDefined()
     // 原稿降级留档
-    const old = parseDocument(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), 'utf-8'))
+    const old = parseDocument(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), 'utf-8'))
     expect(old.ok && old.data.fields['角色']).not.toBe('待审稿')
   })
 
@@ -138,7 +138,7 @@ describe('M1:ingestAuthorRevision 原样落盘', () => {
   it('整章正文原样写入(含换行与标点),生成模块=作者手改,发现项处置不动', () => {
     const root = mkBook()
     withRecord(root)
-    const before = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-开篇任务.json'), 'utf-8'))
+    const before = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'), 'utf-8'))
     const 正文 = BASE.replace('守门的兵卒抬了抬下巴。', '守门的兵卒没抬下巴——他在看别处。\n\n这一眼很長。')
     const r = ingestAuthorRevision(root, key, 正文)
     expect(r.ok).toBe(true)
@@ -149,7 +149,7 @@ describe('M1:ingestAuthorRevision 原样落盘', () => {
     expect(doc.data.body.replace(/\n+$/, '')).toBe(正文.replace(/\r\n/g, '\n').replace(/\n+$/, ''))
     expect(doc.data.fields['生成模块']).toBe('作者手改')
     expect(doc.data.fields['角色']).toBe('待审稿')
-    const after = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-开篇任务.json'), 'utf-8'))
+    const after = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'), 'utf-8'))
     expect(after.问题.map((q: { 处置状态: string }) => q.处置状态)).toEqual(before.问题.map((q: { 处置状态: string }) => q.处置状态))
   })
 
@@ -193,7 +193,7 @@ describe('M1:ingestAuthorRevision 原样落盘', () => {
   it('无待审稿 → 拒绝', () => {
     const root = mkBook()
     readyBook(root, BASE)
-    fs.rmSync(path.join(root, '草稿区/草稿/卷01-开篇任务'), { recursive: true, force: true })
+    fs.rmSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务'), { recursive: true, force: true })
     const r = ingestAuthorRevision(root, key, BASE)
     expect(r.ok).toBe(false)
   })
@@ -201,7 +201,7 @@ describe('M1:ingestAuthorRevision 原样落盘', () => {
   it('多稿场景:降级集与新稿同一事务落盘,批次提交无残留(0.0.46 事务统一)', () => {
     const root = mkBook()
     withRecord(root)
-    const dir = path.join(root, '草稿区/草稿/卷01-开篇任务')
+    const dir = path.join(root, '草稿区/草稿/卷01-0001-开篇任务')
     // 降级集两类:遗留选定草稿(稿1,选定但非待审)与旧待审稿(稿2);稿0 为无关普通草稿,不在集内
     fs.writeFileSync(path.join(dir, '稿1.md'), serializeDocument({ 角色: '草稿', 选定: true, 版本: 1, 父版本: null, 生成模块: '写稿' }, '遗留选定草稿'), 'utf-8')
     fs.writeFileSync(path.join(dir, '稿2.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 2, 父版本: 1, 生成模块: '写稿' }, BASE), 'utf-8')
@@ -211,7 +211,7 @@ describe('M1:ingestAuthorRevision 原样落盘', () => {
     const r = ingestAuthorRevision(root, key, '作者重写的整章正文。')
     expect(r.ok).toBe(true)
     if (!r.ok) return
-    expect(r.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿3.md')
+    expect(r.relPath).toBe('草稿区/草稿/卷01-0001-开篇任务/稿3.md')
 
     const drafts = listChapterDrafts(root, key)
     expect(drafts.filter((d) => d.角色 === '待审稿').map((d) => d.file)).toEqual(['稿3.md'])
@@ -236,22 +236,22 @@ describe('M1:recordAuthorFinding 作者意见', () => {
     readyBook(root, BASE)
     const r = recordAuthorFinding(root, key, { 问题说明: '节奏太赶' })
     expect(r.ok).toBe(false)
-    expect(fs.existsSync(path.join(root, '草稿区/审核/卷01-开篇任务.json'))).toBe(false)
+    expect(fs.existsSync(path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'))).toBe(false)
   })
 
   it('有记录 → 意见入账(模块名=作者意见),草稿字节不变;重跑审核不丢、不计完成判定', () => {
     const root = mkBook()
     withRecord(root)
-    const draftBefore = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), 'utf-8')
+    const draftBefore = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), 'utf-8')
     const r = recordAuthorFinding(root, key, { 问题说明: '第二章前先把旗令制度交代清楚', 修改建议: '在单元2补一句制度来源' })
     expect(r.ok).toBe(true)
-    expect(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), 'utf-8')).toBe(draftBefore)
+    expect(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), 'utf-8')).toBe(draftBefore)
 
     // 重跑审核(确定性重算),作者意见条目保留且处置不丢
     const re = recordAuthorFinding(root, key, { 问题说明: '第二章前先把旗令制度交代清楚' })
     expect(re.ok).toBe(true)
     runReview(root, key)
-    const loaded = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-开篇任务.json'), 'utf-8'))
+    const loaded = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'), 'utf-8'))
     const opinions = loaded.问题.filter((q: { 模块名: string }) => q.模块名 === '作者意见')
     expect(opinions.length).toBe(1)
     expect(opinions[0]!.问题说明).toContain('旗令制度')

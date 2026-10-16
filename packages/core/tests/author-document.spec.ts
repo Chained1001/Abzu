@@ -26,7 +26,7 @@ function initGit() {
   put('.gitignore', '草稿区/\n.abzu/\n'); git('add', '.'); git('commit', '--quiet', '-m', 'design: fixture')
 }
 function draft(role = '待审稿', version = 1, file = '稿1.md') {
-  const relative = path.posix.join(paths.草稿目录(1, '开篇'), file)
+  const relative = path.posix.join(paths.草稿目录(1, 1, '开篇'), file)
   const text = put(relative, serializeDocument({ 身份: draftKey, 版本: version, 父版本: version > 1 ? version - 1 : null, 角色: role, 选定: role === '待审稿', 来源快照: { 细纲: 1 } }, '原来的正文。\n\n## 草稿候选事实\n\n- 人物：林舟到港。'))
   return { relative, text }
 }

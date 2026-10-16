@@ -11,6 +11,7 @@ import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { isWindowEntryReady } from './states'
 import { draftHashOf, parseReviewRecord, reviewInputFingerprintOf, reviewRecordHashOf, 处置状态列表, type ReviewRecord } from '../evidence/record'
 import { chapterNo, isMarkdownFileName } from '../repo/paths'
+import { resolveDraftRel } from '../repo/draft-paths'
 import { materialReviewIdentity } from '../assembly/read'
 import { chapterLengthIdentity, readChapterLength } from '../design/chapter-length'
 
@@ -113,20 +114,21 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   const 窗口文 = readText(root, `大纲/卷规划/卷${卷NN}/近期窗口.md`, 不可读)
   const 窗口就绪 = 窗口文 !== null && parseWindow(窗口文).some((e) => isWindowEntryReady(e.state))
 
-  const 候选文 = readText(root, `草稿区/章细纲/卷${卷NN}-${章名}.md`, 不可读)
+  // 草稿区五处(批8):新键 `卷NN-NNNN-章名` 优先、旧键 `卷NN-章名` fallback(旧书无感)
+  const 候选文 = readText(root, resolveDraftRel(root, '候选细纲', key), 不可读)
   const 候选细纲 = 候选文 !== null && stateOf(候选文) === '候选'
 
   const 确认文 = readText(root, `大纲/卷规划/卷${卷NN}/章细纲/${chapterNo(章)}-${章名}.md`, 不可读)
   const 确认细纲 = 确认文 !== null && stateOf(确认文) === '已确认'
 
-  const 材料清单 = readText(root, `草稿区/材料包/卷${卷NN}-${章名}/材料清单.json`, 不可读)
+  const 材料清单 = readText(root, `${resolveDraftRel(root, '材料包目录', key)}/材料清单.json`, 不可读)
   let 材料包状态: string | null = null
   if (材料清单 !== null) {
     const r = parseMachineJson(材料清单, MACHINE_SCHEMA_VERSION)
     材料包状态 = r.ok && typeof r.data['状态'] === 'string' ? r.data['状态'] : '组装中'
   }
 
-  const 草稿目录 = path.join(root, `草稿区/草稿/卷${卷NN}-${章名}`)
+  const 草稿目录 = path.join(root, resolveDraftRel(root, '草稿目录', key))
   let 有草稿 = false
   let 唯一待审稿 = false
   let 唯一待审稿正文: string | null = null
@@ -144,7 +146,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
     }
   }
 
-  const 审核文 = readText(root, `草稿区/审核/卷${卷NN}-${章名}.json`, 不可读)
+  const 审核文 = readText(root, resolveDraftRel(root, '审核记录', key), 不可读)
   const 审核 = parseReview(审核文)
   const 有审核记录 = 审核 !== null
   // F5(2026-09-05):审核证据绑定被审正文哈希——记录哈希与当前唯一待审稿哈希失配(或
@@ -199,7 +201,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
       return d !== '' && d !== '待处理'
     })
 
-  const 包目录 = `草稿区/定稿准备/卷${卷NN}-${章名}`
+  const 包目录 = resolveDraftRel(root, '待定稿包目录', key)
   const 待定稿包完整 = 待定稿包文件.every((f) => readText(root, `${包目录}/${f}`, 不可读) !== null)
   let 裁决: ChapterFacts['裁决'] = null
   const 裁决文 = readText(root, `${包目录}/清单.json`, 不可读)
@@ -265,15 +267,16 @@ export function listChapters(root: string): ReadonlyArray<ChapterKey> {
     if (m !== null && isMarkdownFileName(p)) add({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
   })
 
-  // 草稿区:目录名/文件名形如 卷NN-章名(章号未知,以 0 占位);机器态 JSON（审核记录等）不是章键
+  // 草稿区:目录名/文件名 `卷NN-NNNN-章名`(批8 起,章号四位)或旧格式 `卷NN-章名`(无章号→章:0
+  // 兼容旧书);机器态 JSON(审核记录等)不是章键。canonicalizeChapterKeys 归并规则不动(真源侧章号权威)。
   for (const dir of DRAFT_SCAN_DIRS) {
     const abs = path.join(root, '草稿区', dir)
     let entries: fs.Dirent[]
     try { entries = fs.readdirSync(abs, { withFileTypes: true }) } catch { continue }
     for (const entry of entries) {
       if (!entry.isDirectory() && !isMarkdownFileName(entry.name)) continue
-      const m = /^卷(\d+)-(.+?)(?:\.md)?$/i.exec(entry.name)
-      if (m) add({ 卷: Number(m[1]), 章: 0, 章名: m[2]! })
+      const m = /^卷(\d+)(?:-(\d{1,4}))?-(.+?)(?:\.md)?$/i.exec(entry.name)
+      if (m) add({ 卷: Number(m[1]), 章: m[2] === undefined ? 0 : Number(m[2]), 章名: m[3]! })
     }
   }
   return canonicalizeChapterKeys([...seen.values()].filter((k) => k.章名 !== ''))

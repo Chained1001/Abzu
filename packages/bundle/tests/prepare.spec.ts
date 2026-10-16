@@ -100,7 +100,7 @@ function confirmWithHard(root: string): void {
 }
 
 function putPending(root: string, body: string, file = '稿1.md'): void {
-  const rel = `草稿区/草稿/卷01-开篇任务/${file}`
+  const rel = `草稿区/草稿/卷01-0001-开篇任务/${file}`
   fs.mkdirSync(path.join(root, path.dirname(rel)), { recursive: true })
   // 真实草稿一定带版本协议(写稿/润色都会写),夹具照真实形状来
   fs.writeFileSync(
@@ -127,12 +127,12 @@ describe('改稿最小 + 定稿准备', () => {
       补丁: { old: '综上所述，', new: '' },
     })
     expect(applied.ok).toBe(true)
-    expect(applied.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿2.md')
+    expect(applied.relPath).toBe('草稿区/草稿/卷01-0001-开篇任务/稿2.md')
 
     // 新稿带补丁,旧稿原样留档可追溯
-    const 新稿 = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿2.md'), 'utf-8')
+    const 新稿 = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿2.md'), 'utf-8')
     expect(新稿).not.toContain('综上所述')
-    const 旧稿 = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), 'utf-8')
+    const 旧稿 = fs.readFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), 'utf-8')
     expect(旧稿).toContain('综上所述')
 
     // 版本链与唯一性
@@ -149,7 +149,7 @@ describe('改稿最小 + 定稿准备', () => {
       if (st.待回写 === true) expect(ingestFindings(root, key, name, [], after!.审读指纹).ok).toBe(true)
     }
     // F1:语义类硬约束产「需审读」发现项——按真实流程给处置(作者保留)后再推进
-    const current = JSON.parse(fs.readFileSync(path.join(root, paths.审核记录(1, key.章名)), 'utf-8'))
+    const current = JSON.parse(fs.readFileSync(path.join(root, paths.审核记录(1, key.章, key.章名)), 'utf-8'))
     for (const q of current.问题) {
       if (q.处置状态 === '待处理') {
         const d = applyRevision(root, key, { 发现项编号: q.发现项编号, 处置: '作者保留' })
@@ -198,7 +198,7 @@ describe('改稿最小 + 定稿准备', () => {
     putPending(root, `巷口风大。${HARD}。`)
     const r = preparePack(root, key)
     expect(r.ok).toBe(true)
-    const dir = path.join(root, '草稿区/定稿准备/卷01-开篇任务')
+    const dir = path.join(root, '草稿区/定稿准备/卷01-0001-开篇任务')
     for (const f of ['清单.json', '正文.md', '事实变更.md', '时间线变更.md', '账本变更.md', '章摘要.md', '卷对账.md', '本书层记忆候选.md']) {
       expect(fs.existsSync(path.join(dir, f))).toBe(true)
     }
@@ -221,7 +221,7 @@ describe('改稿最小 + 定稿准备', () => {
     writeFileAtomic(root, paths.计划时间线(1), '# 计划时间线\n\n## 窗口覆盖\n- 计划事件〔已确认〕\n')
     putPending(root, `巷口风大。${HARD}。`)
     expect(preparePack(root, key).ok).toBe(true)
-    const report = fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-开篇任务/卷对账.md'), 'utf-8')
+    const report = fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-0001-开篇任务/卷对账.md'), 'utf-8')
     expect(report).toContain('临时发现')
     expect(report).toContain('事实未计划：临时发现')
     expect(report).not.toMatch(/^无偏离$/m)
@@ -232,7 +232,7 @@ describe('改稿最小 + 定稿准备', () => {
     confirmWithHard(root)
     putPending(root, `巷口风大。${HARD}。`)
     expect(preparePack(root, key).ok).toBe(true)
-    const text = fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-开篇任务/正文.md'), 'utf-8')
+    const text = fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-0001-开篇任务/正文.md'), 'utf-8')
     const doc = parseDocument(text)
     expect(doc.ok).toBe(true)
     if (doc.ok) {
@@ -250,7 +250,7 @@ describe('改稿最小 + 定稿准备', () => {
     putPending(root, `主角走进城门，发现异响。${HARD}。ABC123`)
     expect(preparePack(root, key).ok).toBe(true)
     const doc = parseDocument(
-      fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-开篇任务/正文.md'), 'utf-8'))
+      fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-0001-开篇任务/正文.md'), 'utf-8'))
     expect(doc.ok).toBe(true)
     if (!doc.ok) return
     const 统计 = doc.data.fields['字数统计'] as { 汉字数: number; 字符数: number }
@@ -266,7 +266,7 @@ describe('改稿最小 + 定稿准备', () => {
     removeSync(path.join(root, paths.计划时间线(1)))
     putPending(root, `巷口风大。${HARD}。`)
     expect(preparePack(root, key).ok).toBe(true)
-    const dir = path.join(root, '草稿区/定稿准备/卷01-开篇任务')
+    const dir = path.join(root, '草稿区/定稿准备/卷01-0001-开篇任务')
     expect(fs.readFileSync(path.join(dir, '卷对账.md'), 'utf-8')).toContain('无法对账')
     const 清单 = JSON.parse(fs.readFileSync(path.join(dir, '清单.json'), 'utf-8')) as Record<string, unknown>
     expect(清单['偏离已呈报']).toBe(false)
@@ -295,7 +295,7 @@ describe('改稿最小 + 定稿准备', () => {
     const outline = fs.readFileSync(path.join(root, paths.卷纲(1)), 'utf-8')
     putPending(root, `巷口风大。${HARD}。`)
     expect(preparePack(root, key).ok).toBe(true)
-    const report = fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-开篇任务/卷对账.md'), 'utf-8')
+    const report = fs.readFileSync(path.join(root, '草稿区/定稿准备/卷01-0001-开篇任务/卷对账.md'), 'utf-8')
     expect(report).toContain('城门异响')
     expect(report).not.toContain('事实未计划：卷二后事')
     expect(fs.readFileSync(path.join(root, paths.卷纲(1)), 'utf-8')).toBe(outline)
@@ -317,7 +317,7 @@ describe('改稿最小 + 定稿准备', () => {
     expect(preparePack(root, key).ok).toBe(true)
     const archived = archiveChapter({
       bookRoot: root,
-      packageDir: '草稿区/定稿准备/卷01-开篇任务',
+      packageDir: '草稿区/定稿准备/卷01-0001-开篇任务',
       summary: '开篇任务入档',
     })
     expect(archived.ok).toBe(true)

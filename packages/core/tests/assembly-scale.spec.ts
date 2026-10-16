@@ -16,7 +16,7 @@ afterAll(() => { for (const root of roots) { try { fs.rmSync(root, { recursive: 
 const KEY51 = { 卷: 2, 章: 51, 章名: '章51' } as const
 
 function sectionText(root: string, 章名: string, name: string): string {
-  const dir = paths.材料包目录(KEY51.卷, 章名)
+  const dir = paths.材料包目录(KEY51.卷, KEY51.章, 章名)
   const files = fs.readdirSync(path.join(root, dir))
   const file = files.find((f) => f.includes(name))
   expect(file, `材料包段文件存在:${name}`).toBeTruthy()
@@ -40,7 +40,7 @@ describe('材料包切片与规模不变量', () => {
     expect(rosterLines.length).toBeGreaterThan(0)
     expect(rosterLines.length).toBeLessThanOrEqual(100) // 1200 条账本里活跃项一行制,不随书规模倾倒全文
 
-    const manifest = readManifest(root, { 卷: KEY51.卷, 章名: KEY51.章名 })
+    const manifest = readManifest(root, { 卷: KEY51.卷, 章: KEY51.章, 章名: KEY51.章名 })
     expect(manifest).toBeTruthy()
     expect(manifest!.段).toHaveLength(10)
     for (const s of manifest!.段) {
@@ -63,11 +63,11 @@ describe('材料包切片与规模不变量', () => {
 
     const first = assembleMaterials(root, { 卷: 1, 章: 1, 章名: '章1' })
     expect(first.ok).toBe(true)
-    const dir1 = paths.材料包目录(1, '章1')
+    const dir1 = paths.材料包目录(1, 1, '章1')
     const linkFile = fs.readdirSync(path.join(root, dir1)).find((f) => f.includes('近期正文衔接'))!
     const link1 = fs.readFileSync(path.join(root, dir1, linkFile), 'utf-8')
     expect(link1).toContain('（无上一章定稿）')
-    const manifest1 = readManifest(root, { 卷: 1, 章名: '章1' })
+    const manifest1 = readManifest(root, { 卷: 1, 章: 1, 章名: '章1' })
     expect(manifest1!.段.find((s) => s.段 === '近期正文衔接')!.完整性).toBe('空')
   })
 
@@ -75,9 +75,9 @@ describe('材料包切片与规模不变量', () => {
     const big = mkDir('abzu-scale200b-')
     makeFixtureBook(big, 200)
     expect(assembleMaterials(big, KEY51).ok).toBe(true)
-    const t51 = readManifest(big, { 卷: KEY51.卷, 章名: KEY51.章名 })!.合计字数
+    const t51 = readManifest(big, { 卷: KEY51.卷, 章: KEY51.章, 章名: KEY51.章名 })!.合计字数
     expect(assembleMaterials(big, { 卷: 4, 章: 151, 章名: '章151' }).ok).toBe(true)
-    const t151 = readManifest(big, { 卷: 4, 章名: '章151' })!.合计字数
+    const t151 = readManifest(big, { 卷: 4, 章: 151, 章名: '章151' })!.合计字数
 
     // 各段预算封顶后,同书章 51 与章 151 的材料包体量应几乎相同;修复前世界书事实随章线性增长会使该比值发散
     expect(t151 / t51).toBeLessThanOrEqual(1.1)
@@ -88,7 +88,7 @@ describe('材料包切片与规模不变量', () => {
     const root = mkDir('abzu-scale-wb-')
     makeFixtureBook(root, 200)
     expect(assembleMaterials(root, { 卷: 4, 章: 151, 章名: '章151' }).ok).toBe(true)
-    const dir = paths.材料包目录(4, '章151')
+    const dir = paths.材料包目录(4, 151, '章151')
     const file = fs.readdirSync(path.join(root, dir)).find((f) => f.includes('人物、关系'))!
     const body = fs.readFileSync(path.join(root, dir, file), 'utf-8')
 
@@ -112,13 +112,13 @@ describe('材料包切片与规模不变量', () => {
     writeFileAtomic(root, paths.契约(), 巨型契约)
     expect(assembleMaterials(root, { 卷: 1, 章: 1, 章名: '章1' }).ok).toBe(true)
 
-    const manifest = readManifest(root, { 卷: 1, 章名: '章1' })!
+    const manifest = readManifest(root, { 卷: 1, 章: 1, 章名: '章1' })!
     const 暂定 = manifest.段.find((s) => s.段 === '暂定与警告')!
     expect(暂定.字数).toBeGreaterThan(2500) // 超原 2500 上限,证明确实进了取消上限的路径
     expect(暂定.完整性).not.toBe('截断')
     expect(暂定).not.toHaveProperty('原始字数')
 
-    const dir = paths.材料包目录(1, '章1')
+    const dir = paths.材料包目录(1, 1, '章1')
     const files = fs.readdirSync(path.join(root, dir))
     const file = files.find((f) => f.includes('暂定与警告'))!
     const body = fs.readFileSync(path.join(root, dir, file), 'utf-8')

@@ -1,5 +1,6 @@
 import { canonicalizePath } from '../gate/canonical'
 import { paths } from '../repo/paths'
+import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { 材料包十段, sectionFileName, type MaterialSectionRecord, type SupplementRecord } from './sections'
 import { materialHash, readMaterialFile, readSupplementSource } from './source'
@@ -77,7 +78,7 @@ export function readMaterialManifestText(root: string, dir: string): string | nu
 // manifestText:调用方已读到的清单原文——传入则不再读盘(扫描侧借此消除同一扫描内的清单双读窗口);缺省由本函数自行读盘
 export function loadMaterialPackage(bookRoot: string, key: { 卷: number; 章: number; 章名: string }, manifestText?: string | null): LoadedMaterialPackage {
   const root = canonicalizePath(bookRoot)
-  const dir = paths.材料包目录(key.卷, key.章名)
+  const dir = resolveDraftRel(root, '材料包目录', key)
   const 段: Record<string, string> = {}
   const 问题: string[] = []
   const proofs: unknown[] = []

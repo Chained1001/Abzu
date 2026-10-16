@@ -48,8 +48,8 @@ function readyBookWithPendingDraft(root: string): void {
   writeCandidate(root, { 卷: 1, 章: 1, 章名: key.章名, 来源引用: refs, body })
   const r = confirmOutline(root, key)
   if (!r.ok) throw new Error(`confirm failed:${r.gaps.join(';')}`)
-  fs.mkdirSync(path.join(root, '草稿区/草稿/卷01-开篇任务'), { recursive: true })
-  fs.writeFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'), serializeDocument({ 角色: '待审稿' }, '他走进雨里，数着街角的旗幡。'), 'utf-8')
+  fs.mkdirSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务'), { recursive: true })
+  fs.writeFileSync(path.join(root, '草稿区/草稿/卷01-0001-开篇任务/稿1.md'), serializeDocument({ 角色: '待审稿' }, '他走进雨里，数着街角的旗幡。'), 'utf-8')
 }
 
 describe('R21 脚本只算不写(computeReview 与 ingestFindings 分工)', () => {
@@ -57,7 +57,7 @@ describe('R21 脚本只算不写(computeReview 与 ingestFindings 分工)', () =
     const root = mkBook()
     readyBookWithPendingDraft(root)
     const target = path.join(root, changed === '草稿'
-      ? '草稿区/草稿/卷01-开篇任务/稿1.md'
+      ? '草稿区/草稿/卷01-0001-开篇任务/稿1.md'
       : '大纲/卷规划/卷01/章细纲/0001-开篇任务.md')
     const original = fs.readFileSync
     let reads = 0
@@ -109,7 +109,7 @@ describe('R21 脚本只算不写(computeReview 与 ingestFindings 分工)', () =
       const w = ingestFindings(root, key, 模块名, 发现项, computed.record!.审读指纹)
       expect(w.ok).toBe(true)
     }
-    const loaded = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-开篇任务.json'), 'utf-8'))
+    const loaded = JSON.parse(fs.readFileSync(path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'), 'utf-8'))
     expect(loaded.模块['文本规范检查'].完成).toBe(true)
     // 语义模块未被 ingest 过,记录里无其行;完成判定按 names.every 仍是 false(fail-closed 不变)
     expect(loaded.模块['章节结构审读']?.完成 ?? false).toBe(false)
@@ -121,6 +121,6 @@ describe('R21 脚本只算不写(computeReview 与 ingestFindings 分工)', () =
     readyBookWithPendingDraft(root)
     const r = runReview(root, key)
     expect(r.ok).toBe(true)
-    expect(fs.existsSync(path.join(root, '草稿区/审核/卷01-开篇任务.json'))).toBe(true)
+    expect(fs.existsSync(path.join(root, '草稿区/审核/卷01-0001-开篇任务.json'))).toBe(true)
   })
 })

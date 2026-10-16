@@ -95,6 +95,8 @@ export function buildRefGraph(bookRoot: string): RefGraph {
   const edges: Edge[] = []
   const 解析失败: ParseFailure[] = []
   const 提示: string[] = []
+  /** 走过的 md 文件的 frontmatter 版本(0.0.57 起卷纲/计划时间线/幕纲带版本字段;旧文件无)。 */
+  const fileVersions = new Map<NodeKey, number>()
   for (const rel of walkMarkdown(bookRoot)) {
     const text = safeRead(bookRoot, rel)
     if (text === null) {
@@ -111,6 +113,7 @@ export function buildRefGraph(bookRoot: string): RefGraph {
       解析失败.push({ rel, detail: '路径无法规范化' })
       continue
     }
+    if (typeof doc.data.fields['版本'] === 'number') fileVersions.set(from, doc.data.fields['版本'])
     const fields = doc.data.fields
     for (const line of sourceLines(fields)) {
       const parsed = parseSourceRef(line.startsWith('来源') ? line : `来源:${line}`)
@@ -158,6 +161,16 @@ export function buildRefGraph(bookRoot: string): RefGraph {
     }
     seenPairs.add(pair)
     deduped.push(edge)
+    // 版本绑定提示(批8,0.0.57):目标文件可解析出 frontmatter 版本时——引用版本 ≤ 文件当前
+    // 版本＝有效(不提示);引用版本 > 文件版本＝「引用了未来版本」提示。文件无版本(旧文件)
+    // 沿用现状提示口径。只加提示,**不改边的存在性**。
+    const edgeVersion = /^[0-9]+$/.test(edge.version.trim()) ? Number(edge.version) : undefined
+    if (edgeVersion !== undefined) {
+      const fileVersion = fileVersions.get(edge.to)
+      if (fileVersion !== undefined && edgeVersion > fileVersion) {
+        提示.push(`「${edge.from}」引用了「${edge.to}」的未来版本 @${edgeVersion}(文件当前版本 v${fileVersion}),请核对:更新引用或重新确认目标`)
+      }
+    }
   }
   const forward = new Map<NodeKey, Edge[]>()
   const reverse = new Map<NodeKey, Edge[]>()

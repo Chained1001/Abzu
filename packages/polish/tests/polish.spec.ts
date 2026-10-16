@@ -105,7 +105,7 @@ describe('去AI痕迹润色', () => {
   it('硬约束 deleted → 保真风险, 角色 not 待审稿', () => {
     const root = mkBook()
     readyDraft(root, `${HARD}。雨停了。`)
-    const draftRel = '草稿区/草稿/卷01-开篇任务/稿1.md'
+    const draftRel = '草稿区/草稿/卷01-0001-开篇任务/稿1.md'
     const raw = fs.readFileSync(path.join(root, draftRel), 'utf-8')
     // 用一条会删掉硬约束句的稿面:规则本身不删硬约束,因此直接写一版缺失硬约束的润色输入
     fs.writeFileSync(path.join(root, draftRel), raw.replace(HARD, '综上所述'), 'utf-8')

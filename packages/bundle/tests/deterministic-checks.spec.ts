@@ -21,7 +21,7 @@ describe('确定性检查官方回写载荷', () => {
     roots.push(root)
     seedMinDesign(root)
     writeContract(root, { 阅读体验与情绪承诺: { state: '已确认', body: '### 章节篇幅\n- 目标汉字数: 2000\n- 下限汉字数: 1600\n- 上限汉字数: 2400' } })
-    const draft = path.join(root, '草稿区/草稿/卷01-回写验收/稿1.md')
+    const draft = path.join(root, '草稿区/草稿/卷01-0001-回写验收/稿1.md')
     fs.mkdirSync(path.dirname(draft), { recursive: true })
     fs.writeFileSync(draft, serializeDocument({ 角色: '待审稿', 版本: 1 }, '甲'.repeat(2401)))
     const output = vi.spyOn(console, 'log').mockImplementation(() => {})
@@ -37,7 +37,7 @@ describe('确定性检查官方回写载荷', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-review-cli-'))
     roots.push(root)
     seedMinDesign(root)
-    const draft = path.join(root, '草稿区/草稿/卷01-回写验收/稿1.md')
+    const draft = path.join(root, '草稿区/草稿/卷01-0001-回写验收/稿1.md')
     fs.mkdirSync(path.dirname(draft), { recursive: true })
     fs.writeFileSync(draft, serializeDocument({ 角色: '待审稿', 版本: 3, 备注: '元数据不是正文' }, '主角走进城门。\n\n## 草稿候选事实\n- 事实：不计入正文字数。'))
     const expectedFingerprint = computeReview(root, key).record!.审读指纹
@@ -47,7 +47,7 @@ describe('确定性检查官方回写载荷', () => {
     const result = JSON.parse(String(output.mock.calls.at(-1)![0]))
     const stats = materials ? result.正文统计 : JSON.parse(String(output.mock.calls.find(call => String(call[0]).startsWith('{'))![0])).正文统计
     expect(stats).toMatchObject({
-      稿件: '草稿区/草稿/卷01-回写验收/稿1.md', 版本: 3,
+      稿件: '草稿区/草稿/卷01-0001-回写验收/稿1.md', 版本: 3,
       审读指纹: expectedFingerprint, 审稿哈希: computeReview(root, key).record!.审稿哈希,
       字符数: 7, 非空白字符数: 7, 汉字数: 6,
     })
@@ -64,7 +64,7 @@ describe('确定性检查官方回写载荷', () => {
       expect(payload.审读指纹).toBe(expectedFingerprint)
       expect(ingestFindings(root, key, payload.模块名, payload.发现项, payload.审读指纹).ok).toBe(true)
     }
-    const recordPath = path.join(root, '草稿区/审核/卷01-回写验收.json')
+    const recordPath = path.join(root, '草稿区/审核/卷01-0001-回写验收.json')
     const before = fs.readFileSync(recordPath, 'utf8')
     fs.writeFileSync(draft, serializeDocument({ 角色: '待审稿' }, '主角走出城门，发现了另一条线索。'))
     const fresh = computeReview(root, key).正文统计!
@@ -79,7 +79,7 @@ describe('确定性检查官方回写载荷', () => {
   it.each([0, 2])('%s 份待审稿时拒绝，不输出可被误用的统计', (drafts) => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-review-cli-'))
     roots.push(root)
-    const dir = path.join(root, '草稿区/草稿/卷01-回写验收')
+    const dir = path.join(root, '草稿区/草稿/卷01-0001-回写验收')
     fs.mkdirSync(dir, { recursive: true })
     for (let i = 1; i <= drafts; i++) fs.writeFileSync(path.join(dir, `稿${i}.md`), serializeDocument({ 角色: '待审稿' }, '正文'))
     const output = vi.spyOn(console, 'log').mockImplementation(() => {})

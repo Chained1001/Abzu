@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateSegment, assertSegment, paths, pad, chapterNo } from '../src/repo/paths'
+import { validateSegment, assertSegment, paths, legacyPaths, pad, chapterNo } from '../src/repo/paths'
 
 describe('路径白名单(机制 B2)', () => {
   it('合法中文名通过', () => {
@@ -39,7 +39,14 @@ describe('路径构造(格式规格 §2)', () => {
     expect(paths.确认细纲(1, 3, '初见')).toBe('大纲/卷规划/卷01/章细纲/0003-初见.md')
     expect(paths.账本('时间线')).toBe('账本/时间线.md')
     expect(paths.记忆('文风')).toBe('本书记忆/文风.md')
-    expect(paths.审核记录(1, '初见')).toBe('草稿区/审核/卷01-初见.json')
+    expect(paths.候选细纲(1, 3, '初见')).toBe('草稿区/章细纲/卷01-0003-初见.md')
+    expect(paths.材料包目录(1, 3, '初见')).toBe('草稿区/材料包/卷01-0003-初见')
+    expect(paths.草稿目录(1, 3, '初见')).toBe('草稿区/草稿/卷01-0003-初见')
+    expect(paths.待定稿包目录(1, 3, '初见')).toBe('草稿区/定稿准备/卷01-0003-初见')
+    expect(paths.审核记录(1, 3, '初见')).toBe('草稿区/审核/卷01-0003-初见.json')
+    // 未定位章(章:0)占位 0000;旧格式(0.0.57 前)只作读侧兼容
+    expect(paths.草稿目录(1, 0, '未定位')).toBe('草稿区/草稿/卷01-0000-未定位')
+    expect(legacyPaths.审核记录(1, '初见')).toBe('草稿区/审核/卷01-初见.json')
   })
 
   it('幕纲路径:卷号两位、幕号两位(0.0.52 幕纲批)', () => {

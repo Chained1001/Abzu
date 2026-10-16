@@ -14,6 +14,7 @@ import {
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { paths } from '../repo/paths'
+import { resolveDraftRel } from '../repo/draft-paths'
 import { applyVersionFields, bumpVersion, extractVersionFields, initialVersion } from '../provenance'
 import { loadReviewRecord, readReviewRecordForUpdate, serializeReviewRecord, reviewRecordHashOf, 处置状态列表, type ReviewRecord, type 处置状态 } from '../evidence/record'
 import type { ChapterKey } from '../derive/scan'
@@ -165,7 +166,7 @@ function applyRevisionLocked(
     const parent = extractVersionFields(doc.data.fields).版本
     const baseVer = parent === null ? initialVersion('改稿') : bumpVersion(parent, '改稿')
     const ver = { ...baseVer, ...(input.生成模块 === undefined ? {} : { 生成模块: input.生成模块 }) }
-    relPath = path.posix.join(paths.草稿目录(key.卷, key.章名), nextDraftFileName(bookRoot, key))
+    relPath = path.posix.join(resolveDraftRel(bookRoot, '草稿目录', key), nextDraftFileName(bookRoot, key))
     ops.push(...prepareDraftDemotions(bookRoot, key, relPath))
     const fields = applyVersionFields({ ...doc.data.fields, 角色: '待审稿', 选定: true }, ver)
     ops.push({ relPath, content: serializeDocument(fields, composeBody(replaced.text, split.facts), 草稿字段序) })
@@ -176,7 +177,7 @@ function applyRevisionLocked(
     i === idx ? { ...p, 处置: input.处置, 处置状态: input.处置, ...(input.处置 === '已转提案' ? { 转交提案: { 提案编号: forwardedNumber(input.提案编号, input.改动说明)! } } : {}), ...(input.改动说明 === undefined ? {} : { 处置说明: input.改动说明 }) } : p
   ))
   const content = serializeReviewRecord({ ...record, 问题 })
-  ops.push({ relPath: paths.审核记录(key.卷, key.章名), content })
+  ops.push({ relPath: resolveDraftRel(bookRoot, '审核记录', key), content })
   writeBatchAtomic(bookRoot, ops)
   const 审核记录哈希 = reviewRecordHashOf(content)
 
@@ -267,7 +268,7 @@ function applyRevisionBatchLocked(
       ...(input.生成模块 === undefined ? {} : { 生成模块: input.生成模块 }),
       来源快照: { 处置编号: input.处置.map((d) => d.发现项编号) },
     }
-    relPath = path.posix.join(paths.草稿目录(key.卷, key.章名), nextDraftFileName(bookRoot, key))
+    relPath = path.posix.join(resolveDraftRel(bookRoot, '草稿目录', key), nextDraftFileName(bookRoot, key))
     ops.push(...prepareDraftDemotions(bookRoot, key, relPath))
     const fields = applyVersionFields({
       ...doc.data.fields,
@@ -284,7 +285,7 @@ function applyRevisionBatchLocked(
   })
   const content = serializeReviewRecord({ ...record, 问题 })
   ops.push({
-    relPath: paths.审核记录(key.卷, key.章名),
+    relPath: resolveDraftRel(bookRoot, '审核记录', key),
     content,
   })
   writeBatchAtomic(bookRoot, ops)
@@ -323,7 +324,7 @@ function ingestAuthorRevisionLocked(
   const parent = extractVersionFields(doc.data.fields).版本
   const baseVer = parent === null ? initialVersion('作者手改') : bumpVersion(parent, '作者手改')
   const ver = { ...baseVer, 生成模块: '作者手改' }
-  const relPath = path.posix.join(paths.草稿目录(key.卷, key.章名), nextDraftFileName(bookRoot, key))
+  const relPath = path.posix.join(resolveDraftRel(bookRoot, '草稿目录', key), nextDraftFileName(bookRoot, key))
   // 降级集与新稿同一 writeBatchAtomic 事务(与 applyRevision/applyRevisionBatch 同款):
   // 崩溃时要么旧态要么新态,不出现「旧待审稿已降级而新稿未落」的半写态。
   const ops: FileOp[] = [...prepareDraftDemotions(bookRoot, key, relPath)]

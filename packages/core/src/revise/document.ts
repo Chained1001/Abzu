@@ -7,7 +7,7 @@ import { applyVersionFields, bumpVersion, extractVersionFields, initialVersion }
 import { canonicalizePath, isInsidePath } from '../gate/canonical'
 import { checkCommitPath } from '../commit/paths'
 import { commitConfirmed, type CommitConfirmedResult } from '../commit/design'
-import { listChapters } from '../derive/scan'
+import { parseDraftChapterKey } from '../gate/writeDraft'
 import { paths } from '../repo/paths'
 import { nextDraftFileName, listChapterDrafts, isNumberedDraftPath, 草稿字段序 } from '../repo/drafts'
 import type { OperationProvenance } from '../repo/transaction'
@@ -191,7 +191,9 @@ function saveAuthorDocumentInner(root: string, input: AuthorSaveInput): AuthorSa
       fields = applyVersionFields(fields, protocol)
     }
     if (isDraft && !input.shared) {
-      const key = listChapters(root).find(chapter => paths.草稿目录(chapter.卷, chapter.章名) === path.posix.dirname(posix))
+      // 批8:草稿目录键带章号,从路径正则直接提取章键(新格式含章号;旧格式/无号→章:0,
+      // 由 listChapterDrafts 的双格式解析兜住旧目录)——不再全量 listChapters 反查。
+      const key = parseDraftChapterKey(posix)
       if (!key) throw new AuthorDocumentError('invalid-document', '不能确定草稿所属章节')
       const drafts = listChapterDrafts(root, key)
       const pending = drafts.filter(draft => draft.角色 === '待审稿')

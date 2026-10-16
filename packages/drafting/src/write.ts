@@ -16,6 +16,7 @@ import {
   isMarkdownFileName,
   parseDocument,
   paths,
+  resolveDraftRel,
   scanChapter,
   serializeDocument,
   splitCandidateFacts,
@@ -62,12 +63,13 @@ function readText(root: string, rel: string): string | null {
   }
 }
 
-function draftDir(key: Pick<ChapterKey, '卷' | '章名'>): string {
-  return paths.草稿目录(key.卷, key.章名)
+/** 草稿目录双格式解析(批8):新键优先、旧键 fallback——旧书目录无感。 */
+function draftDir(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }): string {
+  return resolveDraftRel(bookRoot, '草稿目录', key)
 }
 
-function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string[] {
-  const abs = path.join(bookRoot, draftDir(key))
+function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }): string[] {
+  const abs = path.join(bookRoot, draftDir(bookRoot, key))
   if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
   return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh'))
 }
@@ -80,7 +82,7 @@ function parseDraftNo(file: string): number {
 function latestVersion(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): number | null {
   let max: number | null = null
   for (const file of listDraftFiles(bookRoot, key)) {
-    const text = readText(bookRoot, path.posix.join(draftDir(key), file))
+    const text = readText(bookRoot, path.posix.join(draftDir(bookRoot, key), file))
     if (text === null) continue
     const doc = parseDocument(text)
     if (!doc.ok) continue
@@ -106,7 +108,7 @@ function readinessBroadcast(bookRoot: string, key: ChapterKey): string {
 
 export function listDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): readonly DraftInfo[] {
   return listDraftFiles(bookRoot, key).map((file) => {
-    const relPath = path.posix.join(draftDir(key), file)
+    const relPath = path.posix.join(draftDir(bookRoot, key), file)
     const text = readText(bookRoot, relPath) ?? ''
     const doc = parseDocument(text)
     const fields = doc.ok ? doc.data.fields : {}
@@ -125,7 +127,7 @@ function selectDraftLocked(
   input: Pick<ChapterKey, '卷' | '章名'> & { readonly file: string },
 ): { readonly ok: boolean; readonly reason?: string } {
   assertSegment(input.章名, '章名')
-  const dir = draftDir(input)
+  const dir = draftDir(bookRoot, input)
   const target = isMarkdownFileName(input.file) ? input.file : `${input.file}.md`
   const files = listDraftFiles(bookRoot, input)
   if (!files.includes(target)) return { ok: false, reason: `草稿不存在:${target}` }
@@ -159,7 +161,7 @@ function writeDraftLocked(bookRoot: string, input: WriteDraftInput): WriteDraftR
   const parent = latestVersion(bookRoot, key)
   const ver = parent === null ? initialVersion('写稿') : bumpVersion(parent, '写稿')
   const file = nextFileName(bookRoot, key)
-  const relPath = path.posix.join(draftDir(key), file)
+  const relPath = path.posix.join(draftDir(bookRoot, key), file)
   // 0.0.54 起草收稿即待审稿:起草子代理产出与作者稿一样直接交审,不再等润色标待审稿。
   // 重写稿先降级旧待审稿再写新稿(与改稿同一纪律),保证任一时刻待审稿唯一。
   demoteOtherPendingDrafts(bookRoot, key, relPath)
@@ -218,7 +220,7 @@ function importAuthorDraftLocked(bookRoot: string, input: ImportAuthorDraftInput
   const explicitParent = input.父版本 ?? latestVersion(bookRoot, key)
   const ver = explicitParent === null ? initialVersion('作者稿导入') : bumpVersion(explicitParent, '作者稿导入')
   const file = nextFileName(bookRoot, key)
-  const relPath = path.posix.join(draftDir(key), file)
+  const relPath = path.posix.join(draftDir(bookRoot, key), file)
   if (input.角色 === '待审稿') demoteOtherPendingDrafts(bookRoot, key, relPath)
   const fields = applyVersionFields(
     {

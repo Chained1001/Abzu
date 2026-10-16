@@ -142,6 +142,25 @@ describe('定稿来源、中文词句与定位', () => {
 })
 
 describe('可丢弃缓存与真实内容校准', () => {
+  it('0.0.57 指纹缓存:未变时复用快照对象;改文件后 stat 档失配触发全量重扫', async () => {
+    const file = chapter(1, '指纹缓存的定稿原文')
+    const first = await scanFinalized(root)
+    // 未变:进程内缓存命中,直接复用同一快照对象(读+哈希+解析+分块全免)
+    const second = await scanFinalized(root)
+    expect(second).toBe(first)
+    // 改文件(mtimeNs 变)→ stat 档失配 → 全量重扫:新对象、新指纹、新原文可见
+    fs.appendFileSync(file, String.fromCharCode(10) + '追加的正文。')
+    const third = await scanFinalized(root)
+    expect(third).not.toBe(first)
+    expect(third.fingerprint).not.toBe(first.fingerprint)
+    expect(third.documents[0]!.chunks.some(c => c.text.includes('追加的正文'))).toBe(true)
+    // 删除文件同样失配
+    fs.unlinkSync(file)
+    const empty = await scanFinalized(root)
+    expect(empty.documents).toEqual([])
+    expect(empty).not.toBe(third)
+  })
+
   it('同大小同 mtime 修改、更名和删除会移除旧结果', async () => {
     const file = chapter(1, '旧港线索')
     const before = fs.statSync(file)

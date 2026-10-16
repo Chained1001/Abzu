@@ -1,5 +1,5 @@
 /**
- * 证据与审核记录(插件规格 §9 / 不变量 7):草稿区/审核/卷NN-章名.json。
+ * 证据与审核记录(插件规格 §9 / 不变量 7):草稿区/审核/卷NN-NNNN-章名.json(0.0.57 起键带章号)。
  */
 
 import { createHash } from 'node:crypto'
@@ -8,6 +8,7 @@ import { readBookText } from '../repo/read'
 import type { ChapterKey } from '../derive/scan'
 import { writeFileAtomic } from '../repo/atomic'
 import { paths } from '../repo/paths'
+import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { bookWriter } from '../repo/atomic'
 
@@ -235,8 +236,8 @@ function asPolishCarryover(raw: unknown): PolishCarryover | undefined {
   }
 }
 
-export function loadReviewRecord(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): ReviewRecord | null {
-  const text = readText(bookRoot, paths.审核记录(key.卷, key.章名))
+export function loadReviewRecord(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }): ReviewRecord | null {
+  const text = readText(bookRoot, resolveDraftRel(bookRoot, '审核记录', key))
   if (text === null) return null
   return parseReviewRecord(text)
 }
@@ -333,12 +334,12 @@ export function reviewRecordHashOf(text: string): string {
 }
 
 /** Read once: the compare token and editable record must describe the same bytes. */
-export function readReviewRecordForUpdate(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>):
+export function readReviewRecordForUpdate(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }):
   | { readonly ok: true; readonly record: ReviewRecord; readonly hash: string }
   | { readonly ok: false; readonly reason: string } {
   let text: string
   // 修复(0.0.20 批 bug7):与 loadReviewRecord 同口径,机器态读取统一剥 BOM(readMachineText)
-  try { text = readMachineText(path.join(bookRoot, paths.审核记录(key.卷, key.章名))) }
+  try { text = readMachineText(path.join(bookRoot, resolveDraftRel(bookRoot, '审核记录', key))) }
   catch (error) {
     return { ok: false, reason: (error as NodeJS.ErrnoException).code === 'ENOENT' ? '无审核记录' : '审核记录读取失败' }
   }
@@ -363,15 +364,15 @@ export function readReviewRecordForUpdate(bookRoot: string, key: Pick<ChapterKey
   } }
 }
 
-function writeReviewRecordLocked(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>, record: ReviewRecord): string {
-  const rel = paths.审核记录(key.卷, key.章名)
+function writeReviewRecordLocked(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }, record: ReviewRecord): string {
+  const rel = resolveDraftRel(bookRoot, '审核记录', key)
   writeFileAtomic(bookRoot, rel, serializeReviewRecord(record))
   return rel
 }
 
 export const writeReviewRecord = bookWriter(writeReviewRecordLocked)
 
-function planReviewRecordLocked(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>, plan: ReviewPlan): ReviewRecord {
+function planReviewRecordLocked(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }, plan: ReviewPlan): ReviewRecord {
   const existing = loadReviewRecord(bookRoot, key) ?? emptyReviewRecord()
   const next: ReviewRecord = { ...existing, 方案: plan }
   writeReviewRecord(bookRoot, key, next)

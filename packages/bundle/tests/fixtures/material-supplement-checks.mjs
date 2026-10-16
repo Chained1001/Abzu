@@ -14,7 +14,7 @@ export async function checkMaterialSupplements({ root, workspace, main, execute,
     const contract = path.join(book, '作品契约/契约.md')
     fs.writeFileSync(contract, fs.readFileSync(contract, 'utf8').replace('---', '---\n书id: supplement-book'))
     put(path.join(book, '大纲/卷规划/卷01/卷纲.md'), '# 卷纲\n\n' + ['叙事结构', '弧线', '线索推进', '卷末兑现'].map(name => `## ${name}\n\n章3核对城门线索。\n`).join('\n'))
-    put(path.join(book, '草稿区/草稿/卷01-章3/稿1.md'), core.serializeDocument({ 角色: '待审稿', 版本: 1 }, '主角在城门前看见旧铜符。'))
+    put(path.join(book, '草稿区/草稿/卷01-0003-章3/稿1.md'), core.serializeDocument({ 角色: '待审稿', 版本: 1 }, '主角在城门前看见旧铜符。'))
     const source = path.join(workspace, '书房/构想/补料决定.md')
     put(source, '# 作者决定\n本章保留旧铜符来历，不揭示真名。【宿主补料标记】\n')
     const operation = { 操作: '设置', 编号: 'decision', 标题: '早期决定', 理由: '保持作者确定的信息边界', 性质: '建议', 来源: { 域: '书房', 路径: '构想/补料决定.md' } }
@@ -23,7 +23,7 @@ export async function checkMaterialSupplements({ root, workspace, main, execute,
       assert.equal(result.isError, false, JSON.stringify(result))
       return result.value
     }
-    const dir = path.join(book, '草稿区/材料包/卷01-章3')
+    const dir = path.join(book, '草稿区/材料包/卷01-0003-章3')
     const preview = await call({ 模式: '预览', 补充操作: [operation] })
     assert.equal(preview.ok, true, JSON.stringify(preview))
     assert.equal(fs.existsSync(dir), false)

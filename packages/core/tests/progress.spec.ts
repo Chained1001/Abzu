@@ -399,6 +399,19 @@ describe('卷行确认门槛(任务21, B2)', () => {
     // ③当前卷仍是卷01（远期暂定卷不参与当前卷选择）
     expect(selectCurrentVolume(root)).toMatchObject({ 卷: 1 })
   })
+
+  it('0.0.57 规模批：中文卷号复合数到 99——卷十一/卷二十三 分配行不再静默丢弃', () => {
+    // 原先 CN_NUMERAL 单字表查不到 `十一`/`二十三` → 整行 undefined 丢弃；批8 起走 parseChineseVolume
+    const allocs = parseVolumeAllocations(layout('已确认', [
+      '- 卷十一·卷十一的卷名（某地，3 案／15 章）：中间。',
+      '- 卷二十三·卷二十三的卷名（某地，4 案／16 章）：后段。',
+      '- 卷二十·卷二十的卷名（某地，2 案／10 章）：过渡。',
+    ]))
+    expect(allocs.map((a) => a.卷)).toEqual([11, 20, 23])
+    expect(allocs.every((a) => a.有效状态 === '已确认' && a.冲突 !== true)).toBe(true)
+    // 非法中文组合仍不产分配（行为不变）
+    expect(parseVolumeAllocations(layout('已确认', ['- 卷一一·坏组合'])).map((a) => a.卷)).toEqual([])
+  })
 })
 
 describe('幕纲不进设计面必要条件(0.0.52 幕纲批)', () => {

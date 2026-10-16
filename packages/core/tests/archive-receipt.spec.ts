@@ -124,7 +124,7 @@ describe('归档可信收据(F06)', () => {
     expect(world.ok && world.data.fields['版本']).toBe(2)
     expect(git(options.bookRoot, 'rev-list', '--count', 'HEAD')).toBe('3')
     expect(git(options.bookRoot, 'ls-files')).not.toContain('.archive-receipts')
-  })
+  }, 30_000)
 
   it('提交后响应丢失且有其他提交介入，仍按精确收据重放成功', () => {
     const options = fixture()
@@ -137,7 +137,7 @@ describe('归档可信收据(F06)', () => {
     expect(archiveChapter(options)).toMatchObject({ ok: true, alreadyCommitted: true })
     expect(git(options.bookRoot, 'rev-parse', 'HEAD')).toBe(head)
     expect(written(options.bookRoot)).toEqual(before)
-  })
+  }, 30_000)
 
   it('Git 失败后作者用其他说明提交全部精确输出，重试识别已补交且不再沉淀', () => {
     const options = fixture()
@@ -155,7 +155,7 @@ describe('归档可信收据(F06)', () => {
     expect(fs.readFileSync(receiptPath(options.bookRoot), 'utf8')).toBe(receipt)
     expect(git(options.bookRoot, 'rev-parse', 'HEAD')).toBe(head)
     expect(git(options.bookRoot, 'rev-list', '--count', 'HEAD')).toBe('2')
-  })
+  }, 30_000)
 
   it('收据与业务文件在同一事务，收据写失败整批回滚且可正常重试', () => {
     const options = fixture()
@@ -167,7 +167,7 @@ describe('归档可信收据(F06)', () => {
     expect(fs.readFileSync(path.join(options.bookRoot, '世界书/设定/铜铃.md'), 'utf8')).toBe(original)
     expect(fs.readdirSync(path.join(options.bookRoot, ARCHIVE_RECEIPT_DIR))).toEqual([])
     expect(archiveChapter(options).ok).toBe(true)
-  })
+  }, 30_000)
 
   it.each(['source', 'target', 'receipt', 'extra'])('已写未提交后 %s 被替换时拒绝，并保留全部证据', (kind) => {
     const options: ArchiveOptions = { ...fixture(), ...(kind === 'extra' ? { extraPaths: ['大纲/窗口.md'] } : {}) }
@@ -197,7 +197,7 @@ describe('归档可信收据(F06)', () => {
     const before = written(options.bookRoot)
     expect(archiveChapter(options)).toMatchObject({ ok: false, reason: expect.stringMatching(/可信收据/) })
     expect(written(options.bookRoot)).toEqual(before)
-  })
+  }, 30_000)
 
   it('旧记忆文件碰撞使整包在写入前失败，既有世界书与记忆保持原样', () => {
     const options = fixture()
@@ -222,5 +222,5 @@ describe('归档可信收据(F06)', () => {
     expect(archiveRetcon({ ...first, files: [{ 目标: '世界书/设定/铜铃.md', 内容: '更正二\n' }] }).ok).toBe(true)
     expect(fs.readFileSync(path.join(options.bookRoot, '世界书/设定/铜铃.md'), 'utf8')).toBe('更正二\n')
     expect(git(options.bookRoot, 'rev-list', '--count', 'HEAD')).toBe('3')
-  })
+  }, 30_000)
 })

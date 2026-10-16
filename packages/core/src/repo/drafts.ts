@@ -8,8 +8,8 @@ import { parseDocument, serializeDocument } from './frontmatter'
 import { writeFileAtomic } from './atomic'
 import { readBookText } from './read'
 import { extractVersionFields } from '../provenance'
-import { filenameCase, isMarkdownFileName, paths } from './paths'
-import type { ChapterKey } from '../derive/scan'
+import { filenameCase, isMarkdownFileName } from './paths'
+import { resolveDraftRel, type DraftChapterKeyLike } from './draft-paths'
 import { bookWriter } from './atomic'
 
 /** 草稿 frontmatter 字段序(格式规格 §9.1 草稿协议)——写稿/润色/改稿共用一份。 */
@@ -37,8 +37,11 @@ export function isNumberedDraftPath(relative: string): boolean {
   return /^草稿区\/草稿\/[^/]+\/稿\d+\.md$/.test(filenameCase(relative.replace(/\\/g, '/')))
 }
 
-export function listChapterDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): readonly DraftFile[] {
-  const dir = paths.草稿目录(key.卷, key.章名)
+/** 章键形状(批8):草稿目录键带章号;旧调用方只给 卷/章名 时按 章:0 解析(双格式 fallback 兜住旧目录)。 */
+export type DraftKey = DraftChapterKeyLike
+
+export function listChapterDrafts(bookRoot: string, key: DraftKey): readonly DraftFile[] {
+  const dir = resolveDraftRel(bookRoot, '草稿目录', key)
   const abs = path.join(bookRoot, dir)
   if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
   return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh')).flatMap((file) => {
@@ -60,12 +63,12 @@ export function listChapterDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' 
 }
 
 /** 返回唯一待审稿;无稿或多稿均返回 null，调用方必须结合 count 给出明确拒绝原因。 */
-export function findPendingReviewDraft(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): DraftFile | null {
+export function findPendingReviewDraft(bookRoot: string, key: DraftKey): DraftFile | null {
   const pending = listChapterDrafts(bookRoot, key).filter((d) => d.角色 === '待审稿')
   return pending.length === 1 ? pending[0]! : null
 }
 
-export function countPendingReviewDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): number {
+export function countPendingReviewDrafts(bookRoot: string, key: DraftKey): number {
   return listChapterDrafts(bookRoot, key).filter((d) => d.角色 === '待审稿').length
 }
 
@@ -75,7 +78,7 @@ function draftNo(file: string): number {
 }
 
 /** 下一份草稿的文件名(稿N+1.md);解析不出编号的文件按 0 计。 */
-export function nextDraftFileName(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string {
+export function nextDraftFileName(bookRoot: string, key: DraftKey): string {
   const nos = listChapterDrafts(bookRoot, key).map((d) => draftNo(d.file))
   return `稿${nos.length === 0 ? 1 : Math.max(...nos) + 1}.md`
 }
@@ -88,7 +91,7 @@ export function nextDraftFileName(bookRoot: string, key: Pick<ChapterKey, '卷' 
  */
 export function prepareDraftDemotions(
   bookRoot: string,
-  key: Pick<ChapterKey, '卷' | '章名'>,
+  key: DraftKey,
   keepRelPath: string,
 ): readonly { relPath: string; content: string }[] {
   const demoted: { relPath: string; content: string }[] = []
@@ -104,7 +107,7 @@ export function prepareDraftDemotions(
   return demoted
 }
 
-export const demoteOtherPendingDrafts = bookWriter((root: string, key: Pick<ChapterKey, '卷' | '章名'>, keepRelPath: string): readonly string[] => {
+export const demoteOtherPendingDrafts = bookWriter((root: string, key: DraftKey, keepRelPath: string): readonly string[] => {
   const ops = prepareDraftDemotions(root, key, keepRelPath)
   for (const op of ops) writeFileAtomic(root, op.relPath, op.content)
   return ops.map(op => op.relPath)

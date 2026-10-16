@@ -9,16 +9,16 @@
 import * as nodePath from 'node:path'
 import type { ChapterKey } from '../derive/scan'
 import { writeFileAtomic } from '../repo/atomic'
-import { paths } from '../repo/paths'
+import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { bookWriter } from '../repo/atomic'
 
 function writeSettlementDecisionLocked(
   bookRoot: string,
-  key: Pick<ChapterKey, '卷' | '章名'>,
+  key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number },
   裁决: '已批准' | '已退回',
 ): { readonly ok: true } | { readonly ok: false; readonly reason: string } {
-  const rel = nodePath.join(paths.待定稿包目录(key.卷, key.章名), '清单.json')
+  const rel = nodePath.join(resolveDraftRel(bookRoot, '待定稿包目录', key), '清单.json')
   let text: string
   try {
     // 修复(0.0.20 批 bug7):清单是机器态 JSON,读取统一走 readMachineText(剥 BOM)——原先不剥,存 BOM 的清单会误报解析失败

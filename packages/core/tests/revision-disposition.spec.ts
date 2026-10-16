@@ -13,8 +13,8 @@ import { removeSync } from '../src/repo/remove'
 
 const roots: string[] = []
 const key = { 卷: 1, 章: 1, 章名: '中文处置' }
-const pendingRel = paths.草稿目录(1, key.章名) + '/稿1.md'
-const reviewRel = paths.审核记录(1, key.章名)
+const pendingRel = paths.草稿目录(1, key.章, key.章名) + '/稿1.md'
+const reviewRel = paths.审核记录(1, key.章, key.章名)
 afterAll(() => roots.forEach(root => removeSync(root)))
 afterEach(() => vi.restoreAllMocks())
 
@@ -116,7 +116,7 @@ describe('处置只改所选字段，审核证据保持原始适用范围', () =
     expect(result.ok).toBe(false)
     expect(f.text()).toBe(before)
     expect(fs.readFileSync(path.join(f.root, pendingRel), 'utf8')).toBe(f.draft)
-    expect(fs.readdirSync(path.join(f.root, paths.草稿目录(1, key.章名)))).toEqual(['稿1.md'])
+    expect(fs.readdirSync(path.join(f.root, paths.草稿目录(1, key.章, key.章名)))).toEqual(['稿1.md'])
   })
 
   it('处置状态非法：点名发现项，列出合法值与修正方法', () => {
@@ -158,7 +158,7 @@ describe('处置只改所选字段，审核证据保持原始适用范围', () =
     expect(failed).toBe(true)
     expect(f.text()).toBe(before)
     expect(fs.readFileSync(path.join(f.root, pendingRel), 'utf8')).toBe(f.draft)
-    expect(fs.readdirSync(path.join(f.root, paths.草稿目录(1, key.章名)))).toEqual(['稿1.md'])
+    expect(fs.readdirSync(path.join(f.root, paths.草稿目录(1, key.章, key.章名)))).toEqual(['稿1.md'])
   })
 })
 

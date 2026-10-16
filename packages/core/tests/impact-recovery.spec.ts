@@ -4,12 +4,15 @@ import * as os from 'node:os'
 import * as path from 'node:path'
 import {
   analyzeImpact,
+  listResumable,
   paths,
   rebuildResume,
+  RECOVERY_DEFAULT_RECENT,
   seedMinDesign,
   serializeDocument,
   writeFileAtomic,
 } from '../src/index'
+import { makeFixtureBook } from './helpers/fixture-book'
 
 const roots: string[] = []
 afterAll(() => { for (const root of roots) { try { fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
@@ -92,5 +95,43 @@ describe('影响分析与断更恢复', () => {
     expect(snapshot.ledger.entries.length).toBeGreaterThan(0)
     expect(snapshot.statusCard).toContain('解析失败')
     expect(snapshot.statusCard).not.toContain('部分缺失')
+  })
+})
+
+describe('状态查询窗口化(批8,0.0.57)', () => {
+  it('默认只完整重建最近 20 章＋章:0 键,其余章一行摘要;传 卷 或 最近N章 展开', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-window-'))
+    roots.push(root)
+    makeFixtureBook(root, 60)
+    const all = listResumable(root)
+    // 60 个带号章键＋1 个窗口未定位键(seedMinDesign 的开篇任务,章:0 恒完整重建)
+    expect(all).toHaveLength(61)
+    const full = all.filter((r) => !('摘要' in r))
+    const brief = all.filter((r) => '摘要' in r)
+    // 章号最大的 20 章完整(41–60)＋章:0 键;其余 40 章摘要
+    expect(full).toHaveLength(RECOVERY_DEFAULT_RECENT + 1)
+    expect(full.filter((r) => r.key.章 > 0).map((r) => r.key.章)).toEqual(Array.from({ length: 20 }, (_, i) => 41 + i))
+    expect(brief).toHaveLength(40)
+    for (const line of brief) {
+      expect(line.摘要).toBe(true)
+      expect(line.已定稿).toBe(true)
+      expect(line.建议环节).toBe('完成')
+    }
+    // 传 卷 展开该卷全量
+    const vol2 = listResumable(root, { 卷: 2 })
+    // 卷参数与近章窗口是并集:卷2 十章全量完整(无卷2摘要行);近章窗口照旧带上卷1的 41-50
+    expect(vol2.filter((r) => r.key.卷 === 2 && '摘要' in r)).toHaveLength(0)
+    expect(vol2.filter((r) => r.key.卷 === 2 && !('摘要' in r))).toHaveLength(10)
+    expect(vol2.filter((r) => '摘要' in r)).toHaveLength(40)
+    // 传 最近N章 展开
+    const expanded = listResumable(root, { 最近N章: 60 })
+    expect(expanded.filter((r) => !('摘要' in r))).toHaveLength(61)
+    // 未定稿章摘要行:建议环节=未完成
+    writeFileAtomic(root, paths.确认细纲(1, 1, '章1'), serializeDocument({ 状态: '已确认' }, '# 细纲' + String.fromCharCode(10)))
+    fs.rmSync(path.join(root, paths.定稿章(1, 1, '章1')), { force: true })
+    const trimmed = listResumable(root, { 最近N章: 5 })
+    const first = trimmed.find((r) => r.key.章 === 1)
+    expect(first).toBeDefined()
+    expect(first && '摘要' in first && first.建议环节).toBe('未完成')
   })
 })

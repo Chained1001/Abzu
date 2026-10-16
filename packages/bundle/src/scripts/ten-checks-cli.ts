@@ -10,7 +10,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { parseDocument, paths, queryDueLedger, queryLedger, type LedgerQueryResult } from '@abzu/core'
+import { parseDocument, paths, queryDueLedger, queryLedger, resolveDraftRel, type LedgerQueryResult } from '@abzu/core'
 
 /** ③伏笔到期 三组成员项输出条数上限(每条一行,防止单章输出淹没)。 */
 const DUE_ROW_LIMIT = 12
@@ -361,7 +361,7 @@ export function tenChecksCli(argv: readonly string[]): number {
     console.error(`书仓不存在：${path.resolve(book)}`)
     return 1
   }
-  const candidateRel = paths.候选细纲(卷, 章名)
+  const candidateRel = resolveDraftRel(book, '候选细纲', { 卷, 章, 章名 })
   const candidateText = readBookFile(book, candidateRel)
   if (candidateText === null) {
     console.error(JSON.stringify({ ok: false, reason: `候选细纲不存在：${candidateRel}（先落候选再跑十查）` }))
