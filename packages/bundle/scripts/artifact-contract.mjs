@@ -1,4 +1,4 @@
-export const skills = ['novel-director', 'novel-inspiration', 'novel-design', 'novel-arcplan', 'novel-outline', 'novel-drafting', 'novel-review', 'novel-polish', 'novel-revision', 'novel-settle', 'novel-export', 'novel-analyze']
+export const skills = ['novel-director', 'novel-inspiration', 'novel-forage', 'novel-design', 'novel-arcplan', 'novel-outline', 'novel-drafting', 'novel-review', 'novel-polish', 'novel-revision', 'novel-settle', 'novel-export', 'novel-analyze']
 /** Dispatch references must travel with the skills that consume them. */
 export const referenceDocs = [
   ...['导入与覆盖', '事实提取', '机制与灵感'].map(name => `skills/novel-analyze/references/${name}.md`),
@@ -10,11 +10,12 @@ export const referenceDocs = [
   'skills/novel-outline/agents/写前十查.md',
   'skills/novel-design/agents/作家评审.md',
   'skills/novel-design/agents/读者评审.md',
-  'skills/novel-inspiration/agents/采风检索.md',
-  // 灵感库种子：十类框架八册（历史事实/现实生活待采不建册，见种子索引.md）
-  ...['文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '命名词语', '设定概念']
-    .map(name => `skills/novel-inspiration/assets/灵感库种子/${name}/零件卡.md`),
-  'skills/novel-inspiration/assets/灵感库种子/索引.md',
+  'skills/novel-forage/agents/采风检索.md',
+  // 灵感库种子：八部一册（地/物/事空册子标先立，0.0.58 八部重排，见种子索引.md）
+  ...['人', '地', '物', '事', '知', '言', '象', '镜']
+    .map(name => `skills/novel-forage/assets/灵感库种子/${name}/零件卡.md`),
+  'skills/novel-forage/assets/灵感库种子/索引.md',
+  'skills/novel-outline/references/桥段参照.md',
   'skills/novel-drafting/agents/写作卡.md',
   'skills/novel-design/references/参考标尺.md',
   'skills/novel-design/references/雷点清单.md',

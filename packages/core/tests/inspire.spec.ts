@@ -101,7 +101,7 @@ describe('作者层灵感池', () => {
 describe('参考摄入三分流', () => {
   it('设定/文风/方法各走对应提案域,不写真源', () => {
     expect(destOf('设定候选')).toBe('书仓提案')
-    expect(destOf('文风候选')).toBe('记忆提案')
+    expect(destOf('文风候选')).toBe('本书记忆提案')
     expect(destOf('方法候选')).toBe('方法库提案')
 
     const author = mkRoot()

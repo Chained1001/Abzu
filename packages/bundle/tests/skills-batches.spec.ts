@@ -380,9 +380,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.15 评审采风批：评审两席底本＋采风代理＋灵感库结构＋双 SKILL 接线＋注册单源', () => {
     // A. 三底本存在＋frontmatter name（agents 目录惯例：英文 kebab name＋中文 description）
+    //（0.0.58 素材库批：采风检索底本随灵感库整体迁入 novel-forage）
     const writerPath = skillFile('novel-design', 'agents/作家评审.md')
     const readerPath = skillFile('novel-design', 'agents/读者评审.md')
-    const researcherPath = skillFile('novel-inspiration', 'agents/采风检索.md')
+    const researcherPath = skillFile('novel-forage', 'agents/采风检索.md')
     for (const p of [writerPath, readerPath, researcherPath]) {
       expect(fs.existsSync(p), `${p} 应存在`).toBe(true)
     }
@@ -411,8 +412,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(reader).toContain('读者画像')
     expect(reader).toContain('§5.4')
     expect(reader).toContain('只做首评')
-    // D. 采风代理：三源顺序＋孤证＋永不存原文＋热梗半衰期例外＋只写暂存＋站点经验
-    expect(researcher).toContain('三源')
+    // D. 采风代理：两源顺序（0.0.58 起素材库＋网络，知识库源退役）＋孤证＋永不存原文＋热梗半衰期例外＋只写暂存＋站点经验
+    expect(researcher).toContain('两源')
     expect(researcher).toContain('孤证')
     expect(researcher).toContain('永不存原文')
     expect(researcher).toContain('半衰期')
@@ -420,7 +421,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(researcher).toContain('_待裁决_采风_')
     expect(researcher).toContain('_采风站点经验')
     expect(researcher).toContain('只采国内源')
-    // E. design SKILL 接线：确认前审查（0.0.51 起两席评审并入其第三部分）＋书房/评审/＋待采风转《灵感与立项》
+    // E. design SKILL 接线：确认前审查（0.0.51 起两席评审并入其第三部分）＋书房/评审/＋待采风转《素材库与采风》
     const design = readSkill('novel-design')
     expect(design).toContain('**确认前审查**')
     expect(design).toContain('③**两席评审的发现项（可选）**')
@@ -432,22 +433,22 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('[作家评审](agents/作家评审.md)')
     expect(design).toContain('[读者评审](agents/读者评审.md)')
     expect(design, '旧「确认前评审（可选）」节名应随确认前审查合并退役').not.toContain('确认前评审（可选）')
-    // F. inspiration SKILL：灵感库八类（0.0.15 批内六→八扩容，升级批详断言见灵感库升级批）＋一类一册＋池库分工＋暂存与归档纪律＋Off-limits 放行采风子代理
-    const inspiration = readSkill('novel-inspiration')
-    for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活']) {
-      expect(inspiration, `灵感库应含「${cat}」类`).toContain(cat)
+    // F. forage SKILL：灵感库八部（0.0.58 素材库批十类→八部重排）＋一部一册＋池库分工＋暂存与归档纪律＋Off-limits 放行采风 agent
+    const forage = readSkill('novel-forage')
+    for (const cat of ['人', '地', '物', '事', '知', '言', '象', '镜']) {
+      expect(forage, `灵感库应含「${cat}」部`).toContain(`\`${cat}/\``)
     }
-    expect(inspiration).toContain('一类一册')
-    expect(inspiration).toContain('两库互不合并')
-    expect(inspiration).toContain('_待裁决_采风_')
-    expect(inspiration).toContain('[采风检索](agents/采风检索.md)')
-    expect(inspiration).toContain('除采风检索')
+    expect(forage).toContain('一部一册')
+    expect(forage).toContain('两库互不合并')
+    expect(forage).toContain('_待裁决_采风_')
+    expect(forage).toContain('[采风检索](agents/采风检索.md)')
+    expect(forage).toContain('除采风检索')
     // G. 注册单源：artifact-contract 登记三份 agents（pack-check 按 referenceDocs 校验打包面）
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
     for (const rel of [
       'skills/novel-design/agents/作家评审.md',
       'skills/novel-design/agents/读者评审.md',
-      'skills/novel-inspiration/agents/采风检索.md',
+      'skills/novel-forage/agents/采风检索.md',
     ]) {
       expect(contract, `artifact-contract 应登记 ${rel}`).toContain(`'${rel}'`)
     }
@@ -510,44 +511,46 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   })
 
   it('0.0.15 灵感库升级批：八类＋零件卡九列＋翻库三式三去向＋存量盘点＋红线两例外＋outline 双参照与补充来源', () => {
-    // A. 八类在位（原六类不动＋新增台词金句/古词古句·意象）＋古词三子标＋建库初始化
-    const inspiration = readSkill('novel-inspiration')
-    for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活']) {
-      expect(inspiration, `灵感库应含「${cat}」类`).toContain(cat)
+    //（0.0.58 素材库批：灵感库正文整体迁入 novel-forage，旧钉逐条改指新口径）
+    // A. 八部在位（0.0.58 十类→八部重排）＋古词三子标＋建库初始化
+    const forage = readSkill('novel-forage')
+    for (const cat of ['人', '地', '物', '事', '知', '言', '象', '镜']) {
+      expect(forage, `灵感库应含「${cat}」部`).toContain(`\`${cat}/\``)
     }
     for (const sub of ['诗词古文', '雅称谚典', '意象母题']) {
-      expect(inspiration, `古词古句·意象应含「${sub}」子标`).toContain(sub)
+      expect(forage, `象部应含「${sub}」子标`).toContain(sub)
     }
-    expect(inspiration).toContain('建库初始化')
-    expect(inspiration).toContain('十个类别子目录')
-    // B. 零件卡九列：骨/魂显式两列＋化用启示＋已用于回写；「层级（骨/魂）」列退役防回退
-    for (const col of ['关键词（2-4个）', '一句话（骨）', '为什么好（魂·原理一句）', '化用启示', '反例（何时不可信/不可用）', '已用于']) {
-      expect(inspiration, `零件卡字段应含「${col}」列`).toContain(col)
+    expect(forage).toContain('建库初始化')
+    expect(forage).toContain('八个部子目录')
+    // B. 零件卡十列（0.0.58 加时效列）：骨/魂显式两列＋化用启示＋已用于回写＋时效三态；「层级（骨/魂）」列退役防回退
+    for (const col of ['关键词（2-4个）', '一句话（骨）', '为什么好（魂·原理一句）', '化用启示', '反例（何时不可信/不可用）', '已用于', '时效']) {
+      expect(forage, `零件卡字段应含「${col}」列`).toContain(col)
     }
-    expect(inspiration, '「层级（骨/魂）」列应退役（信息显式化为骨/魂两列）').not.toContain('层级（骨/魂）')
-    expect(inspiration).toContain('消费后回写')
+    expect(forage, '时效三态值式应在位').toContain('时效｜首发YYYY-MM-DD｜半衰期约N月')
+    expect(forage, '时效三态值式应在位（年代锚）').toContain('年代锚｜流行于YYYY年代')
+    expect(forage, '「层级（骨/魂）」列应退役（信息显式化为骨/魂两列）').not.toContain('层级（骨/魂）')
+    expect(forage).toContain('消费后回写')
     // C. 翻库三式＋三去向＋过期软提示＋裁决交互＋池库互转＋拆书边界＋索引对账
-    for (const way of ['按类翻', '按关键词 grep', '按场景需求问']) {
-      expect(inspiration, `翻库三式应含「${way}」`).toContain(way)
+    for (const way of ['按部翻', '按关键词 grep', '按场景需求问']) {
+      expect(forage, `翻库三式应含「${way}」`).toContain(way)
     }
     for (const dest of ['入材料包', '固化进人物档案', '激发新点子入灵感池']) {
-      expect(inspiration, `翻库三去向应含「${dest}」`).toContain(dest)
+      expect(forage, `翻库三去向应含「${dest}」`).toContain(dest)
     }
-    expect(inspiration).toContain('采集已逾')
-    expect(inspiration).toContain('建议复核')
-    expect(inspiration).toContain('入/弃/改道')
-    expect(inspiration).toContain('池库互转')
-    expect(inspiration).toContain('有原文＝拆书机制卡')
-    expect(inspiration).toContain('最近更新')
-    expect(inspiration).toContain('计数对账')
-    // D. researcher 底本：十类路由＋触发源⑤存量盘点＋红线两例外＋范围句扩两句＋参考书去重（可选）
-    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
-    expect(researcher).toContain('十类')
+    expect(forage).toContain('已过半衰期')
+    expect(forage).toContain('建议复核')
+    expect(forage).toContain('入/弃/改道')
+    expect(forage).toContain('池库互转')
+    expect(forage).toContain('有原文＝拆书机制卡')
+    expect(forage).toContain('最近更新')
+    expect(forage).toContain('计数对账')
+    // D. researcher 底本（novel-forage/agents）：八部路由＋触发源⑤存量盘点＋红线两例外＋参考书去重（可选）
+    const researcher = fs.readFileSync(skillFile('novel-forage', 'agents/采风检索.md'), 'utf8')
+    expect(researcher).toContain('八部')
     expect(researcher).toContain('存量盘点')
     expect(researcher).toContain('跳过网络源')
     expect(researcher).toContain('公有领域语料（诗词古文/雅称谚典）逐字入库合法')
     expect(researcher).toContain('单句例证 ≤1 句且必标出处')
-    expect(researcher).toContain('含设定脑洞与桥段实例')
     expect(researcher).toContain('名场面解析归此类')
     expect(researcher).toContain('有原文＝拆书机制卡')
     expect(researcher, '沉淀提案字段表应退役「层级（骨/魂）」列').not.toContain('层级（骨/魂）')
@@ -609,7 +612,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
-    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
+    const researcher = fs.readFileSync(skillFile('novel-forage', 'agents/采风检索.md'), 'utf8')
     // 1. F24 回炉扩写档：review 篇幅处置显式档＋drafting 处置枚举照抄（两文件都在位）
     for (const t of [drafting, review]) {
       expect(t, '回炉扩写应为两技能共用的显式处置档').toContain('回炉扩写')
@@ -683,81 +686,86 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   })
 
   it('灵感库扩展批：类别八→十＋生产通道三条＋起名翻库双册——命名词语/设定概念/三子标/日常暂存/类简称扩/防回退旧八类零命中', () => {
+    //（0.0.58 素材库批：十类口径改八部，正文在 novel-forage；本组旧钉随迁并保留防回退负断言）
+    const forage = readSkill('novel-forage')
     const inspiration = readSkill('novel-inspiration')
-    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
-    // A. 十类在位：原八类不动＋命名词语/设定概念，两文件同步（SKILL 建库初始化＋researcher 路由表）
-    for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活', '命名词语', '设定概念']) {
-      expect(inspiration, `灵感库应含「${cat}」类`).toContain(cat)
-      expect(researcher, `采风检索路由表应含「${cat}」类`).toContain(cat)
+    const researcher = fs.readFileSync(skillFile('novel-forage', 'agents/采风检索.md'), 'utf8')
+    // A. 八部在位（0.0.58 重排）：SKILL 建库初始化＋researcher 查询类型表同步
+    for (const cat of ['人', '地', '物', '事', '知', '言', '象', '镜']) {
+      expect(forage, `灵感库应含「${cat}」部`).toContain(`\`${cat}/\``)
+      expect(researcher, `采风检索查询类型表应含「${cat}」部`).toContain(`（${cat}）`)
     }
-    expect(inspiration).toContain('十个类别子目录')
-    // B. 命名词语三子标＋原理/反例口径＋设定概念边界句
+    expect(forage).toContain('八个部子目录')
+    // B. 言部命名三子标＋原理/反例口径＋知部设定概念边界句
     for (const sub of ['人名', '地名', '组织·器物·功法名']) {
-      expect(inspiration, `命名词语应含「${sub}」子标`).toContain(sub)
+      expect(forage, `言部应含「${sub}」子标`).toContain(sub)
     }
     for (const kw of ['罕见真实姓氏', '公有领域事实可逐字', '声韵搭配法', '人物气质与名字气质的匹配法', '构词法', '真实古地名雅称', '构词模式与用字库', '音韵/字形/联想原理', '拗口组合/歧义谐音/气质错配']) {
-      expect(inspiration, `命名词语定义应含「${kw}」`).toContain(kw)
+      expect(forage, `言部定义应含「${kw}」`).toContain(kw)
     }
     for (const kw of ['可跨书复用', '换个故事还能用', '池库分工不破']) {
-      expect(inspiration, `设定概念边界句应含「${kw}」`).toContain(kw)
+      expect(forage, `知部设定概念边界句应含「${kw}」`).toContain(kw)
     }
-    // 类别总数 10 封顶（防碎片化原则句保留）
-    expect(inspiration).toContain('类别总数 10 封顶')
-    expect(inspiration).toContain('不开第十一类')
+    // 部总数 8 封顶（防碎片化原则句随八部重排）
+    expect(forage).toContain('部总数 8 封顶')
+    expect(forage).toContain('不开第九部')
     // C. 日常积累第三生产通道：三条明示＋日常暂存件＋来源口径＋不经采风代理
-    expect(inspiration).toContain('生产通道三条')
-    expect(inspiration).toContain('日常随手积累')
-    expect(inspiration).toContain('_待裁决_日常_')
-    expect(inspiration).toContain('日常积累·')
-    expect(inspiration).toContain('作者口述出处')
-    expect(inspiration).toContain('不经采风代理')
-    // D. 类简称表扩：枚举单源在采风检索（0.0.36 全量审查修复批起 SKILL 改指路不重述——断言随裁同步）
-    expect(researcher, '类简称枚举应含「命名/设定」（单源在采风检索）').toContain('命名/设定')
-    expect(inspiration, 'SKILL 类简称枚举应指路单源').toContain('类简称十值与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
-    // E. 起名翻库双册：翻库句扩为古词古句·意象＋命名词语两册取词
-    expect(inspiration).toContain('古词古句·意象/零件卡.md')
-    expect(inspiration).toContain('命名词语/零件卡.md')
+    expect(forage).toContain('生产通道三条')
+    expect(forage).toContain('日常随手积累')
+    expect(forage).toContain('_待裁决_日常_')
+    expect(forage).toContain('日常积累·')
+    expect(forage).toContain('作者口述出处')
+    expect(forage).toContain('不经采风代理')
+    // D. 部简称表（0.0.58 十值改八值）：枚举单源在采风 agent 底本，SKILL 指路不重述
+    expect(researcher, '部简称枚举应为八值（单源在采风检索）').toContain('人/地/物/事/知/言/象/镜')
+    expect(forage, 'SKILL 部简称枚举应指路单源').toContain('部简称八值〔人/地/物/事/知/言/象/镜〕与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
+    // E. 起名翻库双册（0.0.58 八部重排后为 言/＋象/ 两册，取词句在 inspiration 七要素可选步、管法指 novel-forage）
+    expect(inspiration).toContain('`言/`（命名构词）')
+    expect(inspiration).toContain('`象/`（雅称谚典')
     expect(inspiration).toContain('两册零件卡取词')
-    // F. 防回退：类别清单旧八类表述零命中（两文件）
-    expect(inspiration, '不应残留「八个类别」旧表述').not.toContain('八个类别')
-    expect(inspiration, '不应残留「八类」旧表述').not.toContain('八类')
+    // F. 防回退：类别清单旧八类/十类表述零命中（forage 两文件）；inspiration 灵感库正文零命中（负钉）
+    expect(forage, '不应残留「八个类别」旧表述').not.toContain('八个类别')
+    expect(forage, '不应残留「八类」旧表述').not.toContain('八类')
+    expect(forage, '不应残留「十个类别」旧表述').not.toContain('十个类别')
     expect(researcher, '不应残留「八类」旧表述').not.toContain('八类')
+    expect(inspiration, 'inspiration 不应残留灵感库正文（已拆出，只留指针）').not.toContain('一类一册')
+    expect(inspiration).not.toContain('零件卡字段')
   })
 
   it('0.0.17 种子随包批：种子落位（八册零件卡＋索引）＋初始化全量展开＋库已存在不动＋残缺补拷＋注册单源', () => {
-    // A. 种子落位：assets/灵感库种子/——历史事实/现实生活为种子空类（索引计数 0，不建册）；
-    //    只断结构性事实与宽松下限，不硬编码总数——种子将来升级不应红测试
-    const seedDir = skillFile('novel-inspiration', 'assets/灵感库种子')
+    //（0.0.58 素材库批：种子随技能迁入 novel-forage 并八部重排——地/物/事为空册（子标先立、行待采）；
+    //    只断结构性事实与宽松下限，不硬编码总数——种子将来升级不应红测试）
+    const seedDir = skillFile('novel-forage', 'assets/灵感库种子')
     const indexPath = path.join(seedDir, '索引.md')
     expect(fs.existsSync(indexPath), 'assets/灵感库种子/索引.md 应存在').toBe(true)
     const index = fs.readFileSync(indexPath, 'utf8')
-    for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活', '命名词语', '设定概念']) {
-      expect(index, `种子索引应含「${cat}」类行`).toContain(`| ${cat} |`)
+    for (const part of ['人', '地', '物', '事', '知', '言', '象', '镜']) {
+      expect(index, `种子索引应含「${part}」部行`).toContain(`| ${part} |`)
     }
     const cards = fs.readdirSync(seedDir, { withFileTypes: true })
       .filter(e => e.isDirectory())
       .map(e => path.join(seedDir, e.name, '零件卡.md'))
-    expect(cards.length, '种子零件卡册数宽松下限 ≥8（空类不建册）').toBeGreaterThanOrEqual(8)
+    expect(cards.length, '种子零件卡册数宽松下限 ≥8（八部各一册）').toBeGreaterThanOrEqual(8)
     let rows = 0
     for (const p of cards) {
       expect(fs.existsSync(p), `${p} 应存在`).toBe(true)
       rows += (fs.readFileSync(p, 'utf8').match(/^\| \S+-\d{8}-\d{2} \|/gm) ?? []).length
     }
     expect(rows, '种子零件总数宽松下限 ≥100（不硬编码当前总数）').toBeGreaterThanOrEqual(100)
-    // B. 初始化改种子展开：SKILL 措辞（种子路径/全量展开/库已存在则不动/残缺仅补拷不覆盖）
-    const inspiration = readSkill('novel-inspiration')
-    expect(inspiration).toContain('assets/灵感库种子')
-    expect(inspiration).toContain('全量展开')
-    expect(inspiration).toContain('起步 150 条')
-    expect(inspiration).toContain('采集说明随册保留')
-    expect(inspiration).toContain('库已存在则不动')
-    expect(inspiration).toContain('不合并不覆盖')
-    expect(inspiration).toContain('仅补拷库中缺失且种子中存在的件')
-    expect(inspiration).toContain('不覆盖库中已有件')
+    // B. 初始化改种子展开：forage SKILL 措辞（种子路径/全量展开/库已存在则不动/残缺仅补拷不覆盖）
+    const forage = readSkill('novel-forage')
+    expect(forage).toContain('assets/灵感库种子')
+    expect(forage).toContain('全量展开')
+    expect(forage).toContain('起步 131 条')
+    expect(forage).toContain('采集说明随册保留')
+    expect(forage).toContain('库已存在则不动')
+    expect(forage).toContain('不合并不覆盖')
+    expect(forage).toContain('仅补拷库中缺失且种子中存在的件')
+    expect(forage).toContain('不覆盖库中已有件')
     // C. 注册单源：artifact-contract 登记种子（打包面精确等值断言由 pack-check 另守——skills/ 下 .md 缺一即红）
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
-    expect(contract).toContain("['文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '命名词语', '设定概念']")
-    expect(contract).toContain("'skills/novel-inspiration/assets/灵感库种子/索引.md'")
+    expect(contract).toContain("['人', '地', '物', '事', '知', '言', '象', '镜']")
+    expect(contract).toContain("'skills/novel-forage/assets/灵感库种子/索引.md'")
   })
 
   it('0.0.18 修复批：关键章两档＋浮动语义钉死与现状注记＋第四形态＋自评行落位＋⑧隔章定义＋简章七节＋数值建议句＋种子与沙盘逐字一致', () => {
@@ -801,17 +809,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     expect(sect).toContain('无前置条件')
     expect(outline).toContain('「前置条件核对结果」一句话版')
-    // F42 种子与沙盘逐字一致（抽两册 Buffer 比对）：沙盘在仓外，路径经 ABZU_SEED_SANDBOX 注入——
-    // 仓内不得硬编码个人绝对路径（check:public 红闸）；未注入时本断言跳过，注入时逐字节校验同步纪律。
-    const sandboxRoot = process.env.ABZU_SEED_SANDBOX
-    if (sandboxRoot !== undefined && sandboxRoot !== '') {
-      const seedDir = skillFile('novel-inspiration', 'assets/灵感库种子')
-      for (const [seedRel, sandboxRel] of [['人物原型', '人物原型'], ['剧情结构', '剧情结构']] as const) {
-        const seed = fs.readFileSync(path.join(seedDir, seedRel, '零件卡.md'))
-        const sandbox = fs.readFileSync(path.join(sandboxRoot, sandboxRel, '零件卡.md'))
-        expect(Buffer.compare(seed, sandbox) === 0, `种子与沙盘应逐字节一致：${seedRel}/零件卡.md`).toBe(true)
-      }
-    }
+    // F42 种子与沙盘逐字一致：（0.0.58 素材库批退役——种子八部重排＋十列追加后与沙盘不再逐字一致，
+    //    沙盘同步属仓外档案维护，不设仓内断言；沙盘在仓外路径经 ABZU_SEED_SANDBOX 注入的历史口径一并废止）
   })
 
   it('雷点清单批：清单落位＋契约第六部候选菜单＋写前十查内联快扫', () => {
@@ -869,7 +868,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // C. 五核对项（含本卷升级位）在技能层在位
     expect(readSkill('novel-arcplan'), '0.0.56 边界重划：五核对项技能层在 novel-arcplan').toContain('五核对项')
     // D. 采风可信度四态：表格四行（已证实/孤证/推测/归纳），三态标题不得回潮
-    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
+    const researcher = fs.readFileSync(skillFile('novel-forage', 'agents/采风检索.md'), 'utf8')
     expect(researcher).toContain('可信度四态')
     expect(researcher, '三态标题不得回潮（表本就四行）').not.toContain('可信度三态')
     // F. settle 卷摘要候选读侧措辞与产品输出串对齐（已兑现并入）
@@ -883,7 +882,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const design = readSkill('novel-design')
     const settle = readSkill('novel-settle')
     const inspiration = readSkill('novel-inspiration')
-    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
+    const researcher = fs.readFileSync(skillFile('novel-forage', 'agents/采风检索.md'), 'utf8')
     const mech = fs.readFileSync(skillFile('novel-analyze', 'references/机制与灵感.md'), 'utf8')
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     const sectSpec = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
@@ -933,8 +932,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
         expect(text, `${path.relative(skillsRoot, f)}: 归一旧词「${old}」应清零`).not.toContain(old)
       }
     }
-    // C. 序号＝类简称＋采集日期＋两位序（对齐零件卡字段定义，消数据漂移）
-    expect(researcher).toContain('序号＝类简称＋采集日期＋两位序（同日顺延）')
+    // C. 序号＝部简称＋采集日期＋两位序（对齐零件卡字段定义，消数据漂移；0.0.58 类简称改部简称）
+    expect(researcher).toContain('序号＝部简称＋采集日期＋两位序（同日顺延）')
     // D. 最小导出用法行补 --校验（须与 --目标 同传）
     const exportCli = fs.readFileSync(skillFile('novel-export', 'scripts/最小导出.mjs'), 'utf8')
     expect(exportCli).toContain('[--目标 目录] [--校验 true]（须与 --目标 同传）')
@@ -989,11 +988,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
         .split('存在本身就是标尺').join('')
       expect(text, `${path.relative(skillsRoot, f)}: 独立「标尺」应全称化为「参考标尺」`).not.toMatch(/(?<!参考)标尺/)
     }
-    // E. 类简称表＝序号前缀标识符协议（0.0.36 全量审查修复批起 SKILL 完整枚举退役改指路单源——防误伤钉改挂单源侧与指针句）
-    expect(readSkill('novel-inspiration')).toContain('类简称十值与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
-    const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
-    expect(researcher).toContain('类简称＝古词/台词/剧情/人物/历史/文化/影动/现实/命名/设定')
-    expect(researcher).toContain('序号＝类简称＋采集日期＋两位序')
+    // E. 类简称表＝序号前缀标识符协议（0.0.36 改指路单源；0.0.58 素材库批：十值改八值、单源随迁 novel-forage）
+    expect(readSkill('novel-forage')).toContain('部简称八值〔人/地/物/事/知/言/象/镜〕与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
+    const researcher = fs.readFileSync(skillFile('novel-forage', 'agents/采风检索.md'), 'utf8')
+    expect(researcher).toContain('部简称＝人/地/物/事/知/言/象/镜')
+    expect(researcher).toContain('序号＝部简称＋采集日期＋两位序')
   })
 
   it('0.0.23 狗头军师吸收批：判据落点规则＋三处行为化示范＋发现项处置三列表＋评审主问题行', () => {
@@ -1062,20 +1061,20 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     for (const [i, name] of [...待定稿包七件].entries()) {
       expect(`${skillFiles[i]}.md`, `七件文件名对撞失败（第 ${i + 1} 件）：SKILL 侧 novel-settle/SKILL.md=「${skillFiles[i]}」 vs core 侧 packages/core/src/prepare/pack.ts=「${name}」`).toBe(name)
     }
-    // 对撞④ 灵感库九列表头：novel-inspiration SKILL 零件卡字段行 vs assets 种子册表头行（基础名逐字逐序，带注列「一句话（骨）」全形逐字）
-    const inspiration = readSkill('novel-inspiration')
-    const fieldLine = inspiration.split('\n').find((l) => l.includes('**零件卡字段**'))
-    expect(fieldLine, 'novel-inspiration/SKILL.md 应有「**零件卡字段**」行').toBeDefined()
+    // 对撞④ 灵感库十列表头（0.0.58 加时效列）：novel-forage SKILL 零件卡字段行 vs assets 种子册表头行（基础名逐字逐序，带注列「一句话（骨）」全形逐字）
+    const forageSkill = readSkill('novel-forage')
+    const fieldLine = forageSkill.split('\n').find((l) => l.includes('**零件卡字段**'))
+    expect(fieldLine, 'novel-forage/SKILL.md 应有「**零件卡字段**」行').toBeDefined()
     const baseName = (s: string): string => s.replace(/（[^）]*）/g, '').trim()
     const skillCols = fieldLine!.slice(fieldLine!.indexOf('：`') + 2).split('`')[0]!.split('｜').map(baseName)
-    const seed = fs.readFileSync(skillFile('novel-inspiration', 'assets/灵感库种子/人物原型/零件卡.md'), 'utf8')
+    const seed = fs.readFileSync(skillFile('novel-forage', 'assets/灵感库种子/人/零件卡.md'), 'utf8')
     const headerRow = seed.split('\n').find((l) => l.startsWith('| 序号'))
-    expect(headerRow, 'assets/灵感库种子/人物原型/零件卡.md 应有表头行（| 序号 …）').toBeDefined()
+    expect(headerRow, 'assets/灵感库种子/人/零件卡.md 应有表头行（| 序号 …）').toBeDefined()
     const seedCols = headerRow!.split('|').slice(1, -1).map((c) => baseName(c.trim()))
-    expect(skillCols.length, `灵感库表头对撞：novel-inspiration/SKILL.md 列了 ${skillCols.length} 列，assets 种子册表头为 ${seedCols.length} 列`).toBe(seedCols.length)
-    expect(seedCols.length, '灵感库表头对撞：assets 种子册表头应为九列').toBe(9)
+    expect(skillCols.length, `灵感库表头对撞：novel-forage/SKILL.md 列了 ${skillCols.length} 列，assets 种子册表头为 ${seedCols.length} 列`).toBe(seedCols.length)
+    expect(seedCols.length, '灵感库表头对撞：assets 种子册表头应为十列（0.0.58 加时效）').toBe(10)
     for (const [i, name] of seedCols.entries()) {
-      expect(skillCols[i], `灵感库表头对撞失败（第 ${i + 1} 列）：SKILL 侧 novel-inspiration/SKILL.md=「${skillCols[i]}」 vs 种子侧 assets/灵感库种子/人物原型/零件卡.md=「${name}」`).toBe(name)
+      expect(skillCols[i], `灵感库表头对撞失败（第 ${i + 1} 列）：SKILL 侧 novel-forage/SKILL.md=「${skillCols[i]}」 vs 种子侧 assets/灵感库种子/人/零件卡.md=「${name}」`).toBe(name)
     }
     expect(fieldLine!, '带注列全形：SKILL 侧「一句话（骨）」应与种子表头逐字一致').toContain('一句话（骨）')
     expect(headerRow!, '带注列全形：种子表头「一句话（骨）」应与 SKILL 逐字一致').toContain('一句话（骨）')
@@ -1994,14 +1993,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.57＋CHANGELOG 条目＋README×2（0.0.57 规模批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.58＋CHANGELOG 条目＋README×2（0.0.58 素材库批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.57').toBe('0.0.57')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.57').toBe('0.0.57')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.57]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.58').toBe('0.0.58')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.58').toBe('0.0.58')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.58]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.57`).toContain('0.0.57')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.58`).toContain('0.0.58')
     }
   })
 
@@ -2192,9 +2191,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // D. R3 修辞预算指针改指 AI 痕迹六条（悬空指针修复——「修辞预算四条」节名已不存在；0.0.42 判据微修批：破折号数值随裁 ≤4/千字→0-1/千字，断言随裁同步）
     expect(cards).toContain('密度上限同行文自查卡 AI 痕迹六条中三对带数值行（格言 ≤2/章、比喻 ≤2/千字、破折号 0-1/千字）')
     expect(cards, '悬空指针「修辞预算四条」应全文件清零').not.toContain('修辞预算四条')
-    // E. M1 灵感库枚举指路（完整枚举单源在采风检索——单源侧正断言见 0.0.22 简称清理批 E 节）
-    expect(inspiration).toContain('类简称十值与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
-    expect(inspiration, 'SKILL 完整枚举应退役').not.toContain('类简称＝古词/台词/剧情/人物/历史/文化/影动/现实/命名/设定')
+    // E. M1 灵感库枚举指路（完整枚举单源在采风检索——单源侧正断言见 0.0.22 简称清理批 E 节；
+    //    0.0.58 素材库批：枚举单源随灵感库迁入 novel-forage，十值改八值）
+    expect(readSkill('novel-forage')).toContain('部简称八值〔人/地/物/事/知/言/象/镜〕与可信度四态枚举单源在 [采风检索](agents/采风检索.md)')
+    expect(readSkill('novel-forage'), 'SKILL 完整枚举应退役').not.toContain('类简称＝古词/台词/剧情/人物/历史/文化/影动/现实/命名/设定')
     // F. 低等级项：参照带措辞归一＋标尺三值＋settle 派发模板路径补尖括号＋design 窗口路径统一
     expect(cards).toContain('参照书章节相邻双代词起句 0-0.7%')
     expect(cards, '「人类五书样本」出处措辞应清零').not.toContain('人类五书样本')
@@ -3321,5 +3321,98 @@ describe('skills 批次防回退断言组·0.0.57 规模批', () => {
     expect(format).toContain('卷NN-NNNN-章名')
     expect(format).toContain('旧格式 `卷NN-章名`（无章号）读侧兼容')
     expect(format).toContain('0.0.57 起 frontmatter 带版本字段')
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.58 素材库批', () => {
+  it('0.0.58 素材库与采风批：八部重排＋十列时效＋两源采风＋站点路由表＋融合三条＋四分管法＋桥段参照＋inspiration 负钉＋director 13 行＋种子索引八部行', () => {
+    const forage = readSkill('novel-forage')
+    const researcher = fs.readFileSync(skillFile('novel-forage', 'agents/采风检索.md'), 'utf8')
+    // A. 八部名与子标（建库初始化八目录＋各部子标）
+    for (const kw of ['`人/`', '`地/`', '`物/`', '`事/`', '`知/`', '`言/`', '`象/`', '`镜/`']) {
+      expect(forage, `建库初始化应含「${kw}」部目录`).toContain(kw)
+    }
+    for (const sub of ['人设标签', '反差矛盾点', '方言风物', '地域景观', '现实场所', '年代器物', '物价', '日常物件', '时事与社会情绪', '真实案件奇闻', '历史事件', '冷知识', '行业职业细节', '游戏规则机制', '设定概念模式', '金句语感', '命名构词', '黑话', '诗词古文', '雅称谚典', '意象母题', '文化元素', '感官素材', '影视动漫桥段', '对标观察']) {
+      expect(forage, `八部子标应含「${sub}」`).toContain(sub)
+    }
+    expect(forage).toContain('部总数 8 封顶')
+    // B. 零件卡十列时效（三态值式＋必填口径＋种子既有行机械补长青）
+    expect(forage).toContain('已用于｜时效')
+    expect(forage).toContain('时效三态')
+    expect(forage).toContain('默认且**必填**——长青就写长青')
+    expect(forage).toContain('时效｜首发YYYY-MM-DD｜半衰期约N月')
+    expect(forage).toContain('年代锚｜流行于YYYY年代')
+    expect(forage).toContain('供年代文/重生文对表')
+    let appended = 0
+    for (const d of ['人', '知', '言', '象', '镜']) {
+      const card = fs.readFileSync(skillFile('novel-forage', `assets/灵感库种子/${d}/零件卡.md`), 'utf8')
+      appended += (card.match(/长青 \|$/gm) ?? []).length
+    }
+    expect(appended, '种子既有零件行应机械追加长青（人17＋知10＋言54＋象40＋镜10＝131）').toBe(131)
+    // C. 两源采风（素材库＋网络；知识库源退役——负断言）
+    expect(forage).toContain('**两源**')
+    expect(researcher).toContain('检索流程（两源依次）')
+    expect(researcher).toContain('第一源·素材库')
+    expect(researcher).toContain('降级素材库单源')
+    expect(researcher, '底本不应残留「知识库＝」三源句').not.toContain('知识库＝')
+    expect(researcher, '知识库第一源口径应退役').not.toContain('第一源·知识库')
+    // D. 站点路由表（六类需求×首选备选，站名写通称）
+    expect(researcher).toContain('站点路由表')
+    for (const row of ['时事热点与社会情绪', '行业职业细节', '冷知识', '方言风物', '游戏机制', '影视桥段']) {
+      expect(researcher, `站点路由表应含「${row}」需求行`).toContain(row)
+    }
+    expect(researcher).toContain('站名写通称不写死域名')
+    expect(researcher).toContain('先经验后默认')
+    // E. 融合三条（选→化→落→记 之后）
+    expect(forage).toContain('融合规则三条')
+    expect(forage).toContain('叙述者慎用')
+    expect(forage).toContain('只取**机制**不搬原句')
+    expect(forage).toContain('**不娱乐化**')
+    // F. 四分管法（检索视图，不另建目录）
+    expect(forage).toContain('四分管法（检索视图）')
+    for (const v of ['人设标签库', '剧情钩子库', '金句语感库', '对标拆书库']) {
+      expect(forage, `四分视图应含「${v}」`).toContain(v)
+    }
+    expect(forage).toContain('素材仍存八部不分家')
+    // G. 触发源六个（新增幕纲锚点缺素材；arcplan 侧接线句）
+    expect(forage).toContain('触发源六个')
+    expect(forage).toContain('幕纲锚点缺素材')
+    expect(researcher).toContain('幕纲锚点缺素材')
+    expect(readSkill('novel-arcplan')).toContain('标【待采风】的项在写幕纲时即可派《素材库与采风》')
+    // H. 桥段参照（剧情结构写法零件迁出灵感库）：判据件存在＋四件结构＋outline 双参照①指针
+    const bridge = fs.readFileSync(skillFile('novel-outline', 'references/桥段参照.md'), 'utf8')
+    expect(bridge).toContain('卡文桥段的写法参照，细纲双参照①机制卡之外的本地参照面')
+    for (const piece of ['**意图**', '**判据**', '**路径**', '**错误**']) {
+      expect(bridge, `桥段参照四件结构应含「${piece}」`).toContain(piece)
+    }
+    expect(readSkill('novel-outline')).toContain('本地桥段参照见本技能包 references/桥段参照.md（写前找桥段范式时读）')
+    // I. inspiration 无灵感库正文（负钉）＋指针与 Off-limits 新口径
+    const inspiration = readSkill('novel-inspiration')
+    expect(inspiration).toContain('已独立成《素材库与采风》')
+    expect(inspiration, 'inspiration 不应残留建库正文（建库初始化）').not.toContain('十个类别子目录')
+    expect(inspiration, 'inspiration 不应残留翻库正文（三去向）').not.toContain('翻到零件后三去向')
+    expect(inspiration, 'inspiration 不应残留裁决归档正文').not.toContain('裁决交互与归档')
+    expect(inspiration).toContain('本技能不派子代理（采风 agent 在《素材库与采风》）')
+    // J. director 13 行（技能表加「素材库与采风｜novel-forage」）
+    const director = readSkill('novel-director')
+    expect(director).toContain('| 素材库与采风 | `novel-forage` |')
+    const routes = [...director.matchAll(/^\| ([^|]+) \| `(novel-[a-z-]+)` \|$/gm)]
+    expect(routes, '技能加载表应为 13 行').toHaveLength(13)
+    // K. 种子迁移后 索引.md 八部行（每部一行：部名｜零件数｜一句话范围｜最近更新）
+    const seedIndex = fs.readFileSync(skillFile('novel-forage', 'assets/灵感库种子/索引.md'), 'utf8')
+    for (const part of ['人', '地', '物', '事', '知', '言', '象', '镜']) {
+      expect(seedIndex, `种子索引应含「${part}」部行`).toContain(`| ${part} |`)
+    }
+    expect(seedIndex).toContain('＝131')
+    // L. intake 标签清理（'记忆提案'→'本书记忆提案'）
+    const intake = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'inspire', 'intake.ts'), 'utf8')
+    expect(intake).toContain("'本书记忆提案'")
+    expect(intake, 'intake 不应残留旧标签字面量').not.toContain("'记忆提案'")
+    // M. 注册单源：artifact-contract 登记 forage 技能＋agents＋种子＋桥段参照
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("'novel-forage'")
+    expect(contract).toContain("'skills/novel-forage/agents/采风检索.md'")
+    expect(contract).toContain("'skills/novel-outline/references/桥段参照.md'")
+    expect(contract).toContain("'skills/novel-forage/assets/灵感库种子/索引.md'")
   })
 })

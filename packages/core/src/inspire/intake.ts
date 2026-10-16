@@ -11,7 +11,7 @@ import { withBookWrite, writeFileAtomic } from '../repo/atomic'
 export const 摄入分流 = ['设定候选', '文风候选', '方法候选'] as const
 export type IntakeBucket = (typeof 摄入分流)[number]
 
-export type IntakeDest = '书仓提案' | '记忆提案' | '方法库提案'
+export type IntakeDest = '书仓提案' | '本书记忆提案' | '方法库提案'
 
 export interface IntakeProposal {
   readonly source: string
@@ -29,7 +29,7 @@ export interface IntakeRoute {
 
 const DEST: Record<IntakeBucket, IntakeDest> = {
   设定候选: '书仓提案',
-  文风候选: '记忆提案',
+  文风候选: '本书记忆提案',
   方法候选: '方法库提案',
 }
 

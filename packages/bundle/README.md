@@ -1,19 +1,19 @@
 # Abzu · 网文写作工作台
 
-> Abzu 0.0.57 配套 **DSH 0.2.0-rc.2**，单包集成工作台与检索增强。
+> Abzu 0.0.58 配套 **DSH 0.2.0-rc.2**，单包集成工作台与检索增强。
 
 DSH 插件 `abzu`，包含工作台、11 个写作技能、10 个脚本入口（artifact-contract thinScripts 为单源），以及检索增强（`abzu/embeddings`、`abzu/scenes`、`abzu/reranking`）三个可选入口。
 要求 Node.js ^22.19.0 或 ^24.0.0，DSH 0.2.0-rc.2。许可证 GPL-3.0-only。
 
 ## 安装
 
-在 DSH 0.2.0-rc.2 桌面端侧栏打开“插件 → 添加插件”，选择本地构建的 tgz（或输入 `abzu@0.0.57`），核对后安装并应用变更。桌面端自带运行时，不需要另外安装 Node/pnpm。检索增强随主包一起安装，默认关闭。
+在 DSH 0.2.0-rc.2 桌面端侧栏打开“插件 → 添加插件”，选择本地构建的 tgz（或输入 `abzu@0.0.58`），核对后安装并应用变更。桌面端自带运行时，不需要另外安装 Node/pnpm。检索增强随主包一起安装，默认关闭。
 
 以下是创建独立 Web profile 的方式，不用于桌面端保留的 `desktop` profile：
 
 ```powershell
 dsh --profile abzu --from-default-profile web --dump-config
-dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.57.tgz
+dsh plugin --profile abzu add C:/abzu-dist/abzu-0.0.58.tgz
 dsh --profile abzu --host 127.0.0.1 --port 6104 --no-open
 ```
 
@@ -22,7 +22,7 @@ dsh --profile abzu --host 127.0.0.1 --port 6104 --no-open
 
 ## 更新与卸载
 
-先停止指定 profile 的运行实例，再安装目标精确版本并重启（本版为 `C:/abzu-dist/abzu-0.0.57.tgz`）。
+先停止指定 profile 的运行实例，再安装目标精确版本并重启（本版为 `C:/abzu-dist/abzu-0.0.58.tgz`）。
 卸载后可执行上面的安装命令重装：
 
 ```powershell
@@ -34,7 +34,7 @@ dsh --profile abzu --dump-config
 
 ## 文档与声明
 
-当前版本 0.0.57。产品流程与技术说明见源码仓库的 `docs/产品文档.md` 与 `docs/技术文档.md`。
+当前版本 0.0.58。产品流程与技术说明见源码仓库的 `docs/产品文档.md` 与 `docs/技术文档.md`。
 
 第三方组件的原始声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，许可证文本随包放在 licenses/。
 

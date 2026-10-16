@@ -9,12 +9,14 @@ import { REFERENCE_TOOL_NAMES } from '../src/reference/tools'
 import { readSkill, skillPath } from './skill-test-helpers'
 
 /**
- * 主控+节点+聚合技能（全生命周期 12 份——0.0.56 边界重划：拆出 novel-arcplan《卷幕规划》）。
+ * 主控+节点+聚合技能（全生命周期 13 份——0.0.56 边界重划拆出 novel-arcplan《卷幕规划》；
+ * 0.0.58 素材库批拆出 novel-forage《素材库与采风》）。
  * 目录名即 frontmatter name（Agent Skills 规范硬要求：name 必须与父目录名一致）。
  */
 const EXPECTED_SKILLS: ReadonlyArray<{ readonly name: string; readonly 中文名: string }> = [
   { name: 'novel-director', 中文名: '工作台总控' },
   { name: 'novel-inspiration', 中文名: '灵感与立项' },
+  { name: 'novel-forage', 中文名: '素材库与采风' },
   { name: 'novel-design', 中文名: '定调设计' },
   { name: 'novel-arcplan', 中文名: '卷幕规划' },
   { name: 'novel-outline', 中文名: '细纲备料' },
@@ -48,7 +50,7 @@ function readFrontmatter(text: string): Record<string, unknown> {
 }
 
 describe('聚合 skills 体系（常驻结构契约）', () => {
-  it('交付 12 份 SKILL.md，文件名一一对应', () => {
+  it('交付 13 份 SKILL.md，文件名一一对应', () => {
     for (const s of EXPECTED_SKILLS) {
       expect(fs.existsSync(skillPath(s.name)), `${s.name}/SKILL.md 应存在`).toBe(true)
     }
@@ -383,7 +385,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
   })
 
   it('frontmatter：全表 invocation 字段值锁定', () => {
-    // 11 份技能统一 false/false：模型可加载（director 路由可达）、无用户斜杠入口。
+    // 13 份技能统一 false/false：模型可加载（director 路由可达）、无用户斜杠入口。
     // 误改任一值会静默改变入口语义（技能变成自然语言触发或冒出斜杠命令），故整表锁定。
     for (const s of EXPECTED_SKILLS) {
       const fm = readFrontmatter(readSkill(s.name))

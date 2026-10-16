@@ -175,8 +175,8 @@ try {
   await check('随包技能发现、资源、覆盖优先级与卸载重载', async () => {
     const skills = () => service('skills').list({ cwd: workspace, scope: main })
     const names = (await skills()).map(skill => skill.name).sort()
-    // 0.0.56 边界重划：拆出 novel-arcplan《卷幕规划》，随包技能 11 → 12
-    assert.equal(names.length, 12)
+    // 0.0.56 边界重划：拆出 novel-arcplan《卷幕规划》，随包技能 11 → 12；0.0.58 素材库批拆出 novel-forage《素材库与采风》，12 → 13
+    assert.equal(names.length, 13)
     for (const name of names) {
       const skill = await service('skills').get(name, { cwd: workspace, scope: main })
       assert.equal(skill.provider, 'abzu-bundled')
