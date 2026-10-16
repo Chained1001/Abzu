@@ -359,6 +359,46 @@ describe('卷行确认门槛(任务21, B2)', () => {
     expect(scanDesignDetail(missing).分卷.各卷).toEqual([{ 卷号: 1, 状态: '缺失' }])
     expect(scanDesign(missing, 1).当前卷分配完整).toBe(false)
   })
+
+  it('0.0.51 开书流程批：故事阶段分配粗排到全书（卷01〔已确认〕＋卷02-卷08〔暂定〕）推导正常、当前卷仍是卷01', () => {
+    // 小节标题不带状态，每卷行各自标行级状态——多卷卷行全部被解析，远期〔暂定〕不算冲突
+    const root = mkLayoutBook([
+      '# 分卷布局', '',
+      '## 故事阶段分配', '',
+      '- 卷01：入门立足 〔已确认〕', '',
+      '- 卷02：初见势力 〔暂定〕', '',
+      '- 卷03：换图 〔暂定〕', '',
+      '- 卷04：宗门斗 〔暂定〕', '',
+      '- 卷05：朝堂线 〔暂定〕', '',
+      '- 卷06：旧敌回 〔暂定〕', '',
+      '- 卷07：真相近 〔暂定〕', '',
+      '- 卷08：终局 〔暂定〕', '',
+    ].join('\n'))
+    // 卷01 有就绪窗口——当前卷选择落到卷01
+    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/近期窗口.md'), '# 近期窗口\n\n- 开篇 〔已确认〕\n', 'utf-8')
+    // ①多个卷行都被解析
+    const allocs = parseVolumeAllocations(fs.readFileSync(path.join(root, '大纲/分卷布局.md'), 'utf-8'))
+    expect(allocs.map((a) => a.卷)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(allocs.find((a) => a.卷 === 1)).toMatchObject({ 行级状态: '已确认', 有效状态: '已确认' })
+    expect(allocs.filter((a) => a.卷 >= 2).every((a) => a.有效状态 === '暂定' && a.冲突 !== true)).toBe(true)
+    // ②〔暂定〕卷行不被当成「本卷」也不报冲突——设计面推导正常
+    const d = scanDesignDetail(root)
+    expect(d.分卷.各卷).toEqual([
+      { 卷号: 1, 状态: '已确认' },
+      { 卷号: 2, 状态: '暂定' },
+      { 卷号: 3, 状态: '暂定' },
+      { 卷号: 4, 状态: '暂定' },
+      { 卷号: 5, 状态: '暂定' },
+      { 卷号: 6, 状态: '暂定' },
+      { 卷号: 7, 状态: '暂定' },
+      { 卷号: 8, 状态: '暂定' },
+    ])
+    expect(scanDesign(root, 1).内容问题?.some((issue) => issue.问题 === '状态冲突')).toBeFalsy()
+    expect(scanDesign(root, 1).当前卷分配完整).toBe(true)
+    // ③当前卷仍是卷01（远期暂定卷不参与当前卷选择）
+    expect(selectCurrentVolume(root)).toMatchObject({ 卷: 1 })
+  })
 })
 
 describe('当前卷选择(任务21, B3 决策表15行)', () => {

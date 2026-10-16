@@ -257,11 +257,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(map).toContain('换图 SOP')
     expect(map).toContain('references/参考标尺.md')
     expect(map).toContain('人物、关系、地点、组织、规则、物件')
-    // B. design 条目起稿处模板列全（含路径 A 的计数行；0.0.26 流程首波批：世界书模板五→六，加局规则）
+    // B. design 条目起稿处模板列全（含路径 A 的计数行；0.0.26 流程首波批：世界书模板五→六，加局规则；0.0.51 开书流程批：六→七，加世界常量）
     const design = readSkill('novel-design')
     expect(design).toContain('[组织条目模板](templates/世界书/组织条目模板.md)')
     expect(design).toContain('[地图条目模板](templates/世界书/地图条目模板.md)')
-    expect(design).toContain('人物档案/世界规则/力量体系/组织/地图/局规则六份')
+    expect(design).toContain('人物档案/世界规则/力量体系/组织/地图/局规则/世界常量七份')
     // C. 规格模板拆位：三份存在＋规格细节在模板（表列/取数算式/四核对项）＋双 SKILL 各带一行引用
     const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
     expect(ladder).toContain('取数：参考标尺·固定层＋比例层×衰减×题材')
@@ -280,7 +280,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(sect).toContain('时间行')
     // D. 注册单源：artifact-contract 登记条目模板（世界书模板经名字数组拼路径；0.0.26 流程首波批：数组加局规则）＋三份规格模板
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
-    expect(contract).toContain("['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则']")
+    //（0.0.51 开书流程批：世界书模板数组加「世界常量」——六→七）
+    expect(contract).toContain("['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则', '世界常量']")
     for (const rel of [
       'skills/novel-design/templates/对手梯队子表规格.md',
       'skills/novel-design/templates/卷纲固定段规格.md',
@@ -416,18 +417,18 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(researcher).toContain('_待裁决_采风_')
     expect(researcher).toContain('_采风站点经验')
     expect(researcher).toContain('只采国内源')
-    // E. design SKILL 接线：确认前评审（可选）节＋书房/评审/＋待采风转《灵感与立项》＋步骤 3/4/6 各半句（节＋三处接线≥4 次命中）
+    // E. design SKILL 接线：确认前审查（0.0.51 起两席评审并入其第三部分）＋书房/评审/＋待采风转《灵感与立项》
     const design = readSkill('novel-design')
-    expect(design).toContain('确认前评审（可选）')
+    expect(design).toContain('**确认前审查**')
+    expect(design).toContain('③**两席评审的发现项（可选）**')
     expect(design).toContain('书房/评审/')
     expect(design).toContain('【待采风：查询词】')
     //（T4 编辑席实装批：评审两席→三席；0.0.48 写作范围清理：编辑席并入作家席，回到两席——断言随裁同步）
     expect(design).toContain('两席独立互不通气')
     expect(design).toContain('评审不是新门禁')
-    expect((design.match(/确认前评审（可选）/g) ?? []).length,
-      '「确认前评审（可选）」应≥4 次命中（节＋步骤 3/4/6 接线）').toBeGreaterThanOrEqual(4)
     expect(design).toContain('[作家评审](agents/作家评审.md)')
     expect(design).toContain('[读者评审](agents/读者评审.md)')
+    expect(design, '旧「确认前评审（可选）」节名应随确认前审查合并退役').not.toContain('确认前评审（可选）')
     // F. inspiration SKILL：灵感库八类（0.0.15 批内六→八扩容，升级批详断言见灵感库升级批）＋一类一册＋池库分工＋暂存与归档纪律＋Off-limits 放行采风子代理
     const inspiration = readSkill('novel-inspiration')
     for (const cat of ['历史事实', '文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '现实生活']) {
@@ -1125,7 +1126,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   })
 
   it('0.0.24 反推落地首批：钩型配比两层制＋双钩三列＋调剂行＋升级四件＋悼亡法双挂＋定格问号＋信息边界判据＋篇幅双模式', () => {
-    // A1 标尺行：追读力量化区「章末钩型配比」两层制——硬红线/参考区间/双书实测数（诡秘 62、大奉约 78，泄压 6.4%/5%——出处两书报告，区间并陈不平均）
+    // A1 标尺行：章节与卷节奏参照「章末钩型配比」两层制——硬红线/参考区间/双书实测数（诡秘 62、大奉约 78，泄压 6.4%/5%——出处两书报告，区间并陈不平均）
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     expect(scale).toContain('| 章末钩型配比 |')
     // 0.0.26 标尺 v0.5 批裁定同步：配比行改驱动类型分带后【待校准】前缀退役（两带均有五书实证），断言改钉两层制本体（分带详断言见 0.0.26 组）
@@ -1422,7 +1423,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('先在本章或邻章排一次闲笔式强化触点再兑现')
     // 注册单源：artifact-contract 登记局规则条目模板（经名字数组拼路径——完整数组断言在 0.0.14 模板拆出批 D 节，本组钉数组含「局规则」）
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
-    expect(contract).toContain("', '地图', '局规则']")
+    //（0.0.51 开书流程批：数组尾随「世界常量」）
+    expect(contract).toContain("', '地图', '局规则', '世界常量']")
   })
 
   it('0.0.26 独立审查修复批：C1/C2 口径修正＋R1-R4 必修＋O1-O2＋Nit——卷体量 3.5 倍口径/情感档 25-40/前传 4-83/泄压出处改引/单元循环型枚举/7:3 标注/对话上限 0.45/口径注与区间收敛＋v0.5-F 留痕', () => {
@@ -1963,14 +1965,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.50＋CHANGELOG 条目＋README×2（纪律统一批接力；0.0.50 起版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.51＋CHANGELOG 条目＋README×2（0.0.51 开书流程批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.50').toBe('0.0.50')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.50').toBe('0.0.50')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.50]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.51').toBe('0.0.51')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.51').toBe('0.0.51')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.51]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.50`).toContain('0.0.50')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.51`).toContain('0.0.51')
     }
   })
 
@@ -2310,7 +2312,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline, 'SKILL 判据行「章末钩相关判据」失实半句应清零').not.toContain('章末钩相关判据')
     expect(outline, 'SKILL 不应残留 §6.6→章末双钩失实绑定').not.toContain('§6.6（节奏密度怎么控）')
     expect(checks, '写前十查⑩判据延伸「章末留钩与钝收边界」失实半句应清零').not.toContain('章末留钩与钝收边界')
-    expect(checks).toContain('红线与配比区间取《定调设计》技能包 references/参考标尺.md 追读力量化区「章末钩型配比」行')
+    expect(checks).toContain('红线与配比区间取《定调设计》技能包 references/参考标尺.md 章节与卷节奏参照「章末钩型配比」行')
   })
 
   it('0.0.40 心智批·设计：D1-D8 调度索引化触发点八钉＋D5 首尾镜像合并＋追问句本体保留', () => {
@@ -2321,8 +2323,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const s4 = design.indexOf('4. **分卷布局**')
     const s5 = design.indexOf('5. **强制多方向**')
     const s6 = design.indexOf('6. **卷规划**')
-    const review = design.indexOf('**确认前评审（可选）**')
-    for (const [label, anchor] of [['步骤 2', s2], ['步骤 3', s3], ['步骤 4', s4], ['步骤 5', s5], ['步骤 6', s6], ['确认前评审', review]] as const) {
+    const review = design.indexOf('**确认前审查**')
+    const toolsSection = design.indexOf('## 工具')
+    for (const [label, anchor] of [['步骤 2', s2], ['步骤 3', s3], ['步骤 4', s4], ['步骤 5', s5], ['步骤 6', s6], ['确认前审查', review]] as const) {
       expect(anchor, `区锚 ${label} 应在位`).toBeGreaterThanOrEqual(0)
     }
     const inRegion = (pin: string, lo: number, hi: number, label: string) => {
@@ -2350,8 +2353,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     inRegion('**卷级交叉思考**（卷纲正文写完、确认工具调用前过一遍）', s6, review, 'D7 卷级交叉思考')
     inRegion('三线断档红线」行核对', s6, review, 'D7 三线断档标尺行核对')
     inRegion('越线必须重排，不得带病确认', s6, review, 'D7 越线重排句')
-    // D8 跨轨道自检→路径 B 五步聊完、写入前最后一道
-    inRegion('**跨轨道自检**（五步聊完、写入前最后一道', s5, s6, 'D8 跨轨道自检')
+    // D8 跨轨道自检→确认前审查第二部分（0.0.51 开书流程批：五轨自检并入确认前审查一次呈报）
+    inRegion('②**跨轨道自检错位项**：', review, toolsSection, 'D8 跨轨道自检')
+    inRegion('不错位则报告"五轨对齐"', review, toolsSection, 'D8 五轨对齐句')
     // B. D5 合并句钉：开端三问×结局两问同场对照；独立条目负断言（原为两处独立卡）
     expect(design).toContain('开端三问——为什么偏偏此刻发生（时机压力）？')
     expect(design).toContain('结局两问——让主角回到开头那一刻，他不会再做同样选择吗？')
@@ -2608,7 +2612,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     for (const stale of ['签约', '上架', '日更', '双更', '番茄', '运营', '## 校准计划', '## 变更记录', '留痕见变更记录']) {
       expect(scale, `参考标尺不应残留「${stale}」`).not.toContain(stale)
     }
-    expect(scale).toContain('｜确认前评审作家席「续航与体量」维逐行对标。')
+    expect(scale).toContain('｜确认前审查作家席「续航与体量」维逐行对标。')
     expect(scale).toContain('（绍宋 80 章/28.5 万慢热至 50 万位首高潮）')
     const techDoc = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '技术文档.md'), 'utf8')
     expect(techDoc).toContain('**参考标尺的校准沿革**')
@@ -2691,5 +2695,75 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     for (const [skill, file] of [['novel-design', 'references/开书-构思与验证.md'], ['novel-director', 'references/排障-长篇防崩.md'], ['novel-outline', 'references/章纲-场景与节奏.md']] as const) {
       expect(ref(skill, file), `${file} 净版戳应为 v2.4.7`).toContain('源版本 v2.4.7')
     }
+  })
+
+  it('0.0.51 开书流程批：参考标尺体量对账与四行＋升级点指针化＋确认前审查＋分卷粗排到全书＋路径 A 体量提示＋世界常量模板＋力量量级表与已展示锚点＋设计动机行', () => {
+    const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
+    const design = readSkill('novel-design')
+    const ref = (skill: string, file: string) => fs.readFileSync(skillFile(skill, file), 'utf8')
+    // A. 参考标尺：体量对账小节＋对账项＋两种用途说明
+    expect(scale).toContain('### 体量对账')
+    expect(scale).toContain('**本表两种用途**')
+    expect(scale).toContain('**体量规划**：取数速查表、固定层、比例层、衰减系数、题材修正')
+    expect(scale).toContain('**节奏红线与参照**：节奏基准、章节与卷节奏参照')
+    for (const item of ['主要人物（核心圈）', '支线', '贯穿伏笔', '大地图', '反派层级与小/中反派数', '关键事件', '续航线', '升级点', '势力与组织', '核心谜团', '卷数与单卷体量', '幕数（分卷粗排后估）']) {
+      expect(scale, `体量对账对账项应含「${item}」`).toContain(item)
+    }
+    expect(scale).toContain('低于建议下限的项必须「补足」或「写明理由」')
+    // B. 四条新体量行＋500 万以上待校准句
+    expect(scale).toContain('| 升级点 |')
+    expect(scale).toContain('约 50 个撑 300 万字、每点约 20 章')
+    expect(scale).toContain('个人经验值（单一作者，低置信）')
+    expect(scale).toContain('| 幕 |')
+    expect(scale).toContain('一幕约 10-30 章，一个完整剧情单元；一卷若干幕')
+    expect(scale).toContain('| 势力与组织 |')
+    expect(scale).toContain('每张大地图至少一方盘踞势力')
+    expect(scale).toContain('| 核心谜团与悬念线 |')
+    expect(scale).toContain('全书至少一条贯穿谜团（全书核心疑问），每卷至少一个卷级悬念')
+    expect(scale).toContain('**500 万字以上**：【待校准】——按 500 万字档计算并标注「超出校准范围」，不外推编造系数')
+    // C. 开书-读者与情绪定位：升级点数字已移出（指针化）
+    const reader = ref('novel-design', 'references/开书-读者与情绪定位.md')
+    expect(reader).not.toContain('50 个升级点')
+    expect(reader).not.toContain('20 章、6 万字')
+    expect(reader).not.toContain('300 万字不崩')
+    expect(reader).toContain('数量照《参考标尺》升级点行')
+    // D. design SKILL：体量对账落点路径＋确认前审查一次呈报四部分＋分卷粗排到全书＋路径 A 体量提示
+    expect(design).toContain('书房/开书/<书名>/设计草案/体量对账.md')
+    expect(design).toContain('**确认前审查**')
+    expect(design).toContain('①**体量对账表的不足项**')
+    expect(design).toContain('②**跨轨道自检错位项**')
+    expect(design).toContain('③**两席评审的发现项（可选）**')
+    expect(design).toContain('④**待改清单**')
+    expect(design).toContain('分卷粗排到全书')
+    expect(design).toContain('粗排时「故事阶段分配」小节标题不带状态')
+    expect(design).toContain('卷行一律用阿拉伯数字两位（卷01、卷12）')
+    expect(design).toContain('末附一行**体量提示**')
+    expect(design).toContain('预定篇幅约需 M 卷（按单卷体量行估）')
+    // E. 世界常量模板：存在＋五节在位
+    const constPath = skillFile('novel-design', 'templates/世界书/世界常量条目模板.md')
+    expect(fs.existsSync(constPath), '世界常量条目模板应存在').toBe(true)
+    const constTpl = fs.readFileSync(constPath, 'utf8')
+    expect(constTpl).toContain('frontmatter 照世界书既有约定')
+    expect(constTpl).toContain('留白合法')
+    for (const sec of ['## 时代基线', '## 风物速查', '## 称谓与礼制', '## 度量与物价', '## 技术水平']) {
+      expect(constTpl, `世界常量模板应含「${sec}」节`).toContain(sec)
+    }
+    expect(constTpl).toContain('在定稿沉淀时回写进本条目')
+    expect(design).toContain('[世界常量条目模板](templates/世界书/世界常量条目模板.md)')
+    // F. 力量体系模板：量级表＋同阶差距＋已展示锚点
+    const power = ref('novel-design', 'templates/世界书/力量体系条目模板.md')
+    expect(power).toContain('## 量级表')
+    expect(power).toContain('| 台阶 | 力量 | 速度 | 破坏范围 | 以一敌几 | 续航 | 感知范围 | 恢复 | 越阶代价 |')
+    expect(power).toContain('- 同阶差距：')
+    expect(power).toContain('## 已展示锚点')
+    expect(power).toContain('- 第N章｜<人物>｜<展示了什么>')
+    // G. 四份模板设计动机行
+    for (const name of ['世界规则', '力量体系', '组织', '地图']) {
+      expect(ref('novel-design', `templates/世界书/${name}条目模板.md`), `${name}条目模板应含设计动机行`)
+        .toContain('- 设计动机：<这个设定替故事解决什么问题')
+    }
+    // H. artifact-contract 登记世界常量模板
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract, 'artifact-contract 应登记世界常量模板').toContain("'世界常量'")
   })
 })
