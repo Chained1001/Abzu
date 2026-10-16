@@ -1993,14 +1993,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.58＋CHANGELOG 条目＋README×2（0.0.58 素材库批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.59＋CHANGELOG 条目＋README×2（0.0.59 标尺指针化批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.58').toBe('0.0.58')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.58').toBe('0.0.58')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.58]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.59').toBe('0.0.59')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.59').toBe('0.0.59')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.59]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.58`).toContain('0.0.58')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.59`).toContain('0.0.59')
     }
   })
 
@@ -3414,5 +3414,15 @@ describe('skills 批次防回退断言组·0.0.58 素材库批', () => {
     expect(contract).toContain("'skills/novel-forage/agents/采风检索.md'")
     expect(contract).toContain("'skills/novel-outline/references/桥段参照.md'")
     expect(contract).toContain("'skills/novel-forage/assets/灵感库种子/索引.md'")
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.59 标尺指针化批', () => {
+  it('0.0.59 标尺指针化批：判据件升级点容量线行数字改纯指针（数量与节奏照参考标尺）＋单源在参考标尺', () => {
+    const reader = fs.readFileSync(skillFile('novel-design', 'references/开书-读者与情绪定位.md'), 'utf8')
+    // A. 判据件第 196 行升级点容量线行：删「每点约 20 章」数字，改纯指针（0.0.59 指针化——数量与节奏都照参考标尺）
+    expect(reader).toContain('数量与节奏照《参考标尺》升级点行')
+    // B. 负钉：判据件不再含升级点数字（单源在 参考标尺.md 升级点行，数字钉由 0.0.51 组「约 50 个撑 300 万字、每点约 20 章」守）
+    expect(reader, '判据件不应残留「每点约 20 章」数字（单源在参考标尺）').not.toContain('每点约 20 章')
   })
 })
