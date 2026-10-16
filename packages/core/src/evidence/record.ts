@@ -52,6 +52,29 @@ export interface ReviewPlan {
   readonly 跳过?: ReadonlyArray<{ readonly 模块: string; readonly 理由: string }>
 }
 
+/**
+ * 润色承接(0.0.54 润色后移批):审核通过后,润色改字会让正文哈希与审读指纹失配,
+ * derive 会把审核证据判过期退回「审核」。本字段由 novel_record_polish 登记——
+ * 「当前稿是已审稿经润色的直接子稿、保真通过、确定性复核通过」,推导据此认可审核仍有效。
+ */
+export interface PolishCarryover {
+  readonly 状态: '已润色' | '已跳过'
+  /** 被审稿正文哈希(已跳过时＝稿哈希)。 */
+  readonly 父稿哈希: string
+  /** 当前稿正文哈希。 */
+  readonly 稿哈希: string
+  /** 当前稿按现行算法的审读指纹。 */
+  readonly 审读指纹: string
+  /** 当前稿仓内相对路径。 */
+  readonly 稿件: string
+  /** 已跳过时必填。 */
+  readonly 理由?: string
+  /** 已润色时:确定性复核中新出现的中/低级发现项(高级会拒绝承接)。 */
+  readonly 确定性复核?: readonly { readonly 模块名: string; readonly 严重程度: string; readonly 问题说明: string }[]
+  /** ISO 时间。 */
+  readonly 时间: string
+}
+
 export interface ReviewRecord {
   readonly schemaVersion: number
   readonly 完成: boolean
@@ -64,6 +87,8 @@ export interface ReviewRecord {
   readonly 审读指纹?: string
   /** 上轮已裁决的身份三元组；仅供尚未回写的模块认亲，不是当前稿发现项。 */
   readonly 待继承处置?: readonly ReviewDisposition[]
+  /** 润色承接(0.0.54):记录当前稿是已审稿经润色的子稿;缺省=旧记录,按未承接处理。 */
+  readonly 润色?: PolishCarryover
 }
 
 export type ReviewDisposition = Pick<Finding, '模块名' | '证据位置' | '问题说明' | '处置状态' | '处置说明' | '转交提案'>
@@ -171,6 +196,45 @@ export function normalizeFinding(raw: unknown): Finding | null {
   return asFinding(raw, false)
 }
 
+/**
+ * 润色承接解析(0.0.54):字段非法就整体丢弃该字段(返回 undefined),不让整份记录解析失败
+ * ——旧插件与手写记录里的残缺 `润色` 不得把审核记录打成 parse-error。
+ */
+function asPolishCarryover(raw: unknown): PolishCarryover | undefined {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const o = raw as Record<string, unknown>
+  const 状态 = o['状态']
+  if (状态 !== '已润色' && 状态 !== '已跳过') return undefined
+  const 父稿哈希 = o['父稿哈希']
+  const 稿哈希 = o['稿哈希']
+  const 审读指纹 = o['审读指纹']
+  const 稿件 = o['稿件']
+  const 时间 = o['时间']
+  if (typeof 父稿哈希 !== 'string' || typeof 稿哈希 !== 'string' || typeof 审读指纹 !== 'string') return undefined
+  if (typeof 稿件 !== 'string' || 稿件 === '' || typeof 时间 !== 'string' || 时间 === '') return undefined
+  const 理由 = typeof o['理由'] === 'string' ? o['理由'] : undefined
+  if (状态 === '已跳过' && (理由 === undefined || 理由.trim() === '')) return undefined
+  const 复核Raw = o['确定性复核']
+  const 确定性复核 = Array.isArray(复核Raw)
+    ? 复核Raw.flatMap((item) => {
+      if (item === null || typeof item !== 'object' || Array.isArray(item)) return []
+      const e = item as Record<string, unknown>
+      if (typeof e['模块名'] !== 'string' || typeof e['严重程度'] !== 'string' || typeof e['问题说明'] !== 'string') return []
+      return [{ 模块名: e['模块名'], 严重程度: e['严重程度'], 问题说明: e['问题说明'] }]
+    })
+    : undefined
+  return {
+    状态,
+    父稿哈希,
+    稿哈希,
+    审读指纹,
+    稿件,
+    ...(理由 === undefined ? {} : { 理由 }),
+    ...(确定性复核 === undefined ? {} : { 确定性复核 }),
+    时间,
+  }
+}
+
 export function loadReviewRecord(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): ReviewRecord | null {
   const text = readText(bookRoot, paths.审核记录(key.卷, key.章名))
   if (text === null) return null
@@ -235,6 +299,10 @@ export function parseReviewRecord(text: string): ReviewRecord {
     ...(typeof r.data['审稿哈希'] === 'string' ? { 审稿哈希: r.data['审稿哈希'] } : {}),
     ...(typeof r.data['审读指纹'] === 'string' ? { 审读指纹: r.data['审读指纹'] } : {}),
     ...(待继承处置.length === 0 ? {} : { 待继承处置 }),
+    ...(() => {
+      const 润色 = asPolishCarryover(r.data['润色'])
+      return 润色 === undefined ? {} : { 润色 }
+    })(),
   }
 }
 
@@ -255,6 +323,7 @@ export function serializeReviewRecord(record: ReviewRecord): string {
     ...(record.审稿哈希 === undefined ? {} : { 审稿哈希: record.审稿哈希 }),
     ...(record.审读指纹 === undefined ? {} : { 审读指纹: record.审读指纹 }),
     ...(record.方案 === undefined ? {} : { 方案: record.方案 }),
+    ...(record.润色 === undefined ? {} : { 润色: record.润色 }),
   }
   return serializeMachineJson(payload, MACHINE_SCHEMA_VERSION)
 }

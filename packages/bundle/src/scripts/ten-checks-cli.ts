@@ -10,7 +10,12 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { parseDocument, paths, queryLedger, type LedgerQueryResult } from '@abzu/core'
+import { parseDocument, paths, queryDueLedger, queryLedger, type LedgerQueryResult } from '@abzu/core'
+
+/** ③伏笔到期 三组成员项输出条数上限(每条一行,防止单章输出淹没)。 */
+const DUE_ROW_LIMIT = 12
+/** ④接钩:上一章定稿正文末段取长上限(按段落取,超长如实截断)。 */
+const PREV_TAIL_LIMIT = 240
 
 /** 虚词大字不计入内容双字——避免任意两段中文都撞出「一个／到了」式假命中。 */
 const FUNCTION_CHARS = new Set('的了是在和与就都也很个又一不没我你他她它这那及被把让向上下中出说到做去来还要'.split(''))
@@ -137,13 +142,121 @@ function readVolumeFile(book: string, 卷: number, kind: '章摘要' | '章细�
 
 /** 章摘要目录里章号小于目标章的最大一份；本卷没有回上一卷，再没有返回 null。 */
 function previousSummary(book: string, 卷: number, 章: number): { readonly file: string; readonly text: string } | null {
+  const found = previousChapter(book, 卷, 章)
+  return found === null ? null : { file: found.summaryFile, text: found.summaryBody }
+}
+
+interface PreviousChapter {
+  readonly 卷: number
+  readonly no: number
+  readonly 名: string
+  readonly summaryFile: string
+  readonly summaryBody: string
+}
+
+/** 上一章的定位（本卷取章号小于目标章的最大一份；本卷首章回上一卷末章）；没有返回 null。 */
+function previousChapter(book: string, 卷: number, 章: number): PreviousChapter | null {
   for (const vol of [卷, ...(卷 > 1 ? [卷 - 1] : [])]) {
     const last = chapterFiles(book, vol, '章摘要').filter(item => item.no < 章).at(-1)
     if (last === undefined) continue
     const text = readVolumeFile(book, vol, '章摘要', last.name)
-    if (text !== null) return { file: last.name, text: bodyOf(text) }
+    if (text === null) continue
+    return { 卷: vol, no: last.no, 名: last.name.replace(/^\d{4}-/, '').replace(/\.md$/i, ''), summaryFile: last.name, summaryBody: bodyOf(text) }
   }
   return null
+}
+
+/** ③伏笔到期:到期/逾期/区间不明三组机械列行(候选行,不是结论)。 */
+function dueRows(book: string, 卷: number, 章: number): Record<string, unknown> {
+  const due = queryDueLedger(book, { 卷, 章 })
+  // 三态与承诺账本同口径:queryLedger 对多本账本任一缺失即 ok:false,
+  // 但线索条目仍可能读进来了——按「线索.md 是否在读入文件里」判在读,再看 read 失败原因。
+  const ledger = queryLedger(book, { 分类: '线索' })
+  const 账本状态 = 承诺账本状态(ledger, paths.账本('线索'))
+  const row = (item: { readonly 名称: string; readonly 预期兑现区间: string; readonly 状态: string; readonly 超出幅度?: number }) =>
+    `${item.名称}｜预期兑现区间：${item.预期兑现区间 || '（未填）'}｜状态：${item.状态}${item.超出幅度 === undefined ? '' : `｜超出 ${item.超出幅度} 章`}`
+  const 到期 = due.到期.slice(0, DUE_ROW_LIMIT).map(row)
+  const 逾期 = due.逾期.slice(0, DUE_ROW_LIMIT).map(row)
+  const 区间不明 = due.区间不明.slice(0, DUE_ROW_LIMIT).map(row)
+  const 行: string[] = [
+    ...到期.map(line => `到期：${line}`),
+    ...逾期.map(line => `逾期：${line}`),
+    ...区间不明.map(line => `预期兑现区间无法解析：${line}`),
+  ]
+  if (行.length === 0) {
+    行.push(账本状态 === '已读' ? '无到期/逾期/区间不明线索（截至本章）' : `线索账本${账本状态}——到期线索无从核对，先处理账本`)
+  }
+  return {
+    账本状态,
+    到期条数: due.到期.length,
+    逾期条数: due.逾期.length,
+    区间不明条数: due.区间不明.length,
+    行,
+  }
+}
+
+/** ④接钩:上一章章摘要末行原文＋上一章定稿正文最后一段(按段落取,如实写缺)。 */
+function hookRows(book: string, 卷: number, 章: number): Record<string, unknown> {
+  const prev = previousChapter(book, 卷, 章)
+  if (prev === null) return { 上一章: null, 章摘要末行: null, 定稿末段: null, 行: ['无上章'] }
+  const summaryLines = prev.summaryBody.replace(/\r\n/g, '\n').split('\n').map(line => line.trim()).filter(line => line !== '')
+  const 末行 = summaryLines.at(-1) ?? null
+  // 定稿正文末段:路径 定稿/卷NN/NNNN-章名.md；取不到如实写缺(不必区分「未定稿」与「读不了」)
+  const 定稿文 = readBookFile(book, paths.定稿章(prev.卷, prev.no, prev.名))
+  let 定稿末段: string | null = null
+  if (定稿文 !== null) {
+    try {
+      const paras = bodyOf(定稿文).split(/\n\s*\n/).map(p => p.trim()).filter(p => p !== '')
+      定稿末段 = paras.length === 0 ? null : truncate(paras.at(-1)!, PREV_TAIL_LIMIT)
+    } catch { 定稿末段 = null }
+  }
+  const 行 = [
+    `上一章：卷${String(prev.卷).padStart(2, '0')} 第${prev.no}章（${prev.summaryFile}）`,
+    `章摘要末行：${末行 ?? '（缺）'}`,
+    `定稿末段：${定稿末段 ?? '（缺：上一章定稿正文未落或不可读）'}`,
+  ]
+  return { 上一章: prev.summaryFile, 章摘要末行: 末行, 定稿末段, 行 }
+}
+
+/** 从候选细纲叙事单元取「人物」字段里的人名(顿号/逗号/空格切分,去重保序)。 */
+function characterNames(units: string): string[] {
+  const names: string[] = []
+  const seen = new Set<string>()
+  for (const line of units.split('\n')) {
+    const m = /^\s*[-*]\s*人物\s*[：:]\s*(.*?)\s*$/.exec(line)
+    if (m === null) continue
+    for (const raw of m[1]!.split(/[、,，\s]+/)) {
+      const name = raw.trim()
+      if (name === '' || seen.has(name)) continue
+      seen.add(name)
+      names.push(name)
+    }
+  }
+  return names
+}
+
+/** 出场间隔:对候选单元里的人名,从近到远找本卷(不足回上一卷)已确认章细纲最近出现的章号。 */
+function appearanceRows(book: string, 卷: number, 章: number, candidate: OutlineDoc): Record<string, unknown> {
+  const names = characterNames(candidate.units)
+  if (names.length === 0) return { 行: ['候选细纲无「人物」字段——出场间隔无可取人名'] }
+  // 从近到远:本卷确认细纲(排除同章号旧版)降序,随后上一卷降序
+  const ordered: { readonly 卷: number; readonly no: number; readonly file: string }[] = []
+  for (const vol of [卷, ...(卷 > 1 ? [卷 - 1] : [])]) {
+    const items = chapterFiles(book, vol, '章细纲').filter(item => !(vol === 卷 && item.no === 章))
+    for (const item of [...items].reverse()) ordered.push({ 卷: vol, no: item.no, file: item.name })
+  }
+  const 行 = names.map(name => {
+    for (const item of ordered) {
+      const text = readVolumeFile(book, item.卷, '章细纲', item.file)
+      if (text === null) continue
+      const doc = readOutlineDoc(item.file, text)
+      if (!doc.units.includes(name)) continue
+      const 间隔 = 章 - item.no
+      return `${name}｜上次出场第${item.no}章｜间隔${间隔}章`
+    }
+    return `${name}｜本卷未出场`
+  })
+  return { 人名: names, 行 }
 }
 
 /** 本卷近五份确认细纲（新→旧），重入修订时同章号旧版不算近五章。 */
@@ -264,6 +377,9 @@ export function tenChecksCli(argv: readonly string[]): number {
     const report = {
       ok: true,
       候选: candidateRel,
+      '③伏笔到期': dueRows(book, 卷, 章),
+      '④接钩': hookRows(book, 卷, 章),
+      出场间隔: appearanceRows(book, 卷, 章, candidate),
       '⑥爽点铺垫': payoff,
       '⑧近五章重复': repeatRows(candidate, recentOutlines(book, 卷, 章)),
     }

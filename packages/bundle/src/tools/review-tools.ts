@@ -3,7 +3,7 @@
  */
 import { inheritNote, type NovelToolDefinition, type ToolShared } from './shared'
 import { deriveDesign, listResumable, listConfirmedEmpty, scanChapter, scanDesign, scanDesignDetail, selectCurrentVolume, searchFinalized, type IndexAction, indexFailure, type 处置状态 } from '@abzu/core'
-import { ingestFindings } from '@abzu/review'
+import { ingestFindings, recordPolish } from '@abzu/review'
 
 export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
   const { deps, resolveBook, chapterKeyOf } = shared
@@ -239,6 +239,71 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           }
         } catch (err) {
           return { ok: false, reason: `发现项回写失败: ${err instanceof Error ? err.message : String(err)}` }
+        }
+      },
+    },
+    {
+      name: 'novel_record_polish',
+      description: '审核通过后登记润色结果——润色稿须是被审稿的直接子稿（父版本指向被审稿、是当前唯一待审稿），工具核对保真与候选事实段并做确定性复核后记入润色承接，推导据此认可审核仍有效。作者稿或作者不要润色时传 跳过＋理由，登记跳过。润色后不要重跑确定性检查脚本（会重开审读轮）。草稿区不入 git，本工具不产生提交。',
+      parameters: {
+        type: 'object',
+        properties: {
+          bookId: { type: 'string', description: '书id（必填）' },
+          卷: { type: 'number', description: '卷号（如 1）' },
+          章: { type: 'number', description: '章号（全书连续，如 1）' },
+          章名: { type: 'string', description: '章名（如 第一章）' },
+          审核记录哈希: { type: 'string', description: '当前审核记录哈希（须与记录一致，不一致提示重取）' },
+          稿件: { type: 'string', description: '已润色时：润色终稿仓内相对路径（须是被审稿的直接子稿、当前唯一待审稿）' },
+          跳过: { type: 'boolean', description: '已跳过时传 true（作者稿或作者不要润色），须同时传 理由' },
+          理由: { type: 'string', description: '跳过润色的理由（跳过时必填）' },
+        },
+        required: ['bookId', '卷', '章', '章名'],
+      },
+      output: {
+        schema: {
+          type: 'object',
+          properties: {
+            ok: { type: 'boolean', description: '是否成功' },
+            状态: { type: 'string', enum: ['已润色', '已跳过'], description: '登记结果' },
+            稿件: { type: 'string', description: '当前稿仓内相对路径' },
+            审读指纹: { type: 'string', description: '当前稿按现行算法的审读指纹' },
+            确定性复核: { type: 'array', description: '已润色时：确定性复核中新出现的中/低级发现项（高级会拒绝承接）' },
+            审核记录哈希: { type: 'string', description: '登记后的新审核记录哈希' },
+            message: { type: 'string', description: '结果说明' },
+            reason: { type: 'string', description: '失败原因' },
+          },
+          required: ['ok'],
+        },
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+      },
+      execute: (args, sessionContext) => {
+        const book = resolveBook(args, sessionContext)
+        if (!book.ok) return book
+        const keyResult = chapterKeyOf(args)
+        if (!keyResult.ok) return keyResult
+        try {
+          const r = recordPolish(book.bookRoot, {
+            ...keyResult.key,
+            ...(typeof args['审核记录哈希'] === 'string' ? { 审核记录哈希: args['审核记录哈希'] } : {}),
+            ...(typeof args['稿件'] === 'string' ? { 稿件: args['稿件'] } : {}),
+            ...(args['跳过'] === true ? { 跳过: true } : {}),
+            ...(typeof args['理由'] === 'string' ? { 理由: args['理由'] } : {}),
+          })
+          if (!r.ok) return { ok: false, reason: r.reason }
+          const 复核 = r.润色.确定性复核 ?? []
+          return {
+            ok: true,
+            状态: r.润色.状态,
+            稿件: r.润色.稿件,
+            审读指纹: r.润色.审读指纹,
+            ...(复核.length === 0 ? {} : { 确定性复核: 复核 }),
+            审核记录哈希: r.审核记录哈希,
+            message: r.润色.状态 === '已跳过'
+              ? `已登记跳过润色：${r.润色.稿件}（理由：${r.润色.理由 ?? ''}）。审核证据视为承接有效，可进入《定稿沉淀》。`
+              : `已登记润色承接：${r.润色.稿件}。保真与候选事实段核对通过，确定性复核${复核.length === 0 ? '无新增发现项' : `新增 ${复核.length} 条中/低级发现项（已记入记录）`}。不要重跑确定性检查脚本（会重开审读轮），可进入《定稿沉淀》。`,
+          }
+        } catch (err) {
+          return { ok: false, reason: `润色承接登记失败: ${err instanceof Error ? err.message : String(err)}` }
         }
       },
     },

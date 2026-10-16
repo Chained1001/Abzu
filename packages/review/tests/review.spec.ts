@@ -148,7 +148,7 @@ describe('审核检查项库', () => {
     expect(loaded.问题.some((p) => p.问题说明.includes('综上所述') && p.处置 === '待处理')).toBe(true)
   })
 
-  it('clean text + 硬约束 present → 完成 true, 问题 empty → derive 定稿准备与沉淀', () => {
+  it('clean text + 硬约束 present → 完成 true, 问题 empty → derive 润色（0.0.54 审核通过后先润色）', () => {
     const root = mkBook()
     confirmWithHard(root)
     assembleMaterials(root, key)
@@ -161,7 +161,7 @@ describe('审核检查项库', () => {
     expect(loaded.完成).toBe(true)
     expect(loaded.问题).toEqual([])
     expect(isNoFindingReview(loaded)).toBe(true)
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
   })
 
   it('确定性检查重跑不丢失先前回写的语义发现项', () => {
@@ -258,7 +258,7 @@ describe('审核检查项库', () => {
       范围: '草稿区/草稿',
     })
     expect(kept.ok).toBe(true)
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
 
     const again = runReview(root, key)
     expect(again.ok).toBe(true)
@@ -266,7 +266,7 @@ describe('审核检查项库', () => {
     const same = again.record!.问题.find((p) => p.问题说明.includes('综上所述'))
     expect(same?.处置).toBe('作者保留')
     expect(same?.处置状态).toBe('作者保留')
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
   })
 
   it('正文改掉后重跑，消失的发现项不再出现，新发现项仍是待处理', () => {
@@ -312,7 +312,7 @@ describe('审核检查项库', () => {
     expect(loadReviewRecord(root, key)?.完成).toBe(true)
     // 留痕保留，但不参与判定
     expect(r.record?.模块['节奏检查']).toMatchObject({ 完成: false, 失败: true })
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
   })
 
   it('本轮模块失败仍然压住 完成', () => {

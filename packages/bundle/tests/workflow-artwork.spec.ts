@@ -46,8 +46,8 @@ describe('选定的 Archify 流程与运行投影', () => {
     const display = workflowDisplay(view([failed, retry]), 12)
     expect(display.nodes.find(n => n.id === 'revision')).toMatchObject({ state: 'running', activeCount: 1 })
     expect(callsForNode(display.calls, 'revision')).toHaveLength(2)
-    expect(workflowNodeForCall(call('p', 12, 'running', 'polish'))).toBe('draft')
-    expect(callsForNode([call('p', 12, 'running', 'polish')], 'draft')[0]?.stage).toBe('polish')
+    expect(workflowNodeForCall(call('p', 12, 'running', 'polish'))).toBe('package')
+    expect(callsForNode([call('p', 12, 'running', 'polish')], 'package')[0]?.stage).toBe('polish')
   })
   it('真实等待归作者裁决，执行结果归入档；不从成功调用伪造本章完成', () => {
     const waiting = call('s', 12, 'waiting', 'confirm')
@@ -68,7 +68,7 @@ describe('选定的 Archify 流程与运行投影', () => {
     expect(display.nodes.find(n => n.id === 'review')?.state).toBe('unknown')
   })
   it('全部章节有并行动作时保留数量，未知操作不会点亮某个写作工序', () => {
-    const display = workflowDisplay(view([call('a', 12, 'running', 'draft'), call('b', 13, 'running', 'polish'), call('c', 14, 'running', undefined, 8)]), 0)
+    const display = workflowDisplay(view([call('a', 12, 'running', 'draft'), call('b', 13, 'running', 'draft', 3), call('c', 14, 'running', undefined, 8)]), 0)
     expect(display.nodes.find(n => n.id === 'draft')).toMatchObject({ activeCount: 2, label: '2 项 · 进行中' })
     expect(display.currentNode).toBeUndefined()
     expect(workflowNodeForCall(call('v', 0, 'running', 'volume'))).toBe('design')

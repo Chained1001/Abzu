@@ -6,7 +6,8 @@ function facts(over: Partial<ChapterFacts> = {}): ChapterFacts {
   return {
     key: { 卷: 1, 章: 1, 章名: '初见' },
     窗口就绪: false, 候选细纲: false, 确认细纲: false, 材料包状态: null,
-    有草稿: false, 唯一待审稿: false, 有审核记录: false, 审核完成: false,
+    有草稿: false, 唯一待审稿: false, 有审核记录: false, 审核完成: false, 审核证据过期: false,
+    润色已承接: false,
     待定稿包完整: false, 裁决: null, 已定稿: false, 需复核标记: [],
     ...over,
   }
@@ -41,22 +42,25 @@ describe('§8 扫描事实项清单(R1:逐行如实报告+可选建议,无权威
     expect(row(d, 4)).toBe(true)
     expect(d.建议).toEqual({ row: 4, 环节: '写稿' })
   })
-  it('行5 有草稿无待审→建议润色', () => {
-    expect(deriveChapterFacts(facts({ 有草稿: true })).建议).toEqual({ row: 5, 环节: '润色' })
+  it('行5 唯一待审稿→建议审核(0.0.54:有草稿不再对应环节行)', () => {
+    expect(deriveChapterFacts(facts({ 唯一待审稿: true })).建议).toEqual({ row: 5, 环节: '审核' })
   })
-  it('行6 唯一待审稿→建议审核', () => {
-    expect(deriveChapterFacts(facts({ 唯一待审稿: true })).建议).toEqual({ row: 6, 环节: '审核' })
+  it('行6 有审核记录未过期→建议改稿', () => {
+    expect(deriveChapterFacts(facts({ 有审核记录: true })).建议).toEqual({ row: 6, 环节: '改稿' })
   })
-  it('行7 有审核记录未处置→建议改稿', () => {
-    expect(deriveChapterFacts(facts({ 有审核记录: true })).建议).toEqual({ row: 7, 环节: '改稿' })
-  })
-  it('行8 审核完成无包→建议定稿准备与沉淀', () => {
+  it('行7 审核完成且未承接润色→建议润色', () => {
     const d = deriveChapterFacts(facts({ 有审核记录: true, 审核完成: true }))
+    expect(row(d, 7)).toBe(true)
+    expect(d.建议).toEqual({ row: 7, 环节: '润色' })
+  })
+  it('行8 审核完成且润色已承接无包→建议定稿准备与沉淀', () => {
+    const d = deriveChapterFacts(facts({ 有审核记录: true, 审核完成: true, 润色已承接: true }))
+    expect(row(d, 7)).toBe(false)
     expect(row(d, 8)).toBe(true)
     expect(d.建议).toEqual({ row: 8, 环节: '定稿准备与沉淀' })
   })
   it('行9 包完整无裁决→建议作者定稿裁决(控制点)', () => {
-    const d = deriveChapterFacts(facts({ 审核完成: true, 待定稿包完整: true }))
+    const d = deriveChapterFacts(facts({ 审核完成: true, 润色已承接: true, 待定稿包完整: true }))
     expect(d.建议).toEqual({ row: 9, 环节: '作者定稿裁决' })
   })
   it('行10 已批准未入档:行9/行10 同时成立,建议取行10', () => {
@@ -69,11 +73,11 @@ describe('§8 扫描事实项清单(R1:逐行如实报告+可选建议,无权威
     expect(deriveChapterFacts(facts({ 已定稿: true })).建议).toEqual({ row: 11, 环节: '完成' })
   })
 
-  it('退回:包完整但已退回→行9/行10 不成立,建议回落改稿(行 7)', () => {
-    const d = deriveChapterFacts(facts({ 审核完成: true, 待定稿包完整: true, 裁决: '已退回', 有审核记录: true }))
+  it('退回:包完整但已退回→行9/行10 不成立,建议回落改稿(行 6)', () => {
+    const d = deriveChapterFacts(facts({ 审核完成: true, 润色已承接: true, 待定稿包完整: true, 裁决: '已退回', 有审核记录: true }))
     expect(row(d, 9)).toBe(false)
     expect(row(d, 10)).toBe(false)
-    expect(d.建议).toEqual({ row: 7, 环节: '改稿' })
+    expect(d.建议).toEqual({ row: 6, 环节: '改稿' })
   })
   it('叠加标记:需复核随结果返回,不影响事实与建议', () => {
     const d = deriveChapterFacts(facts({ 窗口就绪: true, 需复核标记: ['细纲'] }))

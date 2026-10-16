@@ -22,7 +22,7 @@ export const toolStages: Readonly<Record<string, WorkflowStage>> = {
   novel_create_book: 'idea', novel_update_contract: 'design', novel_confirm_worldbook_entry: 'design',
   novel_update_skeleton: 'skeleton', novel_update_volume_layout: 'volumes', novel_confirm_volume_outline: 'volume', novel_roll_window: 'volume',
   novel_new_outline_draft: 'outline', novel_confirm_outline: 'outline', novel_assemble_materials: 'materials',
-  novel_import_draft: 'draft', novel_record_review_findings: 'review', novel_apply_revision: 'revise', novel_apply_revision_batch: 'revise',
+  novel_import_draft: 'draft', novel_record_review_findings: 'review', novel_record_polish: 'polish', novel_apply_revision: 'revise', novel_apply_revision_batch: 'revise',
   novel_prepare_pack: 'settle', novel_settle_chapter: 'confirm',
 }
 export interface WorkflowCall {

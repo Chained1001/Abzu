@@ -17,5 +17,6 @@ export {
   type ReviewPlan,
   type ReviewRecord,
   type ReviewDisposition,
+  type PolishCarryover,
   type 处置状态,
 } from './record'

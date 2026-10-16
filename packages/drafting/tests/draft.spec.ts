@@ -56,7 +56,7 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(fs.existsSync(path.join(root, '草稿区/草稿/卷01-开篇任务/稿1.md'))).toBe(true)
   })
 
-  it('after assemble + writeDraft → derive 润色 (有草稿, no 待审稿)', () => {
+  it('after assemble + writeDraft → derive 审核 (起草收稿即待审稿, 0.0.54)', () => {
     const root = mkBook()
     confirmReady(root)
     const assembled = assembleMaterials(root, key)
@@ -65,12 +65,28 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(r.ok).toBe(true)
     expect(r.relPath).toBe('草稿区/草稿/卷01-开篇任务/稿1.md')
     const text = fs.readFileSync(path.join(root, r.relPath), 'utf-8')
-    expect(text).not.toMatch(/角色:\s*待审稿/)
+    expect(text).toMatch(/角色:\s*待审稿/)
     expect(text).toMatch(/选定:\s*true/)
     const facts = scanChapter(root, key)
     expect(facts.有草稿).toBe(true)
-    expect(facts.唯一待审稿).toBe(false)
-    expect(deriveChapterFacts(facts).建议.环节).toBe('润色')
+    expect(facts.唯一待审稿).toBe(true)
+    expect(deriveChapterFacts(facts).建议.环节).toBe('审核')
+  })
+
+  it('重写稿先降级旧待审稿再写新稿,任一时刻待审稿唯一', () => {
+    const root = mkBook()
+    const first = writeDraft(root, { ...key, body: '第一稿。' })
+    expect(first.ok).toBe(true)
+    const second = writeDraft(root, { ...key, body: '第二稿。' })
+    expect(second.ok).toBe(true)
+    const facts = scanChapter(root, key)
+    expect(facts.唯一待审稿).toBe(true)
+    const drafts = fs.readdirSync(path.join(root, '草稿区/草稿/卷01-开篇任务'))
+    const pending = drafts.filter((f) => {
+      const doc = parseDocument(fs.readFileSync(path.join(root, '草稿区/草稿/卷01-开篇任务', f), 'utf-8'))
+      return doc.ok && doc.data.fields['角色'] === '待审稿'
+    })
+    expect(pending).toEqual(['稿2.md'])
   })
 
   it('context loader does not include 审核 files', () => {

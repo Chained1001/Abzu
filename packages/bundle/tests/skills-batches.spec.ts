@@ -1011,9 +1011,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(review).toContain('| 信号（发现类型/严重度） | 动作（返回节点或主控动作） | 停止条件（修完的可检验状态） |')
     expect(review).toContain('不写「改好为止」式空话')
     expect(review).toContain('篇幅类发现项按上方「篇幅处置建议分级」走')
-    for (const node of ['| 润色 |', '| 改稿 |', '| 细纲 |', '| 备料 |', '| 沉淀（账本更正） |', '| 作者裁决（主控动作，非返回节点） |']) {
+    for (const node of ['| 改稿 |', '| 细纲 |', '| 备料 |', '| 沉淀（账本更正） |', '| 作者裁决（主控动作，非返回节点） |']) {
       expect(review, `处置三列表应覆盖处置行「${node}」`).toContain(node)
     }
+    // 0.0.54 润色后移：表达层行不再返回「润色」节点，改「留润色」纯处置批（由润色一并处理）
+    expect(review, '表达层处置行应改「留润色」口径').toContain('改动说明写『留润色』（纯处置批），由润色一并处理')
     // E. 两席评审报告：主问题行（总评前）＋问题清单 ★ 标＋复评回归句；互指纪律不变
     const writer = fs.readFileSync(skillFile('novel-design', 'agents/作家评审.md'), 'utf8')
     for (const [label, text] of [['作家评审', writer], ['读者评审', reader]] as const) {
@@ -1047,7 +1049,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle, 'novel-settle/SKILL.md: 末行纪律口径应与沉淀对账一致').toContain('语态样本不得占末行')
     expect(reconcile, 'novel-settle/agents/沉淀对账.md: 末行纪律口径应与 settle SKILL 一致').toContain('末行位留给章末状态')
     const checksTenQian = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
-    expect(checksTenQian, 'novel-outline/agents/写前十查.md ④接钩预检应是章末状态末行的消费位').toContain('末行＋上一章定稿末段')
+    expect(checksTenQian, 'novel-outline/agents/写前十查.md ④接钩预检应是章末状态末行的消费位（0.0.54 起先读十查机械④行）').toContain('上一章章摘要末行')
+    expect(checksTenQian).toContain('上一章定稿正文最后一段')
     // 对撞③ 七件文件名：settle SKILL 落盘七件列表 vs core/src/prepare/pack.ts 待定稿包七件逐字（强化既有 contains 级断言）
     const packLine = settle.split('\n').find((l) => l.includes('落盘七件到'))
     expect(packLine, 'novel-settle/SKILL.md 应有「落盘七件到」列表行').toBeDefined()
@@ -1121,10 +1124,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     let controllerRows = 0
     for (const row of tableRows) {
       const action = row.split('|')[2]!.trim()
-      if (action.includes('主控动作')) { controllerRows += 1; continue }
+      // 0.0.54 润色后移：表达层行改「留润色」纯处置批（主控记处置、由润色一并处理），同为非返回节点行
+      if (action.includes('主控动作') || action.includes('留润色')) { controllerRows += 1; continue }
       expect(nodeEnum, `三列表动作列对撞失败：「${action}」不在 agents/全量审读.md 建议返回节点枚举 ${JSON.stringify(nodeEnum)} 内`).toContain(action)
     }
-    expect(controllerRows, '三列表对撞：主控动作行应恰一行（作者裁决），且须带非返回节点标注').toBe(1)
+    expect(controllerRows, '三列表对撞：主控动作/留润色行应恰两行（作者裁决＋0.0.54 表达层留润色），且须带非返回节点标注').toBe(2)
     expect(reviewSkill.slice(tableStart, tableEnd), '三列表对撞：主控动作行的停止条件应引用步骤 6 六值单源（无法判断不算；0.0.30 枚举加已转提案）').toContain('六值之一')
   })
 
@@ -1982,14 +1986,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.53＋CHANGELOG 条目＋README×2（0.0.53 知识库 v2.8 集成批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.54＋CHANGELOG 条目＋README×2（0.0.54 润色后移批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.53').toBe('0.0.53')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.53').toBe('0.0.53')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.53]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.54').toBe('0.0.54')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.54').toBe('0.0.54')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.54]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.53`).toContain('0.0.53')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.54`).toContain('0.0.54')
     }
   })
 
@@ -2114,7 +2118,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     expect(checks, '写前十查⑥应改脚本化口径').toContain('机械部分先跑 `node <resourceBase>/scripts/十查机械.mjs')
     expect(checks, '写前十查⑧应改脚本化口径').toContain('机械部分跑同一次 `node <resourceBase>/scripts/十查机械.mjs`')
-    expect(checks).toContain('一次输出⑥⑧两查的机械结果')
+    expect(checks).toContain('一次输出③④⑥⑧四查的机械结果')
     expect(checks).toContain('机械行是候选不是结论')
     expect(checks, '旧口径「机械比对由你做」应清零').not.toContain('机械比对由你做')
     expect(fs.existsSync(skillFile('novel-outline', 'scripts/十查机械.mjs')), 'novel-outline/scripts/十查机械.mjs 薄入口应存在').toBe(true)
@@ -2436,8 +2440,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(polish).toContain('**待作者裁决项**')
     expect(polish).toContain('**转审读项**（对白毛边不足、事实疑点对不上候选事实段、人设/逻辑/节奏一类内容问题，只记不改）')
     expect(polish).toContain('累计删减近两成即收手，剩余删除候选保留＋标注呈作者')
-    // E. 停机条件三句：作者手改稿不跑（现行句对齐钉）＋定向单批只扫相关维度＋文风未定不编造
-    expect(polish).toContain('的待审稿都不主动派，作者点名要润色才派')
+    // E. 停机条件三句：作者手改稿不跑（0.0.54 起对齐「作者稿默认不润色」句）＋定向单批只扫相关维度＋文风未定不编造
+    expect(polish).toContain('作者稿默认不润色')
+    expect(polish).toContain('作者点名要润色才派')
     expect(polish).toContain('定向单批时润色心智的弱段定位扫描只扫该节相关维度，重点段清单不越节')
     expect(reshape).toContain('基准缺书级内容时按「未定」处理,不编造特征——改写与接缝核只对照原稿存量语态判')
   })
@@ -3025,6 +3030,65 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       for (const b of banned) {
         expect(text, `${path.relative(skillsRoot, f)}: 不应含未收录内容「${b}」`).not.toContain(b)
       }
+    }
+  })
+  it('0.0.54 润色后移批：director 路由顺序与 novel_record_polish＋drafting 首稿待审稿＋polish「审核通过后」与承接＋review 表达层「留润色」＋settle 前置句＋写前十查③④读脚本', () => {
+    // A. director：章节面路由表按新推导顺序（审核→改稿→润色），润色行经 novel_record_polish 承接/跳过
+    const director = readSkill('novel-director')
+    const chapterTable = director.slice(director.indexOf('章节面：'), director.indexOf('## 提交纪律'))
+    const 审核At = chapterTable.indexOf('| 审核 |')
+    const 改稿At = chapterTable.indexOf('| 改稿 |')
+    const 润色At = chapterTable.indexOf('| 润色 |')
+    expect(审核At, '章节面表应有 审核 行').toBeGreaterThan(-1)
+    expect(改稿At, '章节面表应有 改稿 行').toBeGreaterThan(-1)
+    expect(润色At, '章节面表应有 润色 行').toBeGreaterThan(-1)
+    expect(审核At, '审核行应在改稿行之前').toBeLessThan(改稿At)
+    expect(改稿At, '改稿行应在润色行之前').toBeLessThan(润色At)
+    expect(chapterTable).toContain('novel_record_polish')
+    expect(chapterTable).toContain('审核通过后润色')
+    // 章内接续：机械步骤改为 备料 → 起草 → 审读 → 润色
+    expect(director).toContain('备料 → 起草 → 审读 → 润色')
+    // 子代理交接表润色行补「审核通过的待审稿」
+    expect(director).toContain('审核通过的待审稿')
+    // B. drafting：首稿 角色: 待审稿、选定: true；播报进入《全面审读》；作者稿角色新语义
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('`角色: 待审稿`、`生成模块: 写稿`、`版本: 1`')
+    expect(drafting).toContain('初稿完成，进入《全面审读》')
+    expect(drafting).toContain('交审传 `角色: 待审稿`（默认用法），作者暂存不等交审传 `角色: 草稿`')
+    expect(drafting).toContain('缺 `角色` 的稿到不了审核位')
+    // C. polish：审核通过后使用＋取源＝当前唯一待审稿＋第 5 步登记承接＋作者稿默认不润色登记跳过
+    const polish = readSkill('novel-polish')
+    expect(polish).toContain('审核通过后使用')
+    expect(polish).toContain('当前唯一待审稿')
+    expect(polish).toContain('novel_record_polish')
+    expect(polish).toContain('作者稿默认不润色')
+    expect(polish).toContain('承接登记成功后播报进入《定稿沉淀》')
+    expect(polish, 'polish 不应再播报进入《全面审读》').not.toContain('润色完成播报进入《全面审读》')
+    // D. review：表达层发现项留润色＋标准流程末尾进入《精修润色》
+    const review = readSkill('novel-review')
+    expect(review).toContain('留润色')
+    expect(review).toContain('审核完成后进入《精修润色》')
+    // 审读底本「建议返回节点」行里的「润色」保留（意为留给润色）
+    expect(fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')).toContain('润色 / 改稿 / 细纲 / 备料 / 沉淀（账本更正）/ 吃书补偿呈报')
+    // E. revision 第 5 步末进入《精修润色》
+    expect(readSkill('novel-revision')).toContain('审核完成后进入《精修润色》')
+    // F. settle 组包前置补「审核完成且润色已承接（或已登记跳过）」
+    expect(readSkill('novel-settle')).toContain('审核完成、润色已承接或已登记跳过')
+    // G. 写前十查③④两条改为先读脚本输出行
+    const tenChecks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    expect(tenChecks).toContain('③伏笔到期')
+    expect(tenChecks).toContain('④接钩')
+    expect(tenChecks).toContain('出场间隔')
+    expect(tenChecks).toContain('幕纲固定段规格.md 备料自查第 1 项')
+    // H. 全 skills 不再出现旧播报句（润色后移后旧口径清零）
+    const skillsRoot = path.join(__dirname, '..', 'skills')
+    const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
+      .flatMap((e) => (e.isDirectory() ? walkMd(path.join(dir, e.name)) : [path.join(dir, e.name)]))
+      .filter((f) => f.endsWith('.md'))
+    for (const f of walkMd(skillsRoot)) {
+      const text = fs.readFileSync(f, 'utf8')
+      expect(text, `${path.relative(skillsRoot, f)}: 不应再含旧播报「初稿完成，进入《精修润色》」`).not.toContain('初稿完成，进入《精修润色》')
+      expect(text, `${path.relative(skillsRoot, f)}: 不应再含旧播报「润色完成播报进入《全面审读》」`).not.toContain('润色完成播报进入《全面审读》')
     }
   })
 })

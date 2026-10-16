@@ -359,6 +359,9 @@ importers:
       '@abzu/core':
         specifier: workspace:*
         version: link:../core
+      '@abzu/polish':
+        specifier: workspace:*
+        version: link:../polish
       '@deepseek-ai/cordis':
         specifier: 4.0.4
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)

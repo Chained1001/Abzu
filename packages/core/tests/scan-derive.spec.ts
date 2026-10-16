@@ -45,9 +45,11 @@ describe('扫描器→推导端到端(真实文件树)', () => {
     put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('写稿')
 
-    // 草稿
-    put(root, '草稿区/草稿/卷01-初见/稿1.md', md({ 状态: '候选' }, '第一章正文'))
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
+    // 草稿（0.0.54 起草收稿即待审稿；此处造一份 角色: 草稿 的非交审稿——停在写稿并叠加核对标记）
+    put(root, '草稿区/草稿/卷01-初见/稿1.md', md({ 角色: '草稿' }, '第一章正文'))
+    const 有草稿无待审 = deriveChapterFacts(scanChapter(root, key))
+    expect(有草稿无待审.建议.环节).toBe('写稿')
+    expect(有草稿无待审.叠加标记).toContain('有草稿但无唯一待审稿→核对稿件角色')
 
     // 唯一待审稿
     put(root, '草稿区/草稿/卷01-初见/稿1.md', md({ 角色: '待审稿' }, '第一章正文'))
@@ -66,9 +68,17 @@ describe('扫描器→推导端到端(真实文件树)', () => {
     put(root, '草稿区/审核/卷01-初见.json', JSON.stringify({ schemaVersion: 1, 完成: true, ...binding, 问题: [{ 处置: '' }] }))
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('改稿')
 
-    // 处置齐→定稿准备
+    // 处置齐但未登记润色承接→润色（0.0.54 润色后移：审核通过后先润色）
     put(root, '草稿区/审核/卷01-初见.json', JSON.stringify({ schemaVersion: 1, 完成: true, ...binding, 问题: [{ 处置: '已解决' }], 模块: { 文本规范检查: { 完成: true, 失败: false } } }))
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
+
+    // 登记跳过润色（承接）→定稿准备
+    const skippedBody = draftBody
+    put(root, '草稿区/审核/卷01-初见.json', JSON.stringify({ schemaVersion: 1, 完成: true, ...binding, 问题: [{ 处置: '已解决' }], 模块: { 文本规范检查: { 完成: true, 失败: false } },
+      润色: { 状态: '已跳过', 父稿哈希: draftHashOf(skippedBody), 稿哈希: draftHashOf(skippedBody), 审读指纹: binding.审读指纹, 稿件: '草稿区/草稿/卷01-初见/稿1.md', 理由: '作者稿', 时间: '2026-10-16T00:00:00.000Z' } }))
+    const 承接 = scanChapter(root, key)
+    expect(承接.润色已承接).toBe(true)
+    expect(deriveChapterFacts(承接).建议.环节).toBe('定稿准备与沉淀')
 
     // 待定稿包七件+清单
     for (const f of ['正文.md', '事实变更.md', '时间线变更.md', '账本变更.md', '章摘要.md', '卷对账.md', '本书层记忆候选.md']) {
@@ -162,7 +172,9 @@ describe('审核记录口径与 review 写侧对齐(M1/M2/M6)', () => {
     }))
     const scan = scanChapter(b.root, key)
     expect(scan.审核完成).toBe(true)
-    expect(deriveChapterFacts(scan).建议.环节).toBe('定稿准备与沉淀')
+    // 0.0.54：审核完成后先润色（未登记承接→行 7 润色），不再直接进定稿准备
+    expect(scan.润色已承接).toBe(false)
+    expect(deriveChapterFacts(scan).建议.环节).toBe('润色')
   })
 
   it('M2:方案带规范化外字段时,derive 指纹与 review 写侧一致(共用 parseReviewRecord)', () => {

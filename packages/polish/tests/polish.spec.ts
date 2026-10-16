@@ -102,7 +102,7 @@ describe('去AI痕迹润色', () => {
     expect(r.角色).toBe('待审稿')
   })
 
-  it('硬约束 deleted → 保真风险, 角色 not 待审稿, derive still 润色', () => {
+  it('硬约束 deleted → 保真风险, 角色 not 待审稿', () => {
     const root = mkBook()
     readyDraft(root, `${HARD}。雨停了。`)
     const draftRel = '草稿区/草稿/卷01-开篇任务/稿1.md'
@@ -115,7 +115,8 @@ describe('去AI痕迹润色', () => {
     expect(r.角色).not.toBe('待审稿')
     const doc = parseDocument(fs.readFileSync(path.join(root, r.relPath), 'utf-8'))
     expect(doc.ok && doc.data.fields['角色']).not.toBe('待审稿')
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
+    // 0.0.54:润色改字后原待审稿降级、新稿未标待审稿 → 推导停在审核(唯一待审稿不再成立)
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('审核')
   })
 
   it('clean polish → 角色 待审稿, derive 审核', () => {    const root = mkBook()

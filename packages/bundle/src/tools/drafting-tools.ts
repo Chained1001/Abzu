@@ -11,7 +11,7 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
   return [
     {
       name: 'novel_import_draft',
-      description: '作者稿导入：把作者亲手写的整章或改过的版本落为草稿区新一稿，与 AI 稿地位相同（生成模块留痕 作者手写/作者手改）。未要求润色的作者稿显式传 角色: 待审稿；作者要求润色才传 角色: 草稿。润色、改稿节点贴作者改过的版本用 角色: 待审稿（旧待审稿自动降级，父版本指向被改的稿）。',
+      description: '作者稿导入：把作者亲手写的整章或改过的版本落为草稿区新一稿，与 AI 稿地位相同（生成模块留痕 作者手写/作者手改）。角色: 待审稿＝交审（默认用法，旧待审稿自动降级，父版本指向被改的稿）；角色: 草稿＝作者暂存、还不交审。',
       parameters: {
         type: 'object',
         properties: {
@@ -21,7 +21,7 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
           章名: { type: 'string', description: '章名（如 第一章）' },
           正文: { type: 'string', description: '作者稿全文（可带「## 草稿候选事实」段）' },
           候选事实: { type: 'array', items: { type: 'string' }, description: '候选事实（可选，逐条）' },
-          角色: { type: 'string', enum: ['草稿', '待审稿'], description: '草稿＝写稿节点导入；待审稿＝润色/改稿节点替代导入' },
+          角色: { type: 'string', enum: ['草稿', '待审稿'], description: '待审稿＝交审（默认用法，替代当前待审稿）；草稿＝作者暂存、还不交审' },
           生成模块: { type: 'string', enum: ['作者手写', '作者手改'], description: '整章自写＝作者手写；在某稿基础上改＝作者手改（可选；缺省按 作者手写 留痕——与实现的缺省口径一致，P2-2 schema 过查修正）' },
           父版本: { type: 'number', description: '作者手改时指向被改稿的版本（可选；缺省取该章最新版本）' },
         },
@@ -80,7 +80,7 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
             ok: true,
             relPath: res.relPath,
             ...(res.播报 === undefined ? {} : { 播报: res.播报 }),
-            message: `作者稿已导入：${res.relPath}（生成模块 ${生成模块}，角色 ${角色}）。要跳过润色就传「角色: 待审稿」。${snapshotNote(snap)}`,
+            message: `作者稿已导入：${res.relPath}（生成模块 ${生成模块}，角色 ${角色}）。${角色 === '待审稿' ? '已交审：该稿为当前唯一待审稿，可进入《全面审读》。' : '作者暂存：不交审，待作者要求交审时再以 角色: 待审稿 导入。'}${snapshotNote(snap)}`,
           }
         } catch (err) {
           return { ok: false, reason: `作者稿导入失败: ${err instanceof Error ? err.message : String(err)}` }

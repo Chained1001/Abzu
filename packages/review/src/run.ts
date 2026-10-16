@@ -234,6 +234,8 @@ export function computeReview(bookRoot: string, key: ReviewKey): RunReviewResult
     审稿哈希,
     审读指纹,
     待继承处置: remainingDispositions(existing, stale, new Set([...deterministicNames, ...skips.keys()])),
+    // 0.0.54:重开审读轮(指纹陈旧)后旧润色承接作废——新证据须重新润色并重新登记承接。
+    ...(stale || existing.润色 === undefined ? {} : { 润色: existing.润色 }),
   }
   const 正文统计: ReviewProseStats = {
     稿件: pending.relPath,
@@ -342,6 +344,8 @@ function ingestFindingsLocked(
     模块,
     ...(authorOpinion ? {} : { 审稿哈希: inputIdentity.bodyHash, 审读指纹: inputIdentity.fingerprint }),
     待继承处置: remainingDispositions(existing, resetting, new Set([模块名])),
+    // 0.0.54:重开审读轮后旧润色承接作废(新一轮审读后需要重新润色);作者意见回写不动它。
+    ...(resetting ? { 润色: undefined } : {}),
   }
   writeReviewRecord(bookRoot, key, record)
   return { ok: true, record, 待回写模块 }

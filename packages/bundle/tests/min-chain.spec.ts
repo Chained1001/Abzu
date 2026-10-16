@@ -7,6 +7,7 @@ import {
   assembleMaterials,
   confirmOutline,
   deriveChapterFacts,
+  loadReviewRecord,
   preparePack,
   scanChapter,
   seedMinDesign,
@@ -14,7 +15,7 @@ import {
 } from '@abzu/core'
 import { writeDraft } from '@abzu/drafting'
 import { polishDraft } from '@abzu/polish'
-import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
+import { ingestFindings, recordPolish, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 
 const roots: string[] = []
 afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
@@ -23,73 +24,73 @@ const key = { 卷: 1, 章: 1, 章名: '开篇任务' } as const
 const refs = ['作品契约/契约.md@1', '世界书/人物档案/主角.md@1'] as const
 const HARD = '开场必须点名主角现身'
 
-describe('最小链 e2e', () => {
-  it('seedMinDesign → confirm → assemble → writeDraft → polish → review → preparePack → 作者定稿裁决', () => {
+function outlineBody(): string {
+  return [
+    '# 章细纲',
+    '',
+    '## 定位段',
+    '',
+    '### 来源窗口项及拆并关系',
+    '开篇任务，单章承接',
+    '',
+    '### 章节功能',
+    '',
+    `- 〔硬〕${HARD}`,
+    '',
+    '### 视角与焦点',
+    '主角视角',
+    '',
+    '### 时空锚定',
+    '城门口，清晨',
+    '',
+    '### 起止边界',
+    '从抵达城门到发现异状',
+    '',
+    '### 故事线与承诺分配',
+    '推进主线承诺',
+    '',
+    '### 信息边界',
+    '只披露主角所见',
+    '',
+    '### 情绪与节奏目标',
+    '紧张后留钩子',
+    '',
+    '### 前置条件核对结果',
+    '已核对来源与窗口，前置设定均非留白',
+    '',
+    '## 细纲段',
+    '',
+    '### 单元 1',
+    '',
+    '- 目标: 开场',
+    '- 人物: 主角',
+    '- 时空: 城门口',
+    '- 行动/冲突: 盘问与发现',
+    '- 信息披露: 异常线索',
+    '- 状态变化: 从平静到警觉',
+    '',
+  ].join('\n')
+}
+
+describe('最小链 e2e（0.0.54 新序：起草 → 审读 ⇄ 改稿 → 润色 → 承接 → 组包 → 裁决）', () => {
+  it('seedMinDesign → confirm → assemble → writeDraft(待审稿) → review → polish → recordPolish → preparePack → 作者定稿裁决', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-minchain-'))
     roots.push(root)
     seedMinDesign(root)
 
-    const body = [
-      '# 章细纲',
-      '',
-      '## 定位段',
-      '',
-      '### 来源窗口项及拆并关系',
-      '开篇任务，单章承接',
-      '',
-      '### 章节功能',
-      '',
-      `- 〔硬〕${HARD}`,
-      '',
-      '### 视角与焦点',
-      '主角视角',
-      '',
-      '### 时空锚定',
-      '城门口，清晨',
-      '',
-      '### 起止边界',
-      '从抵达城门到发现异状',
-      '',
-      '### 故事线与承诺分配',
-      '推进主线承诺',
-      '',
-      '### 信息边界',
-      '只披露主角所见',
-      '',
-      '### 情绪与节奏目标',
-      '紧张后留钩子',
-      '',
-      '### 前置条件核对结果',
-      '已核对来源与窗口，前置设定均非留白',
-      '',
-      '## 细纲段',
-      '',
-      '### 单元 1',
-      '',
-      '- 目标: 开场',
-      '- 人物: 主角',
-      '- 时空: 城门口',
-      '- 行动/冲突: 盘问与发现',
-      '- 信息披露: 异常线索',
-      '- 状态变化: 从平静到警觉',
-      '',
-    ].join('\n')
-    writeCandidate(root, { 卷: 1, 章: 1, 章名: '开篇任务', 来源引用: refs, body })
+    writeCandidate(root, { 卷: 1, 章: 1, 章名: '开篇任务', 来源引用: refs, body: outlineBody() })
     expect(confirmOutline(root, key)).toEqual({ ok: true })
     expect(assembleMaterials(root, key).ok).toBe(true)
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('写稿')
 
+    // 起草收稿即待审稿 → 直接进审核
     const drafted = writeDraft(root, {
       ...key,
       body: `巷口风大。${HARD}。他没有回头。`,
       选定: true,
     })
     expect(drafted.ok).toBe(true)
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
-
-    const polished = polishDraft(root, key)
-    expect(polished.ok).toBe(true)
-    expect(polished.角色).toBe('待审稿')
+    expect(scanChapter(root, key).唯一待审稿).toBe(true)
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('审核')
 
     resetChecks()
@@ -115,7 +116,17 @@ describe('最小链 e2e', () => {
         expect(applied.ok).toBe(true)
       }
     }
-    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
+    // 审核通过但未承接润色 → 停在润色位
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
+
+    // 润色：被审稿之上产终稿（同一正文，规则润色不删硬约束）
+    const polished = polishDraft(root, key)
+    expect(polished.ok).toBe(true)
+    expect(polished.角色).toBe('待审稿')
+    // 登记润色承接：保真通过、确定性复核无新增高级发现 → 承接成功
+    const carried = recordPolish(root, { ...key, 稿件: polished.relPath, 审核记录哈希: scanChapter(root, key).审核记录哈希 })
+    expect(carried.ok).toBe(true)
+    expect(loadReviewRecord(root, key)?.润色?.状态).toBe('已润色')
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
 
     expect(preparePack(root, key).ok).toBe(true)

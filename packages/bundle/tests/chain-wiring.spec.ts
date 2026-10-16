@@ -5,9 +5,9 @@ import * as path from 'node:path'
 import * as os from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { createNovelTools } from '../src/novel-tools'
-import { computeReview, listChecks, registerDefaultChecks } from '@abzu/review'
+import { computeReview, listChecks, registerDefaultChecks, runReview } from '@abzu/review'
 import { nativeWriteStub } from './fixtures/native-write-stub'
-import { paths, serializeDocument, writeBookMemory } from '@abzu/core'
+import { deriveChapterFacts, loadReviewRecord, paths, scanChapter, serializeDocument, writeBookMemory } from '@abzu/core'
 
 const roots: string[] = []
 function mkWs(): string {
@@ -225,6 +225,80 @@ describe('运行链路接线(工具面验收)', () => {
     expect(reset.待回写模块).toEqual(all.slice(1))
     expect(reset.待继承处置数).toBe(1)
     expect(reset.message).toContain('上一轮已给处置 1 条暂存待继承')
+  })
+
+  it('0.0.54 润色承接：novel_record_polish 正例（审核通过→润色子稿→登记承接）与反例（未完成/非直接子稿/跳过缺理由/哈希不符）', async () => {
+    const ws = mkWs()
+    const { call } = makeTools(ws)
+    // 只用最小设计种子（writeReadyDesign 的卷纲无「开篇任务」小节，备料会判段有缺）
+    const created = await call('novel_create_book', { bookName: '链路书', concept: CONCEPT })
+    expect(created.ok).toBe(true)
+    const bookId = (created as { bookId: string }).bookId
+    await call('novel_select_book', { bookId })
+    expect((await call('novel_seed_min_design', { bookId })).ok).toBe(true)
+    const bookRoot = path.join(ws, '链路书')
+    const key = { 卷: 1, 章: 1, 章名: '开篇任务' }
+
+    // 细纲确认 → 备料 → 起草收稿即待审稿（稿1）
+    expect((await call('novel_new_outline_draft', { bookId, ...key, 正文: candidateBody(), 来源引用: ['作品契约/契约.md@1', '世界书/人物档案/主角.md@1'] })).ok).toBe(true)
+    expect((await call('novel_confirm_outline', { bookId, ...key })).ok).toBe(true)
+    const assembled = await call('novel_assemble_materials', { bookId, ...key })
+    expect(assembled.ok, JSON.stringify(assembled)).toBe(true)
+    const HARD = '开场必须点名主角现身'
+    const draftDir = path.join(bookRoot, '草稿区/草稿/卷01-开篇任务')
+    fs.mkdirSync(draftDir, { recursive: true })
+    fs.writeFileSync(path.join(draftDir, '稿1.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 1, 生成模块: '写稿' }, `巷口风大。${HARD}。他没有回头。`), 'utf-8')
+
+    // 反例一：审核未完成（确定性已跑、语义模块未回写）→ 拒
+    const reviewed = runReview(bookRoot, key)
+    expect(reviewed.ok, JSON.stringify(reviewed)).toBe(true)
+    const fingerprint = reviewed.record!.审读指纹
+    const early = await call('novel_record_polish', { bookId, ...key, 跳过: true, 理由: 'x' })
+    expect(early.ok).toBe(false)
+    expect(String(early.reason)).toMatch(/审核未完成/)
+
+    // 回写全部隔离子 Agent 模块（零发现项），确定性发现项（如篇幅）经纯处置批全部处置
+    for (const name of listChecks().filter((c) => c.执行形态 === '隔离子 Agent').map((c) => c.名称)) {
+      const r = await call('novel_record_review_findings', { bookId, ...key, 模块名: name, 发现项: [], 审读指纹: fingerprint })
+      expect(r.ok, name).toBe(true)
+    }
+    const pendingIds = (loadReviewRecord(bookRoot, key)?.问题 ?? [])
+      .filter((p) => p.处置状态 === undefined || p.处置状态 === '待处理')
+      .map((p) => p.发现项编号)
+    if (pendingIds.length > 0) {
+      const disposed = await call('novel_apply_revision_batch', { bookId, ...key, 审核记录哈希: scanChapter(bookRoot, key).审核记录哈希, 处置: pendingIds.map((id) => ({ 发现项编号: id, 处置: '作者保留' })) })
+      expect(disposed.ok, JSON.stringify(disposed)).toBe(true)
+    }
+    expect(scanChapter(bookRoot, key).审核完成).toBe(true)
+
+    // 反例二：跳过缺理由 → 拒
+    const noReason = await call('novel_record_polish', { bookId, ...key, 跳过: true })
+    expect(noReason.ok).toBe(false)
+    expect(String(noReason.reason)).toMatch(/理由/)
+
+    // 反例三：审核记录哈希不符 → 拒
+    const staleHash = await call('novel_record_polish', { bookId, ...key, 跳过: true, 理由: 'x', 审核记录哈希: 'f'.repeat(64) })
+    expect(staleHash.ok).toBe(false)
+    expect(String(staleHash.reason)).toMatch(/审核记录已变化/)
+
+    // 润色：旧待审稿降级，产新待审稿（硬约束句原样保留＝保真通过）
+    fs.writeFileSync(path.join(draftDir, '稿1.md'), serializeDocument({ 角色: '草稿', 选定: false, 版本: 1, 生成模块: '写稿' }, `巷口风大。${HARD}。他没有回头。`), 'utf-8')
+    fs.writeFileSync(path.join(draftDir, '稿2.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 2, 父版本: 99, 生成模块: '润色' }, `巷口的风很急。${HARD}。他没有回头看一眼。`), 'utf-8')
+
+    // 反例四：润色稿不是被审稿的直接子稿（父版本不符）→ 拒
+    const indirect = await call('novel_record_polish', { bookId, ...key, 稿件: '草稿区/草稿/卷01-开篇任务/稿2.md' })
+    expect(indirect.ok).toBe(false)
+    expect(String(indirect.reason)).toMatch(/直接子稿/)
+
+    // 正例：父版本指向被审稿 → 登记承接成功，推导进入定稿准备
+    fs.writeFileSync(path.join(draftDir, '稿2.md'), serializeDocument({ 角色: '待审稿', 选定: true, 版本: 2, 父版本: 1, 生成模块: '润色' }, `巷口的风很急。${HARD}。他没有回头看一眼。`), 'utf-8')
+    const carried = await call('novel_record_polish', { bookId, ...key, 稿件: '草稿区/草稿/卷01-开篇任务/稿2.md', 审核记录哈希: scanChapter(bookRoot, key).审核记录哈希 })
+    expect(carried.ok, JSON.stringify(carried)).toBe(true)
+    expect(carried.状态).toBe('已润色')
+    expect(String(carried.message)).toContain('定稿沉淀')
+    const facts = scanChapter(bookRoot, key)
+    expect(facts.润色已承接).toBe(true)
+    expect(deriveChapterFacts(facts).建议.环节).toBe('定稿准备与沉淀')
   })
 
   it('0.0.50 偏离处置改记本书层记忆·决策:决策条目提到偏离项名即扣减未决偏离', async () => {

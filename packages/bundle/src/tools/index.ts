@@ -18,6 +18,7 @@
  * - novel_apply_revision_batch: 处置批落实（改稿主路：一次写新稿并回写全部处置）
  * - novel_import_draft: 作者稿导入（作者手写/作者手改，与 AI 稿地位相同）
  * - novel_record_review_findings: 隔离子 Agent 发现项回写（堵空审通过；「作者意见」模块同此通道）
+ * - novel_record_polish: 审核通过后登记润色承接/跳过（0.0.54 润色后移批）
  * - novel_record_proposal / novel_resolve_proposal: 提案登记（acquisition）与裁决回写（S4）
  * - novel_apply_retcon: 吃书补偿执行（emission，必过作者裁决；retcon: 提交＋补偿事件留痕，S4）
  * - novel_editor_suggest: 回复书房编辑器请求，只把结果交回编辑器，不写文件
@@ -69,6 +70,7 @@ export const NOVEL_TOOL_NAMES: readonly string[] = [
   'novel_apply_revision_batch',
   'novel_import_draft',
   'novel_record_review_findings',
+  'novel_record_polish',
   'novel_record_proposal',
   'novel_resolve_proposal',
   'novel_apply_retcon',
@@ -137,7 +139,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
     'novel_update_skeleton', 'novel_update_volume_layout', 'novel_roll_window',
     'novel_confirm_worldbook_entry', 'novel_confirm_volume_outline',
     'novel_assemble_materials', 'novel_apply_revision', 'novel_apply_revision_batch',
-    'novel_import_draft', 'novel_record_review_findings', 'novel_record_proposal',
+    'novel_import_draft', 'novel_record_review_findings', 'novel_record_polish', 'novel_record_proposal',
     'novel_resolve_proposal', 'novel_note_pending',
   ])
   const nativeTools = NATIVE_DESIGN_TOOLS

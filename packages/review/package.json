@@ -9,7 +9,8 @@
     "test": "vitest --root ../.. run packages/review/tests"
   },
   "dependencies": {
-    "@abzu/core": "workspace:*"
+    "@abzu/core": "workspace:*",
+    "@abzu/polish": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

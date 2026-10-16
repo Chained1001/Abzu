@@ -19,7 +19,7 @@ import {
   writeFileAtomic,
   writeCandidate,
 } from '@abzu/core'
-import { ingestFindings, planReview, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
+import { ingestFindings, planReview, recordPolish, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 import { removeSync } from '../../core/src/repo/remove'
 
 const roots: string[] = []
@@ -111,7 +111,7 @@ function putPending(root: string, body: string, file = '稿1.md'): void {
 }
 
 describe('改稿最小 + 定稿准备', () => {
-  it('applyRevision 产出新一版待审稿，原稿降级留档 → derive 定稿准备', () => {
+  it('applyRevision 产出新一版待审稿，原稿降级留档 → 审核→润色→（登记承接）定稿准备', () => {
     const root = mkDir('abzu-revise-')
     confirmWithHard(root)
     assembleMaterials(root, key)
@@ -156,6 +156,10 @@ describe('改稿最小 + 定稿准备', () => {
         expect(d.ok).toBe(true)
       }
     }
+    // 0.0.54 润色后移：处置齐＝审核通过，但未登记润色承接 → 停在润色位
+    expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('润色')
+    // 登记跳过润色承接后 → 定稿准备与沉淀
+    expect(recordPolish(root, { ...key, 跳过: true, 理由: '作者稿不润色' }).ok).toBe(true)
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
   })
 

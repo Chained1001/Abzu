@@ -72,7 +72,7 @@ function snapshot(directory: string): Record<string, string> {
   return result
 }
 
-describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', () => {
+describe('写前十查机械脚本（③伏笔到期＋④接钩＋出场间隔＋⑥爽点铺垫＋⑧近五章重复）', () => {
   it('⑥逐爽点位对账进行中承诺与上章摘要，⑧机械比对近五份确认细纲，全程零写盘', () => {
     const { book } = fixture()
     const before = snapshot(book)
@@ -92,6 +92,54 @@ describe('写前十查机械脚本（⑥爽点铺垫＋⑧近五章重复）', (
     expect(repeatRows.some(row => row.startsWith('转折同款：反转｜0004-第四章.md'))).toBe(true)
     expect(repeatRows.filter(row => row.includes('0001') || row.includes('0002') || row.includes('0003'))).toHaveLength(0)
     expect(snapshot(book)).toEqual(before)
+  })
+
+  it('③伏笔到期列到期/逾期/区间不明三组（含超出幅度），④接钩取上章章摘要末行与定稿末段', () => {
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'ten-checks-cli-')); roots.push(ws)
+    const book = path.join(ws, 'book')
+    const write = (rel: string, text: string) => {
+      fs.mkdirSync(path.join(book, ...rel.split('/').slice(0, -1)), { recursive: true })
+      fs.writeFileSync(path.join(book, ...rel.split('/')), text)
+    }
+    write('草稿区/章细纲/卷01-第五章.md', `---\n状态: 候选\n---\n${outlineBody('反转揭半留半', ['- 目标: 摆平刁难', '- 人物: 林昭、苏婉', '- 行动/冲突: 当众对质', '- 状态变化: 打脸成功'])}`)
+    write('账本/线索.md', [
+      '# 线索', '',
+      '## 纸鹤', '状态：已埋', '计划来源：卷纲#4', '埋设点：第1章', '预期兑现区间：第3-4章', '',
+      '## 怪格式线', '状态：已示', '计划来源：卷纲#7', '埋设点：第1章', '预期兑现区间：大约年底', '',
+    ].join('\n'))
+    write('大纲/卷规划/卷01/章摘要/0004-第四章.md', '# 章摘要\n\n林昭夜行押镖，识破调包计。\n\n语态样本：风过檐铃。\n\n章末状态：林昭转身望向院门。')
+    write('定稿/卷01/0004-第四章.md', `---\n状态: 已定稿\n---\n# 第四章\n\n第一段内容。\n\n第二段是末段，收在林昭回望。`)
+    write('大纲/卷规划/卷01/章细纲/0003-第三章.md', `---\n状态: 已确认\n---\n${outlineBody('逐级升压', ['- 人物: 林昭', '- 行动/冲突: 演武场立威', '- 状态变化: 声望起'])}`)
+    const { code, data } = invoke(['--book', book, '--卷', '1', '--章', '5', '--章名', '第五章'])
+    expect(code).toBe(0)
+    // ③：纸鹤第3-4章到期，第5章已逾期（超出1章）；怪格式线进区间不明
+    expect(data['③伏笔到期']).toMatchObject({ 账本状态: '已读', 到期条数: 1, 逾期条数: 1, 区间不明条数: 1 })
+    const dueLines: string[] = data['③伏笔到期'].行
+    expect(dueLines.some(row => row.startsWith('到期：纸鹤') && row.includes('预期兑现区间：第3-4章'))).toBe(true)
+    expect(dueLines.some(row => row.startsWith('逾期：纸鹤') && row.includes('超出 1 章'))).toBe(true)
+    expect(dueLines.some(row => row.startsWith('预期兑现区间无法解析：怪格式线'))).toBe(true)
+    // ④：上一章章摘要末行原文＋定稿末段
+    expect(data['④接钩'].上一章).toBe('0004-第四章.md')
+    expect(data['④接钩'].章摘要末行).toBe('章末状态：林昭转身望向院门。')
+    expect(data['④接钩'].定稿末段).toBe('第二段是末段，收在林昭回望。')
+    // 出场间隔：林昭第3章出场（间隔2章）、苏婉本卷未出场
+    const appearanceRows: string[] = data.出场间隔.行
+    expect(appearanceRows).toContain('林昭｜上次出场第3章｜间隔2章')
+    expect(appearanceRows).toContain('苏婉｜本卷未出场')
+  })
+
+  it('首章无上章：④接钩写「无上章」，③与出场间隔如实空过', () => {
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'ten-checks-cli-')); roots.push(ws)
+    const book = path.join(ws, 'book')
+    fs.mkdirSync(path.join(book, '草稿区', '章细纲'), { recursive: true })
+    fs.writeFileSync(path.join(book, '草稿区', '章细纲', '卷01-开篇.md'), `---\n状态: 候选\n---\n${outlineBody('危机开场', ['- 人物: 阿禾', '- 行动/冲突: 雨夜逃生', '- 状态变化: 入城'])}`)
+    const { code, data } = invoke(['--book', book, '--卷', '1', '--章', '1', '--章名', '开篇'])
+    expect(code).toBe(0)
+    expect(data['④接钩'].上一章).toBeNull()
+    expect(data['④接钩'].行).toEqual(['无上章'])
+    expect(data['③伏笔到期'].账本状态).toBe('未建账')
+    expect(data['③伏笔到期'].行.some((row: string) => row.includes('线索账本未建账'))).toBe(true)
+    expect(data.出场间隔.行).toContain('阿禾｜本卷未出场')
   })
 
   it('无账本与无确认细纲的新书如实报缺不编造，比对序列为空', () => {

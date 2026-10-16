@@ -15,3 +15,4 @@ export {
   文本规范检查名,
 } from './checks'
 export { computeReview, ingestFindings, planReview, recordAuthorFinding, runReview, type ReviewKey, type RunReviewResult, type ReviewProseStats } from './run'
+export { recordPolish, loadPolishCarryover, type RecordPolishInput, type RecordPolishResult } from './polish'

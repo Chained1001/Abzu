@@ -161,20 +161,19 @@ function writeDraftLocked(bookRoot: string, input: WriteDraftInput): WriteDraftR
   const ver = parent === null ? initialVersion('写稿') : bumpVersion(parent, '写稿')
   const file = nextFileName(bookRoot, key)
   const relPath = path.posix.join(draftDir(key), file)
+  // 0.0.54 起草收稿即待审稿:起草子代理产出与作者稿一样直接交审,不再等润色标待审稿。
+  // 重写稿先降级旧待审稿再写新稿(与改稿同一纪律),保证任一时刻待审稿唯一。
+  demoteOtherPendingDrafts(bookRoot, key, relPath)
   const fields = applyVersionFields(
     {
       身份: { 卷: input.卷, 章: input.章, 章名: input.章名 },
-      角色: '草稿',
-      选定: input.选定 === true,
+      角色: '待审稿',
+      选定: true,
     },
     ver,
   )
   writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(prose, facts), 草稿字段序))
 
-  if (input.选定 === true) {
-    const sel = selectDraft(bookRoot, { 卷: input.卷, 章名: input.章名, file })
-    if (!sel.ok) return { ok: false, relPath, gaps: [sel.reason ?? '选定失败'] }
-  }
   return { ok: true, relPath, gaps: [], 播报 }
 }
 
