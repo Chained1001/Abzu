@@ -431,8 +431,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('确认前评审（可选）')
     expect(design).toContain('书房/评审/')
     expect(design).toContain('【待采风：查询词】')
-    //（T4 编辑席实装批：评审两席→三席——断言随裁同步）
-    expect(design).toContain('三席独立互不通气')
+    //（T4 编辑席实装批：评审两席→三席；0.0.48 写作范围清理：编辑席并入作家席，回到两席——断言随裁同步）
+    expect(design).toContain('两席独立互不通气')
     expect(design).toContain('评审不是新门禁')
     expect((design.match(/确认前评审（可选）/g) ?? []).length,
       '「确认前评审（可选）」应≥4 次命中（节＋步骤 3/4/6 接线）').toBeGreaterThanOrEqual(4)
@@ -978,12 +978,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // A. 取数算式行协议串全称化后在位，旧串清零
     expect(ladder).toContain('取数：参考标尺·固定层＋比例层×衰减×题材')
     expect(ladder).not.toContain('取数：标尺·')
-    // C. 参考标尺.md 内部自指全称化（未校准标注×2＋卡是法句＋校准流程＋下一轮校准）
+    // C. 参考标尺.md 内部自指全称化（未校准标注×2＋卡是法句＋校准流程；「下一轮校准」句随 0.0.48 校准计划节移出退役）
     //    （0.0.25 批裁定同步：每章字数行改 3500 基准后「卡是法参考标尺是默认」句废止，改钉新句「快节奏短章型须作者显式下调才可用」——作者裁定压过校准默认）
     expect(scale).toContain('该题材参考标尺未校准')
     expect(scale).toContain('快节奏短章型须作者显式下调才可用')
     expect(scale).toContain('待参考标尺校准流程定')
-    expect(scale).toContain('下一轮参考标尺校准')
     // D. 全 skills prose 独立「标尺」零命中（负向断言，排除参考标尺子串与 assets/）
     //    白名单两处豁免：标尺校准_六书.json＝仓库外校准产物文件名（文件名不改名）；
     //    KB 净版 人物设计-弧光与关系.md「存在本身就是标尺」＝弧光行比喻用法（非参考标尺简称），净版纪律只报告待作者裁定
@@ -1149,7 +1148,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('危机钩（即时威胁型）兑现章号距钩章 ≤5 章')
     expect(scale).toContain('泄压钩只居高潮余波位')
     expect(scale).toContain('参考区间（仅 ≥50 章窗口适用')
-    // 0.0.25 独立审查 R3：参考区间改出处可溯式（张力 60-80 取整自双书 62/78、泄压 ≤10 上浮留余）；无出处的 55-70 清零——负断言只钉配比行，变更记录 v0.4-D 历史记述保留
+    // 0.0.25 独立审查 R3：参考区间改出处可溯式（张力 60-80 取整自双书 62/78、泄压 ≤10 上浮留余）；无出处的 55-70 清零——负断言只钉配比行
     // 0.0.26 标尺 v0.5 批裁定同步：区间按驱动类型前缀分裂（张力驱动档 60-80% 三书并陈/情感驱动档 25-40%），旧「双书并陈」区间串随三书实证退役，断言随裁同步
     expect(scale).toContain('张力类 60-80%')
     expect(scale).toContain('三书并陈取整区间')
@@ -1208,11 +1207,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(sect).toContain('揭示量 ≤70%')
     expect(sect).toContain('章末留一个指向下层真相的新问号')
     expect(sect).toContain('钝·定格章豁免强问号')
-    // P16 篇幅双模式：浮动式/恒定式＋内容承担节奏为纲＋标尺变更记录
+    // P16 篇幅双模式：浮动式/恒定式＋内容承担节奏为纲（变更记录留痕断言随 0.0.48 移出运行时退役）
     expect(scale).toContain('篇幅双模式皆合法（内容承担节奏为纲）')
     expect(scale).toContain('浮动式＝章长作事件烈度放大器')
     expect(scale).toContain('恒定式＝章长收窄恒定、节奏全部由内容承担')
-    expect(scale).toContain('v0.4-D')
   })
 
   it('0.0.25 配给与台账批：信息释放台账三接线＋信息释放行＋钩型双轴＋调剂对连钝＋③伏笔/验证到期＋3500 基准＋单元配给', () => {
@@ -1276,12 +1274,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(checks).toContain('近期窗口条目＋账本双记位漏写时本查兜底')
     expect(outline).toContain('**验证到期自查**')
     expect(outline).toContain('近期窗口条目＋`账本/线索.md`')
-    // 字数 3500 基准：标尺行＋v0.4-E 留痕＋design 示例新数值＋outline 四千字示例（旧两千字示例清零）
+    // 字数 3500 基准：标尺行＋design 示例新数值＋outline 四千字示例（旧两千字示例清零）
     expect(scale).toContain('**3500-4500 字**')
     expect(scale).toContain('作者裁定 2026-10-11：基准与下限抬至 3500')
     expect(scale).toContain('快节奏短章型须作者显式下调才可用')
     expect(scale).toContain('过渡档下浮例外照旧')
-    expect(scale).toContain('v0.4-E')
     expect(design).toContain('- 目标汉字数: 4000')
     expect(design).toContain('- 下限汉字数: 3500')
     expect(design).toContain('- 上限汉字数: 4500')
@@ -1318,8 +1315,6 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // Nit① ⑩钩诺呈报行示例带兑现章号；Nit② 「加单元不加字」旧措辞清零（统一为「加单元（加事）不硬堆字」）
     expect(checks).toContain('情绪钩承诺…｜兑现章号：…')
     expect(checks).not.toContain('加单元不加字')
-    // R3 标尺变更记录 v0.4-F 留痕（参考区间出处可溯改版）
-    expect(scale).toContain('v0.4-F')
   })
 
   it('0.0.26 标尺 v0.5 五书校准批：驱动类型分带＋新四行＋五题材修正＋末卷扩＋v0.5 变更', () => {
@@ -1381,9 +1376,6 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('恒定式三例外')
     expect(scale).toContain('基准裁定不动')
     expect(scale).toContain('**3500-4500 字**')
-    // 9. v0.5 变更行＋校准计划五书批留痕
-    expect(scale).toContain('v0.5 2026-10-12：0.0.26 五书校准批')
-    expect(scale).toContain('2026-10-11 五书校准批（v0.5）已完成')
   })
 
   it('0.0.26 流程首波批：局规则条目模板＋史实基线资产位＋情感主线槽位族＋台账扩列＋伏笔账本升级', () => {
@@ -1450,7 +1442,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   it('0.0.26 独立审查修复批：C1/C2 口径修正＋R1-R4 必修＋O1-O2＋Nit——卷体量 3.5 倍口径/情感档 25-40/前传 4-83/泄压出处改引/单元循环型枚举/7:3 标注/对话上限 0.45/口径注与区间收敛＋v0.5-F 留痕', () => {
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
-    // C1 单卷体量行：章长峰值 5.3 倍口径退役、卷体量 3.5 倍口径落位——行内零残留（变更记录 v0.5 行历史记述保留，O2 核到的诡秘半句保留）
+    // C1 单卷体量行：章长峰值 5.3 倍口径退役、卷体量 3.5 倍口径落位——行内零残留（O2 核到的诡秘半句保留）
     const volumeRow = scale.split('\n').find((l) => l.includes('| 单卷体量 |'))
     expect(volumeRow, '参考标尺应有「单卷体量」行').toBeDefined()
     expect(volumeRow!).not.toContain('5.3 倍')
@@ -1459,7 +1451,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // C1 终卷通胀律行：警戒与章长峰值关系句＋打破条件情感峰例外
     expect(scale).toContain('章长极端峰值可超警戒，卷体量口径 3.5 倍为常态参考')
     expect(scale).toContain('重生啊番外婚礼章 5.3 倍')
-    // C2 情感档张力类上缘 40%：行内 25-50 零残留（变更记录 v0.5 行历史记述保留）
+    // C2 情感档张力类上缘 40%：行内 25-50 零残留
     const hookRow = scale.split('\n').find((l) => l.includes('| 章末钩型配比 |'))
     expect(hookRow, '参考标尺应有「章末钩型配比」行').toBeDefined()
     expect(hookRow!).not.toContain('25-50')
@@ -1476,14 +1468,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('卷纲结构类型选单元循环型时本行生效')
     // R4 信息释放分级行：5/5 归属钉在分级排期方法论（配比句 n=1 不在此实证内）
     expect(scale).toContain('分级排期方法论 ✅五书实证 2026-10-11')
-    // O1 历史行对话占比上限＋都市情感 2300-3000 恒定带弃置留痕（变更记录）
+    // O1 历史行对话占比上限
     expect(scale).toContain('对话占比上限 0.45（绍宋实测对话段占比 0.32-0.41 上浮）')
-    expect(scale).toContain('2300-3000 恒定带」弃置留痕')
     // Nit：诡秘 3144 字符口径注＋支线双口径注
     expect(scale).toContain('诡秘 3144 系**字符口径**')
     expect(scale).toContain('4＝在用支线口径，含 1 弃线则 5-6')
-    // v0.5-F 变更留痕
-    expect(scale).toContain('v0.5-F 2026-10-12：0.0.26 独立审查修复批')
   })
 
   it('0.0.27 文笔专项批：散文卡组七卡＋行文自查三 AI 味判据＋润色两密度定位＋版本纪律全套', () => {
@@ -2001,14 +1990,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.47＋CHANGELOG 条目＋README×2（纪律统一批接力）
+    // C. 版本纪律全套：两 package.json 0.0.48＋CHANGELOG 条目＋README×2（纪律统一批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.47').toBe('0.0.47')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.47').toBe('0.0.47')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.47]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.48').toBe('0.0.48')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.48').toBe('0.0.48')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.48]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.47`).toContain('0.0.47')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.48`).toContain('0.0.48')
     }
   })
 
@@ -2467,7 +2456,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     // J. N9 审读参考线速览表：单源一段在 review SKILL 派发模板＋八底本数值行改指针（读者承诺审读无通用参考线数值行）
     for (const row of [
-      '对话密度 | 1.5 次/百字（番茄风格）',
+      '对话密度 | 1.5 次/百字（快节奏对话流）',
       '段落均值 80 字；超 200 字段计数',
       '短篇 10 个内',
       '低于三成为漂移候选',
@@ -2525,55 +2514,95 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
   })
 
-  it('T4 编辑席实装批：编辑评审底本（三参数＋首评＋标尺对照表四态＋待校准纪律）＋design 三席串行接线＋润色删除测试＋注册单源', () => {
-    // A. 底本存在＋frontmatter name＋B 仓死引用零残留（差异集/登记册/tiers/区块/验真脚本；章级档与复评机制不移植——复评仅存「本席无复评机制」声明句）
-    const editorPath = skillFile('novel-design', 'agents/编辑评审.md')
-    expect(fs.existsSync(editorPath), 'novel-design/agents/编辑评审.md 应存在').toBe(true)
-    const editor = fs.readFileSync(editorPath, 'utf8')
-    expect(editor).toContain('name: editor-reviewer')
-    for (const stale of ['差异集', '登记册', 'tiers', '区块', '验真']) {
-      expect(editor, `编辑评审不应残留 B 仓死引用「${stale}」`).not.toContain(stale)
+  it('T4 编辑席并入作家席（0.0.48 写作范围清理）：编辑评审底本退役＋作家评审接 D5 续航与体量（参考标尺对照表四态＋待校准纪律）＋design 两席串行接线＋润色删除测试＋注册单源', () => {
+    // A. 编辑评审底本退役：文件删除；作家评审承接参考标尺对标
+    expect(fs.existsSync(skillFile('novel-design', 'agents/编辑评审.md')), '编辑评审已并入作家评审，底本应删除').toBe(false)
+    const writer = fs.readFileSync(skillFile('novel-design', 'agents/作家评审.md'), 'utf8')
+    expect(writer).toContain('name: writer-reviewer')
+    // B. 输入清单整读参考标尺＋判据引用格式＋对标纪律三条（参考标尺自身约定）
+    expect(writer).toContain('| ✅ | 判据目录下 `参考标尺.md` | 续航与体量维的数值尺——整读，逐行对照产出参考标尺对照表 |')
+    expect(writer).toContain('参考标尺对标的判据引用格式＝参考标尺行名（如「单卷体量」行）')
+    expect(writer).toContain('⚠️待校准数值项不计入问题计数、禁作判据引用')
+    expect(writer).toContain('修正系数全取 1.0＋如实标注「该题材参考标尺未校准」——绝不编造修正值')
+    expect(writer).toContain('版权铁律：差异化核对只以契约「核心看点与差异化」部申报为准')
+    // C. D5 续航与体量（骨架/分卷）＋卷纲参考标尺执行/字数逻辑/卷间节奏＋粗锚降级
+    expect(writer).toContain('D5 续航与体量：')
+    for (const sec of ['§1.6', '§1.7', '§5.5']) {
+      expect(writer, `作家评审应引判据节 ${sec}`).toContain(sec)
     }
-    // B. 调用契约与两席同构：三参数＋首评 only＋判据引用格式＝标尺行名或 §x.y 节号（节号全局可解）
-    expect(editor).toContain('宿主传入三参数')
-    expect(editor).toContain('对象类型 | 骨架 / 分卷 / 卷纲')
-    expect(editor).toContain('只做首评')
-    expect(editor).toContain('参考标尺行名（如「单卷体量」行）或 §x.y 节号')
-    // C. 检查清单内联（两份细则合一）：骨架/分卷 E1 对标点表＋E2-E4、卷纲 E1-E4＋粗锚降级；卖点侧判据节在位
-    expect(editor).toContain('### 对象＝骨架/分卷')
-    expect(editor).toContain('### 对象＝卷纲')
-    for (const sec of ['§1.6', '§1.7', '§1.12', '§1.13', '§5.5']) {
-      expect(editor, `编辑评审应引卖点侧判据节 ${sec}`).toContain(sec)
+    expect(writer).toContain('「卷目标与卷末状态」卷行·字数')
+    expect(writer).toContain('「三线断档红线」行')
+    expect(writer).toContain('参考标尺执行（逐行对照产出参考标尺对照表）：')
+    expect(writer).toContain('卷间节奏：连卷压抑检测')
+    expect(writer).toContain('粗锚降级检查')
+    // D. 报告：对照表四态＋待校准计数＋维列含 D5
+    expect(writer).toContain('✅达标 ｜ ⚠️待校准（数值未定，不计入）｜ ❌超标（升级为问题清单条目）｜ 不适用')
+    expect(writer).toContain('- 计数：🔴{x} 🟡{x} 🔵{x}（⚠️待校准 {x} 项不计入）')
+    expect(writer).toContain('D4 节奏 / D5 续航与体量')
+    // E. 写作范围：市场面内容不随迁
+    for (const stale of ['上架', '签约', '付费', '货架', '撞名', '责编', '门面']) {
+      expect(writer, `作家评审不应带入市场面内容「${stale}」`).not.toContain(stale)
     }
-    expect(editor).toContain('「卷目标与卷末状态」卷行·字数')
-    expect(editor).toContain('「三线断档红线」行')
-    expect(editor).toContain('粗锚降级检查')
-    // D. 标尺对照表四态＋待校准纪律两句＋不编造修正系数
-    expect(editor).toContain('✅达标 ｜ ⚠️待校准（数值未定，不计入）｜ ❌超标（升级为问题清单条目）｜ 不适用')
-    expect(editor).toContain('⚠️待校准数值项不计入问题计数、禁作判据引用')
-    expect(editor).toContain('修正系数全取 1.0＋如实标注「该题材参考标尺未校准」——绝不编造修正值')
-    // E. 报告体例对齐两席：主问题行＋★ 标＋根因三选一＋复评回归句＋落盘路径＋禁止事项
-    expect(editor).toContain('**主问题（仅一个）**：{全部发现')
-    expect(editor).toContain('# 列行首标 ★')
-    for (const root of ['设定根源', '主线根源', '规格根源']) {
-      expect(editor, `编辑评审根因三选一应含「${root}」`).toContain(root)
-    }
-    expect(editor).toContain('复评优先回归主问题——主问题未解不改次要项结论')
-    expect(editor).toContain('{对象}_编辑.md`（{对象}：骨架/分卷/卷NN——如卷01）')
-    expect(editor).toContain('三席互不通气，各自独立出具')
-    expect(editor).toContain('禁替作者改定位')
-    // F. design SKILL 三席串行接线：作家→读者→编辑＋编辑底本链接＋报告落盘行＋工件契约行
+    // F. design SKILL 两席串行接线：作家→读者＋报告落盘行＋工件契约行
     const design = readSkill('novel-design')
-    expect(design).toContain('[编辑评审](agents/编辑评审.md)')
-    expect(design).toContain('按作家→读者→编辑串行')
-    expect(design).toContain('三席独立互不通气')
-    expect(design).toContain('{对象}_作家.md`、`{对象}_读者.md`、`{对象}_编辑.md`')
-    // G. 注册单源：artifact-contract 照登（pack-check 按 referenceDocs 校验打包面）
+    expect(design).toContain('按作家→读者串行')
+    expect(design).toContain('两席独立互不通气')
+    expect(design).toContain('{对象}_作家.md`、`{对象}_读者.md` | 无 |')
+    for (const stale of ['编辑评审', '三席', '_编辑.md']) {
+      expect(design, `design SKILL 不应残留「${stale}」`).not.toContain(stale)
+    }
+    // G. 注册单源：artifact-contract 不再登记编辑评审
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
-    expect(contract, 'artifact-contract 应登记编辑评审').toContain("'skills/novel-design/agents/编辑评审.md'")
+    expect(contract).not.toContain('编辑评审')
     // H. 润色批 2 对话节删除测试：口径与审读侧 §7.8 单源（引节号不重述全文）
     const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
     expect(reshape).toContain('**删除测试**：盖住这句对白再读，信息量/性格/关系三者无损＝可删候选（删后语义不塌才准删；塌则留）——口径与《正文起草》技能包 references/正文-展示与对白.md §7.8 单源（引节号，不重述全文）')
+  })
+
+  it('0.0.48 写作范围清理批：参考标尺去平台与更新节奏行＋校准史移出运行时＋雷点清单与排障索引写作化＋润色批 3 退役＋判据件读者数据措辞', () => {
+    const ref = (skill: string, file: string) => fs.readFileSync(skillFile(skill, file), 'utf8')
+    // A. 参考标尺：第七节签约/上架、日更建议行、平台读者口味注、运营对冲句移除；校准计划与变更记录移出（沿革在技术文档第 7 节）
+    const scale = ref('novel-design', 'references/参考标尺.md')
+    for (const stale of ['签约', '上架', '日更', '双更', '番茄', '运营', '## 校准计划', '## 变更记录', '留痕见变更记录']) {
+      expect(scale, `参考标尺不应残留「${stale}」`).not.toContain(stale)
+    }
+    expect(scale).toContain('｜确认前评审作家席「续航与体量」维逐行对标。')
+    expect(scale).toContain('（绍宋 80 章/28.5 万慢热至 50 万位首高潮）')
+    const techDoc = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '技术文档.md'), 'utf8')
+    expect(techDoc).toContain('**参考标尺的校准沿革**')
+    // B. 雷点清单：断更/太监行删除、差评与新书期/基本盘措辞改读者体验、变更记录移出
+    const mines = ref('novel-design', 'references/雷点清单.md')
+    for (const stale of ['断更', '太监', '差评', '基本盘', '新书期', '## 变更记录']) {
+      expect(mines, `雷点清单不应残留「${stale}」`).not.toContain(stale)
+    }
+    expect(mines).toContain('## 六、节奏兑现（4 条）')
+    expect(mines).toContain('| 结局兑现不了前文承诺，读者回头否定整本书 |')
+    // C. 排障索引：症状改为重读感受或审读发现，非结构因素排除段与数据下滑措辞退役
+    const trouble = ref('novel-director', 'references/排障-索引与改稿流程.md')
+    for (const stale of ['数据', '掉订', '断更', '封面', '章评', '追读缓降']) {
+      expect(trouble, `排障索引不应残留「${stale}」`).not.toContain(stale)
+    }
+    expect(trouble).toContain('| 症状（重读感受或审读发现） | 最可能病因 | 先查 | 再查 | 操作量级 |')
+    expect(trouble).toContain('### 应急菜单（短期止血，各有代价）')
+    const director = readSkill('novel-director')
+    expect(director).toContain('（症状→病因层→查哪节→操作量级＋应急菜单）')
+    expect(director).not.toContain('被骂')
+    // D. 润色：批 3 平台格式退役（文件删除、两批制、注册表不再登记）
+    expect(fs.existsSync(skillFile('novel-polish', 'references/3-平台格式.md')), '润色批 3 平台格式应已删除').toBe(false)
+    const polish = readSkill('novel-polish')
+    expect(polish).toContain('## 批次（两批；可按作者要求定向执行）')
+    expect(polish).toContain('**默认顺序：批 1 → 批 2**')
+    expect(polish).not.toContain('平台')
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("['1-表达清理', '2-节奏与重塑'].map")
+    // E. 判据件：读者反馈/追订/掉订改写作中的自查发现
+    const deck = ref('novel-design', 'references/大纲-牌局与结构检查.md')
+    expect(deck).not.toContain('读者反馈')
+    expect(deck).not.toContain('追订')
+    expect(deck).toContain('按写作中的发现调整')
+    const mapPiece = ref('novel-design', 'references/大纲-换图与支线.md')
+    expect(mapPiece).not.toContain('掉订')
+    expect(mapPiece).toContain('新图开局是全书熟悉感最低、最容易接不上的窗口')
   })
 
   it('T3 小修回补批：十件小修清账——9 项新落＋1 项核实已在位（KB v2.4.7，内容面收官）', () => {

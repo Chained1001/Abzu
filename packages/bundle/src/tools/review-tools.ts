@@ -10,7 +10,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
   return [
     {
       name: 'novel_get_story_status',
-      description: '读取小说的真实推进状态与可恢复章节（从 Git 与书仓真源推导，断更无损恢复）。',
+      description: '读取小说的真实推进状态与可恢复章节（从 Git 与书仓真源推导，中断后无损恢复）。',
       parameters: {
         type: 'object',
         properties: {

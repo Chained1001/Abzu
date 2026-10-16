@@ -4,13 +4,12 @@ export const referenceDocs = [
   ...['导入与覆盖', '事实提取', '机制与灵感'].map(name => `skills/novel-analyze/references/${name}.md`),
   ...['全量', '章节结构', '人物与关系', '情节与因果', '信息披露', '线索与伏笔', '节奏与张力', '读者承诺', '文风与表达']
     .map(name => `skills/novel-review/agents/${name}审读.md`),
-  ...['1-表达清理', '2-节奏与重塑', '3-平台格式'].map(name => `skills/novel-polish/references/${name}.md`),
+  ...['1-表达清理', '2-节奏与重塑'].map(name => `skills/novel-polish/references/${name}.md`),
   'skills/novel-revision/agents/改稿章程.md',
   'skills/novel-settle/agents/沉淀对账.md',
   'skills/novel-outline/agents/写前十查.md',
   'skills/novel-design/agents/作家评审.md',
   'skills/novel-design/agents/读者评审.md',
-  'skills/novel-design/agents/编辑评审.md',
   'skills/novel-inspiration/agents/采风检索.md',
   // 灵感库种子：十类框架八册（历史事实/现实生活待采不建册，见种子索引.md）
   ...['文化元素', '剧情结构', '人物原型', '台词金句', '古词古句·意象', '影视动漫', '命名词语', '设定概念']
