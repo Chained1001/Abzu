@@ -29,7 +29,7 @@ export interface TimelineAnchor {
 
 export const 卷纲脚手架段 = ['叙事结构', '弧线', '线索推进', '卷末兑现'] as const
 
-/** 幕纲六个必备段(规格单源:novel-design/templates/幕纲固定段规格.md)。 */
+/** 幕纲六个必备段(规格单源:novel-arcplan/templates/幕纲固定段规格.md)。 */
 export const 幕纲必备段 = ['本幕故事', '线与伏笔', '出场人物', '查证清单', '章组排布', '幕末结算'] as const
 
 /** 正文里的 `## 标题` 集合(去 〔已确认/留白/暂定〕 尾注);卷纲与幕纲的段名校验共用。 */

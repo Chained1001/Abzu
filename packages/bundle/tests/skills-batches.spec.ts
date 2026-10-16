@@ -115,8 +115,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('审读·线索与伏笔维（对照账本线索到期）')
     expect(scale).toContain('卷纲·卷级交叉思考；章级脚本未实装（未接线）')
     // B. 四处缺失判据引用接线（§x.y 逐一反查由既有引用一致性测试自动扩展覆盖）
-    expect(readSkill('novel-outline')).toContain('§6.7 信息怎么分配')
-    expect(readSkill('novel-design')).toContain('判据：读 [卷纲-节奏与高潮](references/卷纲-节奏与高潮.md)')
+    //（0.0.56 边界重划：outline 判据行随步骤卡试点改指针句；design 卷纲判据行随卷规划移入 novel-arcplan）
+    expect(readSkill('novel-outline')).toContain('《章纲-信息与情绪》等四件，整读')
+    expect(readSkill('novel-arcplan')).toContain('《定调设计》技能包 references/卷纲-节奏与高潮.md、卷纲-情节类型骨架.md、卷纲-卷功能与结构.md（整读）')
     expect(readSkill('novel-drafting')).toContain('§7.5（叙述视角技术')
     const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
     //（v2.4.2 阶段2 拆分：02_人物设计 §2.18 并入《人物设计-金手指设计》；v2.4.3 阶段3 拆分：03_世界观设计 §3.9 并入《世界观-力量体系与天花板》——断言随裁同步）
@@ -137,9 +138,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(sweep).toContain('节缺失（旧格式）')
     expect(sweep).toContain('不为格式差异产出伪缺陷')
     // C5.（0.0.50：体感回灌改为下卷注意事项——问句与去处随批改写，断言钉新口径）
-    expect(readSkill('novel-settle')).toContain('有什么要提醒下一卷注意的')
-    expect(readSkill('novel-settle')).toContain('下卷注意·卷<NN+1>')
-    expect(readSkill('novel-settle')).toContain('这条属于产品反馈，不记进书里')
+    //（0.0.56 边界重划：下卷注意事项三钉随卷末节移入 novel-arcplan）
+    expect(readSkill('novel-arcplan')).toContain('有什么要提醒下一卷注意的')
+    expect(readSkill('novel-arcplan')).toContain('下卷注意·卷<NN+1>')
+    expect(readSkill('novel-arcplan')).toContain('这条属于产品反馈，不记进书里')
     // D. 灵感域两处轻接线（可选判据不阻塞＋书名候选步）
     const inspiration = readSkill('novel-inspiration')
     expect(inspiration).toContain('收敛时可参考（可选）')
@@ -267,11 +269,12 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(ladder).toContain('取数：参考标尺·固定层＋比例层×衰减×题材')
     expect(ladder).toContain('| 层级 | 存活周期 | 代表对手 | 出牌与去向 |')
     expect(design).toContain('[对手梯队子表规格](templates/对手梯队子表规格.md)')
-    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(vol).toContain('压力升级检查')
     expect(vol).toContain('终局暗手')
     expect(vol).toContain('方向选择')
-    expect(design).toContain('[卷纲固定段规格](templates/卷纲固定段规格.md)')
+    //（0.0.56 边界重划：卷纲固定段规格移入 novel-arcplan）
+    expect(readSkill('novel-arcplan')).toContain('[卷纲固定段规格](templates/卷纲固定段规格.md)')
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sect, '章细纲固定小节规格：四固定小节＋时间行＋前→后＋既有断言词全量在位').toContain('### 冲突与爽点')
     expect(sect).toContain('### 章末双钩')
@@ -284,7 +287,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(contract).toContain("['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则', '世界常量']")
     for (const rel of [
       'skills/novel-design/templates/对手梯队子表规格.md',
-      'skills/novel-design/templates/卷纲固定段规格.md',
+      'skills/novel-arcplan/templates/卷纲固定段规格.md',
       'skills/novel-outline/templates/章细纲固定小节规格.md',
     ]) {
       expect(contract, `artifact-contract 应登记 ${rel}`).toContain(`'${rel}'`)
@@ -337,11 +340,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(reconcile).toContain('语态样本：<本章自认最佳一句正文>')
     expect(reconcile).toContain('放在章末状态行之前')
     // E. 卷纲心动位：规格＋design SKILL 步骤 6＋章细纲规格与 SKILL 的 ★ 可选行
-    const volSpec = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const volSpec = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(volSpec).toContain('心动位')
     expect(volSpec).toContain('情绪锚不是顺序锚')
     expect(volSpec).toContain('源出 B 仓章循环设计')
-    expect(readSkill('novel-design')).toContain('心动位行')
+    expect(readSkill('novel-arcplan'), '0.0.56 边界重划：心动位行随卷规划移入 arcplan').toContain('心动位行')
     const sectSpec = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sectSpec).toContain('单元行标 `★`')
     expect(sectSpec).toContain('卷纲「心动位」')
@@ -602,7 +605,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const design = readSkill('novel-design')
     const outline = readSkill('novel-outline')
     const settle = readSkill('novel-settle')
-    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
@@ -629,11 +632,11 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     for (const kw of ['层层递进引爆型', '旋涡式', '高峰夹平原式', '游历爆发型', '连续高潮余韵型']) {
       expect(vol, `结构类型枚举应含「${kw}」`).toContain(kw)
     }
-    expect(design).toContain('结构类型行')
+    expect(readSkill('novel-arcplan'), '0.0.56 边界重划：结构类型行随卷规划移入 arcplan').toContain('结构类型行')
     // 5. 升级间隔：压力升级检查第⑤核对项＋标尺【待校准】行
     expect(vol).toContain('本卷升级位')
     expect(vol).toContain('世界书/力量体系/')
-    expect(design).toContain('五核对项')
+    expect(readSkill('novel-arcplan'), '0.0.56 边界重划：五核对项随卷规划移入 arcplan').toContain('五核对项')
     expect(scale).toContain('升级间隔')
     expect(scale).toContain('【待校准】')
     expect(scale).toContain('卷内至少一处升级位')
@@ -643,7 +646,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(ladder).toContain('出场密度')
     expect(ladder).toContain('情绪积累')
     // 7. 角色出场频率预警（防神隐）：0.0.52 幕纲批起判据正文前移幕纲规格「备料自查」段（单源），outline 备料段只留核对指针
-    const memoSpec16 = fs.readFileSync(skillFile('novel-design', 'templates/幕纲固定段规格.md'), 'utf8')
+    const memoSpec16 = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
     expect(memoSpec16).toContain('距上次出场')
     expect(memoSpec16).toContain('超 10 章未出场')
     expect(memoSpec16).toContain('防神隐预警')
@@ -864,13 +867,13 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(text, `${label}: 高↔硬伤`).toContain('高↔硬伤')
     }
     // C. 五核对项（含本卷升级位）在技能层在位
-    expect(readSkill('novel-design'), 'novel-design SKILL 五核对项应在位').toContain('五核对项')
+    expect(readSkill('novel-arcplan'), '0.0.56 边界重划：五核对项技能层在 novel-arcplan').toContain('五核对项')
     // D. 采风可信度四态：表格四行（已证实/孤证/推测/归纳），三态标题不得回潮
     const researcher = fs.readFileSync(skillFile('novel-inspiration', 'agents/采风检索.md'), 'utf8')
     expect(researcher).toContain('可信度四态')
     expect(researcher, '三态标题不得回潮（表本就四行）').not.toContain('可信度三态')
     // F. settle 卷摘要候选读侧措辞与产品输出串对齐（已兑现并入）
-    expect(settleSkill).toContain('账本已收/进行中/已兑现线索')
+    expect(readSkill('novel-arcplan'), '0.0.56 边界重划：卷摘要候选读侧句随卷末节移入 arcplan').toContain('账本已收/进行中/已兑现线索')
   })
 
   it('0.0.21 行文清晰度批：路径基准三式＋术语四处归一＋书名号违例修正＋序号对齐＋--校验 用法行＋ev 双名', () => {
@@ -1170,7 +1173,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(checks).toContain('承诺列或兑现章号列缺失＝补写再呈')
     expect(checks).toContain('「章末钩型配比」行')
     // A4 调剂行：高潮后 2 章内必回低烈度＋三式＋与 §6.1 分工（防同规则双源）
-    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(vol).toContain('## 高潮后调剂（弧线段内固定核对行）')
     expect(vol).toContain('高潮章后 2 章内**必须**回低烈度')
     expect(vol).toContain('日常（生活线回稳）/喜剧（社交喜剧章）/清算（余债收拾）')
@@ -1193,7 +1196,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline, '0.0.52 幕纲批：备料段改指针＋一句核对').toContain('备料自查前移')
     expect(outline).toContain('幕纲里排的这一章要埋／要兑现的，细纲里有了吗')
     expect(outline).toContain('改已确认细纲走重入勘误通道')
-    const memoSpec = fs.readFileSync(skillFile('novel-design', 'templates/幕纲固定段规格.md'), 'utf8')
+    const memoSpec = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
     expect(memoSpec, '0.0.52 幕纲批：五项自查判据单源应在幕纲规格').toContain('死亡预埋自查（悼亡法）')
     expect(memoSpec).toContain('死前 3 章内是否已埋 ≥2 处日常细节')
     expect(memoSpec).toContain('不等到死亡章才发现无物可收')
@@ -1215,22 +1218,24 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   it('0.0.25 配给与台账批：信息释放台账三接线＋信息释放行＋钩型双轴＋调剂对连钝＋③伏笔/验证到期＋3500 基准＋单元配给', () => {
     // B3 信息释放台账：结构单源在 novel-design 建账行（书房路径＋揭示域清单＋登记行式＋状态枚举）；工件契约表加行
     const design = readSkill('novel-design')
+    //（0.0.56 边界重划：台账建账段原文移入 novel-arcplan「卷规划」节——建账结构钉随迁；design 侧留路径 A 提及与工件契约行）
+    const arcplan = readSkill('novel-arcplan')
     expect(design).toContain('信息释放台账建账')
-    expect(design).toContain('`<工作范围>/书房/信息释放/<书名>.md`')
-    expect(design).toContain('揭示域清单')
-    expect(design).toContain('未知/部分/已释')
-    expect(design).toContain('累计已释 x/y＝z%｜新问号一句')
-    expect(design).toContain('累计为信息行不作案据')
-    expect(design).toContain('本章可释集')
-    expect(design).toContain('力量体系条目同批')
+    expect(arcplan).toContain('`<工作范围>/书房/信息释放/<书名>.md`')
+    expect(arcplan).toContain('揭示域清单')
+    expect(arcplan).toContain('未知/部分/已释')
+    expect(arcplan).toContain('累计已释 x/y＝z%｜新问号一句')
+    expect(arcplan).toContain('累计为信息行不作案据')
+    expect(arcplan).toContain('本章可释集')
+    expect(arcplan).toContain('力量体系条目同批')
     expect(design).toContain('| 信息释放台账 |')
     expect(design).toContain('种子底子先例')
-    expect(design).toContain('卷02 起不开新账')
+    expect(arcplan).toContain('卷02 起不开新账')
     // 接线②：备料自查信息释放规划前移幕纲规格（0.0.52 幕纲批：判据正文单源在幕纲规格「备料自查」，outline 备料段只留核对指针）
     const outline = readSkill('novel-outline')
     expect(outline).toContain('备料自查前移')
     expect(outline).toContain('幕纲固定段规格.md「备料自查」')
-    const memoSpec = fs.readFileSync(skillFile('novel-design', 'templates/幕纲固定段规格.md'), 'utf8')
+    const memoSpec = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
     expect(memoSpec).toContain('信息释放规划（读台账）')
     expect(memoSpec).toContain('「未建账」')
     expect(memoSpec).toContain('同一信息再次释放须换载体')
@@ -1267,7 +1272,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('日常·中性不参与张力/泄压计量')
     expect(checks).toContain('钩型：断点·危机｜承诺：…｜兑现章号：…')
     // M13 调剂对连钝：相连钝收＝调剂组成部分，红线按章整体烈度判
-    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(vol).toContain('调剂对（高潮章＋调剂章）相连钝收＝调剂的组成部分')
     expect(vol).toContain('不计入「连续钝收」红线')
     expect(vol).toContain('红线按章整体烈度判')
@@ -1415,17 +1420,18 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('单线（情感线即唯一主线）')
     expect(design).toContain('渐近线式（永远逼近永不官宣——不解决而共存，收束落在行为互认不落在名分）')
     expect(design).toContain('**情感主线声明（可选）**')
-    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     expect(vol).toContain('## 情感线节拍（弧线段内可选行）')
     expect(vol).toContain('误会-和解循环周期 {N-M 章}')
     expect(vol).toContain('情感重场：{章组}')
     expect(vol).toContain('参考 10-15 章，大周期以事件弧计')
     expect(vol).toContain('不因情绪类豁免调剂')
-    // 上下文升级：台账清单扩「载体」「知情圈」两列——design 建账行单源＋outline 备料消费＋settle 更新同步
-    expect(design).toContain('载体｜知情圈｜释放章')
-    expect(design).toContain('同一信息再次释放须换载体（日记/对话/通灵/古迹式为参照，自报载体亦可）')
-    expect(design).toContain('知情圈＝哪些角色已知（角色间信息差')
-    const memoSpec2 = fs.readFileSync(skillFile('novel-design', 'templates/幕纲固定段规格.md'), 'utf8')
+    // 上下文升级：台账清单扩「载体」「知情圈」两列——（0.0.56 边界重划：建账段单源随卷规划移入 novel-arcplan；outline 备料消费＋settle 更新同步不动）
+    const arcplan26 = readSkill('novel-arcplan')
+    expect(arcplan26).toContain('载体｜知情圈｜释放章')
+    expect(arcplan26).toContain('同一信息再次释放须换载体（日记/对话/通灵/古迹式为参照，自报载体亦可）')
+    expect(arcplan26).toContain('知情圈＝哪些角色已知（角色间信息差')
+    const memoSpec2 = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
     expect(memoSpec2, '0.0.52 幕纲批：信息释放规划判据前移幕纲规格「备料自查」段').toContain('同一信息再次释放须换载体（对照清单「载体」列）')
     expect(memoSpec2).toContain('对照「知情圈」列——谁知道谁不知道')
     expect(settle).toContain('实际载体与知情圈变化随同次更新（「载体」/「知情圈」列）')
@@ -1446,7 +1452,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('0.0.26 独立审查修复批：C1/C2 口径修正＋R1-R4 必修＋O1-O2＋Nit——卷体量 3.5 倍口径/情感档 25-40/前传 4-83/泄压出处改引/单元循环型枚举/7:3 标注/对话上限 0.45/口径注与区间收敛＋v0.5-F 留痕', () => {
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
-    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     // C1 单卷体量行：章长峰值 5.3 倍口径退役、卷体量 3.5 倍口径落位——行内零残留（O2 核到的诡秘半句保留）
     const volumeRow = scale.split('\n').find((l) => l.includes('| 单卷体量 |'))
     expect(volumeRow, '参考标尺应有「单卷体量」行').toBeDefined()
@@ -1581,10 +1587,12 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(world).toContain('程序细则（正文生长）：<正文自创的程序条款——复现 ≥2 次必须回写此行，防设定漂移>')
     // H. F19 卷末触发句＋契约三行（独立审查 C1——次序改先对账后摘要，对齐同节既有句与 F19 原文；
     //    0.0.52 幕纲批：段级刷新退役——触发句改三件一批、段级刷新行改「幕纲」行）
-    expect(settle).toContain('卷对账→卷摘要→下卷注意事项，三件一批')
-    expect(settle).toContain('| 卷摘要 | `大纲/卷规划/卷<NN>/卷摘要.md` |')
-    expect(settle).toContain('| 卷对账（卷级） | `<工作范围>/书房/卷末/<书名>/卷<NN>-卷对账.md` |')
-    expect(settle).toContain('| 幕纲 | `大纲/卷规划/卷NN/幕纲/幕NN-<幕名>.md` |')
+    //（0.0.56 边界重划：幕末结算与卷末两节移入 novel-arcplan，触发句与工件契约行钉随迁）
+    const arcSettle = readSkill('novel-arcplan')
+    expect(arcSettle).toContain('卷对账→卷摘要→下卷注意事项，三件一批')
+    expect(arcSettle).toContain('| 卷摘要 | `大纲/卷规划/卷<NN>/卷摘要.md` |')
+    expect(arcSettle).toContain('| 卷对账（卷级） | `<工作范围>/书房/卷末/<书名>/卷<NN>-卷对账.md` |')
+    expect(arcSettle).toContain('| 幕纲 | `大纲/卷规划/卷NN/幕纲/幕NN-<幕名>.md` |')
     expect(settle, '0.0.52 幕纲批：段级刷新行应清零').not.toContain('| 段级刷新 |')
     // I.（0.0.50：文风画像条目随作者层删除，文件名防漂移断言退役；AI 痕迹行画像措辞改基准）
     // K. 版本纪律全套钉随当前版走——0.0.29 收尾批起移入 0.0.29 组接力（本组原 0.0.28 钉同步退役；当前口径随版本走，见 0.0.19 组 A 注）
@@ -1928,7 +1936,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('直接改候选卷纲→再确认（版本+1）')
     expect(outline).toContain('不跑影响分析（与细纲人物自决轻量改纲同款通道）')
     expect(outline).toContain('大偏差（卷末兑现变了/主战层级升了/分卷接口动了）')
-    expect(outline).toContain('仍走《定调设计》卷纲修订＋影响分析前置呈报')
+    expect(outline).toContain('仍走《卷幕规划》卷纲修订＋影响分析前置呈报')
     expect(design).toContain('**卷纲偏差处理分档**')
     expect(design).toContain('分档边界定义单源在《细纲备料》重入节「幕末结算与卷纲偏差分档」')
     expect(design, '0.0.52 幕纲批：旧「滚动窗口段级刷新」指针应清零').not.toContain('滚动窗口段级刷新')
@@ -1980,20 +1988,20 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // B2. settle 沉淀步写时发现分拣：三去向（新伏笔/人物设定经 novel_note_pending＋改窗口卷纲记待改走影响分析）＋呈报不自动落盘＋无该节跳过
     const settle = readSkill('novel-settle')
     expect(settle).toContain('**写时发现分拣**')
-    expect(settle).toContain('`## 写时发现`')
+    expect(readSkill('novel-arcplan'), '0.0.56 边界重划：幕末结算步 1 的写时发现节名钉随迁').toContain('`## 写时发现`')
     expect(settle).toContain('记到本卷卷纲「线索推进」节（标「写时发现」来源）')
     expect(settle).toContain('作者确认后在后续细纲排期')
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.55＋CHANGELOG 条目＋README×2（0.0.55 章节循环技能批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.56＋CHANGELOG 条目＋README×2（0.0.56 边界重划批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.55').toBe('0.0.55')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.55').toBe('0.0.55')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.55]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.56').toBe('0.0.56')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.56').toBe('0.0.56')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.56]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.55`).toContain('0.0.55')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.56`).toContain('0.0.56')
     }
   })
 
@@ -2024,17 +2032,20 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('把处置结论作为 `## 决策` 下的一个条目补进沉淀候选的本书层记忆段')
     expect(settle).toContain('本书前五章（第 1–5 章）定稿呈报时各问一次「从本章挑一段满意的收进文风锚点吗」')
     expect(settle).toContain('| 本书层记忆·决策条目 | `本书记忆/<条目名>.md` |')
-    expect(settle).toContain('下卷注意·卷<NN+1>')
-    expect(settle).toContain('`relPath: 大纲/分卷布局.md`，`节名: 卷间衔接`')
-    expect(settle).toContain('这条属于产品反馈，不记进书里')
+    //（0.0.56 边界重划：下卷注意事项便签三钉随卷末节移入 novel-arcplan）
+    const arc50 = readSkill('novel-arcplan')
+    expect(arc50).toContain('下卷注意·卷<NN+1>')
+    expect(arc50).toContain('`relPath: 大纲/分卷布局.md`，`节名: 卷间衔接`')
+    expect(arc50).toContain('这条属于产品反馈，不记进书里')
     const reconcile = fs.readFileSync(skillFile('novel-settle', 'agents/沉淀对账.md'), 'utf8')
     expect(reconcile, '沉淀对账底本记忆类别应收窄为两类').toContain('本书层记忆两类是 `文风`／`决策`')
     // D. design：第五部只记相对默认的调整＋卷规划读「下卷注意」便签
     const design = readSkill('novel-design')
     expect(design).toContain('只写本书相对默认文风的调整')
     expect(design).toContain('沿用默认文风')
-    expect(design).toContain('「卷间衔接」节的待补便签')
-    expect(design).toContain('下卷注意·卷NN')
+    //（0.0.56 边界重划：卷规划读便签句移入 novel-arcplan）
+    expect(readSkill('novel-arcplan')).toContain('「卷间衔接」节的待补便签')
+    expect(readSkill('novel-arcplan')).toContain('下卷注意·卷NN')
     // E. 润色与审读：同一套文风基准
     expect(readSkill('novel-polish')).toContain('文风基准和硬约束')
     expect(readSkill('novel-polish')).toContain('references/默认文风.md 全文')
@@ -2143,7 +2154,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const inspiration = readSkill('novel-inspiration')
     const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
     const clean = fs.readFileSync(skillFile('novel-polish', 'references/1-表达清理.md'), 'utf8')
-    const volSpec = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const volSpec = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     const ladder = fs.readFileSync(skillFile('novel-design', 'templates/对手梯队子表规格.md'), 'utf8')
     const power = fs.readFileSync(skillFile('novel-design', 'templates/世界书/力量体系条目模板.md'), 'utf8')
     const game = fs.readFileSync(skillFile('novel-design', 'templates/世界书/局规则条目模板.md'), 'utf8')
@@ -2166,7 +2177,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     // B2. R1 正断言：判据句与数值保留（抽四处关键位）
     //（0.0.52 幕纲批：伏笔保温自查判据正文前移幕纲规格「备料自查」段——断点改钉单源件）
-    const memoSpec36 = fs.readFileSync(skillFile('novel-design', 'templates/幕纲固定段规格.md'), 'utf8')
+    const memoSpec36 = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
     expect(memoSpec36).toContain('兑现前必有强化触点')
     expect(volSpec).toContain('误会-和解小循环周期按本书节奏拟（参考 10-15 章，大周期以事件弧计——实证与节拍口径见《定调设计》技能包 references/参考标尺.md 节奏基准「单元循环节拍」行）')
     expect(sect).toContain('期待钩靠设计期排期，不是写时顺手')
@@ -2311,7 +2322,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('**单元排布**（细纲段单元列表落笔时）')
     const uAnchor = outline.indexOf('**细纲段**：叙事单元列表')
     const uStart = outline.indexOf('**单元排布**（细纲段单元列表落笔时）')
-    const uEnd = outline.indexOf('   - 判据：读 [章纲-信息与情绪]')
+    //（0.0.56 边界重划：判据行随步骤卡试点改「判据取件」句——锚同步）
+    const uEnd = outline.indexOf('   - 判据取件（步骤卡试点）')
     expect(uAnchor, '挂点锚（细纲段条目）应在位').toBeGreaterThanOrEqual(0)
     expect(uStart, '单元排布应挂在细纲段条目之后').toBeGreaterThan(uAnchor)
     expect(uEnd, '判据行锚应在位').toBeGreaterThanOrEqual(0)
@@ -2347,11 +2359,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const s2 = design.indexOf('2. **世界书**')
     const s3 = design.indexOf('3. **故事骨架**')
     const s4 = design.indexOf('4. **分卷布局**')
-    const s5 = design.indexOf('5. **强制多方向**')
-    const s6 = design.indexOf('6. **卷规划**')
     const review = design.indexOf('**确认前审查**')
     const toolsSection = design.indexOf('## 工具')
-    for (const [label, anchor] of [['步骤 2', s2], ['步骤 3', s3], ['步骤 4', s4], ['步骤 5', s5], ['步骤 6', s6], ['确认前审查', review]] as const) {
+    //（0.0.56 边界重划：步骤 5/6 整节移入 novel-arcplan，区锚随撤）
+    for (const [label, anchor] of [['步骤 2', s2], ['步骤 3', s3], ['步骤 4', s4], ['确认前审查', review]] as const) {
       expect(anchor, `区锚 ${label} 应在位`).toBeGreaterThanOrEqual(0)
     }
     const inRegion = (pin: string, lo: number, hi: number, label: string) => {
@@ -2376,9 +2387,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     inRegion('**弧光三型**（骨架「主角目标与成长轨迹」部对谈时过一遍', s3, s4, 'D6 弧光三型')
     inRegion('**弧光落地两问**（骨架「人物弧线与关系发展」部对谈时过一遍', s3, s4, 'D6 弧光落地两问')
     // D7 卷级交叉思考→卷纲确认前（运行时形态尾句三线断档越线重排落位——数值照标尺单源）
-    inRegion('**卷级交叉思考**（卷纲正文写完、确认工具调用前过一遍）', s6, review, 'D7 卷级交叉思考')
-    inRegion('三线断档红线」行核对', s6, review, 'D7 三线断档标尺行核对')
-    inRegion('越线必须重排，不得带病确认', s6, review, 'D7 越线重排句')
+    //（0.0.56 边界重划：卷级交叉思考随卷规划移入 novel-arcplan——SKILL 单源＋核心问句挂步骤卡-卷规划各步「同时想」）
+    const arcSkill40 = readSkill('novel-arcplan')
+    const arcCard40 = fs.readFileSync(skillFile('novel-arcplan', 'templates/步骤卡-卷规划.md'), 'utf8')
+    expect(arcSkill40).toContain('**卷级交叉思考**（卷纲正文写完、确认工具调用前过一遍')
+    expect(arcSkill40).toContain('三线断档红线」行核对')
+    expect(arcSkill40).toContain('越线必须重排，不得带病确认')
+    expect(arcCard40).toContain('卷级交叉思考·三线断档红线')
+    expect(arcCard40).toContain('越线必须重排，不得带病确认')
     // D8 跨轨道自检→确认前审查第二部分（0.0.51 开书流程批：五轨自检并入确认前审查一次呈报）
     inRegion('②**跨轨道自检错位项**：', review, toolsSection, 'D8 跨轨道自检')
     inRegion('不错位则报告"五轨对齐"', review, toolsSection, 'D8 五轨对齐句')
@@ -2490,7 +2506,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const review = readSkill('novel-review')
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     const mineList = fs.readFileSync(skillFile('novel-design', 'references/雷点清单.md'), 'utf8')
-    const vol = fs.readFileSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'), 'utf8')
+    const vol = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
     const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
     const struct = fs.readFileSync(skillFile('novel-review', 'agents/章节结构审读.md'), 'utf8')
     const style = fs.readFileSync(skillFile('novel-review', 'agents/文风与表达审读.md'), 'utf8')
@@ -2800,8 +2816,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const outline = readSkill('novel-outline')
     const settle = readSkill('novel-settle')
     // A. 幕纲固定段规格：文件存在＋六个必备段名在位（逐字对齐 core 的 幕纲必备段）＋可选段备料自查
-    const memoPath = skillFile('novel-design', 'templates/幕纲固定段规格.md')
-    expect(fs.existsSync(memoPath), 'novel-design/templates/幕纲固定段规格.md 应存在').toBe(true)
+    const memoPath = skillFile('novel-arcplan', 'templates/幕纲固定段规格.md')
+    expect(fs.existsSync(memoPath), 'novel-arcplan/templates/幕纲固定段规格.md 应存在（0.0.56 边界重划迁移）').toBe(true)
     const memo = fs.readFileSync(memoPath, 'utf8')
     for (const sec of ['## 本幕故事', '## 线与伏笔', '## 出场人物', '## 查证清单', '## 章组排布', '## 幕末结算']) {
       expect(memo, `幕纲规格应含必备段「${sec}」`).toContain(sec)
@@ -2816,13 +2832,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(memo).toContain('**验证到期自查**')
     expect(memo).toContain('**伏笔保温自查**')
     expect(memo, '体量数值单源在参考标尺（本规格不重述数字）').toContain('体量数值单源在《参考标尺》')
-    // B. design SKILL：步骤 6 分幕与第一幕幕纲＋工件契约表「幕纲」行
-    expect(design).toContain('**分幕与第一幕幕纲**（卷纲确认后）')
-    expect(design).toContain('在卷纲「叙事结构」段把本卷分成若干幕')
-    expect(design).toContain('只为**第一幕**写幕纲')
-    expect(design).toContain('目标: 幕纲')
-    expect(design).toContain('后续幕不在开卷时写')
-    expect(design).toContain('幕是章序调整的授权范围')
+    // B.（0.0.56 边界重划：分幕与第一幕幕纲整段移入 novel-arcplan，钉随迁；design 留工件契约「幕纲」行与路径 A 提及）
+    const arcDesign = readSkill('novel-arcplan')
+    expect(arcDesign).toContain('**分幕与第一幕幕纲**（卷纲确认后）')
+    expect(arcDesign).toContain('在卷纲「叙事结构」段把本卷分成若干幕')
+    expect(arcDesign).toContain('只为**第一幕**写幕纲')
+    expect(arcDesign).toContain('目标: 幕纲')
+    expect(arcDesign).toContain('后续幕不在开卷时写')
+    expect(arcDesign).toContain('幕是章序调整的授权范围')
     expect(design).toContain('| 幕纲 | `大纲/卷规划/卷<NN>/幕纲/幕<NN>-<幕名>.md` |')
     expect(design, '路径 A 也写第一幕幕纲').toContain('第一卷分幕一行')
     // C. outline SKILL：按幕成批出细纲＋来源引用幕纲
@@ -2836,17 +2853,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outline).toContain('幕纲里排的这一章要埋／要兑现的，细纲里有了吗')
     expect(outline, '旧「滚动窗口段级刷新」措辞清零').not.toContain('滚动窗口段级刷新')
     expect(outline, '旧「批量细纲（可选分支」节名退役').not.toContain('**批量细纲（可选分支')
-    // D. settle SKILL：幕末结算六步＋卷末三件一批＋工件契约「幕纲」行
-    expect(settle).toContain('## 幕末结算（一幕写完时，替代原段级刷新）')
+    // D.（0.0.56 边界重划：幕末结算六步与卷末三件批移入 novel-arcplan，钉随迁；settle 留节头指针）
+    const arcSettle52 = readSkill('novel-arcplan')
+    expect(arcSettle52).toContain('## 幕末结算（一幕写完时，替代原段级刷新）')
     for (const step of ['分拣写时发现', '核对线与伏笔', '更新出场人物状态', '读者通读（可选，作者要才跑）', '写入幕末结算段', '写下一幕幕纲']) {
-      expect(settle, `幕末结算六步应含「${step}」`).toContain(step)
+      expect(arcSettle52, `幕末结算六步应含「${step}」`).toContain(step)
     }
-    expect(settle).toContain('卷对账→卷摘要→下卷注意事项，三件一批')
-    expect(settle).toContain('卷的最后一幕的幕末结算与卷末流程合并做，不重复')
-    expect(settle).toContain('| 幕纲 | `大纲/卷规划/卷NN/幕纲/幕NN-<幕名>.md` |')
+    expect(arcSettle52).toContain('卷对账→卷摘要→下卷注意事项，三件一批')
+    expect(arcSettle52).toContain('卷的最后一幕的幕末结算与卷末流程合并做，不重复')
+    expect(arcSettle52).toContain('| 幕纲 | `大纲/卷规划/卷NN/幕纲/幕NN-<幕名>.md` |')
     expect(settle, '段级刷新行应清零').not.toContain('| 段级刷新 |')
-    expect(settle).toContain('《定调设计》技能包 `agents/读者评审.md`')
-    expect(settle).toContain('「一幕的定稿正文」')
+    expect(settle, '0.0.56 边界重划：settle 幕末结算只留指针').toContain('已拆出到《卷幕规划》技能包')
+    expect(arcSettle52).toContain('《定调设计》技能包 `agents/读者评审.md`')
+    expect(arcSettle52).toContain('「一幕的定稿正文」')
     // E. 读者评审底本：对象类型加「幕正文」＋检查清单小节（原有三张不删）
     const reader = fs.readFileSync(skillFile('novel-design', 'agents/读者评审.md'), 'utf8')
     expect(reader).toContain('骨架 / 分卷 / 卷纲 / 幕正文')
@@ -2867,7 +2886,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(sectSpec).toContain('`novel_confirm_outline` 仍校验每单元六个字段名')
     // G. 注册单源：artifact-contract 登记幕纲规格
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
-    expect(contract, 'artifact-contract 应登记幕纲固定段规格').toContain("'skills/novel-design/templates/幕纲固定段规格.md'")
+    expect(contract, 'artifact-contract 应登记幕纲固定段规格（0.0.56 边界重划移入 novel-arcplan）').toContain("'skills/novel-arcplan/templates/幕纲固定段规格.md'")
     // H. 全 skills 无「段级刷新」；「10-30 章」仅参考标尺
     const skillsRoot = path.join(__dirname, '..', 'skills')
     const walkMd = (dir: string): string[] => fs.readdirSync(dir, { withFileTypes: true })
@@ -3016,7 +3035,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(mines, `雷点清单应含补缺行「${row}」`).toContain(row)
     }
     // F. 幕纲固定段规格：三处补充在位
-    const memo = fs.readFileSync(skillFile('novel-design', 'templates/幕纲固定段规格.md'), 'utf8')
+    const memo = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
     expect(memo, '线与伏笔段加远期兑现点').toContain('- 远期兑现点：本幕往后三五十章内要兑现的大盼头')
     expect(memo, '幕末结算段加主角收获盘点').toContain('- 主角本幕收获盘点：本幕主角得到了什么')
     expect(memo, '本幕故事段加阶段目标与终极悬念').toContain('本幕的阶段目标（读者在本幕盼什么）与本幕推进的终极悬念（读者长期追什么），各写一句。')
@@ -3149,7 +3168,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(outlineSpec).toContain('`- 取舍：为保 <A> 弃 <B>，理由一句`')
     expect(outline).toContain('**取舍显形**')
     // G. 规模跟随主角：幕纲出场人物段＋写前十查②
-    const memo = ref('novel-design', 'templates/幕纲固定段规格.md')
+    const memo = ref('novel-arcplan', 'templates/幕纲固定段规格.md')
     expect(memo).toContain('**人物规模跟随主角当前位阶**')
     const tenChecks = ref('novel-outline', 'agents/写前十查.md')
     expect(tenChecks).toContain('出场人物规模是否跟随主角当前位阶（对照幕纲『出场人物』段）一并核')
@@ -3170,5 +3189,106 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     // J. 润色承接后再要求润色＝换稿
     expect(polish).toContain('**承接登记后再要求润色＝换稿**')
+  })
+
+  it('0.0.56 边界重划批：novel-arcplan 技能与关键句＋两张步骤卡＋规格迁移＋design/settle 瘦身＋章细纲步骤卡试点＋director 路由＋注册单源', () => {
+    const arc = readSkill('novel-arcplan')
+    // A. SKILL 存在与关键句：多方向五条、台账建账、幕末结算六步、卷末四件
+    for (const pin of [
+      '### 强制多方向（本卷首次确认卷纲前必跑；卷纲修订与滚窗不跑，路径 A 不跑）',
+      '不参与发散', '典型版', '代价与放弃项', '`已排除走向` 只记作者明确否决的走向',
+      '### 卷规划', '信息释放台账建账', '揭示域清单', '卷02 起不开新账', '五核对项', '结构类型行', '心动位行',
+      '**卷级交叉思考**（卷纲正文写完、确认工具调用前过一遍', '三线断档红线」行核对', '越线必须重排，不得带病确认',
+      '**分幕与第一幕幕纲**（卷纲确认后）', '只为**第一幕**写幕纲', '目标: 幕纲', '幕是章序调整的授权范围',
+      '## 幕末结算（一幕写完时，替代原段级刷新）',
+      '分拣写时发现', '核对线与伏笔', '更新出场人物状态', '读者通读（可选，作者要才跑）', '写入幕末结算段', '写下一幕幕纲',
+      '幕纲未建的旧书（未分幕）：本流程跳过',
+      '## 卷末与卷摘要（当前卷收束后）', '卷对账→卷摘要→下卷注意事项，三件一批', '候选（只算不写）', '卷摘要候选.mjs', '目标: 卷摘要', '不设上限、不截断', '下卷注意·卷<NN+1>：',
+      '《定调设计》技能包 references/卷纲-节奏与高潮.md、卷纲-情节类型骨架.md、卷纲-卷功能与结构.md（整读）',
+      '按 [步骤卡-卷规划](templates/步骤卡-卷规划.md)', '按 [步骤卡-幕末结算](templates/步骤卡-幕末结算.md) 走',
+    ]) {
+      expect(arc, `novel-arcplan SKILL 应含「${pin.slice(0, 18)}…」`).toContain(pin)
+    }
+    // B. 两张步骤卡存在且含步序、六字段与深挖指针
+    const cardVol = fs.readFileSync(skillFile('novel-arcplan', 'templates/步骤卡-卷规划.md'), 'utf8')
+    for (const step of ['## 步 1 读上卷遗产', '## 步 2 多方向（首卷纲前必跑）', '## 步 3 卷末画面与压力升级检查', '## 步 4 分幕（每幕一行）', '## 步 5 第一幕幕纲（照规格）', '## 步 6 台账与窗口', '## 步 7 呈确认写入']) {
+      expect(cardVol, `步骤卡-卷规划应含步序「${step}」`).toContain(step)
+    }
+    for (const field of ['- 先做：', '- 再做：', '- 同时想：', '- 延伸到：', '- 判据要点：', '- 深挖：']) {
+      expect(cardVol.split('\n').filter((l) => l.trim().startsWith(field)).length, `步骤卡-卷规划七步均应带「${field}」`).toBe(7)
+    }
+    expect(cardVol).toContain('《定调设计》技能包 references/卷纲-节奏与高潮.md')
+    expect(cardVol).toContain('卷级交叉思考·三线断档红线')
+    const cardAct = fs.readFileSync(skillFile('novel-arcplan', 'templates/步骤卡-幕末结算.md'), 'utf8')
+    for (const step of ['## 步 1 分拣写时发现', '## 步 2 核线与伏笔', '## 步 3 更新人物状态', '## 步 4 读者通读（可选，作者要才跑）', '## 步 5 写幕末结算段', '## 步 6 写下一幕幕纲']) {
+      expect(cardAct, `步骤卡-幕末结算应含步序「${step}」`).toContain(step)
+    }
+    expect(cardAct).toContain('《定调设计》技能包 references/大纲-伏笔埋收.md')
+    expect(cardAct).toContain('《定调设计》技能包 agents/读者评审.md 的「对象＝幕正文」节')
+    expect(cardAct).toContain('templates/幕纲固定段规格.md「幕末结算」节')
+    // C. 两份规格在新位置且内容未变（对一两句钉）；旧位置清零
+    const volSpec = fs.readFileSync(skillFile('novel-arcplan', 'templates/卷纲固定段规格.md'), 'utf8')
+    const memoSpec = fs.readFileSync(skillFile('novel-arcplan', 'templates/幕纲固定段规格.md'), 'utf8')
+    expect(fs.existsSync(skillFile('novel-design', 'templates/卷纲固定段规格.md'))).toBe(false)
+    expect(fs.existsSync(skillFile('novel-design', 'templates/幕纲固定段规格.md'))).toBe(false)
+    expect(volSpec).toContain('层层递进引爆型')
+    expect(volSpec).toContain('## 方向选择（末尾小节，强制多方向确认后才有）')
+    expect(memoSpec).toContain('## 备料自查（可选段）')
+    expect(memoSpec).toContain('**人物规模跟随主角当前位阶**')
+    // D. design 瘦身：无多方向/卷规划正文，只有指针；对谈纪律第 6 条整件读保留（开书不试点）
+    const design = readSkill('novel-design')
+    expect(design).toContain('步骤 5/6 见《卷幕规划》技能包')
+    for (const stale of ['不参与发散', '典型版', '代价与放弃项', '信息释放台账建账（卷01 卷纲首次确认前，一次性）**：从故事骨架与世界书条目提取', '**分幕与第一幕幕纲**（卷纲确认后）', '**卷级交叉思考**（卷纲正文写完']) {
+      expect(design, `design 多方向/卷规划正文「${stale.slice(0, 14)}…」应清零（只有指针）`).not.toContain(stale)
+    }
+    expect(design, '开书不试点：对谈纪律第 6 条整件读保留').toContain('判据**整件读入**，不按节切读')
+    // E. settle 瘦身：无幕末结算六步与卷末正文，只有指针；工件契约四行与工具表便签行随迁
+    const settle = readSkill('novel-settle')
+    expect(settle, 'settle 幕末结算留指针').toContain('已拆出到《卷幕规划》技能包——六步')
+    for (const stale of ['**写入幕末结算段**：把上述结果', '**写下一幕幕纲**：按', '**更新出场人物状态**：本幕主要人物', '卷对账→卷摘要→下卷注意事项，三件一批——卷的最后一幕', '目标: 卷摘要', '卷摘要候选.mjs --book']) {
+      expect(settle, `settle 幕末/卷末正文「${stale.slice(0, 14)}…」应清零（只有指针）`).not.toContain(stale)
+    }
+    for (const row of [
+      '| 卷摘要 | `大纲/卷规划/卷<NN>/卷摘要.md` |',
+      '| 卷对账（卷级） | `<工作范围>/书房/卷末/<书名>/卷<NN>-卷对账.md` |',
+      '| 幕纲 | `大纲/卷规划/卷NN/幕纲/幕NN-<幕名>.md` |',
+      '| 下卷注意事项 | `大纲/分卷布局.md`「卷间衔接」节的待补便签 |',
+    ]) {
+      expect(settle, `settle 工件契约行「${row.slice(0, 6)}…」应随迁 arcplan`).not.toContain(row)
+      expect(arc, `arcplan 工件契约应含「${row.slice(0, 6)}…」`).toContain(row)
+    }
+    expect(settle, '工具表 novel_note_pending 卷末便签行应随迁').not.toContain('| `novel_note_pending` |')
+    // F. 章细纲步骤卡试点（第二处）：卡步序＋outline 接线句
+    const outline = readSkill('novel-outline')
+    const cardChapter = fs.readFileSync(skillFile('novel-outline', 'templates/步骤卡-章细纲.md'), 'utf8')
+    expect(outline).toContain('思考程序按 [步骤卡-章细纲](templates/步骤卡-章细纲.md) 走')
+    expect(outline).toContain('深挖判据件（照步骤卡「深挖」列）：《章纲-信息与情绪》等四件，整读')
+    expect(outline).toContain('写时整合是落定位段各节时的心智，步骤卡是落笔前的排程——两者并用不互斥')
+    for (const step of ['## 步 1 本章任务', '## 步 2 核心场面', '## 步 3 停在哪', '## 步 4 怎么走过去', '## 步 5 边界与核对', '## 步 6 写前十查与呈确认']) {
+      expect(cardChapter, `步骤卡-章细纲应含步序「${step}」`).toContain(step)
+    }
+    for (const field of ['- 先做：', '- 再做：', '- 同时想：', '- 延伸到：', '- 判据要点：', '- 深挖：']) {
+      expect(cardChapter.split('\n').filter((l) => l.trim().startsWith(field)).length, `步骤卡-章细纲六步均应带「${field}」`).toBe(6)
+    }
+    expect(cardChapter).toContain('《章纲-信息与情绪》的 §6.7「信息怎么分配」')
+    // G. director 技能加载表 12 行含 arcplan＋节点路由指针
+    const director = readSkill('novel-director')
+    expect(director).toContain('| 卷幕规划 | `novel-arcplan` |')
+    expect(director).toContain('| 当前卷规划 | 《卷幕规划》')
+    expect(director).toContain('幕末则走《卷幕规划》幕末结算六步')
+    // H. 注册单源：artifact-contract 加 arcplan 技能与三张步骤卡、两模板路径改新位置
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("'novel-arcplan'")
+    for (const rel of [
+      'skills/novel-arcplan/templates/卷纲固定段规格.md',
+      'skills/novel-arcplan/templates/幕纲固定段规格.md',
+      'skills/novel-arcplan/templates/步骤卡-卷规划.md',
+      'skills/novel-arcplan/templates/步骤卡-幕末结算.md',
+      'skills/novel-outline/templates/步骤卡-章细纲.md',
+    ]) {
+      expect(contract, `artifact-contract 应登记 ${rel}`).toContain(`'${rel}'`)
+    }
+    expect(contract, '旧位置注册应清零（卷纲固定段规格）').not.toContain("'skills/novel-design/templates/卷纲固定段规格.md'")
+    expect(contract, '旧位置注册应清零（幕纲固定段规格）').not.toContain("'skills/novel-design/templates/幕纲固定段规格.md'")
   })
 })

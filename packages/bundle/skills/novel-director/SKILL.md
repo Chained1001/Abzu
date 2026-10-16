@@ -17,6 +17,7 @@ user-invocable: false
 | 工作台总控 | `novel-director` |
 | 灵感与立项 | `novel-inspiration` |
 | 定调设计 | `novel-design` |
+| 卷幕规划 | `novel-arcplan` |
 | 细纲备料 | `novel-outline` |
 | 正文起草 | `novel-drafting` |
 | 全面审读 | `novel-review` |
@@ -102,7 +103,7 @@ user-invocable: false
 | 世界构建 | 《定调设计》路径 B:`novel_confirm_worldbook_entry` 补人物档案与世界规则 |
 | 故事骨架 | 《定调设计》路径 B:`novel_update_skeleton`（九部） |
 | 分卷布局 | 《定调设计》路径 B:`novel_update_volume_layout`（八部） |
-| 当前卷规划 | 《定调设计》:路径 B 本卷首次落卷纲前先出多方向呈作者选，路径 A 按已确认的快速设计继续;卷纲后分幕并为第一幕写幕纲;`novel_confirm_volume_outline`、`novel_roll_window` |
+| 当前卷规划 | 《卷幕规划》:开卷读上卷遗产、强制多方向、卷规划、分幕并为第一幕写幕纲;`novel_confirm_volume_outline`、`novel_roll_window`;路径 A 开书的一次起草仍在《定调设计》,规格照《卷幕规划》 |
 | 开写就绪 | 进入章节面 |
 
 章节面：
@@ -119,7 +120,7 @@ user-invocable: false
 | 定稿准备与沉淀 | 《定稿沉淀》:`novel_prepare_pack` 组包呈裁决 |
 | 作者定稿裁决 | 控制点：批准→`novel_settle_chapter`;退回→按根因回对应节点 |
 | 定稿入档 | `novel_settle_chapter` 沉淀（ch:）后核对近况 |
-| 完成 | 汇报近况;幕末则走《定稿沉淀》幕末结算六步,否则规划下一章;窗口见底先 `novel_roll_window` |
+| 完成 | 汇报近况;幕末则走《卷幕规划》幕末结算六步,卷末同该技能,否则规划下一章;窗口见底先 `novel_roll_window` |
 
 ## 提交纪律
 

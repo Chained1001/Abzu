@@ -9,13 +9,14 @@ import { REFERENCE_TOOL_NAMES } from '../src/reference/tools'
 import { readSkill, skillPath } from './skill-test-helpers'
 
 /**
- * 主控+节点+聚合技能（全生命周期 11 份）。
+ * 主控+节点+聚合技能（全生命周期 12 份——0.0.56 边界重划：拆出 novel-arcplan《卷幕规划》）。
  * 目录名即 frontmatter name（Agent Skills 规范硬要求：name 必须与父目录名一致）。
  */
 const EXPECTED_SKILLS: ReadonlyArray<{ readonly name: string; readonly 中文名: string }> = [
   { name: 'novel-director', 中文名: '工作台总控' },
   { name: 'novel-inspiration', 中文名: '灵感与立项' },
   { name: 'novel-design', 中文名: '定调设计' },
+  { name: 'novel-arcplan', 中文名: '卷幕规划' },
   { name: 'novel-outline', 中文名: '细纲备料' },
   { name: 'novel-drafting', 中文名: '正文起草' },
   { name: 'novel-review', 中文名: '全面审读' },
@@ -47,7 +48,7 @@ function readFrontmatter(text: string): Record<string, unknown> {
 }
 
 describe('聚合 skills 体系（常驻结构契约）', () => {
-  it('交付 11 份 SKILL.md，文件名一一对应', () => {
+  it('交付 12 份 SKILL.md，文件名一一对应', () => {
     for (const s of EXPECTED_SKILLS) {
       expect(fs.existsSync(skillPath(s.name)), `${s.name}/SKILL.md 应存在`).toBe(true)
     }
@@ -112,7 +113,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(text).toContain('未经作者明确同意，严禁进入建书')
   })
 
-  it('定调设计：含契约六部 + 双路径 + 分部更新纪律 + 强制多方向', () => {
+  it('定调设计：含契约六部 + 双路径 + 分部更新纪律 + 卷规划指针（0.0.56 边界重划）', () => {
     const text = readSkill('novel-design')
     expect(text).toContain('契约六部')
     // 快速开写走起草确认,seed 只供测试/走查,不出现在作者面技能里
@@ -123,11 +124,14 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(text).toContain('创作禁区与不可妥协项')
     expect(text).toContain('留白')
     expect(text).toContain('分部更新')
-    expect(text).toContain('强制多方向')
-    expect(text).toContain('不参与发散')
-    expect(text).toContain('典型版')
-    expect(text).toContain('代价与放弃项')
-    expect(text).toContain('方向选择')
+    // 0.0.56 边界重划：强制多方向五条正文移入 novel-arcplan,design 只留指针
+    expect(text).toContain('步骤 5/6 见《卷幕规划》技能包')
+    const arcplan = readSkill('novel-arcplan')
+    expect(arcplan).toContain('强制多方向')
+    expect(arcplan).toContain('不参与发散')
+    expect(arcplan).toContain('典型版')
+    expect(arcplan).toContain('代价与放弃项')
+    expect(arcplan).toContain('方向选择')
   })
 
   it('E5′ KB 批：净版本域件存在带版本戳零标注残留；SKILL §x.y 引用逐一命中分发件标题（v2.4.1 节图全局化）', () => {
@@ -162,7 +166,9 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     // E5′ 瘦身件防回退：对谈纪律/五步判据行/三张追问卡/种子三百字
     expect(design).toContain('## 对谈纪律')
     expect(design).toContain('判据：读 [开书-读者与情绪定位](references/开书-读者与情绪定位.md)')
-    expect(design).toContain('判据：读 [卷纲-节奏与高潮](references/卷纲-节奏与高潮.md)')
+    //（0.0.56 边界重划：卷纲-*三件的读件指引随卷规划移入 novel-arcplan 文字指针；design 侧改钉分卷步判据行）
+    expect(design).toContain('判据：读 [卷纲-卷功能与结构](references/卷纲-卷功能与结构.md)')
+    expect(readSkill('novel-arcplan')).toContain('《定调设计》技能包 references/卷纲-节奏与高潮.md、卷纲-情节类型骨架.md、卷纲-卷功能与结构.md（整读）')
     expect(design).toContain('追问限额')
     expect(design).toContain('金手指四轨道追问')
     expect(design).toContain('暗面一问')
@@ -222,8 +228,8 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
       expect(headingsOf(skill, file).size, `${file}: §x.y 标题数应大于零`).toBeGreaterThan(0)
     }
     // 接线防回退：三 SKILL 判据行＋排障索引入口＋改稿章程内联摘要（跨包引用不可达，走内联方案）
-    expect(readSkill('novel-outline')).toContain('判据：读 [章纲-信息与情绪](references/章纲-信息与情绪.md)')
-    expect(readSkill('novel-outline')).toContain('章纲域已全拆分件化，整件读、不按节切读')
+    //（0.0.56 边界重划：章细纲步骤卡试点——判据行改「深挖判据件」指针句，旧「判据：读 [章纲-…]」句随裁）
+    expect(readSkill('novel-outline')).toContain('深挖判据件（照步骤卡「深挖」列）：《章纲-信息与情绪》等四件，整读——章纲域已全拆分件化，不按节切读')
     const checks = fs.readFileSync(path.join(__dirname, '..', 'skills', 'novel-outline', 'agents', '写前十查.md'), 'utf8')
     expect(checks).toContain('判据延伸：读 [章纲-章型与开篇](../references/章纲-章型与开篇.md)')
     expect(readSkill('novel-drafting')).toContain('按卡头节源对应的《正文-*》拆分件整读')
@@ -282,10 +288,12 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(text).toContain('只增不改')
     expect(text).toContain('吃书补偿')
     // 任务21 件一:卷末与卷摘要段(候选脚本＋确认落盘＋待核对不写无偏离)
-    expect(text).toContain('卷摘要候选.mjs')
-    expect(text).toContain('目标: 卷摘要')
-    expect(text).toContain('待核对')
-    expect(text).toContain('不设上限、不截断')
+    //（0.0.56 边界重划：卷末与卷摘要节移入 novel-arcplan，四钉随迁）
+    const arcplanText = readSkill('novel-arcplan')
+    expect(arcplanText).toContain('卷摘要候选.mjs')
+    expect(arcplanText).toContain('目标: 卷摘要')
+    expect(arcplanText).toContain('待核对')
+    expect(arcplanText).toContain('不设上限、不截断')
   })
 
   it('全面审读：含 9 维标准 + Subagent 派发指引 + 发现项规范', () => {

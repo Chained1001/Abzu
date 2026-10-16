@@ -1,4 +1,4 @@
-export const skills = ['novel-director', 'novel-inspiration', 'novel-design', 'novel-outline', 'novel-drafting', 'novel-review', 'novel-polish', 'novel-revision', 'novel-settle', 'novel-export', 'novel-analyze']
+export const skills = ['novel-director', 'novel-inspiration', 'novel-design', 'novel-arcplan', 'novel-outline', 'novel-drafting', 'novel-review', 'novel-polish', 'novel-revision', 'novel-settle', 'novel-export', 'novel-analyze']
 /** Dispatch references must travel with the skills that consume them. */
 export const referenceDocs = [
   ...['导入与覆盖', '事实提取', '机制与灵感'].map(name => `skills/novel-analyze/references/${name}.md`),
@@ -20,9 +20,12 @@ export const referenceDocs = [
   'skills/novel-design/references/雷点清单.md',
   ...['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则', '世界常量'].map(name => `skills/novel-design/templates/世界书/${name}条目模板.md`),
   'skills/novel-design/templates/对手梯队子表规格.md',
-  'skills/novel-design/templates/卷纲固定段规格.md',
-  'skills/novel-design/templates/幕纲固定段规格.md',
+  'skills/novel-arcplan/templates/卷纲固定段规格.md',
+  'skills/novel-arcplan/templates/幕纲固定段规格.md',
+  'skills/novel-arcplan/templates/步骤卡-卷规划.md',
+  'skills/novel-arcplan/templates/步骤卡-幕末结算.md',
   'skills/novel-outline/templates/章细纲固定小节规格.md',
+  'skills/novel-outline/templates/步骤卡-章细纲.md',
   ...['开书-构思与验证', '开书-读者与情绪定位', '开书-书名与简介', '开书-参考作品利用', '人物设计-主角', '人物设计-金手指设计', '人物设计-配角与群像', '人物设计-反派', '人物设计-弧光与关系', '人物设计-人物卡工具', '世界观-规则与铁则', '世界观-力量体系与天花板', '世界观-地图与势力', '世界观-经济与原创性', '大纲-主线与骨架', '大纲-激励事件与首尾', '大纲-换图与支线', '大纲-伏笔埋收', '大纲-牌局与结构检查', '卷纲-卷功能与结构', '卷纲-节奏与高潮', '卷纲-情节类型骨架']
     .map(name => `skills/novel-design/references/${name}.md`),
   ...['章纲-章型与开篇', '章纲-冲突与爽点', '章纲-场景与节奏', '章纲-信息与情绪'].map(name => `skills/novel-outline/references/${name}.md`),
