@@ -14,7 +14,7 @@ import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const KB_VERSION = 'v2.4.7'
+const KB_VERSION = 'v2.8'
 const STAMP = `> 知识库净版 · 源版本 ${KB_VERSION} · 净版纪律见 docs/标准/技能编写规范.md`
 
 /** 分发映射表（单源）：KB 文件 → 技能 references/ 目录。
