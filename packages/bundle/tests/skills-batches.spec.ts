@@ -1823,14 +1823,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(cards).toContain('陌生化搭配')
     expect(cards).toContain('顶真回环')
     expect(cards).toContain('两卡不重叠')
-    // D. 件4 情绪词典：升级链＋张力三表现＋场景-感官通道对照＋附.5 出处标注
+    // D. 件4 情绪词典：升级链＋张力三表现＋场景-感官通道对照（附.5 出处标注随 0.0.49 方法论冲突批移出运行时）
     expect(cards).toContain('直接说（低）→生理反应（中）→生理反应＋动作＋环境烘托（高）')
     expect(cards).toContain('压抑（越想忍越忍不住）')
     expect(cards).toContain('反差（表面平静内心翻江倒海）')
     expect(cards).toContain('递进（从一点点不舒服到彻底爆发）')
     expect(cards).toContain('打斗＝视觉＋听觉')
     expect(cards).toContain('密室＝触觉＋听觉＋嗅觉')
-    expect(cards).toContain('〔知识库附录·附.5〕')
+    expect(cards, '0.0.49 方法论冲突批：附录出处标注应移出运行时').not.toContain('〔知识库附录')
     // E. 件5 开场钩型：开场卡双节源＋黄金三百字三判据＋六钩型＋三低级错误＋SKILL 开场位半句与 §6.2 深挖位
     expect(cards).toContain('## 开场卡 ←§7.10＋§6.2')
     expect(cards).toContain('黄金三百字自查（首章与卷首章执行）')
@@ -1850,16 +1850,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const profile = fs.readFileSync(skillFile('novel-design', 'templates/世界书/人物档案条目模板.md'), 'utf8')
     expect(profile).toContain('习惯性动作/标记物优先于五官描述')
     expect(profile).toContain('判据 §2.6 主角外貌怎么写')
-    // G. 件7 悬空指针清零：references/ 下任何含「附.N」的行必须同带「不分发」诚实标注（09_附录 整体未分发，不留裸指针也不内联附录内容）
+    // G. 件7 悬空指针清零：0.0.49 方法论冲突批——附录指针与蒸馏来源标注全部移出运行时，references/ 任何行不得再出现附.N（novel-polish 的附.4 词表另批处理，不在遍历范围）
     const skillsDir = path.join(__dirname, '..', 'skills')
-    for (const skill of fs.readdirSync(skillsDir)) {
+    for (const skill of ['novel-design', 'novel-outline', 'novel-drafting', 'novel-director']) {
       const refDir = path.join(skillsDir, skill, 'references')
       if (!fs.existsSync(refDir)) continue
       for (const f of fs.readdirSync(refDir).filter((n) => n.endsWith('.md'))) {
         for (const line of fs.readFileSync(path.join(refDir, f), 'utf8').split('\n')) {
-          if (/附\.[0-9]/.test(line) && !line.includes('蒸馏自附')) { // T2 附录蒸馏批起：蒸馏自附.N=溯源标注非指针，豁免
-            expect(line, `${skill}/references/${f} 附录指针须带「不分发」诚实标注（附录未分发）`).toContain('不分发')
-          }
+          expect(line, `${skill}/references/${f} 不应残留附.N 指针或蒸馏来源标注`).not.toMatch(/附\.[0-9]/)
         }
       }
     }
@@ -1990,14 +1988,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.48＋CHANGELOG 条目＋README×2（纪律统一批接力）
+    // C. 版本纪律全套：两 package.json 0.0.49＋CHANGELOG 条目＋README×2（纪律统一批接力）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.48').toBe('0.0.48')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.48').toBe('0.0.48')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.48]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.49').toBe('0.0.49')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.49').toBe('0.0.49')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.49]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.48`).toContain('0.0.48')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.49`).toContain('0.0.49')
     }
   })
 
@@ -2431,8 +2429,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(struct).toContain('主角＋处境＋钩（首章与卷首章硬核，余章对照细纲判）')
     // C. R2 憋屈三口径：KB 分发件与雷点清单都改挂《参考标尺》憋屈剧情上限行
     //（v2.4.5 阶段5a：§8.5 随排障域拆分落《排障-专项修复》——断言随裁）
+    //（0.0.49 方法论冲突批：§8.5 毒点逐条清单单源到雷点清单，「憋屈隐忍」条目随清单移出排障侧，判据句由下方雷点清单断言承接）
     const kbTroubleshoot = fs.readFileSync(skillFile('novel-director', 'references/排障-专项修复.md'), 'utf8')
-    expect(kbTroubleshoot).toContain('羞辱后还手时限照《参考标尺》憋屈剧情上限行')
+    expect(kbTroubleshoot, '0.0.49 方法论冲突批：毒点条目应单源在雷点清单').not.toContain('羞辱后还手时限照《参考标尺》憋屈剧情上限行')
     expect(kbTroubleshoot).not.toContain('羞辱一章就打脸')
     expect(mineList).toContain('还手时限照《参考标尺》憋屈剧情上限行')
     expect(mineList).not.toContain('羞辱一章内打脸')
@@ -2491,19 +2490,19 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   it('T2 附录蒸馏批：九项类型特化蒸为通用机制并入对应件（v2.4.6，作者逐项批准）', () => {
     const ref = (skill: string, file: string) => fs.readFileSync(path.join(__dirname, '..', 'skills', skill, 'references', file), 'utf8')
     // 八块落位（附.7/附.8 合并对照块）
-    expect(ref('novel-design', '大纲-牌局与结构检查.md')).toContain('### 智斗剧情通用件（蒸馏自附.1，权谋外壳已剥）')
+    expect(ref('novel-design', '大纲-牌局与结构检查.md')).toContain('### 智斗剧情通用件')
     expect(ref('novel-design', '大纲-牌局与结构检查.md')).toContain('读者复盘三遍仍合理')
-    expect(ref('novel-design', '人物设计-弧光与关系.md')).toContain('### 情感线张力总纲与能动性（蒸馏自附.2，女频外壳已剥）')
+    expect(ref('novel-design', '人物设计-弧光与关系.md')).toContain('### 情感线张力总纲与能动性')
     expect(ref('novel-design', '人物设计-弧光与关系.md')).toContain('只哭不抗=弃读位')
-    expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('### 悬疑张力通用件：四支柱与三层真相（蒸馏自附.3，悬疑外壳已剥）')
+    expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('### 悬疑张力通用件：四支柱与三层真相')
     expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('第一层揭开后故事还有劲吗')
-    expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('### 全书核心疑问与缺席者技法（蒸馏自附.10，替身外壳已剥）')
-    expect(ref('novel-design', '卷纲-节奏与高潮.md')).toContain('### 情绪兑现两型供血（蒸馏自附.7/附.8，类型外壳已剥；两型互为对照）')
+    expect(ref('novel-design', '大纲-主线与骨架.md')).toContain('### 全书核心疑问与缺席者技法')
+    expect(ref('novel-design', '卷纲-节奏与高潮.md')).toContain('### 情绪兑现两型供血（两型互为对照）')
     expect(ref('novel-design', '卷纲-节奏与高潮.md')).toContain('两型不混同一本账')
-    expect(ref('novel-design', '开书-读者与情绪定位.md')).toContain('### 笔墨随题材调配（蒸馏自附.9）')
-    expect(ref('novel-outline', '章纲-信息与情绪.md')).toContain('### 信息差定向爆破：掉马时机（蒸馏自附.11，马甲外壳已剥）')
+    expect(ref('novel-design', '开书-读者与情绪定位.md')).toContain('### 笔墨随题材调配')
+    expect(ref('novel-outline', '章纲-信息与情绪.md')).toContain('### 信息差定向爆破：掉马时机')
     expect(ref('novel-outline', '章纲-信息与情绪.md')).toContain('悬念还在吗？读者还记得吗')
-    expect(ref('novel-director', '排障-长篇防崩.md')).toContain('### 循环/重生/时间线题材一致性体制（条件触发，蒸馏自附.13）')
+    expect(ref('novel-director', '排障-长篇防崩.md')).toContain('### 循环/重生/时间线题材一致性体制（条件触发）')
     expect(ref('novel-director', '排障-长篇防崩.md')).toContain('读者会拿第 1 章的声明来审你')
     // 蒸馏块净版纪律：块内不残留来源行/理论锚
     for (const [file, title] of [['卷纲-节奏与高潮.md', '情绪兑现两型供血'], ['排障-长篇防崩.md', '一致性体制']] as const) {
@@ -2554,9 +2553,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // G. 注册单源：artifact-contract 不再登记编辑评审
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
     expect(contract).not.toContain('编辑评审')
-    // H. 润色批 2 对话节删除测试：口径与审读侧 §7.8 单源（引节号不重述全文）
+    // H. 润色批 2 对话节删除测试：口径与审读侧 §7.8 单源（引节号不重述全文；0.0.49 方法论冲突批对齐 §7.8 原文三要素「剧情/人物/情绪」）
     const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
-    expect(reshape).toContain('**删除测试**：盖住这句对白再读，信息量/性格/关系三者无损＝可删候选（删后语义不塌才准删；塌则留）——口径与《正文起草》技能包 references/正文-展示与对白.md §7.8 单源（引节号，不重述全文）')
+    expect(reshape).toContain('**删除测试**：盖住这句对白再读，剧情/人物/情绪三者无损＝可删候选（删后语义不塌才准删；塌则留）——口径与《正文起草》技能包 references/正文-展示与对白.md §7.8 单源（引节号，不重述全文）')
   })
 
   it('0.0.48 写作范围清理批：参考标尺去平台与更新节奏行＋校准史移出运行时＋雷点清单与排障索引写作化＋润色批 3 退役＋判据件读者数据措辞', () => {
@@ -2607,11 +2606,12 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
 
   it('T3 小修回补批：十件小修清账——9 项新落＋1 项核实已在位（KB v2.4.7，内容面收官）', () => {
     const ref = (skill: string, file: string) => fs.readFileSync(path.join(__dirname, '..', 'skills', skill, file), 'utf8')
-    // 项1：附.5 屈辱感判据行落塑造卡（1e7ff06 虚报件回补——判据形态＋〔附.5〕溯源标注）
+    // 项1：附.5 屈辱感判据行落塑造卡（1e7ff06 虚报件回补——判据形态；〔附.5〕溯源标注随 0.0.49 方法论冲突批移出）
     const cards = ref('novel-drafting', 'agents/写作卡.md')
     expect(cards).toContain('屈辱感不写「他很屈辱」，写：他想反抗但动不了（耳鸣、血液上涌、指尖发麻）')
     expect(cards).toContain('最大的否定是无视；他清醒地看着自己受辱却主动屈从')
-    expect(cards).toContain('读者看了会不会跟着揪心〔知识库附录·附.5〕')
+    expect(cards).toContain('读者看了会不会跟着揪心')
+    expect(cards, '0.0.49 方法论冲突批：附录出处标注应移出运行时').not.toContain('〔知识库附录')
     // 项9：行文自查卡插入语行（§7.13 话语标记/语序域，判据式）
     expect(cards).toContain('- 插入语：「说实话／不得不说／某种程度上」式句首插入语成串即删')
     // 项2：附.4 残留四词入 tier4＋其余七词已有位锚（含「不分发」诚实标注——附录指针闸）
