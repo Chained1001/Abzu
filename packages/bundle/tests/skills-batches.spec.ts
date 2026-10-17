@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.66＋CHANGELOG 条目＋README×2（v2.9 方法论批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.67＋CHANGELOG 条目＋README×2（v2.9-C 裁决批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.66').toBe('0.0.66')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.66').toBe('0.0.66')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.66]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.67').toBe('0.0.67')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.67').toBe('0.0.67')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.67]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.66`).toContain('0.0.66')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.67`).toContain('0.0.67')
     }
   })
 
@@ -3511,5 +3511,27 @@ describe('skills 批次防回退断言组·0.0.66 v2.9 方法论批', () => {
     // 铁则“绝对不能打破”是既有口径，v2.9-B 不得静默改成“默认不可打破”
     expect(read('packages/bundle/skills/novel-design/references/世界观-规则与铁则.md')).toContain('绝对不能打破')
     expect(read('packages/bundle/skills/novel-design/references/世界观-规则与铁则.md')).not.toContain('默认不可打破')
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.67 v2.9-C 裁决批', () => {
+  it('0.0.67：大纲记录型定稿＋可写性自检＋铁则默认绝对与登记例外', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const outline = read('packages/bundle/skills/novel-design/references/大纲-牌局与结构检查.md')
+    expect(outline).toContain('大纲确认点、初衷三层与可写性')
+    expect(outline).toContain('废弃方案')
+    expect(outline).toContain('每 3–5 万字')
+    expect(read('packages/bundle/skills/novel-outline/templates/章细纲固定小节规格.md')).toContain('可写性自检')
+    expect(read('packages/bundle/skills/novel-director/references/排障-长篇防崩.md')).toContain('大纲校准（每 3–5 万字）')
+    const rules = read('packages/bundle/skills/novel-design/references/世界观-规则与铁则.md')
+    expect(rules).toContain('默认绝对不能打破')
+    expect(rules).toContain('作者显式')
+    expect(rules).not.toContain('默认不可打破')
+    const template = read('packages/bundle/skills/novel-design/templates/世界书/世界规则条目模板.md')
+    expect(template).toContain('例外：')
+    expect(template).toContain('打破条件：')
+    expect(template).toContain('破例记录：')
+    expect(read('packages/bundle/skills/novel-review/agents/世界内合理性审读.md')).toContain('铁则破例另查')
   })
 })
