@@ -14,6 +14,23 @@ import { bookWriter } from '../repo/atomic'
 export const 处置状态列表 = ['待处理', '已接受修改', '已解决', '作者保留', '已驳回', '无法判断', '已转提案'] as const
 export type 处置状态 = (typeof 处置状态列表)[number]
 
+/** 机器轨三档；技能侧第二套词表（硬伤/建议/仅供参考）由归一化函数映射进来。 */
+export const 严重程度列表 = ['高', '中', '低'] as const
+export type 严重程度 = (typeof 严重程度列表)[number]
+export type 严重程度归一 = 严重程度 | string
+
+/** 只读侧解释：不改写证据原文；未知值原样返回，调用方自行决定是否保守处理。 */
+export function 归一化严重程度(value: string): 严重程度归一 {
+  if (value === '高' || value === '硬伤' || value === '严重') return '高'
+  if (value === '中' || value === '建议') return '中'
+  if (value === '低' || value === '仅供参考') return '低'
+  return value
+}
+
+export function 是高级严重程度(value: string): boolean {
+  return 归一化严重程度(value) === '高'
+}
+
 export interface Finding {
   readonly 审核编号: string
   readonly 模块名: string

@@ -2,6 +2,28 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.72] — 2026-10-18
+
+### Changed（v2.9 步骤消费＋剩余 P1 收口）
+
+- **v2.9 业务步骤影响评估**：40 条台账中真正“改顺序”的只有 #12/#18/#38；结论是不改步骤顺序，补 4 处步骤级消费位——设计新增大纲记录（确认点/废弃方案，记录型不新增审批）、卷规划点名卷末三锚点核对、改稿补三层修订法、细纲前三章补黄金三章软检查。报告见 `.scratch/review-20261017/04-v2.9-step-impact.md`。
+- **严重程度归一化**：core 出 `严重程度列表`＋`归一化严重程度`＋`是高级严重程度`（高/中/低，兼容硬伤/建议/仅供参考/严重）；润色承接门改用 core 判定；未知值只读侧保留、不静默改写。
+- **发现项返回节点清理**：确定性检查不再产 `作品定调/写稿/审核` 三个表外返回节点，改用六值内的 `备料/改稿`；建议重跑只认 `建议复审模块`，不再把流程节点当模块名。
+- **账本落盘字段修复**：`ledgerBlock` 把 `埋设点`/`预期兑现区间` 写回条目顶层字段，不再沉到 `### 正文` 后导致 `queryDueLedger` 读不到；加沉淀回归断言。
+- **契约对撞测试**：新增 `review-dimensions.spec.ts`（9 维 registry ↔ 全量/单维 frontmatter 双向）、`settlement-contract.spec.ts`（账本/记忆类别↔散文、四字段只留正文）、`severity.spec.ts`。
+- **发布链**：`release:build` 默认先跑 `test:release`＋`check:version`（`--skip-tests` 显式跳过）；`release-notes.md` 先写并纳入 manifest/SHA256SUMS；`--packages` 校验 tgz 内 name/version。新增 `build.test.mjs` 6 条。
+- **文档收口**：产品 §10 历史压成 CHANGELOG 指针；回归简报三行必报/欠账 N>0 追加；审读→改稿→润色时序与“两成”分母写清；工程规范补 0.x patch 批次口径与文档沿革例外；README 补包名占位；技术文档脚本 10/11 与测试 152 文件/约 3.0 万行。
+
+### 说明
+
+- 20/24/40 三条仍按作者篇/附录，不进运行时；3–5 章上限仍标〔待作者定值〕，不擅自写死。
+- 0.0.72 收口后固定文档复测 **61,820 / 77,283 = 20.0%**（内容增补后仅高于阈值 6 字符；`benchmark:fixed-docs` 仍按 20% 判）。
+- `.scratch` 报告不计入产品。
+
+### 验证
+
+lint ✓｜core typecheck ✓｜bundle typecheck ✓｜build ✓｜dump-config-check ✓｜skills 72/72 ✓｜release tests 22/22 ✓｜review-dimensions/settlement-contract/severity ✓｜check:public ✓（689 文件/127 提交）｜check:version 0.0.72 ✓｜pack-check ✓（194 文件/13 技能/11 脚本，sha256 `027cbc8569e0ea716a657c175dd3f26b28ee59b3083d66b8f552cfb57aab2c07`）。
+
 ## [0.0.71] — 2026-10-18
 
 ### Changed（材料/任务包去重）

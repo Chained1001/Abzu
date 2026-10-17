@@ -428,14 +428,18 @@ function ledgerBlock(section: LedgerSection, chapter: ChapterKey, source: string
   checkLedgerSectionFields(section)
   const status = extractField(section.body, '状态')!
   const plannedFrom = extractField(section.body, '计划来源')!
+  const 埋设点 = extractField(section.body, '埋设点')
+  const 预期兑现区间 = extractField(section.body, '预期兑现区间')
   const name = extractField(section.body, '名称') ?? section.title
-  const details = stripFields(section.body, ['名称', '类型', '状态', '计划来源', '实际落点', '来源', '裁决记录'])
+  const details = stripFields(section.body, ['名称', '类型', '状态', '计划来源', '实际落点', '来源', '裁决记录', '埋设点', '预期兑现区间'])
   return [
     `## ${section.title}`,
     `名称：${name}`,
     `类型：${section.kind}`,
     `状态：${status}`,
     `计划来源：${plannedFrom}`,
+    ...(埋设点 === null ? [] : [`埋设点：${埋设点}`]),
+    ...(预期兑现区间 === null ? [] : [`预期兑现区间：${预期兑现区间}`]),
     `实际落点：${paths.定稿章(chapter.卷, chapter.章, chapter.章名)}`,
     `来源：${source}`,
     `裁决记录：${decision}`,

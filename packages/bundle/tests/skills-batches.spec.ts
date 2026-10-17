@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.71＋CHANGELOG 条目＋README×2（token 大头批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.72＋CHANGELOG 条目＋README×2（0.0.72 收口批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.71').toBe('0.0.71')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.71').toBe('0.0.71')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.71]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.72').toBe('0.0.72')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.72').toBe('0.0.72')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.72]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.71`).toContain('0.0.71')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.72`).toContain('0.0.72')
     }
   })
 
@@ -3582,6 +3582,19 @@ describe('skills 批次防回退断言组·0.0.71 材料/任务包去重批', ()
     expect(drafting).toContain('任务包单一来源')
     expect(drafting).toContain('不重复材料包全文')
     expect(fs.existsSync(path.join(root, 'scripts/benchmarks/fixed-docs.mjs'))).toBe(true)
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.72 v2.9 步骤消费批', () => {
+  it('0.0.72：三条流程块有步骤级消费位，文档收口口径在位', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    expect(read('packages/bundle/skills/novel-design/SKILL.md')).toContain('大纲记录（v2.9-18')
+    expect(read('packages/bundle/skills/novel-arcplan/SKILL.md')).toContain('卷末三锚点核对')
+    expect(read('packages/bundle/skills/novel-revision/SKILL.md')).toContain('三层修订法')
+    expect(read('packages/bundle/skills/novel-outline/templates/步骤卡-章细纲.md')).toContain('黄金三章分工做软检查')
+    expect(read('docs/标准/工程规范.md')).toContain('patch 作批次号')
+    expect(read('docs/产品文档.md')).toContain('三行必报')
   })
 })
 

@@ -65,7 +65,7 @@ export function followupReport(
     if (p.处置状态 !== '待处理') continue
     const from = (p as { readonly 建议复审模块?: string }).建议复审模块
     if (from && from.trim() !== '') 建议重跑.add(from.trim())
-    if (p.建议返回节点 && p.建议返回节点 !== '改稿') 建议重跑.add(p.建议返回节点)
+    // 建议返回节点是流程节点（润色/改稿/细纲/备料/沉淀/吃书），不是审读模块名；重跑模块只认 建议复审模块。
   }
 
   return { 硬约束回查失败, 需语义审读, 仍待处置, 建议重跑: [...建议重跑] }

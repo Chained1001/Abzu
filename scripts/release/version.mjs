@@ -36,6 +36,11 @@ export function releaseVersion(directory = root, tag) {
       assert.equal(match[1], bundle.version, `Stale registry installation example in ${file}`)
     }
   }
+  const skillPin = path.join(directory, 'packages/bundle/tests/skills-batches.spec.ts')
+  if (fs.existsSync(skillPin)) {
+    const text = fs.readFileSync(skillPin, 'utf8')
+    assert.ok(text.includes(`'${bundle.version}'`), 'skills-batches version pin is stale; update the version discipline group')
+  }
   return { version: bundle.version, tag: expectedTag, prerelease: bundle.version.includes('-'),
     packageName: bundle.name, filename: `abzu-${bundle.version}.tgz` }
 }

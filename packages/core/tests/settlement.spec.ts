@@ -151,6 +151,10 @@ describe('定稿沉淀', () => {
       expect(timeline?.字段['章号']).toBe('第0001章')
       expect(timeline?.字段['来源']).toBe('定稿/卷01/0001-开篇任务.md')
       expect(timeline?.正文).toContain('发现异常')
+      const clue = ledger.entries.find((entry) => entry.分类 === '线索' && entry.名称 === '纸鹤')
+      expect(clue?.字段['埋设点']).toBe('第1章')
+      expect(clue?.字段['预期兑现区间']).toBe('第8-12章')
+      expect(clue?.正文 ?? '').not.toContain('埋设点：')
     }
     const log = spawnSync('git', ['log', '-1', '--pretty=%s'], { cwd: root, encoding: 'utf-8', windowsHide: true })
     expect(log.stdout.trim()).toBe('ch: 开篇任务入档')

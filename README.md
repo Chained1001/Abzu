@@ -1,6 +1,6 @@
 # Abzu
 
-> 当前版本：0.0.71 ｜ 配套 **DSH 0.2.1-rc.2** ｜ GPL-3.0-only ｜ 私有自用开发
+> 当前版本：0.0.72 ｜ 配套 **DSH 0.2.1-rc.2** ｜ GPL-3.0-only ｜ 私有自用开发
 
 Abzu 是运行在 [DeepSeek Harness](https://www.deepseek.com/harness/)（DSH）上的长篇网文写作工作台，目标是支撑几百万字级别的长篇小说。它把开书设计、逐章写作、审读修改、定稿沉淀与断点恢复放进一条可暂停、可继续的生产线；作品以本地文件和 Git 历史保存，进度从文件推导，不依赖会话记忆。
 
@@ -24,7 +24,7 @@ Abzu 是运行在 [DeepSeek Harness](https://www.deepseek.com/harness/)（DSH）
 ## 开始使用
 
 1. 安装配套版本的 DSH 桌面端。
-2. 按技术文档"构建与安装"构建 tgz，在 DSH 侧栏"插件 → 添加插件"安装并应用变更。
+2. 按技术文档"构建与安装"构建 tgz（产物名 `abzu-<version>.tgz`；桌面端"添加插件"也可输入 `abzu@<version>`），在 DSH 侧栏"插件 → 添加插件"安装并应用变更。`<version>` 取本次发布的包版本：以根 `package.json` 与 `packages/bundle/package.json` 的 `version` 为准，不写死在本节。
 3. 在 DSH 设置里配置聊天模型与凭据，选择一个工作区，在主会话里说出构想。
 
 模型服务由你配置，调用会产生费用。不承诺无人值守写完整本书；重要作品使用前请备份。

@@ -13,6 +13,9 @@ export {
   reviewRecordHashOf,
   readReviewRecordForUpdate,
   处置状态列表,
+  严重程度列表,
+  归一化严重程度,
+  是高级严重程度,
   type Finding,
   type ModuleRunState,
   type ReviewPlan,
@@ -20,4 +23,6 @@ export {
   type ReviewDisposition,
   type PolishCarryover,
   type 处置状态,
+  type 严重程度,
+  type 严重程度归一,
 } from './record'

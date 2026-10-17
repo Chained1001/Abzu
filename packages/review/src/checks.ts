@@ -36,7 +36,7 @@ export function runTextNorm(input: CheckInput): Finding[] {
       所依据材料及版本: `${input.材料版本}；${policy.来源}${policy.来源哈希 ? `@${policy.来源哈希}` : ''}`,
       问题说明: detail, 影响范围: configError ? '作品契约' : '正文', 不确定性说明: '',
       修改建议: configError ? '核对作品契约的章节篇幅三项数值，经原契约更新工具修正。' : '结合本章任务检查是否需要精简、补足因果或调整细纲；篇幅合理可由作者保留，不自动裁剪或凑字。',
-      建议返回节点: configError ? '作品定调' : '改稿', 建议复审模块: 文本规范检查名, 材料完整性: configError ? '残缺' : '完整',
+      建议返回节点: configError ? '备料' : '改稿', 建议复审模块: 文本规范检查名, 材料完整性: configError ? '残缺' : '完整',
     }))
   }
   if (body.trim() === '') {
@@ -52,7 +52,7 @@ export function runTextNorm(input: CheckInput): Finding[] {
       影响范围: '正文',
       不确定性说明: '',
       修改建议: '补写正文',
-      建议返回节点: '写稿',
+      建议返回节点: '改稿',
       建议复审模块: 文本规范检查名,
       材料完整性: '完整',
     }))
@@ -124,7 +124,7 @@ export function runCanonCheck(input: CheckInput): Finding[] {
         影响范围: '正文',
         不确定性说明: '语义类约束无法由确定性代码判定,不能以字面包含代替语义判断',
         修改建议: '派语义审读子代理核对本约束,并给出处置',
-        建议返回节点: '审核',
+        建议返回节点: '改稿',
         建议复审模块: 设定与时序核对名,
         材料完整性: '完整',
       }))
