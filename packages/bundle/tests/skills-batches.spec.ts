@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.68＋CHANGELOG 条目＋README×2（整体审查性能批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.69＋CHANGELOG 条目＋README×2（token 大头批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.68').toBe('0.0.68')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.68').toBe('0.0.68')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.68]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.69').toBe('0.0.69')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.69').toBe('0.0.69')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.69]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.68`).toContain('0.0.68')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.69`).toContain('0.0.69')
     }
   })
 
@@ -3549,5 +3549,25 @@ describe('skills 批次防回退断言组·0.0.68 性能批', () => {
     expect(read('packages/bundle/skills/novel-review/SKILL.md')).toContain('回写工具会按')
     expect(read('packages/bundle/skills/novel-design/SKILL.md')).toContain('由人工按档判')
     expect(read('packages/bundle/src/tools/review-tools.ts')).toContain('JSON.stringify(value)')
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.69 token 大头批', () => {
+  it('0.0.69：设计四卡/细纲十查卡在位，卡不冒充判据单源', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    for (const name of ['契约', '世界书', '骨架', '分卷']) {
+      const text = read(`packages/bundle/skills/novel-design/templates/步骤卡-${name}.md`)
+      expect(text, `步骤卡-${name} 应有深挖指针`).toContain('深挖')
+      expect(text.length, `步骤卡-${name} 应保持轻量`).toBeLessThan(2500)
+    }
+    const ten = read('packages/bundle/skills/novel-outline/templates/步骤卡-写前十查.md')
+    expect(ten).toContain('①')
+    expect(ten).toContain('⑩')
+    expect(ten).toContain('深挖')
+    expect(read('packages/bundle/skills/novel-design/SKILL.md')).toContain('步骤卡-契约')
+    expect(read('packages/bundle/skills/novel-outline/SKILL.md')).toContain('步骤卡-写前十查')
+    const contract = read('packages/bundle/scripts/artifact-contract.mjs')
+    for (const p of ['步骤卡-契约', '步骤卡-世界书', '步骤卡-骨架', '步骤卡-分卷', '步骤卡-写前十查']) expect(contract).toContain(p)
   })
 })
