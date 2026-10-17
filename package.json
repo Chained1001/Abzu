@@ -2,7 +2,7 @@
   "name": "abzu-workspace",
   "private": true,
   "type": "module",
-  "version": "0.0.70",
+  "version": "0.0.71",
   "description": "Abzu: a long-form fiction writing workspace for DeepSeek Harness",
   "packageManager": "pnpm@11.27.1",
   "scripts": {
@@ -13,6 +13,7 @@
     "benchmark:impact": "node scripts/benchmarks/benchmark-impact.mjs",
     "benchmark:search": "node --experimental-transform-types scripts/benchmarks/benchmark-search.mjs",
     "benchmark:status": "node --experimental-transform-types scripts/benchmarks/benchmark-status.mjs",
+    "benchmark:fixed-docs": "node scripts/benchmarks/fixed-docs.mjs",
     "lint": "eslint packages scripts",
     "check:public": "node scripts/release/check-public-tree.mjs",
     "check:version": "node scripts/release/version.mjs --check",

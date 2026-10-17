@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.70＋CHANGELOG 条目＋README×2（token 大头批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.71＋CHANGELOG 条目＋README×2（token 大头批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.70').toBe('0.0.70')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.70').toBe('0.0.70')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.70]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.71').toBe('0.0.71')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.71').toBe('0.0.71')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.71]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.70`).toContain('0.0.70')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.71`).toContain('0.0.71')
     }
   })
 
@@ -3551,6 +3551,37 @@ describe('skills 批次防回退断言组·0.0.68 性能批', () => {
     expect(read('packages/bundle/skills/novel-review/SKILL.md')).toContain('回写工具会按')
     expect(read('packages/bundle/skills/novel-design/SKILL.md')).toContain('由人工按档判')
     expect(read('packages/bundle/src/tools/review-tools.ts')).toContain('JSON.stringify(value)')
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.71 材料/任务包去重批', () => {
+  it('0.0.71：固定文档预算 ≤ 基线 80%，任务包单一来源句在位', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const skills = path.join(root, 'packages', 'bundle', 'skills')
+    const files = [
+      'novel-outline/SKILL.md',
+      'novel-outline/templates/步骤卡-章细纲.md',
+      'novel-outline/templates/步骤卡-写前十查.md',
+      'novel-drafting/SKILL.md',
+      'novel-drafting/agents/写作卡-索引.md',
+      'novel-drafting/references/默认文风.md',
+      'novel-review/SKILL.md',
+      'novel-review/agents/全量审读.md',
+      'novel-drafting/references/默认文风-速查.md',
+      'novel-revision/SKILL.md',
+      'novel-revision/agents/改稿章程.md',
+      'novel-polish/SKILL.md',
+      'novel-polish/references/1-表达清理.md',
+      'novel-polish/references/2-节奏与重塑.md',
+      'novel-settle/SKILL.md',
+      'novel-settle/agents/沉淀对账.md',
+    ]
+    const total = files.reduce((sum, rel) => sum + fs.readFileSync(path.join(skills, rel), 'utf8').length, 0)
+    expect(total, `固定文档 ${total} 应 ≤ 61,826（基线 77,283 的 80%）`).toBeLessThanOrEqual(61826)
+    const drafting = fs.readFileSync(path.join(skills, 'novel-drafting/SKILL.md'), 'utf8')
+    expect(drafting).toContain('任务包单一来源')
+    expect(drafting).toContain('不重复材料包全文')
+    expect(fs.existsSync(path.join(root, 'scripts/benchmarks/fixed-docs.mjs'))).toBe(true)
   })
 })
 
