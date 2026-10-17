@@ -1993,14 +1993,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.60＋CHANGELOG 条目＋README×2（0.0.60 审查修复批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.61＋CHANGELOG 条目＋README×2（0.0.61 审查修复批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.60').toBe('0.0.60')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.60').toBe('0.0.60')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.60]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.61').toBe('0.0.61')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.61').toBe('0.0.61')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.61]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.60`).toContain('0.0.60')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.61`).toContain('0.0.61')
     }
   })
 
@@ -2089,7 +2089,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       '一次性排出来',
       '幕内分批',
       '幕内分批出细纲',
-      //（0.0.60 审查修复批：「一次 N ≤5 章」数字退役，改《参考标尺》『幕内分批出细纲』行上限指针）
+      //（0.0.61 审查修复批：「一次 N ≤5 章」数字退役，改《参考标尺》『幕内分批出细纲』行上限指针）
       '一次按《参考标尺》『幕内分批出细纲』行上限取',
       '场景卡选择跨章看',
       '钩型配比跨章规划',
@@ -2205,7 +2205,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('每 15 章（≈5-7 万字）章制')
     expect(scale).toContain('极值 48')
     expect(scale).toContain('常态卷（20-30 万）3.5 倍')
-    //（0.0.60 审查修复批：settle 派发模板路径随草稿区键带章号批刷为 `卷<NN>-<NNNN>-<章名>`）
+    //（0.0.61 审查修复批：settle 派发模板路径随草稿区键带章号批刷为 `卷<NN>-<NNNN>-<章名>`）
     expect(settle).toContain('<粘贴 草稿区/草稿/卷<NN>-<NNNN>-<章名>/稿<N>.md 全文>')
     expect(design).toContain('`大纲/卷规划/卷<NN>/近期窗口.md`')
     expect(design, 'design 工件表「卷NN」路径式应统一为「卷<NN>」').not.toContain('大纲/卷规划/卷NN/')
@@ -3429,8 +3429,8 @@ describe('skills 批次防回退断言组·0.0.59 标尺指针化批', () => {
   })
 })
 
-describe('skills 批次防回退断言组·0.0.60 审查修复批', () => {
-  it('0.0.60 审查修复批：draft-paths 章号比对＋六技能新键路径抽查＋revision 承接句＋幕纲规格单源注＋outline N≤5 指针句', () => {
+describe('skills 批次防回退断言组·0.0.61 审查修复批', () => {
+  it('0.0.61 审查修复批：draft-paths 章号比对＋六技能新键路径抽查＋revision 承接句＋幕纲规格单源注＋outline N≤5 指针句', () => {
     // A. P2-1 draft-paths 章号比对：认领循环带「已定位章不认领别章同名候选」守卫（0000 占位与旧格式无号仍可认领）
     const draftPaths = fs.readFileSync(path.join(__dirname, '..', '..', 'core', 'src', 'repo', 'draft-paths.ts'), 'utf8')
     expect(draftPaths, 'resolveCandidateOutlineRel 应含章号比对守卫').toContain('候选章 > 0 && 候选章 !== (key.章 ?? 0)')
