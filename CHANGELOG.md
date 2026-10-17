@@ -2,6 +2,20 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.63] — 2026-10-17
+
+### Changed（DSH 0.2.1-rc.2 适配批）
+
+- **宿主基线升到 0.2.1-rc.2**：`dsh-baseline.json` 更新为 tag `dsh-v0.2.1-rc.2`、commit `687f282e8625c6b8d11ff58211a90524be2e4317`、publishedAt `2026-10-17T08:16:33Z`、registry dist-tag `next`；两个 `package.json`、`pnpm-workspace.yaml` catalog 与 `pnpm-lock.yaml` 的 `@deepseek-ai/dsh-*` 全部升到 0.2.1-rc.2；Cordis 4.0.5、cordis-plugin-group 1.0.5、cordis-plugin-include 1.0.10、cordis-plugin-loader 1.0.6、schemastery 3.18.5。
+- **删除 `@deepseek-ai/dsh-invariants`**：DSH 0.2.1 移除运行时 invariant 插件与各包 `./invariant` 导出；本插件未引用其代码，只清 devDependency 与 catalog 排除项。
+- **补 `@deepseek-ai/dsh-working-directory`**：`dsh-tool-fs` 0.2.1 起 `inject` 增加 `workingDirectory`。宿主验收 profile 增 `working-directory` 行，source 模式软链清单同步；`runtime-align` 以窄 stub 提供该服务，真实 `read`/`write`/`edit` 工具面恢复。
+- **tool-fs 配置补显式开关**：0.2.1 直接调 `apply` 不再套 Config 默认值，`runtime-align` 的 `TOOL_FS_CONFIG` 补 `read/readImage/write/edit: true`，避免注册零工具的空转断言。
+- **诊断**：`chain-wiring` 的 `novel_seed_min_design` 断言带返回 JSON，偶发 Git 争用与真实失败可区分。
+
+### 验证
+
+lint ✓（recommended 档零红）｜bundle typecheck ✓｜build ✓（66 个内联组件，notices/licenses 随版本重建）｜dump-config-check ✓｜check:version 0.0.63 ✓｜check:public ✓（682 文件/117 提交）｜test:release 16/16 ✓｜全量 vitest 147 文件/1485 用例：功能断言全绿；5 个依赖 esbuild 的集成文件需仓内 TEMP，单跑 93/93 绿；其余 141 文件在仓外 TEMP 全绿、容量基准按开关跳过；仓内 TEMP 并行满载仍偶发 Windows `EPERM: rename`/超时，重跑即绿，按工程规范单跑复核。pack-check ✓（npm pack 实包 187 文件/13 技能/11 脚本）；`release:build` ✓（干净树产出 tgz、源码包、清单与 SHA256SUMS）。
+
 ## [0.0.62] — 2026-10-17
 
 ### Fixed（全代码审查修复批·五路审查 P1×1＋P2×18＋速赢）

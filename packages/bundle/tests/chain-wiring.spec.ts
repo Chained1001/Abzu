@@ -68,7 +68,7 @@ async function makeBook(ws: string, call: (name: string, args: Record<string, un
   const bookId = (created as { bookId: string }).bookId
   await call('novel_select_book', { bookId })
   const seeded = await call('novel_seed_min_design', { bookId })
-  expect(seeded.ok).toBe(true)
+  expect(seeded.ok, JSON.stringify(seeded)).toBe(true)
   writeReadyDesign(path.join(ws, '链路书'))
   return { ...created, bookId }
 }

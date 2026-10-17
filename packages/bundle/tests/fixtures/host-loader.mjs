@@ -52,6 +52,7 @@ const profile = [
   { id: 'user-questions', name: '@deepseek-ai/dsh-user-questions' },
   { id: 'fs', name: '@deepseek-ai/dsh-fs-local', config: { cwd: workspace } },
   { id: 'fs-observation-policy', name: '@deepseek-ai/dsh-fs-observation-policy' },
+  { id: 'working-directory', name: '@deepseek-ai/dsh-working-directory' },
   { id: 'tool-fs', name: '@deepseek-ai/dsh-tool-fs' },
   { id: 'storage', name: '@deepseek-ai/dsh-storage' },
   { id: 'storage-json', name: '@deepseek-ai/dsh-storage-json', config: { root: path.join(root, 'storage') } },

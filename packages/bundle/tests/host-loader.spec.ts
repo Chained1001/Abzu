@@ -66,7 +66,7 @@ function linkHostDependencies(fixtureRoot: string) {
   } else {
     const host = loadSourceHost(source)
     fs.mkdirSync(path.join(fixtureRoot, 'node_modules', '@deepseek-ai'), { recursive: true })
-    for (const name of ['cordis', 'dsh-tools', 'dsh-llm', 'dsh-credentials', 'dsh-skill-filesystem']) {
+    for (const name of ['cordis', 'dsh-tools', 'dsh-llm', 'dsh-credentials', 'dsh-skill-filesystem', 'dsh-working-directory']) {
       fs.symlinkSync(host.get(`@deepseek-ai/${name}`).directory, path.join(fixtureRoot, 'node_modules', '@deepseek-ai', name), 'junction')
     }
   }

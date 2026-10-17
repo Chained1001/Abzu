@@ -24,7 +24,10 @@ import { classifyFileTool } from '@abzu/core'
 import { apply as applyToolFs, inject as ToolFsInject, name as ToolFsName } from '@deepseek-ai/dsh-tool-fs'
 
 /** dsh-tool-fs 只认 4 个正整数的读窗口参数（字段见其包内 Config schema），枚举不需要真值。 */
-const TOOL_FS_CONFIG = { readLimit: 2000, readMaxLineLength: 2000, readMaxBytes: 262144, readStreamMinSize: 65536 }
+const TOOL_FS_CONFIG = {
+  read: true, readImage: true, write: true, edit: true,
+  readLimit: 2000, readMaxLineLength: 2000, readMaxBytes: 262144, readStreamMinSize: 65536,
+}
 
 const roots: string[] = []
 afterAll(() => {
@@ -64,6 +67,23 @@ class WorkspaceRegistryStub extends Service {
 /** 极窄 fs stub：只为让真实 dsh-tool-fs 激活（它 inject ['tools','fs','systemPrompt']），执行期才用其方法。 */
 class FsStub extends Service {
   constructor(ctx: Context) { super(ctx, 'fs') }
+}
+
+/**
+ * 极窄 workingDirectory stub：dsh-tool-fs 0.2.1 起 inject workingDirectory，
+ * 执行期按 agent 调 ensure() 取目录。本用例只枚举 schema，返回测试工作区即可。
+ */
+class WorkingDirectoryStub extends Service {
+  constructor(ctx: Context, private readonly cwd: string) { super(ctx, 'workingDirectory') }
+  get = (): string => this.cwd
+  ensure = async (): Promise<string> => this.cwd
+  set = async (_agent: unknown, next: string): Promise<string> => next
+}
+
+function WorkingDirectoryStubFactory(cwd: string): new (ctx: Context) => Service {
+  return class extends WorkingDirectoryStub {
+    constructor(ctx: Context) { super(ctx, cwd) }
+  }
 }
 
 interface TestAgent {
@@ -192,6 +212,7 @@ describe('dsh 运行时对齐:主 Agent scoped 工具面', () => {
     await root.plugin(ToolRuntime)
     // 真实 dsh-tool-fs（read / write / edit / read_image 的来源），另有 bundle 自己的工具面
     await root.plugin(FsStub)
+    await root.plugin(WorkingDirectoryStubFactory(ws))
     await root.plugin({ name: ToolFsName, inject: ToolFsInject, apply: (ctx: Context) => applyToolFs(ctx, TOOL_FS_CONFIG) })
 
     const main = makeAgent(root, 'main-d1', { cwd: ws })

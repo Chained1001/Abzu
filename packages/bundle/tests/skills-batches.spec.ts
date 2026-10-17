@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.62＋CHANGELOG 条目＋README×2（0.0.62 审查修复批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.63＋CHANGELOG 条目＋README×2（DSH 0.2.1-rc.2 适配批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.62').toBe('0.0.62')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.62').toBe('0.0.62')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.62]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.63').toBe('0.0.63')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.63').toBe('0.0.63')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.63]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.62`).toContain('0.0.62')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.63`).toContain('0.0.63')
     }
   })
 
@@ -3447,5 +3447,35 @@ describe('skills 批次防回退断言组·0.0.62 审查修复批', () => {
     const outline = readSkill('novel-outline')
     expect(outline).toContain('一次按《参考标尺》『幕内分批出细纲』行上限取')
     expect(outline, '「一次 N ≤5 章」数字应退役（单源在参考标尺）').not.toContain('一次 N ≤5 章')
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.63 DSH 适配批', () => {
+  it('0.0.63 DSH 0.2.1-rc.2 适配：基线/依赖版本/working-directory/invariants 移除/宿主验收 profile', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    // A. 基线版本、commit 与 dist-tag
+    const baseline = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'dsh-baseline.json'), 'utf8'))
+    expect(baseline.source).toMatchObject({
+      tag: 'dsh-v0.2.1-rc.2',
+      version: '0.2.1-rc.2',
+      commit: '687f282e8625c6b8d11ff58211a90524be2e4317',
+      sessionFormat: 4,
+    })
+    expect(baseline.registry).toMatchObject({ version: '0.2.1-rc.2', sourceDistTag: 'next' })
+    // B. bundle 的 DSH 依赖全部随基线（catalog 项由 workspace 单源守）
+    const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
+    for (const [name, version] of Object.entries({ ...bundlePkg.devDependencies, ...bundlePkg.peerDependencies })) {
+      if (!name.startsWith('@deepseek-ai/dsh') || version === 'catalog:') continue
+      expect(version, `${name} 应随 DSH 0.2.1-rc.2 基线`).toBe('0.2.1-rc.2')
+    }
+    expect(bundlePkg.devDependencies['@deepseek-ai/dsh-invariants'], 'DSH 0.2.1 已移除 dsh-invariants').toBeUndefined()
+    expect(bundlePkg.devDependencies['@deepseek-ai/dsh-working-directory']).toBe('0.2.1-rc.2')
+    // C. catalog 与 lockfile 不再残留旧基线
+    const workspace = fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')
+    expect(workspace).toContain("'@deepseek-ai/cordis': 4.0.5")
+    expect(workspace).not.toContain('0.2.0-rc.2')
+    // D. 真实宿主验收 profile 补 working-directory（tool-fs 0.2.1 的 inject 前置）
+    const profile = fs.readFileSync(path.join(__dirname, 'fixtures', 'host-loader.mjs'), 'utf8')
+    expect(profile).toContain("{ id: 'working-directory', name: '@deepseek-ai/dsh-working-directory' }")
   })
 })
