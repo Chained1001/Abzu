@@ -354,4 +354,56 @@ describe('账本到期与跨卷对账', () => {
       expect(malformedResult.reason).toMatch(/:5:字段重复/)
     }
   })
+
+  it('已收后当前态不再活跃；按章上限回看仍保留当时已埋 (0.0.64)', () => {
+    const root = mkBook()
+    writeFileAtomic(root, paths.账本('线索'), [
+      '# 线索',
+      '',
+      '## 三年之约',
+      '状态：已埋',
+      '计划来源：卷纲#1',
+      '埋设点：第5章',
+      '预期兑现区间：第28章',
+      '',
+      '## 三年之约',
+      '状态：已收',
+      '计划来源：卷纲#1',
+      '埋设点：第5章',
+      '预期兑现区间：第28章',
+      '实际落点：定稿/卷01/0028-兑现.md',
+      '',
+    ].join('\n'))
+    const current = queryLedger(root, { 分类: '线索', 名称: '三年之约' })
+    expect(current.ok).toBe(true)
+    if (!current.ok) return
+    expect(current.entries).toHaveLength(1)
+    expect(current.entries[0]?.字段['状态']).toBe('已收')
+    const due = queryDueLedger(root, { 卷: 1, 章: 28 })
+    expect(due.ok).toBe(true)
+    if (!due.ok) return
+    expect(due.到期.map((item) => item.名称)).not.toContain('三年之约')
+    expect(due.区间不明.map((item) => item.名称)).not.toContain('三年之约')
+    // 世界已发生边界先于当前态折叠：回看第 5 章时仍是当时的已埋，不被未来的已收抹掉。
+    const history = queryLedger(root, { 分类: '线索', 名称: '三年之约', 章上限: 5 })
+    expect(history.ok).toBe(true)
+    if (!history.ok) return
+    expect(history.entries).toHaveLength(1)
+    expect(history.entries[0]?.字段['状态']).toBe('已埋')
+  })
+
+  it('孤儿已收不产生活跃条目 (0.0.64)', () => {
+    const root = mkBook()
+    writeFileAtomic(root, paths.账本('线索'), '# 线索\n\n## 从未登记\n状态：已收\n计划来源：卷纲#9\n埋设点：第1章\n预期兑现区间：第2章\n实际落点：定稿/卷01/0002-兑现.md\n')
+    const ledger = queryLedger(root, { 分类: '线索', 名称: '从未登记' })
+    expect(ledger.ok).toBe(true)
+    if (!ledger.ok) return
+    expect(ledger.entries).toHaveLength(1)
+    expect(ledger.entries[0]?.字段['状态']).toBe('已收')
+    const due = queryDueLedger(root, { 卷: 1, 章: 2 })
+    expect(due.ok).toBe(true)
+    if (!due.ok) return
+    expect(due.到期.map((item) => item.名称)).not.toContain('从未登记')
+    expect(due.区间不明.map((item) => item.名称)).not.toContain('从未登记')
+  })
 })

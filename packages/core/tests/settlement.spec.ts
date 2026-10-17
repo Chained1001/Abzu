@@ -5,7 +5,7 @@ import * as path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { archiveChapter, archiveRetcon } from '../src/commit/archive'
 import { serializeDocument } from '../src/repo/frontmatter'
-import { queryLedger, queryMemory } from '../src/ledger'
+import { queryDueLedger, queryLedger, queryMemory } from '../src/ledger'
 import { planSettlement } from '../src/settlement'
 
 const roots: string[] = []
@@ -386,5 +386,46 @@ describe('吃书补偿沉淀', () => {
     if (!ledger.ok) return
     expect(ledger.entries.find((e) => e.名称 === '纸鹤')?.字段['状态']).toBe('已收')
     expect(ledger.entries.filter((e) => e.名称 === '纸鹤')).toHaveLength(1)
+  })
+
+  it('同一沉淀候选先埋后收同名线索：当前态为已收，到期查询不产生活跃 (0.0.64)', () => {
+    const root = mkRoot()
+    initGit(root)
+    const pkg = putPackage(root, {
+      '账本变更.md': [
+        '# 账本变更',
+        '## 线索',
+        '### 三年之约',
+        '状态：已埋',
+        '计划来源：卷纲#1',
+        '埋设点：第1章',
+        '预期兑现区间：第2章',
+        '',
+        '### 三年之约',
+        '状态：已收',
+        '计划来源：卷纲#1',
+        '埋设点：第1章',
+        '预期兑现区间：第2章',
+        '实际落点：定稿/卷01/0001-开篇任务.md',
+        '',
+      ].join('\n'),
+    })
+    const result = archiveChapter({
+      bookRoot: root,
+      packageDir: pkg,
+      summary: '同批埋收',
+      settlement: { 章节: key, 批准: true, 裁决记录: '作者批准同批埋收' },
+    })
+    expect(result.ok).toBe(true)
+    const ledger = queryLedger(root, { 分类: '线索', 名称: '三年之约' })
+    expect(ledger.ok).toBe(true)
+    if (!ledger.ok) return
+    expect(ledger.entries).toHaveLength(1)
+    expect(ledger.entries[0]?.字段['状态']).toBe('已收')
+    const due = queryDueLedger(root, { 卷: 1, 章: 2 })
+    expect(due.ok).toBe(true)
+    if (!due.ok) return
+    expect(due.到期.map((item) => item.名称)).not.toContain('三年之约')
+    expect(due.区间不明.map((item) => item.名称)).not.toContain('三年之约')
   })
 })

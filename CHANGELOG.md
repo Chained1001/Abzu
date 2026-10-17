@@ -2,6 +2,20 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.64] — 2026-10-17
+
+### Added（伏笔关闭不变量测试批）
+
+- 参照上游 webnovel-writer `3da3251`（#197/#198）的关闭语义，补三个回归测试，**不改运行时逻辑**：
+  - 已收后当前态不再活跃；按 `章上限` 回看仍保留当时已埋（世界已发生边界先于当前态折叠）。
+  - 同一沉淀候选先埋后收同名线索：当前态为已收，到期查询不产生活跃。
+  - 孤儿已收不产生活跃条目。
+- 测试文件：`packages/core/tests/ledger-due.spec.ts`、`packages/core/tests/settlement.spec.ts`。
+
+### 验证
+
+`vitest run packages/core/tests/ledger-due.spec.ts packages/core/tests/settlement.spec.ts` 28/28 ✓；`skills-batches` 65/65 ✓；lint ✓；bundle typecheck ✓；check:version 0.0.64 ✓；check:public ✓（675 文件/118 提交）。
+
 ## [0.0.63] — 2026-10-17
 
 ### Changed（DSH 0.2.1-rc.2 适配批）
