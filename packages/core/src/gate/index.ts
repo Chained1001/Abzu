@@ -1,5 +1,5 @@
 export type { FileAccessDecision, PreToolDecision, ToolCall } from './types'
 export { canonicalizePath, isFullyQualifiedPath, isInsidePath, stripDevicePrefix } from './canonical'
 export { classifyRelPath, gateFileAccess, resolveInsideBook, toPosixRel } from './paths'
-export { classifyFileTool, decidePreExecute, extractToolPath, isMutatingFileTool, type FileToolKind } from './preExecute'
+export { classifyFileTool, decideBookWrite, decidePreExecute, extractToolPath, isMutatingFileTool, type FileToolKind } from './preExecute'
 export { gateWriteDraft, isDraftRelPath, parseDraftChapterKey, reportDraftReadiness, type DraftReadiness } from './writeDraft'

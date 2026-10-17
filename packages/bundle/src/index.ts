@@ -632,10 +632,17 @@ export function apply(ctx: Context) {
         },
         workspaceRoot: rootOf,
       })
-      if (offGate === undefined) ctx.logger.warn(`[abzu-bundle] 文件门禁未挂载（${agentId}）。`)
-      else attached.push(offGate)
+      if (offGate === undefined) {
+        // 高危项：文件工具写入不受 Abzu 门禁保护。类型上 ctx.logger 有 error（cordis
+        // LoggerType 含 error），但窄宿主面可能只实现 info/warn——error 缺席时退回 warn，
+        // 绝不让装机抛错（fail-open 语义不变）。
+        const notice = `[abzu-bundle] 文件门禁未挂载（${agentId}）：文件工具写入不受 Abzu 门禁保护。`
+        const logError = (ctx.logger as { readonly error?: (message: string) => void }).error
+        if (typeof logError === 'function') logError.call(ctx.logger, notice)
+        else ctx.logger.warn(notice)
+      } else attached.push(offGate)
       recordSelfCheck('gate.file', offGate === undefined ? 'missing' : 'ok',
-        offGate === undefined ? `文件门禁未挂载（${agentId}）` : `文件门禁已挂载（${agentId}）`)
+        offGate === undefined ? `文件门禁未挂载（${agentId}）：文件工具写入不受 Abzu 门禁保护` : `文件门禁已挂载（${agentId}）`)
 
       // 数据保护批 #2:文件工具写进草稿区/书房后自动版本化快照(tools/result 观察者)。
       const offSnap = attachDraftSnapshotToAgent(agentCtx as unknown as { readonly on?: (event: string, listener: (...args: never[]) => unknown) => unknown }, {

@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.64＋CHANGELOG 条目＋README×2（伏笔关闭不变量测试批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.65＋CHANGELOG 条目＋README×2（门禁单源批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.64').toBe('0.0.64')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.64').toBe('0.0.64')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.64]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.65').toBe('0.0.65')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.65').toBe('0.0.65')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.65]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.64`).toContain('0.0.64')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.65`).toContain('0.0.65')
     }
   })
 
@@ -3477,5 +3477,21 @@ describe('skills 批次防回退断言组·0.0.63 DSH 适配批', () => {
     // D. 真实宿主验收 profile 补 working-directory（tool-fs 0.2.1 的 inject 前置）
     const profile = fs.readFileSync(path.join(__dirname, 'fixtures', 'host-loader.mjs'), 'utf8')
     expect(profile).toContain("{ id: 'working-directory', name: '@deepseek-ai/dsh-working-directory' }")
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.65 门禁单源批', () => {
+  it('0.0.65 门禁单源：core decideBookWrite / bundle 委托 / 文档残余 / 两组不变量测试在位', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const core = fs.readFileSync(path.join(root, 'packages/core/src/gate/preExecute.ts'), 'utf8')
+    expect(core).toContain('export function decideBookWrite')
+    expect(core).toContain('return decideBookWrite(bookRoot, target)')
+    const bundleGates = fs.readFileSync(path.join(root, 'packages/bundle/src/gates.ts'), 'utf8')
+    expect(bundleGates).toContain('decideBookWrite')
+    expect(bundleGates, 'bundle 不应再自行组合写稿门槛').not.toMatch(/gateWriteDraft\s*\(/)
+    const docs = fs.readFileSync(path.join(root, 'docs/技术文档.md'), 'utf8')
+    expect(docs).toContain('文件工具写入不受 Abzu 门禁保护')
+    expect(fs.existsSync(path.join(root, 'packages/core/tests/gate-decide.spec.ts'))).toBe(true)
+    expect(fs.existsSync(path.join(root, 'packages/bundle/tests/gate-invariants.spec.ts'))).toBe(true)
   })
 })

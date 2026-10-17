@@ -6,8 +6,8 @@
  *      书id:仓内相对 → 该书仓绝对路径;绝对路径 → 校验落在工作范围
  *   2) 解析后判分区归属: `<工作范围>/书房/` → 可写(A2b,书房以书房为界);
  *      工作范围外路径 → ask(N10: 逐次提权确认);
- *      书仓内 → 走 core gateFileAccess(草稿区可写/定稿构想只读/真源仅写入器)
- *      + gateWriteDraft(N5: 未确认细纲不得写稿 不变量 1/6)
+ *      书仓内 → 单源委托 core decideBookWrite(草稿区可写/定稿构想只读/
+ *      真源仅写入器 + 写稿路径形状,不变量 1/6)
  * 判断位置与写入位置一致(用绝对路径判,不再用相对路径猜)。
  *
  * shell(bash/pwsh/terminal)不在本门禁范围——已知限制,靠沙箱+授信兜底
@@ -18,13 +18,12 @@ import * as path from 'node:path'
 import * as fs from 'node:fs'
 import {
   classifyFileTool,
+  decideBookWrite,
   gateFileAccess,
-  gateWriteDraft,
   isInsidePath,
   canonicalizePath,
   isMutatingFileTool,
   extractToolPath,
-  resolveInsideBook,
   snapshotDraft,
   snapshotStudy,
   type ToolCall,
@@ -151,17 +150,14 @@ export function decideTargetForFile(target: string, deps: GateDeps): PreToolDeci
   return gateBookRoot(bookRoot, parsed.rel)
 }
 
-/** 书仓内分区判定:草稿区可写(只留路径形状校验,R1 落码后细纲/材料状态改播报);定稿/构想只读;真源仅写入器。 */
+/**
+ * 书仓内写入门禁。书仓内判定单源在 core `decideBookWrite`；bundle 只做工作区/书房/书仓解析。
+ *
+ * 分区 + 写稿路径形状共用同一套判定，拒绝文案与 `decidePreExecute` 完全一致；
+ * 不再自行组合 gateFileAccess / gateWriteDraft——两者分叉即声明-实现不一致。
+ */
 function gateBookRoot(bookRoot: string, target: string): PreToolDecision {
-  const access = gateFileAccess(bookRoot, target)
-  if (!access.allow) return { kind: 'deny', reason: access.reason }
-  // 草稿区路径形状校验(R1 落码:未确认细纲/材料包非段齐备改为播报,不再拒绝)
-  const resolved = resolveInsideBook(bookRoot, target)
-  if (resolved.ok) {
-    const draft = gateWriteDraft(bookRoot, resolved.relPath)
-    if (!draft.allow) return { kind: 'deny', reason: draft.reason }
-  }
-  return { kind: 'allow' }
+  return decideBookWrite(bookRoot, target)
 }
 
 /** 子路径判定(dsh 运行时对齐批:canonical 化后比较,junction/盘符大小写别名不再误判)。 */

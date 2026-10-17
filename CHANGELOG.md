@@ -2,6 +2,23 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.65] — 2026-10-17
+
+### Changed（声明-实现一致性批·第一批）
+
+- **门禁单源**：`core/src/gate/preExecute.ts` 新增 `decideBookWrite(bookRoot, target)`，统一“解析落点 → 分区判定 → 写稿路径形状”；`decidePreExecute` 对改写工具委托它。`bundle/src/gates.ts` 的私有 `gateBookRoot` 删除重复实现，改为单行委托；bundle 只保留工作区/书房/书仓解析。
+- **门禁挂载失败不再静默**：`bundle/src/index.ts` 在 `offGate === undefined` 时优先 `logger.error`（宿主无该级别退回 `warn`），自检 detail 明确“文件工具写入不受 Abzu 门禁保护”；仍保留 fail-open 语义与既有控制流，残余缺口已写入技术文档。
+- **文档对账**：技术文档 §4.1 增加门禁挂载失败残余说明；§4.1 第 1 条改为“未登记工具返回 ask、子 Agent 由 never 策略拒绝”；§4.2 第 1 条写清六个设计写入经精确五项匹配的受信原生写、`resolveInsideBook` 校验与“不经过作者审批通道”；§4.1 第 6 条收窄为“接受书仓内绝对路径与 `书id:仓内相对路径`，裸相对路径拒绝”；§4.2 末新增 11 条“声明-实现对账”表；§12 第 3 条更新为 `decidePreExecute` 已接线。
+
+### 测试
+
+- 新增 `packages/core/tests/gate-decide.spec.ts`（7 用例）：草稿 allow/非法章键 deny/定稿·构想·真源 deny/`../` 逃逸/绝对相对同判/`decidePreExecute` 与 `decideBookWrite` 同判/只读工具放行。
+- 新增 `packages/bundle/tests/gate-invariants.spec.ts`（27 用例）：bundle 与 core 同判同 reason 矩阵、N10 输入域差异、listener 行为、`trustedNativeWrite` 精确授权、注册/注销/fail-open。
+
+### 验证
+
+lint ✓｜core typecheck ✓｜bundle typecheck ✓｜build ✓｜dump-config-check ✓｜gate 系 6 文件/92 用例 ✓｜native-write 6/6（新增设计写入不调审批）✓｜core 全量 805 通过/5 跳过（archive-receipt 并行 EPERM，单跑 12/12 通过）｜skills-batches 66/66 ✓｜test:release 16/16 ✓｜check:public ✓（677 文件/119 提交）｜check:version 0.0.65 ✓｜pack-check ✓（187 文件/13 技能/11 脚本）；官方 `release:build` 待干净树。
+
 ## [0.0.64] — 2026-10-17
 
 ### Added（伏笔关闭不变量测试批）

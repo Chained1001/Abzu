@@ -3,7 +3,7 @@
  * 缺路径/不可解析一律拒绝(fail-closed)。
  */
 
-import { gateFileAccess } from './paths'
+import { gateFileAccess, resolveInsideBook } from './paths'
 import type { PreToolDecision, ToolCall } from './types'
 import { gateWriteDraft } from './writeDraft'
 
@@ -68,9 +68,22 @@ export function decidePreExecute(bookRoot: string, exec: ToolCall): PreToolDecis
   if (kind !== 'mutating') return { kind: 'allow' }
   const target = extractToolPath(exec)
   if (target === null) return { kind: 'deny', reason: '文件工具缺少可解析路径,拒绝写入' }
+  return decideBookWrite(bookRoot, target)
+}
+
+/**
+ * 书仓内写入门禁(单源):解析落点 → 分区判定 → 写稿路径形状。
+ *
+ * 与 bundle 旧 `gateBookRoot` 等价(拒绝文案同一套):先 resolve 取出相对路径供
+ * gateWriteDraft 使用;`gateFileAccess` 内部会再 resolve 一次,判定结果与拒绝文案不变。
+ * 解析失败即逃逸/书仓根本身,与 gateFileAccess 的失败原因一致。
+ */
+export function decideBookWrite(bookRoot: string, target: string): PreToolDecision {
+  const resolved = resolveInsideBook(bookRoot, target)
+  if (!resolved.ok) return { kind: 'deny', reason: resolved.reason }
   const access = gateFileAccess(bookRoot, target)
   if (!access.allow) return { kind: 'deny', reason: access.reason }
-  const draft = gateWriteDraft(bookRoot, access.relPath)
+  const draft = gateWriteDraft(bookRoot, resolved.relPath)
   if (!draft.allow) return { kind: 'deny', reason: draft.reason }
   return { kind: 'allow' }
 }

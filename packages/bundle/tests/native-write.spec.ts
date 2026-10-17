@@ -102,6 +102,19 @@ describe('受信原生写入桥', () => {
 })
 
 describe('设计工具写入前置条件', () => {
+  it('设计确认写入不调用作者审批通道（明确降级为 prompt-only）', async () => {
+    fs.mkdirSync(path.join(root, '作品契约'), { recursive: true })
+    fs.writeFileSync(path.join(root, '作品契约', '契约.md'), '---\n书id: book\n---\n\n# 作品契约\n\n## 题材与读者定位\n〔留白〕\n')
+    const askFn = vi.fn()
+    const nativeWrite = vi.fn(async () => {})
+    const tool = createNovelTools({ workspaceRoot: () => root, bookRootOfBookId: () => root, nativeWrite, askFn })
+      .find(t => t.name === 'novel_update_contract')!
+    const result = await tool.execute({ bookId: 'book', partName: '题材与读者定位', state: '暂定', content: '都市异能。' })
+    expect(result).toMatchObject({ ok: true })
+    expect(askFn, '设计写入不经过作者审批通道').not.toHaveBeenCalled()
+    expect(nativeWrite).toHaveBeenCalledTimes(1)
+  })
+
   it('宿主能力缺席时拒绝直接覆盖；业务校验失败时不发起原生写入', async () => {
     fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
     fs.writeFileSync(path.join(root, '大纲/故事骨架.md'), '原文\n')
