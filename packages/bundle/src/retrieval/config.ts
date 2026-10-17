@@ -35,7 +35,7 @@ export const Config: z<EmbeddingSettings> = z.object({
   geminiTaskMode: z.union(['native', 'instruction']).default('native'),
 })
 
-export interface ResolvedEmbeddingSettings extends Required<Omit<EmbeddingSettings, 'enabled'>> {}
+export type ResolvedEmbeddingSettings = Required<Omit<EmbeddingSettings, 'enabled'>>
 
 export function resolveSettings(input: EmbeddingSettings): ResolvedEmbeddingSettings | undefined {
   if (!input.enabled) return undefined

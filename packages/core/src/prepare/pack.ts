@@ -2,13 +2,13 @@
  * 定稿准备(格式规格 §9.3):组装七件 + 清单,卷对账呈报偏离,清单/卷对账不入档。
  */
 
-import { createHash } from 'node:crypto'
 import * as path from 'node:path'
 import { readBookText } from '../repo/read'
+import { sha256Hex } from '../repo/hash'
 import type { ChapterKey } from '../derive/scan'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
-import { chapterNo, assertSegment, paths } from '../repo/paths'
+import { assertSegment, paths } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, serializeMachineJson } from '../repo/schema'
 import { countPendingReviewDrafts, countProseText, findPendingReviewDraft, splitCandidateFacts } from '../repo/drafts'
@@ -51,8 +51,9 @@ export interface PreparePackResult {
   readonly files: readonly string[]
 }
 
+/** 哈希单源(批F):sha256Hex 等价替换,指纹逐字节不变。 */
 function sha256Of(content: string): string {
-  return createHash('sha256').update(content, 'utf-8').digest('hex')
+  return sha256Hex(content)
 }
 
 function readText(root: string, rel: string): string | null {

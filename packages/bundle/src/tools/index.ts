@@ -94,8 +94,11 @@ export const NOVEL_TEST_TOOL_NAMES: readonly string[] = ['novel_seed_min_design'
  * 一字不动；schema 子集外的注记关键字（minimum/pattern）校验器按注记忽略。
  */
 function withInputValidation(tool: NovelToolDefinition): NovelToolDefinition {
+  // Y8(批F):校验层会回 code:'invalid-args',该键由本层单点注入各工具 output.schema
+  // 的 properties(未自带 code 声明者)——不在二十余份域文件里逐份抄。
   return {
     ...tool,
+    output: declareOutputCode(tool),
     execute: (args: Record<string, unknown>, sessionContext?: ToolExecContext) => {
       const violations = validateJsonSchemaValue(tool.parameters as JsonSchemaNode, args, 'args')
       if (violations.length > 0) {
@@ -104,6 +107,15 @@ function withInputValidation(tool: NovelToolDefinition): NovelToolDefinition {
       return tool.execute(args, sessionContext)
     },
   }
+}
+
+/** 给未声明 code 的 output.schema 补上 code 属性（invalid-args 等失败码）。 */
+function declareOutputCode(tool: NovelToolDefinition): NovelToolDefinition['output'] {
+  const schema = tool.output?.schema as Record<string, unknown> | undefined
+  if (schema === undefined || typeof schema !== 'object' || Array.isArray(schema)) return tool.output
+  const properties = schema['properties'] as Record<string, unknown> | undefined
+  if (properties === undefined || typeof properties !== 'object' || Array.isArray(properties) || 'code' in properties) return tool.output
+  return { ...tool.output, schema: { ...schema, properties: { ...properties, code: { type: 'string', description: '失败码（invalid-args＝入参不合声明）' } } } }
 }
 
 export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {

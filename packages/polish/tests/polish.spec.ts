@@ -161,4 +161,30 @@ describe('去AI痕迹润色', () => {
     const doc = parseDocument(fs.readFileSync(path.join(root, second.relPath), 'utf-8'))
     expect(doc.ok && doc.data.fields['父版本']).toBe(2)
   })
+
+  it('Y5 带 BOM 的草稿可解析并作为润色源', () => {
+    const root = mkBook()
+    readyDraft(root, `巷口风大。${HARD}。他没有回头。`)
+    const draftRel = '草稿区/草稿/卷01-0001-开篇任务/稿1.md'
+    const raw = fs.readFileSync(path.join(root, draftRel), 'utf-8')
+    // 外部编辑器带 BOM 保存:读侧单源(core readBookText 剥 BOM)后仍能解析并以它为源
+    fs.writeFileSync(path.join(root, draftRel), '\uFEFF' + raw, 'utf-8')
+    const r = polishDraft(root, key)
+    expect(r.ok).toBe(true)
+    expect(r.relPath).toBe('草稿区/草稿/卷01-0001-开篇任务/稿2.md')
+    expect(r.角色).toBe('待审稿')
+  })
+
+  it('Y5 细纲 io 失败（不可读）时 polishDraft 明确失败，不静默按空细纲润色', () => {
+    const root = mkBook()
+    readyDraft(root, `巷口风大。${HARD}。他没有回头。`)
+    const outlineAbs = path.join(root, '大纲/卷规划/卷01/章细纲/0001-开篇任务.md')
+    fs.rmSync(outlineAbs)
+    fs.mkdirSync(outlineAbs) // 同名目录：读取必失败且非 ENOENT（EISDIR/EPERM → io 分流）
+    const r = polishDraft(root, key)
+    expect(r.ok).toBe(false)
+    expect(r.reason).toContain('确认细纲不可读')
+    // 失败不落新稿（原稿原样）
+    expect(listChapterDrafts(root, key)).toHaveLength(1)
+  })
 })

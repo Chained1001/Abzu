@@ -14,7 +14,7 @@ const deferred = () => {
 }
 
 /** Actual Loader + scoped tools + installed embedding plugin + loopback HTTP. */
-export async function checkSearch({ root, workspace, main, child, ctx, service, execute, check, toggle, host }) {
+export async function checkSearch({ root, workspace, main, child, _ctx, service, execute, check, toggle, host }) {
   const { credentialRef } = await import(host === undefined ? '@deepseek-ai/dsh-credentials' : pathToFileURL(host.entry('@deepseek-ai/dsh-credentials')).href)
   const bookId = 'loader-search'
   const book = path.join(workspace, '检索验收书')

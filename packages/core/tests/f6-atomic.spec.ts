@@ -7,6 +7,7 @@
  */
 import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
+import * as nodeOs from 'node:os'
 import * as nodePath from 'node:path'
 import { writeBatchAtomic, writeFileAtomic } from '../src/index'
 import { removeSync } from '../src/repo/remove'
@@ -14,7 +15,7 @@ import { removeSync } from '../src/repo/remove'
 const fixtureParent = nodePath.join(process.cwd(), '.tmp')
 fs.mkdirSync(fixtureParent, { recursive: true })
 const bookRoot = fs.mkdtempSync(nodePath.join(fixtureParent, 'f6-cross-drive-book-'))
-const tmpDrive = nodePath.parse(require('node:os').tmpdir()).root
+const tmpDrive = nodePath.parse(nodeOs.tmpdir()).root
 const bookDrive = nodePath.parse(process.cwd()).root
 const crossDrive = tmpDrive.toLowerCase() !== bookDrive.toLowerCase()
 

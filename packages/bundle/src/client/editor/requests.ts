@@ -1,4 +1,4 @@
-import type { EditorState, Transaction, TransactionSpec } from '@codemirror/state'
+import type { EditorState, TransactionSpec } from '@codemirror/state'
 import type { EditorIntent, EditorReply, EditorRequestItem } from '../../study/editor-requests'
 import { StudyApiError } from '../api'
 import type { FileRef } from '../../study/types'

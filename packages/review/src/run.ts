@@ -281,7 +281,7 @@ function ingestFindingsLocked(
   模块名: string,
   rawFindings: readonly unknown[],
   expectedFingerprint?: string,
-): { readonly ok: boolean; readonly reason?: string; readonly record: ReviewRecord | null; readonly 待回写模块?: readonly string[] } {
+): { readonly ok: boolean; readonly reason?: string; readonly record: ReviewRecord | null; readonly 待回写模块?: readonly string[]; readonly 丢弃条数?: number } {
   registerDefaultChecks()
   const check = getCheck(模块名)
   if (check === undefined) {
@@ -318,6 +318,9 @@ function ingestFindingsLocked(
   const 旧处置 = dispositionMap(existing)
 
   const findings: Finding[] = []
+  // 畸形发现项计数(normalizeFinding 解析失败的条目被丢弃):不静默——回写结果点名丢弃
+  // 条数,子 Agent 漏字段时作者能看到,而不是以为已全部回写。
+  let 丢弃条数 = 0
   let n = 1
   for (const raw of rawFindings) {
     if (raw !== null && typeof raw === 'object') {
@@ -327,7 +330,7 @@ function ingestFindingsLocked(
       }
     }
     const f = normalizeFinding(raw)
-    if (f === null) continue
+    if (f === null) { 丢弃条数++; continue }
     const withModule: Finding = { ...f, 模块名, 审核编号: reviewId(key) }
     const numbered: Finding = { ...withModule, 发现项编号: findingId(withModule.审核编号, 模块名, n++) }
     findings.push(inheritDisposition(numbered, 旧处置))
@@ -359,7 +362,7 @@ function ingestFindingsLocked(
     ...(resetting ? { 润色: undefined } : {}),
   }
   writeReviewRecord(bookRoot, key, record)
-  return { ok: true, record, 待回写模块 }
+  return { ok: true, record, 待回写模块, ...(丢弃条数 > 0 ? { 丢弃条数 } : {}) }
 }
 
 export const ingestFindings = bookWriter(ingestFindingsLocked)

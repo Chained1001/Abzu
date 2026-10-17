@@ -210,6 +210,8 @@ function acquire(root: string, provenance: BookLockOptions, heartbeat: boolean):
   fs.mkdirSync(runtime, { recursive: true })
   const owner = JSON.stringify({ ...provenance, pid: process.pid, hostname: host, token: randomUUID(), createdAt: new Date().toISOString() })
   const releaseMutex = acquireWriterMutex(runtime, owner)
+  // 批F:拿到 writer 互斥后顺手清本仓崩溃残留的 .writer-*.stage(旧的清、新的不碰)
+  try { clearStaleWriterStages(runtime) } catch { /* 清理失败不影响获锁 */ }
   const guard = path.join(runtime, 'acquire.lock')
   const lock = path.join(runtime, 'book.lock')
   const deadline = Date.now() + RETRY_LIMIT_MS
@@ -248,8 +250,57 @@ function audit(root: string, state: HeldLock, startedAt: string, status: 'runnin
       ...(error === undefined ? {} : { error: String(error) }),
     }, null, 2) + '\n', { flag: 'wx', mode: 0o600 })
     fs.renameSync(temp, file)
+    pruneOperations(root)
   } catch { /* Audit failures must not turn a completed write into a failure. */ }
   finally { try { fs.unlinkSync(temp) } catch { /* Already renamed or never created. */ } }
+}
+
+/** 审计滚动保留数(批F):`.abzu/operations/` 无界增长会拖慢目录扫描与备份。 */
+const OPERATION_RETAIN = 500
+
+/**
+ * 滚动清理(批F):op 文件按数量滚动,超过 OPERATION_RETAIN 份时删最老的**已完成**文件
+ * (running 是在途证据、failed 是待查证据,一律保留;读不了的文件保守保留)。
+ * 清理失败不影响业务写结果。
+ */
+function pruneOperations(root: string): void {
+  const dir = path.join(root, OPERATION_DIR)
+  let names: string[]
+  try { names = fs.readdirSync(dir) } catch { return }
+  const jsonNames = names.filter((name) => name.endsWith('.json'))
+  if (jsonNames.length <= OPERATION_RETAIN) return
+  const statted: { name: string; mtime: number; completed: boolean }[] = []
+  for (const name of jsonNames) {
+    const file = path.join(dir, name)
+    try {
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf-8')) as { status?: unknown }
+      statted.push({ name, mtime: fs.statSync(file).mtimeMs, completed: parsed.status === 'completed' })
+    } catch { /* 状态读不了:保守保留 */ }
+  }
+  let excess = jsonNames.length - OPERATION_RETAIN
+  for (const item of statted.sort((a, b) => a.mtime - b.mtime)) {
+    if (excess <= 0) break
+    if (!item.completed) continue
+    try { fs.unlinkSync(path.join(dir, item.name)); excess -= 1 } catch { /* 已被并发清理 */ }
+  }
+}
+
+/** `.writer-*.stage` 残留判定阈值(批F):活跃竞争者的 stage 至多存活一个获锁重试窗(2s),超过 60s 必是崩溃残留。 */
+const STAGE_STALE_MS = 60_000
+
+/** 获锁成功后清本仓 `.writer-*.stage` 残留目录(批F):只清 mtime 早于阈值的,不碰活跃竞争者。 */
+function clearStaleWriterStages(runtime: string): void {
+  let names: string[]
+  try { names = fs.readdirSync(runtime) } catch { return }
+  const threshold = Date.now() - STAGE_STALE_MS
+  for (const name of names) {
+    if (!name.startsWith('.writer-') || !name.endsWith('.stage')) continue
+    try {
+      const dir = path.join(runtime, name)
+      if (fs.statSync(dir).mtimeMs >= threshold) continue
+      fs.rmSync(dir, { recursive: true, force: true })
+    } catch { /* 尽力清理,残留不影响正确性 */ }
+  }
 }
 
 /**

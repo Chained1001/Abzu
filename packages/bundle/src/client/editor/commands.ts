@@ -110,7 +110,7 @@ export function minimalChange(before: string, after: string): { from: number; to
 
 class DeletedText extends WidgetType {
   constructor(readonly text: string) { super() }
-  eq(other: WidgetType): boolean { return other instanceof DeletedText && other.text === this.text }
+  override eq(other: WidgetType): boolean { return other instanceof DeletedText && other.text === this.text }
   toDOM(): HTMLElement {
     const node = document.createElement('span')
     node.className = 'cm-chg-del'

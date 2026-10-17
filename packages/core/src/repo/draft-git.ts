@@ -26,8 +26,11 @@ export interface ZoneSnapshot {
   readonly reason?: string
 }
 
+/** git 调用统一 120s 超时(批F):书锁临界区内不设界会让挂起的 git(交互式钩子/坏仓)卡死整个写入面。 */
+const GIT_TIMEOUT_MS = 120_000
+
 function runGit(zoneRoot: string, args: readonly string[]): { status: number; stderr: string; stdout: string; error?: string } {
-  const r = spawnSync('git', args, { cwd: zoneRoot, encoding: 'utf-8', windowsHide: true })
+  const r = spawnSync('git', args, { cwd: zoneRoot, encoding: 'utf-8', windowsHide: true, timeout: GIT_TIMEOUT_MS })
   if (r.error) return { status: 1, stderr: r.error.message, stdout: '', error: r.error.message }
   return { status: r.status ?? 1, stderr: r.stderr ?? '', stdout: r.stdout ?? '' }
 }

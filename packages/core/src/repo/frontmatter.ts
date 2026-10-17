@@ -29,12 +29,23 @@ export function parseDocument(text: string): ReadResult<Frontmatter> {
   if (!normalized.startsWith(FM_OPEN + '\n')) {
     return { ok: true, data: { fields: {}, body: normalized } }
   }
-  const closeIdx = normalized.indexOf(`\n${FM_CLOSE}\n`, FM_OPEN.length)
-  if (closeIdx < 0) {
+  // 批F:结束 `---` 容忍落在文件末尾且无尾行(编辑器截尾)——`\n---` 后跟换行或 EOF 都算闭合;
+  // 取首个位于开场之后的闭合点,与原 indexOf 语义一致。
+  const closeAt = (): { readonly index: number; readonly afterClose: number } | null => {
+    const re = /\n---(?=\n|$)/g
+    for (let m = re.exec(normalized); m !== null; m = re.exec(normalized)) {
+      if (m.index < FM_OPEN.length) continue
+      const afterClose = m.index + 1 + FM_CLOSE.length
+      return { index: m.index, afterClose: normalized.startsWith('\n', afterClose) ? afterClose + 1 : afterClose }
+    }
+    return null
+  }
+  const close = closeAt()
+  if (close === null) {
     return { ok: false, reason: 'parse-error', detail: 'frontmatter 未闭合(缺结束 ---)' }
   }
-  const fmText = normalized.slice(FM_OPEN.length + 1, closeIdx)
-  const body = normalized.slice(closeIdx + FM_CLOSE.length + 2)
+  const fmText = normalized.slice(FM_OPEN.length + 1, close.index)
+  const body = normalized.slice(close.afterClose)
   let fields: Record<string, unknown>
   try {
     // 核心唯一运行时依赖:frontmatter 即 YAML(格式规格 §7)

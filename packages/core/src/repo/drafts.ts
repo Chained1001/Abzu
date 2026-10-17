@@ -5,7 +5,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument, serializeDocument } from './frontmatter'
-import { writeFileAtomic } from './atomic'
+import { writeBatchAtomic } from './atomic'
 import { readBookText } from './read'
 import { extractVersionFields } from '../provenance'
 import { filenameCase, isMarkdownFileName } from './paths'
@@ -43,8 +43,10 @@ export type DraftKey = DraftChapterKeyLike
 export function listChapterDrafts(bookRoot: string, key: DraftKey): readonly DraftFile[] {
   const dir = resolveDraftRel(bookRoot, '草稿目录', key)
   const abs = path.join(bookRoot, dir)
-  if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
-  return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh')).flatMap((file) => {
+  // 批F:去掉 existsSync/statSync 的 TOCTOU 前置——直接 readdir,目录缺失/形态不符(ENOTDIR)按 [] 返回
+  let names: string[]
+  try { names = fs.readdirSync(abs) } catch { return [] }
+  return names.filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh')).flatMap((file) => {
     const relPath = path.posix.join(dir, file)
     const text = readText(bookRoot, relPath)
     if (text === null) return []
@@ -108,8 +110,10 @@ export function prepareDraftDemotions(
 }
 
 export const demoteOtherPendingDrafts = bookWriter((root: string, key: DraftKey, keepRelPath: string): readonly string[] => {
+  // 批F 批化:降级写盘合入单次 writeBatchAtomic(原先逐文件逐事务);ops 语义与
+  // prepareDraftDemotions 完全一致,调用方(润色/改稿)可继续单独调用,也可自取 ops 并入更大的批次。
   const ops = prepareDraftDemotions(root, key, keepRelPath)
-  for (const op of ops) writeFileAtomic(root, op.relPath, op.content)
+  writeBatchAtomic(root, ops)
   return ops.map(op => op.relPath)
 })
 

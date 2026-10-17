@@ -13,10 +13,10 @@
     "@abzu/polish": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.5.0"
+    "typescript": "catalog:"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "4.0.4"
+    "@deepseek-ai/cordis": "catalog:"
   },
   "license": "GPL-3.0-only",
   "engines": {

@@ -8,6 +8,7 @@ import {
   MEMORY_KINDS,
   filenameCase,
   isMarkdownFileName,
+  matchChapterFileName,
   parseChineseVolume,
   type MemoryKind,
   type LedgerName,
@@ -272,12 +273,14 @@ export function entryChapterNo(entry: Pick<LedgerEntry, '字段'>): number | nul
   for (const key of ['实际落点', '来源', '埋设点'] as const) {
     const value = entry.字段[key]
     if (value === undefined) continue
-    const finalPath = /定稿[\\/]卷\d+[\\/](\d{4})-/.exec(value)
-    if (finalPath !== null) return Number(finalPath[1])
+    // 章节文件名口径单源(批F,宽松 1–4 位):定稿路径剥卷目录前缀、裸文件名(手写缺 .md
+    // 的按补 .md 认)都过 matchChapterFileName——`12-名字`/`0012-名字.md` 同认。
+    const finalPath = /定稿[\\/]卷\d+[\\/]/.exec(value)
+    const fileName = (finalPath !== null ? value.slice(finalPath.index + finalPath[0].length) : value).trim()
+    const byName = matchChapterFileName(fileName) ?? (fileName === '' ? null : matchChapterFileName(`${fileName}.md`))
+    if (byName !== null) return byName.章
     const chapter = /第\s*(\d{1,4})\s*章/.exec(value)
     if (chapter !== null) return Number(chapter[1])
-    const shortPath = /^(\d{1,4})-/.exec(value.trim())
-    if (shortPath !== null) return Number(shortPath[1])
   }
   return null
 }
@@ -401,9 +404,16 @@ export function queryMemory(
   let firstUnreadable: string | undefined
   const dir = path.join(bookRoot, '本书记忆')
   let names: string[] = []
+  // A-2/批F io 分流:目录列举 ENOENT 是「没有本书记忆」;其余 errno 是「在、读不了」——
+  // 后者不得在结尾被说成「本书记忆不存在」。
+  let dirUnreadable: string | undefined
   try {
     names = fs.readdirSync(dir).filter((n) => isMarkdownFileName(n) && filenameCase(n) !== '索引.md').sort()
-  } catch {
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code
+    if (code !== 'ENOENT') {
+      dirUnreadable = `本书记忆目录不可读:本书记忆——${code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)}`
+    }
     names = []
   }
   for (const name of names) {
@@ -465,6 +475,9 @@ export function queryMemory(
     return { ok: false, kind: 'unreadable', reason: unreadable.join('；'), file: firstUnreadable, entries: current, files }
   }
   if (files.length === 0) {
+    if (dirUnreadable !== undefined) {
+      return { ok: false, kind: 'unreadable', reason: dirUnreadable, entries: current, files }
+    }
     return { ok: false, kind: 'missing', reason: '本书记忆不存在', entries: current, files }
   }
   return { ok: true, entries: current, files }
@@ -512,16 +525,22 @@ function parsePlanItems(text: string, source: string): PlanParse {
 }
 
 /**
- * 扫描 `大纲/卷规划/卷NN`。
+ * 扫描 `大纲/卷规划`。
  * `requirePlan` 为全书对账发现集（须有计划时间线）；否则只计规划目录，供单卷兜底。
+ * 批F io 分流：目录列举 ENOENT 是「没有卷规划」（空集），其余 errno 返回 unreadable——
+ * 全书对账不得在目录读不了时假报「无偏离」。
  */
-function listVolumeNumbers(bookRoot: string, requirePlan: boolean): number[] {
+type VolumeScan = { readonly ok: true; readonly volumes: readonly number[] } | { readonly ok: false; readonly kind: 'unreadable'; readonly reason: string }
+
+function listVolumeNumbers(bookRoot: string, requirePlan: boolean): VolumeScan {
   const base = path.join(bookRoot, '大纲', '卷规划')
   let ents: fs.Dirent[]
   try {
     ents = fs.readdirSync(base, { withFileTypes: true })
-  } catch {
-    return []
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code
+    if (code === 'ENOENT') return { ok: true, volumes: [] }
+    return { ok: false, kind: 'unreadable', reason: `卷规划目录不可读:大纲/卷规划——${code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)}` }
   }
   const volumes = new Set<number>()
   for (const ent of ents) {
@@ -530,17 +549,31 @@ function listVolumeNumbers(bookRoot: string, requirePlan: boolean): number[] {
     if (!/^\d+$/.test(digits)) continue
     const volume = Number(digits)
     if (!Number.isInteger(volume) || volume <= 0) continue
-    if (requirePlan && !fs.existsSync(path.join(base, ent.name, '计划时间线.md'))) continue
+    if (requirePlan) {
+      // 计划时间线存在性同样分流:ENOENT 是「该卷未规划」,其余 errno 是「在、看不了」——
+      // 不得把读不了的计划时间线静默折成「无计划卷」从对账里漏掉。
+      let planned: boolean
+      try {
+        planned = fs.statSync(path.join(base, ent.name, '计划时间线.md')).isFile()
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code
+        if (code !== 'ENOENT') {
+          return { ok: false, kind: 'unreadable', reason: `计划时间线不可读:大纲/卷规划/${ent.name}/计划时间线.md——${code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)}` }
+        }
+        planned = false
+      }
+      if (!planned) continue
+    }
     volumes.add(volume)
   }
-  return [...volumes].sort((a, b) => a - b)
+  return { ok: true, volumes: [...volumes].sort((a, b) => a - b) }
 }
 
-function listPlannedVolumes(bookRoot: string): number[] {
+function listPlannedVolumes(bookRoot: string): VolumeScan {
   return listVolumeNumbers(bookRoot, true)
 }
 
-function listVolumeDirs(bookRoot: string): number[] {
+function listVolumeDirs(bookRoot: string): VolumeScan {
   return listVolumeNumbers(bookRoot, false)
 }
 
@@ -675,13 +708,40 @@ function dueItem(entry: LedgerEntry, status: string, overdue: number | null): Du
 }
 
 /**
+ * 单类视图(批F 组装降载):从全量查询结果投影某一类的子结果——该类账本读且解析成功
+ * (出现在 `files`)即 ok;否则继承整体失败态。整体 kind 为 `missing` 时投影可靠(该态下
+ * 未入 files 的账本恰为缺失);整体为 unreadable/parse-error 时 fail-closed 归同态,
+ * 不把「读不了」折成「没有」。条目投影按分类过滤,与单类查询的字节面一致。
+ */
+export function ledgerCategoryOf(result: LedgerQueryResult, 分类: LedgerName): LedgerQueryResult {
+  const source = paths.账本(分类)
+  const entries = result.entries.filter((entry) => entry.分类 === 分类)
+  if (result.ok || result.files.includes(source)) {
+    // ok:true ⇒ 五本账全读且解析成功(该类必在 files);个别文件失败时该类读且解析成功亦可呈现
+    return { ok: true, entries, files: [source] }
+  }
+  return {
+    ok: false,
+    kind: result.kind === 'missing' ? 'missing' : result.kind,
+    reason: result.reason,
+    file: source,
+    entries,
+    files: [],
+  }
+}
+
+/**
  * 查询当前章到期的已埋/已示线索,无法解析的区间单独列出,不产生写操作。
  *
  * 超过上界仍算到期(直到已收/已弃),但同时标 `逾期` 与 `超出幅度`——
  * 「刚到第 8 章」和「已经第 40 章还没收」对作者是完全不同的紧迫度。`逾期` 是 `到期` 的子集。
+ * `suppliedLedger`(批F,照 reconcileLedger 先例):调用方已持有同章上限的全量账本结果时
+ * 直接复用,不再二次读盘;投影经 ledgerCategoryOf,单类语义不变。
  */
-export function queryDueLedger(bookRoot: string, key: { readonly 卷: number; readonly 章: number }): DueLedgerResult {
-  const ledger = queryLedger(bookRoot, { 分类: '线索', 章上限: key.章 })
+export function queryDueLedger(bookRoot: string, key: { readonly 卷: number; readonly 章: number }, suppliedLedger?: LedgerQueryResult): DueLedgerResult {
+  const ledger = suppliedLedger === undefined
+    ? queryLedger(bookRoot, { 分类: '线索', 章上限: key.章 })
+    : ledgerCategoryOf(suppliedLedger, '线索')
   const 到期: DueLedgerItem[] = []
   const 逾期: DueLedgerItem[] = []
   const 区间不明: DueLedgerItem[] = []
@@ -713,7 +773,9 @@ export function reconcileLedger(bookRoot: string, volume: number, suppliedLedger
 
   const actual = suppliedLedger === undefined ? queryLedger(bookRoot, { 分类: '时间线' }) : suppliedLedger
   if (!actual.ok) return actual
-  const volumeDirs = listVolumeDirs(bookRoot)
+  const dirScan = listVolumeDirs(bookRoot)
+  if (!dirScan.ok) return dirScan
+  const volumeDirs = dirScan.volumes
   const factPairs: { readonly item: ReconciliationItem; readonly 章号: number | null }[] = timelineEntries(actual)
     .filter((entry) => attributeFactVolume(entry, volumeDirs) === volume)
     .map((entry) => ({ item: asFact(entry), 章号: entryChapterNo(entry) }))
@@ -762,8 +824,12 @@ export function reconcileLedger(bookRoot: string, volume: number, suppliedLedger
 /** 对账全书各卷计划与可归属事实，不产生写操作。 */
 export function reconcileBookLedger(bookRoot: string): BookLedgerReconciliationResult {
   const ledger = queryLedger(bookRoot)
-  const volumes = listPlannedVolumes(bookRoot)
-  const volumeDirs = listVolumeDirs(bookRoot)
+  const plannedScan = listPlannedVolumes(bookRoot)
+  if (!plannedScan.ok) return plannedScan
+  const volumes = plannedScan.volumes
+  const dirScan = listVolumeDirs(bookRoot)
+  if (!dirScan.ok) return dirScan
+  const volumeDirs = dirScan.volumes
   const reports: LedgerReconciliation[] = []
   for (const volume of volumes) {
     const result = reconcileLedger(bookRoot, volume, ledger)

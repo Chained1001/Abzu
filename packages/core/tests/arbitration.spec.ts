@@ -92,6 +92,27 @@ describe('答案解释', () => {
     await Promise.resolve()
     expect(result.ok).toBe(false)
   })
+
+  it('取消胜出后 askFn 才 reject：不留 unhandledRejection（race 兜底）', async () => {
+    const controller = new AbortController()
+    const unhandled: unknown[] = []
+    const onUnhandled = (err: unknown) => { unhandled.push(err) }
+    process.on('unhandledRejection', onUnhandled)
+    try {
+      const pending = askAuthor(() => new Promise((_resolve, reject) => {
+        setTimeout(() => reject(new Error('ANSWER_TIMEOUT')), 5)
+      }), '吃书补偿', { 范围: '卷01' }, { signal: controller.signal })
+      controller.abort()
+      const result = await pending
+      expect(result).toMatchObject({ ok: false, reason: expect.stringContaining('ASK_ABORTED') })
+      // 等 reject 定时器落地并让事件循环多跑一轮,确认无未处理拒绝逃逸
+      await new Promise((resolve) => setTimeout(resolve, 30))
+      await new Promise((resolve) => setImmediate(resolve))
+      expect(unhandled).toEqual([])
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+    }
+  })
 })
 
 describe('作者裁决 frontmatter 往返', () => {

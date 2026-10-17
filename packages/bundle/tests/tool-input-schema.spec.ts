@@ -119,6 +119,21 @@ describe('统一入参校验（P2-2：注册面单源，execute 前按 schema �
     expect(r.reason).toContain('unknown')
   })
 
+  it('发现项缺 问题说明/证据位置 在 schema 层被拒（Y2：畸形发现项不进回写）', async () => {
+    const base = { bookId: 'b', 卷: 1, 章: 1, 章名: 'x', 模块名: '章节结构审读' }
+    const missing问题 = await call('novel_record_review_findings', { ...base, 发现项: [{ 证据位置: '开头' }] })
+    expect(missing问题).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(missing问题.reason).toContain('问题说明')
+    const missing证据 = await call('novel_record_review_findings', { ...base, 发现项: [{ 问题说明: '动机不足' }] })
+    expect(missing证据).toMatchObject({ ok: false, code: 'invalid-args' })
+    expect(missing证据.reason).toContain('证据位置')
+    // 齐备两条的载荷过 schema（到 resolveBook 才因书不存在被拒）
+    const ok = await call('novel_record_review_findings', { ...base, 发现项: [{ 问题说明: '动机不足', 证据位置: '开头' }] })
+    expect(ok).toMatchObject({ ok: false })
+    expect(ok.code).toBeUndefined()
+    expect(ok.reason).toContain('书id不存在')
+  })
+
   it('schema 合法的调用照常到达 execute，不被校验层误伤', async () => {
     // bookId 齐备但书不存在：应到达 resolveBook 并报书id不存在，而非 invalid-args
     const r = await call('novel_get_story_status', { bookId: 'no-such' })

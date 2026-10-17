@@ -104,6 +104,18 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(dumped).not.toMatch(/"完成"\s*:/)
   })
 
+  it('Y5 带 BOM 的确认细纲照常解析，硬约束不丢', () => {
+    const root = mkBook()
+    confirmReady(root)
+    const rel = '大纲/卷规划/卷01/章细纲/0001-开篇任务.md'
+    const raw = fs.readFileSync(path.join(root, rel), 'utf-8')
+    // 外部编辑器带 BOM 保存:读侧单源(core readBookText 剥 BOM)后仍能解析
+    fs.writeFileSync(path.join(root, rel), '\uFEFF' + raw.replace('〔软〕', '〔硬〕'), 'utf-8')
+    const ctx = loadDraftContext(root, key)
+    expect(ctx.细纲).toMatch(/章细纲/)
+    expect(ctx.硬约束.length).toBeGreaterThan(0)
+  })
+
   it('候选事实 stays in workspace draft only', () => {
     const root = mkBook()
     confirmReady(root)

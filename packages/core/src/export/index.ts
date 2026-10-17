@@ -11,7 +11,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { canonicalizePath, isInsidePath } from '../gate/canonical'
 import { parseDocument } from '../repo/frontmatter'
-import { chapterNo, isMarkdownFileName, pad, validateSegment } from '../repo/paths'
+import { chapterNo, isMarkdownFileName, matchChapterFileName, pad, validateSegment } from '../repo/paths'
 import { extractVersionFields } from '../provenance'
 import { materialHash, readMaterialFile } from '../assembly/source'
 
@@ -55,7 +55,13 @@ export interface ExportTargetReport {
   readonly 冲突: readonly string[]
 }
 
-const FINALIZED_RE = /^定稿\/卷(\d+)\/(\d{4,})-(.+)\.md$/i
+/** 定稿章路径形态:卷目录前缀定卷,文件名过 matchChapterFileName 单源(批F,宽松 1–4 位)。 */
+function finalizedChapterOf(rel: string): { readonly 卷: number; readonly 章: number; readonly 章名: string } | null {
+  const m = /^定稿\/卷(\d+)\//i.exec(rel)
+  if (m === null) return null
+  const cm = matchChapterFileName(rel.slice(m[0].length))
+  return cm === null ? null : { 卷: Number(m[1]), 章: cm.章, 章名: cm.章名 }
+}
 
 function walkFinalized(root: string, gaps: string[]): string[] {
   const out: string[] = []
@@ -78,7 +84,7 @@ function walkFinalized(root: string, gaps: string[]): string[] {
         walk(childAbs, childRel)
         continue
       }
-      if (entry.isFile() && isMarkdownFileName(childRel) && FINALIZED_RE.test(childRel)) out.push(childRel)
+      if (entry.isFile() && isMarkdownFileName(childRel) && finalizedChapterOf(childRel) !== null) out.push(childRel)
     }
   }
   walk(path.join(root, '定稿'), '定稿')
@@ -106,8 +112,9 @@ export function computeExport(bookRoot: string, scope: ExportScope = {}): Comput
     合集文件: '', 清单文件: '', 合集: '', 清单: '', 合集哈希: '',
   })
   if (scope.卷 !== undefined && (!Number.isSafeInteger(scope.卷) || scope.卷 < 1)) return fail(['导出范围卷号必须是正整数'])
-  if (scope.起章 !== undefined && (!Number.isSafeInteger(scope.起章) || scope.起章 < 1)) return fail(['导出范围起章必须是正整数'])
-  if (scope.止章 !== undefined && (!Number.isSafeInteger(scope.止章) || scope.止章 < 1)) return fail(['导出范围止章必须是正整数'])
+  // 章号合法域 1–9999(chapterNo 写侧断言,批F):越界在 Result 域内拒绝,不抛出
+  if (scope.起章 !== undefined && (!Number.isSafeInteger(scope.起章) || scope.起章 < 1 || scope.起章 > 9999)) return fail(['导出范围起章必须是 1–9999 的整数'])
+  if (scope.止章 !== undefined && (!Number.isSafeInteger(scope.止章) || scope.止章 < 1 || scope.止章 > 9999)) return fail(['导出范围止章必须是 1–9999 的整数'])
   if (scope.起章 !== undefined && scope.止章 !== undefined && scope.起章 > scope.止章) return fail(['导出范围起章不能晚于止章'])
   const root = canonicalizePath(bookRoot)
   if (root === '') return fail(['书仓路径无效'])
@@ -116,10 +123,11 @@ export function computeExport(bookRoot: string, scope: ExportScope = {}): Comput
   const chapters: ExportChapter[] = []
   const seenChapterNo = new Map<number, string>()
   for (const rel of walkFinalized(root, gaps)) {
-    const m = FINALIZED_RE.exec(rel)!
-    const 卷 = Number(m[1])
-    const 章 = Number(m[2])
-    const 章名 = m[3]!
+    const key = finalizedChapterOf(rel)
+    if (key === null) continue
+    const 卷 = key.卷
+    const 章 = key.章
+    const 章名 = key.章名
     let read: ReturnType<typeof readMaterialFile>
     try {
       read = readMaterialFile(root, rel)

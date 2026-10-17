@@ -43,7 +43,8 @@ export function checkCommitRelPath(relPath: string): CommitPathCheck {
   if (top === 'profiles' || p.startsWith('profiles/')) {
     return { ok: false, reason: '配置域路径不得进入书仓提交' }
   }
-  if (REJECT_TOP.has(top) && top !== '知识库' && top !== 'profiles') {
+  // 批F:删死条件——知识库/profiles 已在上方提前返回,此处命中 REJECT_TOP 的只会是 books/草稿区
+  if (REJECT_TOP.has(top)) {
     return { ok: false, reason: `路径「${top}/」不得进入定稿提交` }
   }
   if (!ALLOWED_TOP.has(top)) {

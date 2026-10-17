@@ -10,7 +10,10 @@ import { computeMaterials } from '@abzu/core'
 
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)
-  return i === -1 ? undefined : argv[i + 1]
+  if (i === -1) return undefined
+  const value = argv[i + 1]
+  // Y7(批F):后随值以 -- 开头＝本参数缺值(值位被下一选项占住)——按缺失处理,由调用方点名报参数缺失
+  return value === undefined || value.startsWith('--') ? undefined : value
 }
 
 export function materialsCli(argv: readonly string[]): number {

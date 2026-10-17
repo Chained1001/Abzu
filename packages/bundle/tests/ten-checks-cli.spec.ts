@@ -128,6 +128,24 @@ describe('写前十查机械脚本（③伏笔到期＋④接钩＋出场间隔�
     expect(appearanceRows).toContain('苏婉｜本卷未出场')
   })
 
+  it('Y7 值以 -- 开头＝参数缺值：点名报错，不把选项名当值吞掉', () => {
+    const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'ten-checks-cli-')); roots.push(ws)
+    const book = path.join(ws, 'book')
+    fs.mkdirSync(book, { recursive: true })
+    // --卷 的值位被 --章 占住：argValue 按「--卷 缺失」处理，报错点名 --卷
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const code = tenChecksCli(['--book', book, '--卷', '--章', '1', '--章名', '开篇'])
+      expect(code).toBe(1)
+      expect(errSpy.mock.calls[0]?.[0]).toContain('--卷')
+      const code2 = tenChecksCli(['--book', '--卷', '1', '--章', '1', '--章名', '开篇'])
+      expect(code2).toBe(1)
+      expect(errSpy.mock.calls[1]?.[0]).toContain('--book')
+    } finally {
+      errSpy.mockRestore()
+    }
+  })
+
   it('首章无上章：④接钩写「无上章」，③与出场间隔如实空过', () => {
     const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'ten-checks-cli-')); roots.push(ws)
     const book = path.join(ws, 'book')

@@ -25,7 +25,6 @@ import { computePack } from '../src/prepare/pack'
 import { computeMaterials } from '../src/assembly/assemble'
 import { confirmOutline, writeCandidate } from '../src/outline/write'
 import { seedMinDesign } from '../src/design/seed'
-import { writeFileAtomic } from '../src/repo/atomic'
 import { serializeDocument } from '../src/repo/frontmatter'
 import { paths } from '../src/repo/paths'
 

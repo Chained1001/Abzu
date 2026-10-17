@@ -15,6 +15,7 @@ import {
   isMarkdownFileName,
   parseDocument,
   prepareDraftDemotions,
+  readBookText,
   resolveDraftRel,
   scanChapter,
   serializeDocument,
@@ -57,11 +58,10 @@ export interface DraftInfo {
 // 修复(0.0.20 批 bug4):本地 7 键副本缺「保真风险」且与 core 双源漂移——删除,改用 import 的 草稿字段序(8 键单源)。
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // Y5(批F):读原语单源——core readBookText 剥 BOM 与读侧同口径(带 BOM 草稿可解析);
+  // 判据不变:非 missing(io 失败)也仍返回 null,由调用方跳过。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 /** 草稿目录双格式解析(批8):新键优先、旧键 fallback——旧书目录无感。 */

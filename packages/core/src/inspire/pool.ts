@@ -9,7 +9,7 @@ import * as path from 'node:path'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { assertSegment, isMarkdownFileName } from '../repo/paths'
 import { removeSync } from '../repo/remove'
-import { createHash } from 'node:crypto'
+import { sha256Hex } from '../repo/hash'
 import { withBookWrite, writeFileAtomic } from '../repo/atomic'
 
 export const 灵感池相对目录 = '书房/灵感池'
@@ -47,20 +47,20 @@ export function poolDir(authorRoot: string): string {
 export function ingestNote(authorRoot: string, note: string, metadata?: InspirationMetadata): string {
   if (metadata?.references && !metadata.references.every(validInspirationReference)) throw new Error('灵感参考依据格式无效')
   if (metadata?.tags && !metadata.tags.every(tag => typeof tag === 'string' && tag.trim())) throw new Error('灵感标签必须是非空字符串')
-  const hash = (text: string) => createHash('sha256').update(text).digest('hex')
-  const id = metadata?.operationId ? `n-${hash(metadata.operationId).slice(0, 32)}` : nextNoteId()
+  // 哈希单源(批F):sha256Hex 等价替换,保存指纹逐字节不变
+  const id = metadata?.operationId ? `n-${sha256Hex(metadata.operationId).slice(0, 32)}` : nextNoteId()
   assertSegment(id, '灵感id')
   const dir = poolDir(authorRoot)
   const reserved = ['状态', '身份', '来源快照', '保存指纹']
   const extra = Object.fromEntries(Object.entries(metadata?.fields ?? {}).filter(([key]) => !reserved.includes(key)))
   const fields = { ...extra, ...(metadata ? { schemaVersion: 1 } : {}), ...(metadata?.type ? { 类型: metadata.type } : {}), ...(metadata?.tags ? { 标签: metadata.tags } : {}), ...(metadata?.references ? { 参考依据: metadata.references } : {}) }
-  const fingerprint = hash(serializeDocument(fields, note))
+  const fingerprint = sha256Hex(serializeDocument(fields, note))
   return withBookWrite(dir, () => {
     const target = path.join(dir, `${id}.md`)
     if (metadata?.operationId && fs.existsSync(target)) {
       const previous = parseDocument(fs.readFileSync(target, 'utf8'))
       const previousFields = previous.ok ? Object.fromEntries(Object.entries(previous.data.fields).filter(([key]) => !reserved.includes(key))) : {}
-      if (!previous.ok || previous.data.fields['保存指纹'] !== fingerprint || hash(serializeDocument(previousFields, previous.data.body)) !== fingerprint) throw new Error('同一次保存的内容已变化，请使用新的操作身份')
+      if (!previous.ok || previous.data.fields['保存指纹'] !== fingerprint || sha256Hex(serializeDocument(previousFields, previous.data.body)) !== fingerprint) throw new Error('同一次保存的内容已变化，请使用新的操作身份')
       return id
     }
     const createdAt = new Date().toISOString()

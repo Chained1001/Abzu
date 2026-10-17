@@ -4,6 +4,21 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@deepseek-ai/cordis':
+      specifier: 4.0.4
+      version: 4.0.4
+    '@deepseek-ai/dsh-user-questions':
+      specifier: 0.2.0-rc.2
+      version: 0.2.0-rc.2
+    typescript:
+      specifier: ^5.5.0
+      version: 5.9.3
+    yaml:
+      specifier: ^2.5.0
+      version: 2.9.0
+
 overrides:
   source-map-js@<1.2.2: 1.2.2
 
@@ -12,7 +27,7 @@ importers:
   .:
     devDependencies:
       '@deepseek-ai/cordis':
-        specifier: 4.0.4
+        specifier: 'catalog:'
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
       '@types/node':
         specifier: ^22.0.0
@@ -21,7 +36,7 @@ importers:
         specifier: 9.39.1
         version: 9.39.1(supports-color@7.2.0)
       typescript:
-        specifier: ^5.5.0
+        specifier: 'catalog:'
         version: 5.9.3
       typescript-eslint:
         specifier: 8.71.0
@@ -66,7 +81,7 @@ importers:
         specifier: 6.43.8
         version: 6.43.8
       '@deepseek-ai/cordis':
-        specifier: 4.0.4
+        specifier: 'catalog:'
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
       '@deepseek-ai/cordis-plugin-group':
         specifier: 1.0.4
@@ -240,7 +255,7 @@ importers:
         specifier: 0.2.0-rc.2
         version: 0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-agent@0.2.0-rc.2(fee0e653b72a3883e0f0da2d9a46bb50))(@deepseek-ai/dsh-brand@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))(@deepseek-ai/dsh-llm@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)))(@deepseek-ai/dsh-session@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))))(@deepseek-ai/dsh-system-prompt@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))(@deepseek-ai/dsh-llm@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))))
       '@deepseek-ai/dsh-user-questions':
-        specifier: 0.2.0-rc.2
+        specifier: 'catalog:'
         version: 0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-agent@0.2.0-rc.2(fee0e653b72a3883e0f0da2d9a46bb50))(@deepseek-ai/dsh-llm@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)))(@deepseek-ai/dsh-session-projection@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-session@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)))))(@deepseek-ai/dsh-session@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))))(@deepseek-ai/dsh-typert-protocol@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))
       '@deepseek-ai/dsh-util-values':
         specifier: 0.2.0-rc.2
@@ -294,35 +309,35 @@ importers:
         specifier: 18.3.1
         version: 18.3.1(react@18.3.1)
       typescript:
-        specifier: ^5.5.0
+        specifier: 'catalog:'
         version: 5.9.3
       yaml:
-        specifier: ^2.5.0
+        specifier: 'catalog:'
         version: 2.9.0
 
   packages/core:
     dependencies:
       '@deepseek-ai/cordis':
-        specifier: 4.0.4
+        specifier: 'catalog:'
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
       saxes:
         specifier: 6.0.0
         version: 6.0.0
       yaml:
-        specifier: ^2.5.0
+        specifier: 'catalog:'
         version: 2.9.0
       yauzl:
         specifier: 3.4.0
         version: 3.4.0
     devDependencies:
       '@deepseek-ai/dsh-user-questions':
-        specifier: 0.2.0-rc.2
+        specifier: 'catalog:'
         version: 0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-agent@0.2.0-rc.2(fee0e653b72a3883e0f0da2d9a46bb50))(@deepseek-ai/dsh-llm@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)))(@deepseek-ai/dsh-session-projection@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-session@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)))))(@deepseek-ai/dsh-session@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-scope@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))))(@deepseek-ai/dsh-typert-protocol@0.2.0-rc.2(@deepseek-ai/cordis@4.0.4))
       '@types/yauzl':
         specifier: 2.10.3
         version: 2.10.3
       typescript:
-        specifier: ^5.5.0
+        specifier: 'catalog:'
         version: 5.9.3
 
   packages/drafting:
@@ -331,11 +346,11 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@deepseek-ai/cordis':
-        specifier: 4.0.4
+        specifier: 'catalog:'
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
     devDependencies:
       typescript:
-        specifier: ^5.5.0
+        specifier: 'catalog:'
         version: 5.9.3
 
   packages/polish:
@@ -344,14 +359,14 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@deepseek-ai/cordis':
-        specifier: 4.0.4
+        specifier: 'catalog:'
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
     devDependencies:
       '@abzu/drafting':
         specifier: workspace:*
         version: link:../drafting
       typescript:
-        specifier: ^5.5.0
+        specifier: 'catalog:'
         version: 5.9.3
 
   packages/review:
@@ -363,11 +378,11 @@ importers:
         specifier: workspace:*
         version: link:../polish
       '@deepseek-ai/cordis':
-        specifier: 4.0.4
+        specifier: 'catalog:'
         version: 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
     devDependencies:
       typescript:
-        specifier: ^5.5.0
+        specifier: 'catalog:'
         version: 5.9.3
 
 packages:

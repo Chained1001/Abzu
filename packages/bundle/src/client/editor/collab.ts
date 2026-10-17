@@ -159,7 +159,7 @@ function actionsHtml(item: SuggestionItem | GhostItem): string {
 
 class InsertionWidget extends WidgetType {
   constructor(readonly text: string, readonly className: string) { super() }
-  eq(other: WidgetType): boolean { return other instanceof InsertionWidget && other.text === this.text && other.className === this.className }
+  override eq(other: WidgetType): boolean { return other instanceof InsertionWidget && other.text === this.text && other.className === this.className }
   toDOM(): HTMLElement {
     const node = document.createElement('span')
     node.className = this.className
@@ -177,7 +177,7 @@ class InsertionWidget extends WidgetType {
 
 class ActionsWidget extends WidgetType {
   constructor(readonly item: SuggestionItem | GhostItem) { super() }
-  eq(other: WidgetType): boolean {
+  override eq(other: WidgetType): boolean {
     return other instanceof ActionsWidget && other.item.id === this.item.id
       && (other.item as SuggestionItem).confirm === (this.item as SuggestionItem).confirm
       && (other.item as SuggestionItem).touched === (this.item as SuggestionItem).touched
@@ -190,12 +190,12 @@ class ActionsWidget extends WidgetType {
     node.innerHTML = actionsHtml(this.item)
     return node
   }
-  ignoreEvent(): boolean { return true }
+  override ignoreEvent(): boolean { return true }
 }
 
 class BlockSuggestionWidget extends WidgetType {
   constructor(readonly item: SuggestionItem) { super() }
-  eq(other: WidgetType): boolean {
+  override eq(other: WidgetType): boolean {
     return other instanceof BlockSuggestionWidget && other.item.id === this.item.id && other.item.text === this.item.text
       && other.item.confirm === this.item.confirm && other.item.touched === this.item.touched
   }
@@ -223,12 +223,12 @@ class BlockSuggestionWidget extends WidgetType {
     node.append(body, footer)
     return node
   }
-  ignoreEvent(): boolean { return true }
+  override ignoreEvent(): boolean { return true }
 }
 
 class PendingWidget extends WidgetType {
   constructor(readonly item: PendingItem) { super() }
-  eq(other: WidgetType): boolean {
+  override eq(other: WidgetType): boolean {
     return other instanceof PendingWidget && other.item.id === this.item.id && other.item.status === this.item.status && other.item.touched === this.item.touched
   }
   toDOM(): HTMLElement {
@@ -242,12 +242,12 @@ class PendingWidget extends WidgetType {
     node.innerHTML = `<span class="cm-collab-spinner" data-tip="${tip}${this.item.touched ? ' · 这段原文已被你改动' : ''}">${iconSvg('loader')}</span>` + actionButton(this.item.id, 'cancel', 'x', '取消这次请求', 'cm-collab-cancel')
     return node
   }
-  ignoreEvent(): boolean { return true }
+  override ignoreEvent(): boolean { return true }
 }
 
 class CommentMarker extends WidgetType {
   constructor(readonly item: CommentItem) { super() }
-  eq(other: WidgetType): boolean { return other instanceof CommentMarker && other.item.id === this.item.id && other.item.index === this.item.index }
+  override eq(other: WidgetType): boolean { return other instanceof CommentMarker && other.item.id === this.item.id && other.item.index === this.item.index }
   toDOM(): HTMLElement {
     const node = document.createElement('button')
     node.type = 'button'
@@ -259,7 +259,7 @@ class CommentMarker extends WidgetType {
     node.textContent = String(this.item.index)
     return node
   }
-  ignoreEvent(): boolean { return true }
+  override ignoreEvent(): boolean { return true }
 }
 
 function decorate(items: readonly CollabItem[], state: EditorState): DecorationSet {

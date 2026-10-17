@@ -4,15 +4,16 @@
  * 世界书历史事实省略处显式标注指回真源——体量不随书增长(PRD §10.2 规模不变量 1)。
  */
 
+import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { readBookText } from '../repo/read'
-import { listChapters, parseWindow, type ChapterKey } from '../derive/scan'
-import { entryChapterNo as ledgerEntryChapterNo, queryDueLedger, queryLedger, queryMemory, type LedgerEntry } from '../ledger'
+import { parseWindow, type ChapterKey } from '../derive/scan'
+import { entryChapterNo as ledgerEntryChapterNo, ledgerCategoryOf, queryDueLedger, queryLedger, queryMemory, type LedgerEntry } from '../ledger'
 import { parseOutline } from '../outline/parse'
 import { extractVersionFields } from '../provenance'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument } from '../repo/frontmatter'
-import { paths } from '../repo/paths'
+import { matchChapterFileName, pad, paths } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { parseSourceRef } from '../repo/sourceRef'
@@ -89,6 +90,46 @@ function versionOf(text: string | null): string {
   if (!r.ok) return ''
   const v = extractVersionFields(r.data.fields).版本
   return v === null ? '' : String(v)
+}
+
+/**
+ * 定稿章定径索引(批F 组装降载):不走 listChapters 的三遍全树扫描,按 `定稿/卷NN/`＋章号
+ * 定向读取——卷目录列表只 readdir 一次、各卷文件列表懒读缓存,近章窗口通常只触 1–2 卷。
+ * 章号全书连续(§2.2):一个章号至多一份定稿;文件名过 matchChapterFileName 单源。
+ */
+function makeFinalizedChapterIndex(bookRoot: string): (章号: number) => { readonly 卷: number; readonly 章: number; readonly 章名: string } | null {
+  let volumeDirs: number[] | null = null
+  const listing = new Map<number, string[]>()
+  const volumes = (): readonly number[] => {
+    if (volumeDirs === null) {
+      volumeDirs = []
+      try {
+        for (const ent of fs.readdirSync(path.join(bookRoot, '定稿'), { withFileTypes: true })) {
+          if (!ent.isDirectory() || !ent.name.startsWith('卷')) continue
+          const digits = ent.name.slice(1)
+          if (/^\d+$/.test(digits) && Number(digits) > 0) volumeDirs.push(Number(digits))
+        }
+      } catch { /* 无定稿目录:按无章处理 */ }
+    }
+    return volumeDirs
+  }
+  const filesOf = (卷: number): readonly string[] => {
+    let names = listing.get(卷)
+    if (names === undefined) {
+      try { names = fs.readdirSync(path.join(bookRoot, '定稿', `卷${pad(卷)}`)) } catch { names = [] }
+      listing.set(卷, names)
+    }
+    return names
+  }
+  return (章号) => {
+    if (章号 <= 0) return null
+    for (const 卷 of volumes()) {
+      const hit = filesOf(卷).find((name) => matchChapterFileName(name)?.章 === 章号)
+      const matched = hit === undefined ? null : matchChapterFileName(hit)
+      if (matched !== null) return { 卷, 章: matched.章, 章名: matched.章名 }
+    }
+    return null
+  }
 }
 
 function charCount(text: string): number {
@@ -290,11 +331,12 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
   const 时空 = parsed.定位['时空锚定'] ?? ''
 
   // ── 近期正文衔接:上一章定稿末尾 N 字(跨卷)＋最近 K 章章摘要＋本卷卷摘要 ──
+  // 批F 降载:近章不再走 listChapters 三遍全树扫描,按 定稿/卷NN/＋章号定径读取(索引懒缓存)。
   const 衔接Parts: string[] = []
   const 衔接Sources: string[] = []
   let 衔接完整: SectionRecord['完整性'] = '完整'
-  const chapters = listChapters(bookRoot).filter((k) => k.章 > 0)
-  const prev = chapters.find((k) => k.章 === input.章 - 1) ?? null
+  const finalizedOf = makeFinalizedChapterIndex(bookRoot)
+  const prev = input.章 - 1 > 0 ? finalizedOf(input.章 - 1) : null
   // 跨卷(任务21, 件二):卷 N 首章备料带卷 N−1 卷摘要整文件(不按章号过滤,章号全书连续天然在界内);
   // 前一卷无卷摘要如实标缺,不静默省略;来源清单路径自带卷号。
   if (prev !== null && prev.卷 < input.卷) {
@@ -324,9 +366,9 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
   const summaries: string[] = []
   for (let no = input.章 - 材料预算.最近章摘要数; no < input.章; no += 1) {
     if (no <= 0) continue
-    const ck = chapters.find((k) => k.章 === no)
-    if (ck === undefined) continue
-    const rel = paths.章摘要(ck.卷, ck.章, ck.章名)
+    const ck = finalizedOf(no)
+    if (ck === null) continue
+    const rel = paths.章摘要(ck.卷, no, ck.章名)
     const text = readText(bookRoot, rel)
     if (text === null) continue
     const content = stripSummaryHeading(text)
@@ -347,7 +389,10 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
   // ── 当前事实与连续性:时间线最近 M 条 ＋ 时空锚定命中条目 ──
   // F4(2026-09-05):「世界已发生」边界——目标章之后才发生的事件不入本章材料;
   // 归属无法判定的条目保留并逐条标注来源与不确定性。
-  const tlResult = queryLedger(bookRoot, { 分类: '时间线', 章上限: input.章 })
+  // 批F 降载:全量账本(章上限)只读一次,时间线视图经 ledgerCategoryOf 投影,
+  // 到期查询经 suppliedLedger 复用——原先是 时间线单读＋全量读＋线索单读三遍。
+  const ledgerResult = queryLedger(bookRoot, { 章上限: input.章 })
+  const tlResult = ledgerCategoryOf(ledgerResult, '时间线')
   const tlEntriesAll = tlResult.entries
   const tlEntries = tlEntriesAll.filter((e) => {
     const ch = ledgerEntryChapterNo(e)
@@ -380,7 +425,6 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
 
   // ── 故事线承诺线索:到期/逾期全文 ＋ 细纲点名全文 ＋ 其余活跃条目一行制 ──
   const activeKinds = ['故事线', '人物弧线', '承诺', '线索'] as const
-  const ledgerResult = queryLedger(bookRoot, { 章上限: input.章 })
   const activeEntriesAll = ledgerResult.entries.filter((e) => (activeKinds as readonly string[]).includes(e.分类))
   // F4「世界已发生」边界:归属章号晚于目标章的条目不入本章材料(其状态/兑现尚未发生);
   // 归属无法判定的条目保留并标注不确定性。
@@ -388,7 +432,7 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
     const ch = ledgerEntryChapterNo(e)
     return ch === null || ch <= input.章
   })
-  const due = queryDueLedger(bookRoot, { 卷: input.卷, 章: input.章 })
+  const due = queryDueLedger(bookRoot, { 卷: input.卷, 章: input.章 }, ledgerResult)
   const dueNames = new Set<string>(due.ok ? [...due.到期, ...due.逾期].map((d) => d.名称) : [])
   const namedEntries = activeEntries.filter((e) => e.名称 !== '' && outlineBody.includes(e.名称))
   const namedSet = new Set(namedEntries.map((e) => `${e.分类}:${e.名称}`))
@@ -642,11 +686,15 @@ export function assembleMaterials(bookRoot: string, input: AssembleInput): Assem
 export function readManifest(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }): MaterialManifest | null {
   // 修复(0.0.20 批 bug7):材料清单是机器态 JSON,读取统一走 readMachineText(剥 BOM)——
   // 原先经本文件通用 readText 不剥 BOM,与 assembly/read.ts 的清单读侧双口径,存 BOM 即判 null
+  // 批F io 分流(照 read.ts 范本):ENOENT 仍是 null(无清单);其余 errno 抛出——
+  // 清单在、读不了不得静默当「无清单」(组装中)呈报。
+  const rel = path.posix.join(resolveDraftRel(bookRoot, '材料包目录', key), '材料清单.json')
   let text: string
   try {
-    text = readMachineText(path.join(bookRoot, resolveDraftRel(bookRoot, '材料包目录', key), '材料清单.json'))
-  } catch {
-    return null
+    text = readMachineText(path.join(bookRoot, rel))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null
+    throw new Error(`材料清单不可读,不得当无清单处理:${rel}(${(error as NodeJS.ErrnoException).code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)})`)
   }
   const r = parseMachineJson(text, MACHINE_SCHEMA_VERSION)
   if (!r.ok) return null

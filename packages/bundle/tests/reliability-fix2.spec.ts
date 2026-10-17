@@ -14,13 +14,9 @@ import {
   computeMaterials,
   classifyHardConstraint,
   confirmOutline,
-  draftHashOf,
   seedMinDesign,
   serializeDocument,
   writeCandidate,
-  paths,
-  writeContract,
-  type Finding,
 } from '@abzu/core'
 import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 

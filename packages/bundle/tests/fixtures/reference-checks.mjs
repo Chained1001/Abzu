@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-async function checkSchemaGreeting({ workspace, main, service, host }) {
+async function checkSchemaGreeting({ workspace, _main, service, host }) {
   const { LlmAdapter, createUserMessage } = await import(host ? pathToFileURL(host.entry('@deepseek-ai/dsh-llm')).href : '@deepseek-ai/dsh-llm')
   const { assertObjectJsonSchema, jsonSchemaToTs } = await import(host ? pathToFileURL(host.entry('@deepseek-ai/dsh-tools')).href : '@deepseek-ai/dsh-tools')
   let requests = 0

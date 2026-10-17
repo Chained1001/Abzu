@@ -19,7 +19,6 @@ import {
   writeVolumeOutline,
 } from '../src/index'
 import { deriveDesign, scanDesign } from '../src/derive/design'
-import { type Concept } from '../src/inspire/concept'
 
 const roots: string[] = []
 function mkRoot(): string {
@@ -28,14 +27,6 @@ function mkRoot(): string {
   return dir
 }
 afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放，%TEMP% 残留无害 */ } } })
-
-function confirmed(): Concept {
-  return {
-    状态: '已确认',
-    核心创意: '被系统选中的普通人',
-    题材与目标读者: '都市异能向网文读者',
-  }
-}
 
 describe('定调契约', () => {
   it('空白六部未确认;六部已确认后完成', () => {

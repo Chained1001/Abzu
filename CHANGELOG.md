@@ -2,6 +2,28 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.62] — 2026-10-17
+
+### Fixed（全代码审查修复批·五路审查 P1×1＋P2×18＋速赢）
+
+- **P1**：scanChapter 草稿枚举 fail-closed（目录名带 .md/符号链接/单个文件不可读不再击穿恢复视图，记入不可读降级；消唯一待审稿双重解析）。
+- 数据与写入面：章号写侧断言 1–9999（读写文法一致）；spawnSync git 统一 120s 超时＋书仓禁用 hooks；archive 指纹清单剥 BOM；.abzu/operations 审计滚动清理（留 500）＋.writer-*.stage 残留清理；demoteOtherPendingDrafts 与 polishDraft 降级＋写新稿统一 writeBatchAtomic；arbitration 取消竞态兜底（不留 unhandledRejection）。
+- io 三态分流补齐：queryMemory/listVolumeNumbers/readManifest/writeSettlementDecision 区分 ENOENT 与不可读（全书对账可返 kind:unreadable，不再把「读不了」冒充「不存在/无偏离」）。
+- 工具与证据面：审读发现项 schema 必填（问题说明/证据位置）＋畸形条目丢弃计数进回执（堵空壳发现项换完成态）；novel_get_book_progress 卷 整数守卫与 story_status 窗口参数非法点名拒绝；impact-cli 拒书仓外路径；drafting/polish 三处裸读改 readBookText（BOM/不可读不再静默）。
+- 性能：材料包组装不再 O(全书)（近章定径读取＋账本单次全量投影＋queryDueLedger 可复用）；章号文件名 matcher 六读侧单源（12-名字.md 各侧一致）；sha256Hex/readStableFile 单源合一（指纹逐字节不变）。
+- 速赢：死代码五处、TOCTOU 两处、保留名剥扩展名、frontmatter EOF 容忍、裁决记录按节定位、scanDesign 卷纲/世界书重复读收一、CLI 参数拒 -- 开头值、输出 schema 漂移补齐、required 空串校验。
+
+### Changed（工程标准落地·R5 对照）
+
+- eslint 接入 typescript-eslint recommended（原 6 条裸规则 → 全量清零，测试面 no-explicit-any 暂缓记档）；typed-lint 试点三条（no-floating-promises/no-misused-promises/await-thenable，projectService，实跑零红）。
+- tsconfig 开 noImplicitReturns＋noImplicitOverride（12 处补 override）；noUnusedLocals/Parameters 先开 drafting/polish/review 三包。
+- pnpm catalog 收敛四组重复版本（typescript×6/cordis×7/yaml×2/dsh-user-questions×3）。
+- 工程规范补错误处理分域契约（§7）与禁止新增 export *（§8，存量 46 处逐步点名化）；技术文档依赖表修正＋§12 结构投资记档（stableJson 合一、core 点名化、判据装载器）。
+
+### 验证
+
+lint ✓（recommended 档零红）｜typecheck ✓｜build ✓｜dump-config-check ✓｜pack-check ✓（skills 13）｜check:public（files 675/commits 116）✓｜test:release 16/16 ✓｜全量 vitest 146 文件/1478 用例/0 失败（净增 31 守护用例）✓。
+
 ## [0.0.61] — 2026-10-17
 
 ### Changed（文档与技能五步精修批）

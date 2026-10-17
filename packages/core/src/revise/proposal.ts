@@ -88,6 +88,10 @@ function registerProposalLocked(
     || typeof item.章名 !== 'string' || !item.章名.trim() || typeof item.发现项编号 !== 'string' || !item.发现项编号.trim()))) {
     throw new Error('关联发现项必须包含有效的卷、章、章名和发现项编号')
   }
+  // Y9(批F):内容 trim 非空——空提案(纯空白)不入编号池,登记必须写明改什么、为什么。
+  if (typeof input.内容 !== 'string' || input.内容.trim() === '') {
+    throw new Error('提案内容为空——提案须写明改什么、为什么、影响面摘要')
+  }
   const num = nextProposalNumber(bookRoot)
   const 编号 = pad4(num)
   const relPath = `草稿区/提案/${编号}-${input.类型}.md`
@@ -134,6 +138,17 @@ export function loadProposal(
   }
 }
 
+/** 在「## <节名>」节范围内做一次字面量替换；节或节内字面量不存在时退回全文首次替换（旧语义兜底）。 */
+function replaceInSection(body: string, 节名: string, literal: string, replacement: string): string {
+  const start = body.indexOf(`## ${节名}`)
+  if (start === -1) return body.replace(literal, replacement)
+  const next = body.indexOf('\n## ', start + 1)
+  const end = next === -1 ? body.length : next
+  const section = body.slice(start, end)
+  if (!section.includes(literal)) return body.replace(literal, replacement)
+  return body.slice(0, start) + section.replace(literal, replacement) + body.slice(end)
+}
+
 /** 裁决回写：只改 frontmatter `状态` 与「裁决记录」节；其余一字不动。 */
 function resolveProposalLocked(
   bookRoot: string,
@@ -150,7 +165,9 @@ function resolveProposalLocked(
   }
   if (裁决记录.trim() === '') return { ok: false, reason: '裁决记录为空——作者决定须留痕' }
   const fields = { ...doc.data.fields, 状态: (决定 === '通过' ? '已通过' : '已驳回') as 提案状态 }
-  const body = doc.data.body.replace('（待作者裁决）', `【${决定}】${裁决记录.trim()}`)
+  // 按节定位替换(X11 划入本文件):提案正文可能含「（待作者裁决）」同字面量(引用/说明里),
+  // 只在「## 裁决记录」节内替换占位,裁决不落错节。
+  const body = replaceInSection(doc.data.body, '裁决记录', '（待作者裁决）', `【${决定}】${裁决记录.trim()}`)
   writeFileAtomic(bookRoot, loaded.relPath, serializeDocument(fields, body))
   return { ok: true }
 }
@@ -189,11 +206,7 @@ export function retconEventOps(
     num += 1
     relPath = 补偿事件相对路径(input.卷, pad4(num))
   }
-  const fields = {
-    关联提案: input.提案编号 ?? '（未登记提案）',
-    受影响工件: [...input.受影响工件],
-    日期: new Date().toISOString(),
-  }
+  // Y10(批F):删除从未使用的 fields 死代码——补偿事件正文即全部内容。
   const body = ['# 补偿事件记录', '', input.摘要.trim(), '', '## 账本留痕', '', input.账本留痕.trim(), ''].join('\n')
   return { relPath, content: body }
 }

@@ -4,7 +4,7 @@ import * as os from 'node:os'
 import * as path from 'node:path'
 import {
   assembleMaterials, deriveChapterFacts, listChapters, listResumable, loadMaterialPackage,
-  paths, queryLedger, scanChapter, serializeDocument, syncFinalizedIndex,
+  paths, queryLedger, scanChapter, syncFinalizedIndex,
   searchFinalized, writeBookMemory, RECOVERY_DEFAULT_RECENT,
 } from '../src/index'
 import { makeFixtureBook } from './helpers/fixture-book'

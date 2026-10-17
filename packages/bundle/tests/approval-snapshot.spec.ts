@@ -60,7 +60,7 @@ describe('Adversarial workflow probes', () => {
     const names = listChecks().filter(c => c.执行形态 !== '作者').map(c => c.名称)
     const fingerprint = computeReview(root, key).record!.审读指纹!
     let result: any
-    for (const [i, name] of names.entries()) result = await recordTool.execute({ bookId: 'audit', ...key, 审读指纹: fingerprint, 模块名: name, 发现项: i === 0 ? [{ 问题说明: '主角死亡违反不可妥协条款', 是否建议阻断: true, 严重程度: '严重', 处置状态: '待处理' }] : [] }, {})
+    for (const [i, name] of names.entries()) result = await recordTool.execute({ bookId: 'audit', ...key, 审读指纹: fingerprint, 模块名: name, 发现项: i === 0 ? [{ 问题说明: '主角死亡违反不可妥协条款', 证据位置: '正文', 是否建议阻断: true, 严重程度: '严重', 处置状态: '待处理' }] : [] }, {})
     expect(result.ok, JSON.stringify(result)).toBe(true)
     expect(result).toMatchObject({ 完成: true, 审核通过: false, 待处置数: 1 })
     expect(result.message).toContain('审核尚未通过')

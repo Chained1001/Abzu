@@ -2,12 +2,11 @@
  * 证据与审核记录(插件规格 §9 / 不变量 7):草稿区/审核/卷NN-NNNN-章名.json(0.0.57 起键带章号)。
  */
 
-import { createHash } from 'node:crypto'
 import * as path from 'node:path'
 import { readBookText } from '../repo/read'
+import { sha256Hex } from '../repo/hash'
 import type { ChapterKey } from '../derive/scan'
 import { writeFileAtomic } from '../repo/atomic'
-import { paths } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { bookWriter } from '../repo/atomic'
@@ -98,9 +97,9 @@ export function emptyReviewRecord(): ReviewRecord {
   return { schemaVersion: MACHINE_SCHEMA_VERSION, 完成: false, 问题: [], 模块: {} }
 }
 
-/** 被审正文内容哈希(F5):审核证据与稿件版本的绑定键。 */
+/** 被审正文内容哈希(F5):审核证据与稿件版本的绑定键。哈希单源(批F,sha256Hex 等价替换)。 */
 export function draftHashOf(body: string): string {
-  return createHash('sha256').update(body, 'utf-8').digest('hex')
+  return sha256Hex(body)
 }
 
 /** Stable object serialization for the review applicability fingerprint. */
@@ -133,7 +132,7 @@ export function reviewInputFingerprintOf(input: {
     方案: input.方案 ?? null,
     ...(input.章节篇幅 === undefined ? {} : { 章节篇幅: input.章节篇幅 }),
   }
-  return createHash('sha256').update(stableJson(payload), 'utf-8').digest('hex')
+  return sha256Hex(stableJson(payload))
 }
 
 export function isNoFindingReview(record: ReviewRecord): boolean {
@@ -350,7 +349,7 @@ export function serializeReviewRecord(record: ReviewRecord): string {
 }
 
 export function reviewRecordHashOf(text: string): string {
-  return createHash('sha256').update(text, 'utf8').digest('hex')
+  return sha256Hex(text)
 }
 
 /** Read once: the compare token and editable record must describe the same bytes. */

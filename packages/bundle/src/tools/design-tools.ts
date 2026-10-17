@@ -160,7 +160,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         if (!book.ok) return book
         const bookRoot = book.bookRoot
         const bookId = String(args['bookId']).trim()
-        const partName = args['partName'] as any
+        const partName = String(args['partName']) as keyof ContractParts & string
         const state = args['state'] as ContractPartState
         const content = String(args['content'])
         const parts: ContractParts = {
@@ -639,6 +639,13 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         const book = resolveBook(args, sessionContext)
         if (!book.ok) return book
         try {
+          // 卷守卫(Y3):非法卷号点名拒绝,不再静默取默认卷后对账到别的卷上
+          if (args['卷'] !== undefined) {
+            const requested = Number(args['卷'])
+            if (!Number.isSafeInteger(requested) || requested < 1) {
+              return { ok: false, reason: `卷必须是正整数（收到：${String(args['卷'])}）` }
+            }
+          }
           // 默认对账卷与选择器同一口径(任务21, B3):active 取该卷;planning 保留已完成卷并呈报规划目标;empty 默认1
           const selection = selectCurrentVolume(book.bookRoot)
           const 卷 = args['卷'] !== undefined

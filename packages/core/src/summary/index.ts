@@ -10,7 +10,7 @@ import * as path from 'node:path'
 import { readBookText } from '../repo/read'
 import { entryChapterNo, queryLedger } from '../ledger'
 import { parseDocument } from '../repo/frontmatter'
-import { isMarkdownFileName, pad, paths } from '../repo/paths'
+import { matchChapterFileName, pad, paths } from '../repo/paths'
 
 export type VolumeSummaryCandidate =
   | {
@@ -70,14 +70,14 @@ export function computeVolumeSummaryCandidate(bookRoot: string, 卷: number): Vo
   const 定稿目录 = path.join(bookRoot, `定稿/卷${卷NN}`)
   let files: string[] = []
   try {
-    files = fs.readdirSync(定稿目录).filter((f) => isMarkdownFileName(f) && /^\d{4}-.+\.md$/i.test(f)).sort()
+    // 章节文件名口径单源(批F,宽松 1–4 位):`12-名字.md` 与 `0012-名字.md` 同认
+    files = fs.readdirSync(定稿目录).filter((f) => matchChapterFileName(f) !== null).sort()
   } catch {
     files = []
   }
   const chapters = files
-    .map((f) => /(\d{4})-(.+)\.md$/i.exec(f))
-    .filter((m): m is RegExpExecArray => m !== null)
-    .map((m) => ({ 章: Number(m[1]), 章名: m[2]! }))
+    .map((f) => matchChapterFileName(f))
+    .filter((c): c is { 章: number; 章名: string } => c !== null)
   if (chapters.length === 0) {
     return { ok: false, reason: `卷${卷NN} 无定稿章，无法生成卷摘要候选`, 缺章摘要: [] }
   }

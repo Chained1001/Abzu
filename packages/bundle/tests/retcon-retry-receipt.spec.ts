@@ -129,6 +129,9 @@ async function fixture(candidate: boolean | 'all' = false, name = key.章名) {
   return { root, args }
 }
 async function failFirst(root: string, args: Record<string, unknown>): Promise<void> {
+  // 批F(照 X3):书仓默认 core.hooksPath 指向 .git/abzu-no-hooks 禁继承钩子——
+  // 注入失败钩子前把 hooksPath 指回默认目录,保证 pre-commit 真的会跑。
+  git(root, 'config', 'core.hooksPath', '.git/hooks')
   put(root, '.git/hooks/pre-commit', '#!/bin/sh\nexit 1\n')
   fs.chmodSync(path.join(root, '.git/hooks/pre-commit'), 0o755)
   const result = await apply(root, args, { callId: 'first' })
@@ -257,6 +260,8 @@ describe('F06: 吃书补偿完整工具链收据', () => {
 
   it('旧低层收据无法证明工具业务身份时拒绝自动重写', async () => {
     const { root, args } = await fixture()
+    // 批F:书仓 hooksPath 默认被禁(照 X3)——指回默认目录再注入失败钩子
+    git(root, 'config', 'core.hooksPath', '.git/hooks')
     put(root, '.git/hooks/pre-commit', '#!/bin/sh\nexit 1\n')
     fs.chmodSync(path.join(root, '.git/hooks/pre-commit'), 0o755)
     expect(archiveRetcon({ bookRoot: root, summary: '旧版补偿', files: [

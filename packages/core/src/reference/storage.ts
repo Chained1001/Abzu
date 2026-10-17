@@ -1,14 +1,15 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { createHash } from 'node:crypto'
 import { canonicalizePath } from '../gate/canonical'
+import { readStableFile, sha256Hex, StableReadError } from '../repo/hash'
 import { withBookWrite, writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { removeSync } from '../repo/remove'
 import { PARSE_VERSION, REFERENCE_LIMITS, ReferenceError, type ParsedSource, type ParseOptions, type ReferenceManifest, type SourceMetadata } from './types'
 import { parseTxt } from './txt'
 import { parseEpub } from './epub'
 
-export const referenceHash = (value: string | Uint8Array): string => createHash('sha256').update(value).digest('hex')
+/** 哈希单源(批F):sha256Hex 等价替换,指纹逐字节不变(字符串 utf8/字节原样)。 */
+export const referenceHash = (value: string | Uint8Array): string => sha256Hex(value)
 export const referenceJson = (value: unknown): string => JSON.stringify(value, null, 2) + '\n'
 export const isHash = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value)
 export function referenceId(value: string): string {
@@ -35,19 +36,21 @@ export function referenceRoot(workspace: string, sourceId: string): string {
   if (!sourceId.startsWith('ref-')) throw new ReferenceError('invalid-id', '参考书身份无效')
   return referencePath(workspace, `书房/参考书/${sourceId}`)
 }
+/** 稳定读核心(批F)单源在 repo/hash.ts readStableFile;本函数保留参考库的大小上限与
+ * 原错误文案(语义不变),stat 比对口径取三份实现中最严(nlink 全程 ===1)。 */
 export function referenceRead(root: string, relative: string, maxBytes = REFERENCE_LIMITS.expandedBytes * 2): string {
   const filename = referencePath(root, relative)
   const before = fs.lstatSync(filename)
   if (!before.isFile() || before.size > maxBytes) throw new ReferenceError('invalid-file', '参考库文件类型或大小异常')
-  const handle = fs.openSync(filename, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0))
+  let bytes: Buffer
   try {
-    const opened = fs.fstatSync(handle)
-    if (opened.ino !== before.ino || opened.dev !== before.dev || opened.nlink !== 1) throw new ReferenceError('source-changed', '参考文件在读取期间变化')
-    const bytes = fs.readFileSync(handle)
-    const after = fs.lstatSync(referencePath(root, relative)), finished = fs.fstatSync(handle)
-    if (after.ino !== opened.ino || after.dev !== opened.dev || after.size !== opened.size || after.mtimeMs !== opened.mtimeMs || finished.ctimeMs !== opened.ctimeMs || bytes.length > maxBytes) throw new ReferenceError('source-changed', '参考文件在读取期间变化')
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
-  } finally { fs.closeSync(handle) }
+    bytes = readStableFile(root, relative)
+  } catch (error) {
+    if (error instanceof StableReadError) throw new ReferenceError('source-changed', '参考文件在读取期间变化')
+    throw error
+  }
+  if (bytes.length > maxBytes) throw new ReferenceError('source-changed', '参考文件在读取期间变化')
+  return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
 }
 export function referenceWrite(root: string, ops: readonly FileOp[]): void {
   for (const op of ops) referencePath(root, op.relPath)

@@ -14,17 +14,17 @@
     "test": "vitest --root ../.. run packages/core/tests"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-user-questions": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-user-questions": "catalog:",
     "@types/yauzl": "2.10.3",
-    "typescript": "^5.5.0"
+    "typescript": "catalog:"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "4.0.4",
-    "@deepseek-ai/dsh-user-questions": "0.2.0-rc.2"
+    "@deepseek-ai/cordis": "catalog:",
+    "@deepseek-ai/dsh-user-questions": "catalog:"
   },
   "dependencies": {
     "saxes": "6.0.0",
-    "yaml": "^2.5.0",
+    "yaml": "catalog:",
     "yauzl": "3.4.0"
   },
   "license": "GPL-3.0-only",

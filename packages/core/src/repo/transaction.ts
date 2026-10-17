@@ -118,7 +118,8 @@ function updateManifest(root: string, manifest: TransactionManifest, patch: Part
   return next
 }
 
-function parseManifest(root: string, file: string, relocated = false): TransactionManifest {
+/** (批F:参数 root 不参与解析,按仓 lint 约定改 `_` 前缀保留调用面形状。) */
+function parseManifest(_root: string, file: string, relocated = false): TransactionManifest {
   let raw: unknown
   try { raw = JSON.parse(fs.readFileSync(file, 'utf-8')) } catch (err) {
     throw new Error(`事务清单解析失败：${file}:${err instanceof Error ? err.message : String(err)}`)

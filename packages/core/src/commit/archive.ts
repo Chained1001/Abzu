@@ -129,7 +129,9 @@ function requestFingerprint(opts: ArchiveOptions, packageAbs: string | null, ops
       try {
         const bytes = fs.readFileSync(file)
         if (name === '清单.json') {
-          const parsed = parseMachineJson(bytes.toString('utf8'), MACHINE_SCHEMA_VERSION)
+          // 批F BOM 口径合一:指纹阶段与 readManifest/readMachineText 同口径先剥首部 BOM 再
+          // parse——外部编辑器给清单存 BOM 时,指纹不再整单失败(等价于无 BOM 清单的指纹)。
+          const parsed = parseMachineJson(bytes.toString('utf8').replace(/^\uFEFF/, ''), MACHINE_SCHEMA_VERSION)
           if (!parsed.ok) throw new Error(`清单解析失败:${parsed.detail}`)
           // The tool's trusted decision write is not a new business request.
           inputs[name] = contentHash(stableJson(Object.fromEntries(Object.entries(parsed.data).filter(([key]) => key !== '裁决'))))

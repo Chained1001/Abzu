@@ -26,16 +26,12 @@ const TURN_KEYWORDS = ['反转', '误会', '揭穿', '摊牌', '背叛', '反目
 /** ⑥冲突层行与低压章「往下看的理由」行不是爽点位，不计入铺垫对账。 */
 const NON_PAYOFF_LINE = /^(?:[-*]\s*)?(?:外部|人际|内心|往下看的理由)\s*[：:]/
 
-interface Args {
-  readonly book: string
-  readonly 卷: number
-  readonly 章: number
-  readonly 章名: string
-}
-
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)
-  return i === -1 ? undefined : argv[i + 1]
+  if (i === -1) return undefined
+  const value = argv[i + 1]
+  // Y7(批F):后随值以 -- 开头＝本参数缺值(值位被下一选项占住)——按缺失处理,由调用方点名报参数缺失
+  return value === undefined || value.startsWith('--') ? undefined : value
 }
 
 function readBookFile(book: string, rel: string): string | null {

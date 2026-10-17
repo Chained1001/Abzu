@@ -19,7 +19,7 @@ import {
   writeFileAtomic,
   writeCandidate,
 } from '@abzu/core'
-import { ingestFindings, planReview, recordPolish, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
+import { ingestFindings, recordPolish, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
 import { removeSync } from '../../core/src/repo/remove'
 
 const roots: string[] = []

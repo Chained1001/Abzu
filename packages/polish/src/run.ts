@@ -9,7 +9,6 @@ import {
   assertSegment,
   bumpVersion,
   composeBody,
-  demoteOtherPendingDrafts,
   extractVersionFields,
   filenameCase,
   initialVersion,
@@ -17,12 +16,15 @@ import {
   nextDraftFileName,
   parseDocument,
   paths,
+  prepareDraftDemotions,
+  readBookText,
   resolveDraftRel,
   serializeDocument,
   splitCandidateFacts,
-  writeFileAtomic,
+  writeBatchAtomic,
   草稿字段序,
   type ChapterKey,
+  type FileOp,
 } from '@abzu/core'
 import { checkFidelity, type FidelityRisk } from './fidelity'
 import { applyPolishRules, type PolishChange } from './rules'
@@ -46,11 +48,10 @@ export interface PolishResult {
 // 修复(0.0.20 批 bug4):8 键本地副本已是死代码(写侧实际用下方 import 的 草稿字段序)——删除,单源在 core repo/drafts.ts。
 
 function readText(root: string, rel: string): string | null {
-  try {
-    return fs.readFileSync(path.join(root, rel), 'utf-8')
-  } catch {
-    return null
-  }
+  // Y5(批F):读原语单源——core readBookText 剥 BOM 与读侧同口径(带 BOM 草稿可解析);
+  // 判据不变:非 missing(io 失败)也仍返回 null,由调用方跳过该稿。
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
 }
 
 function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string[] {
@@ -100,11 +101,6 @@ function pickSource(drafts: readonly DraftView[]): DraftView | null {
   return drafts.reduce((a, b) => (b.no >= a.no ? b : a))
 }
 
-/** 新待审稿产生前先降级旧待审稿,保证任一时刻待审稿唯一、选定唯一。 */
-function demoteOtherDrafts(bookRoot: string, keepRelPath: string, key: Pick<ChapterKey, '卷' | '章名'>): void {
-  demoteOtherPendingDrafts(bookRoot, key, keepRelPath)
-}
-
 function polishDraftLocked(bookRoot: string, key: PolishInput): PolishResult {
   assertSegment(key.章名, '章名')
   const drafts = loadDrafts(bookRoot, key)
@@ -118,15 +114,19 @@ function polishDraftLocked(bookRoot: string, key: PolishInput): PolishResult {
   // 候选事实段保真:润色执行只见正文,候选段由代码原样带到新稿,不经模型转写
   const split = splitCandidateFacts(src.body)
   const applied = applyPolishRules(split.prose)
-  const outline = readText(bookRoot, paths.确认细纲(key.卷, key.章, key.章名)) ?? ''
+  // Y5(批F):细纲读取分流——missing 仍按无细纲润色(判据不变);io 失败(EACCES 等)
+  // 明确失败,不再静默按 '' 润色(空细纲会让保真核对误判通过)。
+  const outlineResult = readBookText(bookRoot, paths.确认细纲(key.卷, key.章, key.章名))
+  if (!outlineResult.ok && outlineResult.reason === 'io') {
+    return { ok: false, relPath: '', 角色: '', risks: [], changes: [], reason: `确认细纲不可读:${outlineResult.detail}` }
+  }
+  const outline = outlineResult.ok ? outlineResult.text : ''
   const risks = checkFidelity({ draft: split.prose, polished: applied.text, outlineText: outline })
   const 角色 = risks.length === 0 ? '待审稿' : '草稿'
 
   const parent = extractVersionFields(src.fields).版本
   const ver = parent === null ? initialVersion('润色') : bumpVersion(parent, '润色')
   const relPath = path.posix.join(resolveDraftRel(bookRoot, '草稿目录', key), nextDraftFileName(bookRoot, key))
-  // 先降级再写新稿:中途失败留下 0 份待审稿(可再润色),而不是 2 份(死锁)
-  if (角色 === '待审稿') demoteOtherDrafts(bookRoot, relPath, key)
   const fields = applyVersionFields(
     {
       ...src.fields,
@@ -137,7 +137,14 @@ function polishDraftLocked(bookRoot: string, key: PolishInput): PolishResult {
     },
     ver,
   )
-  writeFileAtomic(bookRoot, relPath, serializeDocument(fields, composeBody(applied.text, split.facts), 草稿字段序))
+  // Y5(批F):降级集与新稿同一 writeBatchAtomic 事务(照 writeDraft/importAuthorDraft 批形态)——
+  // 崩溃时要么旧态要么新态,不出现「旧待审稿已降级而新稿未落」的半写态;旧待审稿产生 0 份
+  // (可再润色)而非 2 份(死锁)的纪律不变,只是降级与写新稿不再可能被截开。
+  const ops: FileOp[] = [
+    ...(角色 === '待审稿' ? prepareDraftDemotions(bookRoot, key, relPath) : []),
+    { relPath, content: serializeDocument(fields, composeBody(applied.text, split.facts), 草稿字段序) },
+  ]
+  writeBatchAtomic(bookRoot, ops)
   return { ok: true, relPath, 角色, risks, changes: applied.changes }
 }
 

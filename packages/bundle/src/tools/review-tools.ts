@@ -2,7 +2,7 @@
  * 审读域工具：全书状态推导/已定稿检索/索引管理/隔离子代理发现项回写。
  */
 import { inheritNote, type NovelToolDefinition, type ToolShared } from './shared'
-import { deriveDesign, listResumable, listConfirmedEmpty, scanChapter, scanDesign, scanDesignDetail, selectCurrentVolume, searchFinalized, type IndexAction, indexFailure, type 处置状态 } from '@abzu/core'
+import { deriveDesign, listResumable, listConfirmedEmpty, scanChapter, scanDesign, scanDesignDetail, selectCurrentVolume, searchFinalized, type IndexAction, indexFailure } from '@abzu/core'
 import { ingestFindings, recordPolish } from '@abzu/review'
 
 export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
@@ -44,8 +44,16 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
         const bookRoot = book.bookRoot
         const bookId = args['bookId'] ? String(args['bookId']).trim() : undefined
         if (!bookId) return { ok: false, reason: '未指定 bookId' }
-        const 最近N章 = Number.isInteger(args['最近N章']) && Number(args['最近N章']) >= 1 ? Number(args['最近N章']) : undefined
-        const 卷 = Number.isInteger(args['卷']) && Number(args['卷']) >= 1 ? Number(args['卷']) : undefined
+        // Y6:窗口参数非法点名拒绝,不再静默降级成默认窗口(schema 校验器把 minimum 当注记
+        // 忽略,0/负数会走到这里)——否则作者以为展开了指定窗口,实际拿回默认视图。
+        if (args['最近N章'] !== undefined && (!Number.isInteger(args['最近N章']) || Number(args['最近N章']) < 1)) {
+          return { ok: false, reason: `最近N章必须是正整数（收到：${String(args['最近N章'])}）` }
+        }
+        if (args['卷'] !== undefined && (!Number.isInteger(args['卷']) || Number(args['卷']) < 1)) {
+          return { ok: false, reason: `卷必须是正整数（收到：${String(args['卷'])}）` }
+        }
+        const 最近N章 = args['最近N章'] === undefined ? undefined : Number(args['最近N章'])
+        const 卷 = args['卷'] === undefined ? undefined : Number(args['卷'])
         try {
           // 两段返回(设计面 + 章节面),均为 R1 事实清单形状:逐项事实 + 可选建议(无权威,判断归主 Agent)
           // 设计面事实按当前卷选择器取卷(任务21, B3):active 取该卷;planning 检查规划目标卷;empty 默认卷1
@@ -209,7 +217,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           发现项: {
             type: 'array',
             description: '发现项数组（每条含 证据位置/问题说明 等；无问题传空数组）',
-            items: { type: 'object' },
+            items: { type: 'object', required: ['问题说明', '证据位置'] },
           },
           审读指纹: { type: 'string', description: '自动模块每次必填：使用派发该模块时的审核输入指纹，不得省略或换成后来取得的值；作者意见可不提供' },
         },
@@ -225,6 +233,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
             待处置数: { type: 'number', description: '仍未处置的发现项数量' },
             待回写模块: { type: 'array', description: '尚未回写的模块名（与「完成」同源：为空即完成）' },
             待继承处置数: { type: 'number', description: '上一轮已给处置中暂存待继承的条数' },
+            丢弃条数: { type: 'number', description: '发现项数组中被丢弃的畸形条目数（非对象或解析失败；>0 时须核对子 Agent 输出）' },
             message: { type: 'string', description: '结果说明' },
             reason: { type: 'string', description: '失败原因' },
           },
@@ -246,6 +255,8 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           const 待处置数 = r.record?.问题.filter(item => !item.处置状态 || item.处置状态 === '待处理').length ?? 0
           const pending = r.待回写模块 ?? []
           const 待继承处置数 = r.record?.待继承处置?.length ?? 0
+          const 丢弃条数 = r.丢弃条数 ?? 0
+          const 丢弃提示 = 丢弃条数 > 0 ? `另有 ${丢弃条数} 条畸形发现项被丢弃（发现项须为含 问题说明 与 证据位置 的对象）。` : ''
           return {
             ok: true,
             完成,
@@ -253,10 +264,11 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
             待处置数,
             待回写模块: pending,
             待继承处置数,
+            ...(丢弃条数 > 0 ? { 丢弃条数 } : {}),
             message: 审核通过
-              ? '发现项已回写，全部模块完成，审核通过。'
-              : 完成 ? `全部模块已回写，但审核尚未通过；仍有 ${待处置数} 项待处置，请核对当前证据并完成处置。`
-              : `发现项已回写。尚待回写模块：${pending.join('、')}（全部回写后审核才完成）。${inheritNote(待继承处置数)}`,
+              ? `发现项已回写，全部模块完成，审核通过。${丢弃提示}`
+              : 完成 ? `全部模块已回写，但审核尚未通过；仍有 ${待处置数} 项待处置，请核对当前证据并完成处置。${丢弃提示}`
+              : `发现项已回写。尚待回写模块：${pending.join('、')}（全部回写后审核才完成）。${inheritNote(待继承处置数)}${丢弃提示}`,
           }
         } catch (err) {
           return { ok: false, reason: `发现项回写失败: ${err instanceof Error ? err.message : String(err)}` }

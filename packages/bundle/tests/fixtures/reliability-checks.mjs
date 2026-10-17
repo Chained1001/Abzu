@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-export async function checkReliability({ root, book, main, ctx, service, execute, git, check, report, withTurn }) {
+export async function checkReliability({ root, book, main, ctx, _service, execute, git, check, report, withTurn }) {
   const core = await import(pathToFileURL(path.join(root, 'native-write-core.mjs')).href)
   const key = { 卷: 9, 章: 9001, 章名: '可靠性样本' }
   const args = { bookId: 'loader-book', ...key }

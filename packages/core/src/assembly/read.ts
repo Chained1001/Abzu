@@ -1,5 +1,4 @@
 import { canonicalizePath } from '../gate/canonical'
-import { paths } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { 材料包十段, sectionFileName, type MaterialSectionRecord, type SupplementRecord } from './sections'

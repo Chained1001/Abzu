@@ -2,7 +2,7 @@
  * 改稿域工具：一处小改/处置批落实/提案登记与裁决/吃书补偿执行。
  */
 import { provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { applyVersionFields, archiveRetconRequest, bumpVersion, applyRevision, applyRevisionBatch, paths, withBookWrite, 草稿字段序, extractVersionFields, initialVersion, parseDocument, serializeDocument, type 处置状态, askAuthor, planSettlement, registerProposal, resolveProposal, retconEventOps } from '@abzu/core'
+import { applyVersionFields, archiveRetconRequest, bumpVersion, applyRevision, applyRevisionBatch, paths, withBookWrite, 草稿字段序, extractVersionFields, initialVersion, parseDocument, serializeDocument, type 处置状态, askAuthor, registerProposal, resolveProposal, retconEventOps } from '@abzu/core'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { captureApprovalFiles } from '../approval-snapshot'
@@ -180,6 +180,7 @@ export function createRevisionTools(shared: ToolShared): NovelToolDefinition[] {
             ok: { type: 'boolean', description: '是否成功' },
             编号: { type: 'string', description: '提案编号（4 位序）' },
             relPath: { type: 'string', description: '提案文件相对路径' },
+            message: { type: 'string', description: '结果说明（登记后续：先补影响分析，再呈作者裁决）' },
             reason: { type: 'string', description: '失败原因' },
           },
           required: ['ok'],
@@ -262,6 +263,7 @@ export function createRevisionTools(shared: ToolShared): NovelToolDefinition[] {
             ok: { type: 'boolean', description: '是否成功' },
             dests: { type: 'array', description: 'retcon 提交覆盖的文件' },
             补偿事件: { type: 'string', description: '补偿事件记录相对路径' },
+            message: { type: 'string', description: '结果说明（含下游整改提醒）' },
             reason: { type: 'string', description: '失败原因' },
           },
           required: ['ok'],

@@ -108,6 +108,9 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
         const keyResult = chapterKeyOf(args)
         if (!keyResult.ok) return keyResult
         const key = keyResult.key
+        // Y9(批F):summary trim 非空——空提交摘要不进裁决流程(schema 只验类型,空白串会漏)
+        const summary = typeof args['summary'] === 'string' ? args['summary'].trim() : ''
+        if (summary === '') return { ok: false, reason: `summary 必须非空（提交摘要，如 第一章 登船；收到：${String(args['summary'])}）` }
         const approvalFiles = [resolveDraftRel(bookRoot, '待定稿包目录', key), paths.契约()]
         const before = captureApprovalFiles(bookRoot, approvalFiles, args)
         if (!before.ok) return before
@@ -134,7 +137,7 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
             const res = archiveChapter({
               bookRoot,
               packageDir: resolveDraftRel(bookRoot, '待定稿包目录', key),
-              summary: String(args['summary']).trim(),
+              summary,
               settlement: { 章节: key, 批准: true, 裁决记录: `作者于 ${new Date().toISOString()} 批准定稿入档（kind=${decision.kind}, 决定=${decision.决定}）` },
               provenance: provenanceOf(sessionContext),
             })

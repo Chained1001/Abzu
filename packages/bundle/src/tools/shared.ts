@@ -4,7 +4,7 @@
  */
 import { type Session } from '@deepseek-ai/dsh-session'
 import { type ToolExecutionToken, type ToolOutputDefinition } from '@deepseek-ai/dsh-tools'
-import { assertSegment, commitConfirmed, paths, type EmbeddingProvider, type IndexAction, updateOperationTargets, type FileOp, type ChapterKey, type AskFn, type OperationProvenance } from '@abzu/core'
+import { assertSegment, commitConfirmed, type EmbeddingProvider, type IndexAction, updateOperationTargets, type FileOp, type ChapterKey, type AskFn, type OperationProvenance } from '@abzu/core'
 import { designCommitResult, type DesignCommitResult } from '../design-commit-result'
 import { type EditorRequestHub } from '../study/editor-requests'
 import { type IndexView } from '../indexing/manager'

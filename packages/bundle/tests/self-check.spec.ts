@@ -182,7 +182,7 @@ describe('R1 装机自检（可查询的降级状态，纯增不改行为）', (
       expect(Number.isNaN(Date.parse(item.at)), `${item.id} 时间戳非法`).toBe(false)
     }
     // 汇总与逐项一致
-    const counted = snapshot.items.reduce((acc, item) => acc + 1, 0)
+    const counted = snapshot.items.reduce((acc, _item) => acc + 1, 0)
     const { ok, degraded, pending, missing } = snapshot.summary
     expect(ok + degraded + pending + missing).toBe(counted)
   })

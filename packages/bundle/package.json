@@ -1,6 +1,6 @@
 {
   "name": "abzu",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -47,7 +47,7 @@
     "@codemirror/search": "6.7.1",
     "@codemirror/state": "6.7.1",
     "@codemirror/view": "6.43.8",
-    "@deepseek-ai/cordis": "4.0.4",
+    "@deepseek-ai/cordis": "catalog:",
     "@deepseek-ai/cordis-plugin-group": "1.0.4",
     "@deepseek-ai/cordis-plugin-include": "1.0.9",
     "@deepseek-ai/cordis-plugin-loader": "1.0.5",
@@ -105,7 +105,7 @@
     "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
     "@deepseek-ai/dsh-typert-protocol": "0.2.0-rc.2",
     "@deepseek-ai/dsh-user-approval": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-user-questions": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-user-questions": "catalog:",
     "@deepseek-ai/dsh-util-values": "0.2.0-rc.2",
     "@deepseek-ai/dsh-util-workspace-path": "0.2.0-rc.2",
     "@deepseek-ai/dsh-workspace": "0.2.0-rc.2",
@@ -127,8 +127,8 @@
     "markdown-it": "14.3.1",
     "react": "18.3.1",
     "react-test-renderer": "18.3.1",
-    "typescript": "^5.5.0",
-    "yaml": "^2.5.0"
+    "typescript": "catalog:",
+    "yaml": "catalog:"
   },
   "files": [
     "lib/index.js",
@@ -150,7 +150,7 @@
     "node": "^22.19.0 || ^24.0.0"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "4.0.4",
+    "@deepseek-ai/cordis": "catalog:",
     "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
     "@deepseek-ai/dsh-settings": "0.2.0-rc.2",
     "@deepseek-ai/dsh-skill-filesystem": "0.2.0-rc.2",

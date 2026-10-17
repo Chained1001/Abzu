@@ -7,11 +7,14 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { analyzeImpact } from '@abzu/core'
+import { analyzeImpact, resolveInsideBook } from '@abzu/core'
 
 function argValue(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`)
-  return i === -1 ? undefined : argv[i + 1]
+  if (i === -1) return undefined
+  const value = argv[i + 1]
+  // Y7(批F):后随值以 -- 开头＝本参数缺值(值位被下一选项占住)——按缺失处理,由调用方点名报参数缺失
+  return value === undefined || value.startsWith('--') ? undefined : value
 }
 
 export function analyzeImpactCli(argv: readonly string[]): number {
@@ -29,6 +32,13 @@ export function analyzeImpactCli(argv: readonly string[]): number {
   // 前置校验指名报错＋exit 1,式样对齐确定性检查(deterministic-checks.ts)。
   if (!fs.existsSync(book) || !fs.statSync(book).isDirectory()) {
     console.error(`书仓不存在：${path.resolve(book)}`)
+    return 1
+  }
+  // Y4:变更路径须是书仓内相对路径——拒绝对路径与 `..` 穿越,防把分析闭包打到仓外。
+  // 选型:core 的 resolveInsideBookOrNull 未从入口导出,改用同判已导出的 resolveInsideBook。
+  const inside = path.isAbsolute(变更路径) ? undefined : resolveInsideBook(book, 变更路径)
+  if (inside === undefined || !inside.ok) {
+    console.error(`变更路径必须是书仓内相对路径（收到：${变更路径}）`)
     return 1
   }
   if (!fs.existsSync(path.join(book, 变更路径))) {

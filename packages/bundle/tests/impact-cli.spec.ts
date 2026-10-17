@@ -50,4 +50,23 @@ describe('影响分析薄入口前置校验(0.0.20 批 bug5:错路径不得空�
     expect(run.code).toBe(0)
     expect(JSON.parse(run.out).changed).toBe('大纲/故事骨架.md')
   })
+
+  it('Y4 变更路径越界（../穿越与绝对路径）→ stderr 点名收到值＋exit 1', () => {
+    const book = mkDir()
+    fs.mkdirSync(path.join(book, '大纲'), { recursive: true })
+    fs.writeFileSync(path.join(book, '大纲/故事骨架.md'), '# 故事骨架\n\n正文。', 'utf-8')
+    fs.writeFileSync(path.join(book, '..', '仓外文件.md'), 'x', 'utf-8')
+    const escape = captureRun(['--book', book, '--变更路径', '../仓外文件.md'])
+    expect(escape.code).toBe(1)
+    expect(escape.out).toContain('书仓内相对路径')
+    expect(escape.out).toContain('../仓外文件.md')
+    const abs = captureRun(['--book', book, '--变更路径', path.join(book, '大纲/故事骨架.md')])
+    expect(abs.code).toBe(1)
+    expect(abs.out).toContain('书仓内相对路径')
+    // 合法子路径不受影响（嵌套目录、含 .. 的文件名不误伤）
+    fs.mkdirSync(path.join(book, '世界书/人物'), { recursive: true })
+    fs.writeFileSync(path.join(book, '世界书/人物/甲..乙.md'), 'x', 'utf-8')
+    const fine = captureRun(['--book', book, '--变更路径', '世界书/人物/甲..乙.md'])
+    expect(fine.code).toBe(0)
+  })
 })

@@ -8,7 +8,6 @@ import type { PreToolDecision, ToolCall } from './types'
 import { gateWriteDraft } from './writeDraft'
 
 const MUTATING_FILE_TOOLS = new Set(['write', 'edit', 'str_replace_editor'])
-const STR_REPLACE_MUTATING = new Set(['create', 'str_replace', 'insert'])
 /** 已登记的只读文件工具：带路径参数的工具必须出现在这里或 MUTATING 里，否则判 unknown（D-1）。 */
 const READ_ONLY_FILE_TOOLS = new Set(['read', 'read_image'])
 
@@ -48,10 +47,10 @@ function stringField(obj: Record<string, unknown> | null, key: string): string |
 export function isMutatingFileTool(exec: ToolCall): boolean {
   if (!MUTATING_FILE_TOOLS.has(exec.name)) return false
   if (exec.name !== 'str_replace_editor') return true
+  // 批F:删死集 STR_REPLACE_MUTATING——走到这里 cmd 必非 'view'(上方已返回 false),
+  // `has(cmd) || cmd !== 'view'` 恒真;未登记命令一律按改写(fail-closed)。
   const cmd = stringField(asRecord(exec.arguments), 'command')
-  if (cmd === 'view') return false
-  if (cmd === null) return true
-  return STR_REPLACE_MUTATING.has(cmd) || cmd !== 'view'
+  return cmd !== 'view'
 }
 
 export function extractToolPath(exec: ToolCall): string | null {

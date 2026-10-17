@@ -22,7 +22,7 @@ function makeTools(ws: string) {
   const tools = createNovelTools({
     nativeWrite: nativeWriteStub,
     workspaceRoot: () => ws,
-    bookRootOfBookId: (id) => path.join(ws, '链路书'),
+    bookRootOfBookId: (_id) => path.join(ws, '链路书'),
     testTools: true,
   })
   const call = async (name: string, args: Record<string, unknown>) => {
@@ -407,6 +407,39 @@ describe('运行链路接线(工具面验收)', () => {
     const design = status.design as { 建议?: string }
     expect(design.建议).toBe('分卷布局')
   })
+
+  it('Y3 novel_get_book_progress 卷守卫：非正整数卷点名拒绝，合法卷照常', async () => {
+    const ws = mkWs()
+    const { call } = makeTools(ws)
+    const { bookId } = await makeBook(ws, call)
+    const zero = await call('novel_get_book_progress', { bookId, 卷: 0 })
+    expect(zero.ok).toBe(false)
+    expect(String(zero.reason)).toContain('卷必须是正整数')
+    expect(String(zero.reason)).toContain('0')
+    const frac = await call('novel_get_book_progress', { bookId, 卷: 1.5 })
+    expect(frac.ok).toBe(false)
+    expect(String(frac.reason)).toContain('1.5')
+    const fine = await call('novel_get_book_progress', { bookId, 卷: 1 })
+    expect(fine.ok).toBe(true)
+  })
+
+  it('Y6 novel_get_story_status 窗口参数非法：点名拒绝，不再静默降级默认窗口', async () => {
+    const ws = mkWs()
+    const { call } = makeTools(ws)
+    const { bookId } = await makeBook(ws, call)
+    // minimum 在 dsh 校验器按注记忽略,0 会进 execute——由工具层点名拒绝
+    const zeroN = await call('novel_get_story_status', { bookId, 最近N章: 0 })
+    expect(zeroN.ok).toBe(false)
+    expect(String(zeroN.reason)).toContain('最近N章必须是正整数')
+    expect(String(zeroN.reason)).toContain('0')
+    const zero卷 = await call('novel_get_story_status', { bookId, 卷: -1 })
+    expect(zero卷.ok).toBe(false)
+    expect(String(zero卷.reason)).toContain('卷必须是正整数')
+    expect(String(zero卷.reason)).toContain('-1')
+    // 合法窗口照常（含默认全查询路径）
+    const fine = await call('novel_get_story_status', { bookId, 最近N章: 5, 卷: 1 })
+    expect(fine.ok).toBe(true)
+  })
   it('0.0.52 幕纲批：novel_confirm_volume_outline 目标幕纲——写入/提交/版本＋反例（缺幕号/缺段/幕名非法）', async () => {
     const ws = mkWs()
     const { call } = makeTools(ws)
@@ -510,5 +543,6 @@ describe('运行链路接线(工具面验收)', () => {
     expect(all.完整返回数).toBe(61)
     expect(all.省略数).toBe(0)
     expect(all.message).toBeUndefined()
-  })
+    // 批F:60 章书 180+ 次 git/文件操作,实测 8s+ 级——照 §12.9 惯例加 per-it 超时,防满载误红
+  }, 30_000)
 })

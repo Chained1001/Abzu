@@ -191,6 +191,27 @@ describe('审核检查项库', () => {
     expect(loaded.问题.some((item) => item.模块名 === '章节结构审读' && item.问题说明 === finding.问题说明)).toBe(true)
   })
 
+  it('畸形发现项回写：丢弃条数点名返回，合法条目照常入记录', () => {
+    const root = mkBook()
+    confirmWithHard(root)
+    assembleMaterials(root, key)
+    putPending(root, `巷口风大。${HARD}。他没有回头。`)
+    const first = runReview(root, key)
+    expect(first.ok).toBe(true)
+    const good = { 严重程度: '中', 证据位置: '开头', 问题说明: '主角动机铺垫不足' }
+    // 畸形载荷:字符串/null/数组 normalizeFinding 一律丢弃——回写不得静默吞掉
+    const r = ingestFindings(root, key, '章节结构审读', ['裸字符串', null, ['数组'], good], first.record!.审读指纹)
+    expect(r.ok).toBe(true)
+    expect(r.丢弃条数).toBe(3)
+    const loaded = loadReviewRecord(root, key)!
+    expect(loaded.问题.filter((item) => item.模块名 === '章节结构审读')).toHaveLength(1)
+    expect(loaded.问题.some((item) => item.问题说明 === '主角动机铺垫不足')).toBe(true)
+    // 全部合法时无丢弃字段（不凭空多键）
+    const again = ingestFindings(root, key, '章节结构审读', [good], loadReviewRecord(root, key)!.审读指纹)
+    expect(again.ok).toBe(true)
+    expect(again.丢弃条数).toBeUndefined()
+  })
+
   it('方案 with skip 理由 is recorded; skip without 理由 still runs', () => {
     const root = mkBook()
     confirmWithHard(root)
@@ -224,7 +245,7 @@ describe('审核检查项库', () => {
     const root = mkBook()
     confirmWithHard(root)
     putPending(root, `${HARD}。`)
-    const clean = runReview(root, key)
+    runReview(root, key) // 写入审核记录(取副作用)
     ingestAll(root, key)
     expect(isNoFindingReview(loadReviewRecord(root, key)!)).toBe(true)
     expect(isReviewIncomplete(loadReviewRecord(root, key)!)).toBe(false)

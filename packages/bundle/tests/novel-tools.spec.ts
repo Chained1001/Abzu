@@ -5,7 +5,7 @@ import * as os from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { createNovelTools, NOVEL_TEST_TOOL_NAMES, NOVEL_TOOL_NAMES } from '../src/novel-tools'
 import { EDITOR_CANCELLED_REASON, EDITOR_DUPLICATE_REASON, EDITOR_UNKNOWN_REASON, EditorRequestHub, type EditorIntent, type EditorRequestSnapshot } from '../src/study/editor-requests'
-import { createBook, parseChapterLength, scanDesign, writeContract, 契约六部 } from '@abzu/core'
+import { parseChapterLength, scanDesign, writeContract, 契约六部 } from '@abzu/core'
 import { nativeWriteStub } from './fixtures/native-write-stub'
 
 const roots: string[] = []
@@ -141,12 +141,11 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
     const tools = createNovelTools({
       nativeWrite: nativeWriteStub,
       workspaceRoot: () => ws,
-      bookRootOfBookId: (id) => path.join(ws, '仙途长生'),
+      bookRootOfBookId: (_id) => path.join(ws, '仙途长生'),
       testTools: true,
     })
 
     const createTool = tools.find((t) => t.name === 'novel_create_book')!
-    const selectTool = tools.find((t) => t.name === 'novel_select_book')!
     const seedTool = tools.find((t) => t.name === 'novel_seed_min_design')!
     const contractTool = tools.find((t) => t.name === 'novel_update_contract')!
     const statusTool = tools.find((t) => t.name === 'novel_get_story_status')!
@@ -270,7 +269,7 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
     const tools = createNovelTools({
       nativeWrite: nativeWriteStub,
       workspaceRoot: () => ws,
-      bookRootOfBookId: (id) => path.join(ws, '提交纪律书'),
+      bookRootOfBookId: (_id) => path.join(ws, '提交纪律书'),
       testTools: true,
     })
     const createTool = tools.find((t) => t.name === 'novel_create_book')!

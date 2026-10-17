@@ -5,7 +5,7 @@
  * F7 提交恢复：失败 hook → written:true 落盘；移除 hook 重试 → committed；重复重试 → alreadyCommitted；
  * 作者期间新改的目标仍拒绝。F3 见 retcon 同提交断言（末例）。
  */
-import { afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import { spawnSync } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
@@ -16,7 +16,6 @@ import {
   paths,
   registerProposal,
   recordRetconEvent,
-  resolveProposal,
   retconEventOps,
   nextProposalNumber,
   seedMinDesign,
@@ -135,6 +134,9 @@ describe('F7:提交失败后的可重试恢复', () => {
   function writeFailingHook(root: string): void {
     const hooksDir = nodePath.join(root, '.git', 'hooks')
     fs.mkdirSync(hooksDir, { recursive: true })
+    // 批F(照 X3):书仓默认 core.hooksPath 指向 .git/abzu-no-hooks 禁继承钩子——
+    // 先指回默认目录,保证注入的 pre-commit 真的会跑。
+    git(root, ['config', 'core.hooksPath', '.git/hooks'])
     // sh 脚本:直接 exit 1(Windows Git for Windows 自带 sh 执行 hook)
     fs.writeFileSync(nodePath.join(hooksDir, 'pre-commit'), '#!/bin/sh\nexit 1\n', 'utf-8')
     fs.chmodSync(nodePath.join(hooksDir, 'pre-commit'), 0o755)

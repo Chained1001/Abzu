@@ -9,7 +9,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { formatCommitMessage } from '../commit/message'
-import { assertSegment, validateSegment } from '../repo/paths'
+import { assertSegment } from '../repo/paths'
 import { removeSync } from '../repo/remove'
 import { scaffoldBookFiles } from './scaffold'
 import { scanWorkspaceBooks } from './identity'
@@ -45,10 +45,9 @@ export function bookIdFromName(书名: string): string {
 }
 
 export function createBook(input: CreateBookInput): CreateBookResult {
-  if (validateSegment(input.书名).length > 0) {
-    try { assertSegment(input.书名, '书名') } catch (err) {
-      return { ok: false, reason: String(err) }
-    }
+  // 批F:validateSegment/assertSegment 双层守卫收一——assertSegment 内部即 validateSegment,行为不变
+  try { assertSegment(input.书名, '书名') } catch (err) {
+    return { ok: false, reason: String(err) }
   }
 
   if (input.书名.normalize('NFC') === '书房') return { ok: false, reason: '书房是共享资料保留目录，请换一个书名' }
@@ -99,13 +98,19 @@ function initFirstCommit(bookRoot: string): string {
   runGit(bookRoot, ['config', 'user.email', 'abzu@local'])
   runGit(bookRoot, ['config', 'user.name', 'abzu'])
   runGit(bookRoot, ['config', 'commit.gpgsign', 'false'])
+  // 批F(照 draft-git.ts 快照仓先例):书仓也由工具无人值守提交——hooksPath 指向不存在目录,
+  // 屏蔽全局/继承钩子,防交互式钩子挂起自动提交;失败即抛,建书整体回滚。
+  runGit(bookRoot, ['config', 'core.hooksPath', '.git/abzu-no-hooks'])
   runGit(bookRoot, ['add', '-A'])
   runGit(bookRoot, ['commit', '-m', FIRST_COMMIT])
   return FIRST_COMMIT
 }
 
+/** git 调用统一 120s 超时(批F):建仓在书锁临界区内,挂起的 git 不得卡死写入面;kill 后如实抛含原文错误。 */
+const GIT_TIMEOUT_MS = 120_000
+
 function runGit(cwd: string, args: readonly string[]): void {
-  const r = spawnSync('git', args, { cwd, encoding: 'utf-8', windowsHide: true })
+  const r = spawnSync('git', args, { cwd, encoding: 'utf-8', windowsHide: true, timeout: GIT_TIMEOUT_MS })
   if (r.error) throw new Error(`git ${args[0]} 失败:${r.error.message}`)
   if ((r.status ?? 1) !== 0) {
     throw new Error(`git ${args.join(' ')} 失败:${(r.stderr ?? '').trim() || (r.stdout ?? '').trim() || '非零退出'}`)

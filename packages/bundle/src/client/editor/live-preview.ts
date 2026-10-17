@@ -3,7 +3,7 @@ import type { EditorState, Range } from '@codemirror/state'
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from '@codemirror/view'
 
 class BulletWidget extends WidgetType {
-  eq(other: WidgetType): boolean { return other instanceof BulletWidget }
+  override eq(other: WidgetType): boolean { return other instanceof BulletWidget }
   toDOM(): HTMLElement {
     const node = document.createElement('span')
     node.className = 'cm-lp-bullet'
@@ -13,7 +13,7 @@ class BulletWidget extends WidgetType {
 }
 
 class RuleWidget extends WidgetType {
-  eq(other: WidgetType): boolean { return other instanceof RuleWidget }
+  override eq(other: WidgetType): boolean { return other instanceof RuleWidget }
   toDOM(): HTMLElement {
     const node = document.createElement('span')
     node.className = 'cm-lp-rule'

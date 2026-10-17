@@ -74,4 +74,16 @@ describe('定稿沉淀:作者审批不可由模型自证（裁决 11/14）', () 
     const r = await call('novel_settle_chapter', { bookId, ...KEY, 裁决记录: '作者说可以' })
     expect(r.ok).toBe(false)
   })
+
+  it('Y9 summary trim 为空:点名拒绝,不进裁决流程', async () => {
+    let asked = 0
+    const { call, bookId } = await setup(async (): Promise<AskResponse> => {
+      asked++
+      return { answers: [{ id: '定稿入档', selected: [APPROVE_LABEL] }] }
+    })
+    const r = await call('novel_settle_chapter', { bookId, 卷: 1, 章: 1, 章名: '第一章', summary: '   ' })
+    expect(r.ok).toBe(false)
+    expect(String(r.reason)).toContain('summary 必须非空')
+    expect(asked, '空摘要不应打扰作者裁决').toBe(0)
+  })
 })

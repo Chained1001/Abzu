@@ -1,6 +1,6 @@
 import {
   ReferenceError, previewReference, referencePreviewView, importReference, listReferences, deleteReference, planReference, runReference, referenceStatus, recoverReference,
-  reportReference, queryReferences, saveReferenceIdea, readReferenceEvidence, readReferenceManifest, readReferenceSource, referenceRoot, referenceRead, referenceWrite, referenceLocked, referenceHash, referenceJson, manifestOp,
+  reportReference, queryReferences, saveReferenceIdea, readReferenceEvidence, readReferenceManifest, referenceRoot, referenceRead, referenceWrite, referenceLocked, referenceHash, referenceJson, manifestOp,
   type ParseOptions, type SourceMetadata, type ReferenceRange, type ModelRunner, type InspirationReference,
 } from '@abzu/core'
 import type { AgentLike, NovelToolDefinition, ToolExecContext } from '../novel-tools'

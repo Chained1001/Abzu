@@ -6,7 +6,6 @@ import { execFileSync } from 'node:child_process'
 import {
   applyRevision, applyRevisionBatch, draftHashOf, normalizeFinding, parseDocument, loadReviewRecord,
   paths, reviewInputFingerprintOf, reviewRecordHashOf, scanChapter, serializeDocument,
-  type ReviewRecord,
 } from '../src/index'
 import * as rename from '../src/repo/rename'
 import { removeSync } from '../src/repo/remove'
@@ -224,5 +223,41 @@ describe('影响真源的发现项：提案通过后记「已转提案」', () =
     expect(loadReviewRecord(f.root, key)!.问题[0]!.处置状态).toBe('作者保留')
     expect(applyRevision(f.root, key, { 发现项编号: 'f-1', 处置: '已驳回' }).ok).toBe(true)
     expect(JSON.parse(f.text()).问题[0]).not.toHaveProperty('转交提案')
+  })
+})
+
+describe('提案登记与裁决回写（Y9 批F：空内容不入池；裁决按节定位替换）', () => {
+  it('Y9 内容 trim 为空 → throw 中文文案，不落盘不占编号', async () => {
+    const { registerProposal } = await import('../src/index')
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-proposal-y9-'))
+    roots.push(root)
+    for (const blank of ['', '  \n\t ', '\u3000']) {
+      expect(() => registerProposal(root, { 域: '内容修订', 类型: '修改计划', 内容: blank, 来源: '审核' })).toThrow('提案内容为空')
+    }
+    expect(fs.existsSync(path.join(root, '草稿区', '提案'))).toBe(false)
+    // 首份合法提案仍占 0001（空登记未消耗编号）
+    const reg = registerProposal(root, { 域: '内容修订', 类型: '修改计划', 内容: '改设定', 来源: '审核' })
+    expect(reg.编号).toBe('0001')
+  })
+
+  it('X11(划入本文件) 裁决记录按节定位替换：正文含同字面量时裁决落「裁决记录」节内', async () => {
+    const { registerProposal, resolveProposal } = await import('../src/index')
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-proposal-x11-'))
+    roots.push(root)
+    const reg = registerProposal(root, { 域: '内容修订', 类型: '修改计划', 内容: '改设定', 来源: '审核' })
+    const file = path.join(root, reg.relPath)
+    // 往提案正文注入同字面量（在「## 裁决记录」节之前）——旧实现会替换到正文里这处
+    fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('改设定', '改设定\n\n（待作者裁决）'), 'utf8')
+    expect(resolveProposal(root, reg.编号, '通过', '作者同意').ok).toBe(true)
+    const after = fs.readFileSync(file, 'utf8')
+    // 正文里的字面量原样保留
+    expect(after.indexOf('（待作者裁决）')).toBeLessThan(after.indexOf('## 影响分析'))
+    // 裁决落在「## 裁决记录」节内
+    const sec = after.indexOf('## 裁决记录')
+    const verdict = after.indexOf('【通过】作者同意')
+    const secEnd = after.indexOf('\n## ', sec)
+    expect(sec).not.toBe(-1)
+    expect(verdict).toBeGreaterThan(sec)
+    expect(verdict).toBeLessThan(secEnd === -1 ? after.length : secEnd)
   })
 })

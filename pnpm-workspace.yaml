@@ -1,5 +1,11 @@
 packages:
   - packages/*
+# Y12(批F):版本单源——四组公共依赖收敛 catalog,各 package.json 引 `catalog:`。
+catalog:
+  typescript: ^5.5.0
+  '@deepseek-ai/cordis': 4.0.4
+  yaml: ^2.5.0
+  '@deepseek-ai/dsh-user-questions': 0.2.0-rc.2
 # GHSA-68fv-2mgg-jv7q: keep the test toolchain on the patched source-map parser.
 overrides:
   'source-map-js@<1.2.2': '1.2.2'

@@ -6,7 +6,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { readBookText } from '../repo/read'
 import { parseDocument } from '../repo/frontmatter'
-import { isMarkdownFileName, pad, parseChineseVolume, paths } from '../repo/paths'
+import { isMarkdownFileName, parseChineseVolume, paths } from '../repo/paths'
 import { parseWindow } from './scan'
 import { isWindowEntryReady } from './states'
 import { hasDesignContent, parseDesignContent } from '../design/content'
@@ -140,23 +140,32 @@ export function scanDesign(root: string, 卷 = 1): DesignFacts {
   sections(契约文, paths.契约(), 契约六部, '作品定调')
 
   const 声明 = readText(root, '世界书/模块声明.md')
-  const 世界书最小模块足够 = 声明 !== null && 世界书最小模块.every((名) =>
-    声明.includes(名) && moduleHasConfirmedEntry(root, 名),
-  )
+  // 批F 单轮读:每模块目录一次 readdir——「最小模块足够」的已确认条目判定与缺内容扫描共用一轮,
+  // 不再经 moduleHasConfirmedEntry 把同目录再读一遍(该导出保留给 design/worldbook 共用)。
+  const moduleFacts = new Map<string, { readonly hasConfirmed: boolean; readonly hasContent: boolean; readonly empty: readonly string[] }>()
   for (const module of 世界书最小模块) {
     const dir = path.join(root, '世界书', module)
-    const empty: string[] = []
-    let hasContent = false
     let names: string[] = []
     try { names = fs.readdirSync(dir) } catch { /* Missing module is already a false fact. */ }
+    let hasConfirmed = false
+    let hasContent = false
+    const empty: string[] = []
     for (const name of names.filter(isMarkdownFileName)) {
       const relative = `世界书/${module}/${name}`
       const doc = parseDocument(readText(root, relative) ?? '')
       if (!doc.ok || doc.data.fields['状态'] !== '已确认') continue
+      hasConfirmed = true
       if (hasDesignContent(doc.data.body)) hasContent = true
       else empty.push(relative)
     }
-    if (!hasContent) for (const relative of empty) 内容问题.push({ 路径: relative, 分部: module, 问题: '缺少内容', 阶段: '世界构建' })
+    moduleFacts.set(module, { hasConfirmed, hasContent, empty })
+  }
+  const 世界书最小模块足够 = 声明 !== null && 世界书最小模块.every((名) =>
+    声明.includes(名) && (moduleFacts.get(名)?.hasConfirmed ?? false),
+  )
+  for (const module of 世界书最小模块) {
+    const facts = moduleFacts.get(module)!
+    if (!facts.hasContent) for (const relative of facts.empty) 内容问题.push({ 路径: relative, 分部: module, 问题: '缺少内容', 阶段: '世界构建' })
   }
 
   const 骨架文 = readText(root, paths.故事骨架())
@@ -187,11 +196,13 @@ export function scanDesign(root: string, 卷 = 1): DesignFacts {
     if (问题) 内容问题.push({ 路径: paths.分卷布局(), 分部: name, 问题, 阶段: '分卷布局' })
   }
 
-  const 卷纲存在 = readText(root, paths.卷纲(卷)) !== null
-  sections(readText(root, paths.卷纲(卷)), paths.卷纲(卷), ['叙事结构'], '当前卷规划')
+  // 批F:卷纲读一次下传(原先卷纲存在性、sections 与缺段扫描各读一遍)
+  const 卷纲文 = readText(root, paths.卷纲(卷))
+  const 卷纲存在 = 卷纲文 !== null
+  sections(卷纲文, paths.卷纲(卷), ['叙事结构'], '当前卷规划')
   const 卷纲缺段: string[] = []
   if (卷纲存在) {
-    const volumeText = readText(root, paths.卷纲(卷)) ?? ''
+    const volumeText = 卷纲文!
     const titles = new Set<string>()
     for (const line of volumeText.split(/\r?\n/)) {
       const m = /^##\s+(.+?)\s*$/.exec(line.trim())

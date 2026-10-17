@@ -35,6 +35,7 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
           properties: {
             ok: { type: 'boolean', description: '是否成功' },
             relPath: { type: 'string', description: '新稿相对路径' },
+            播报: { type: 'string', description: 'R1 播报：细纲确认状态与材料包状态（不参与门禁）' },
             diff: { type: 'array', description: '作者手改时：相对父版本的行级差异' },
             followup: { type: 'object', description: '作者手改时：后续范围报告（硬约束回查/仍待处置/建议重跑）' },
             message: { type: 'string', description: '结果说明' },

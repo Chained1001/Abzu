@@ -211,6 +211,15 @@ describe('归档可信收据(F06)', () => {
     expect(fs.readFileSync(path.join(options.bookRoot, '世界书/设定/铜铃.md'), 'utf8')).toBe(world)
   })
 
+  it('带 BOM 的清单.json:指纹阶段剥 BOM 后正常入档,不再整单失败(批F X4)', () => {
+    const options = fixture()
+    const manifestPath = path.join(options.bookRoot, options.packageDir!, '清单.json')
+    fs.writeFileSync(manifestPath, `\uFEFF${fs.readFileSync(manifestPath, 'utf8')}`)
+    expect(archiveChapter(options)).toMatchObject({ ok: true })
+    // 重试按同一指纹识别已入档
+    expect(archiveChapter(options)).toMatchObject({ ok: true, alreadyCommitted: true })
+  }, 30_000)
+
   it('吃书更正也可补交和重放，已提交后仍允许新的明确更正', () => {
     const options = fixture()
     const first: ArchiveOptions = { bookRoot: options.bookRoot, files: [{ 目标: '世界书/设定/铜铃.md', 内容: '更正一\n' }], summary: '更正铜铃' }

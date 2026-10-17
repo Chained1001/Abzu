@@ -1,13 +1,16 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { createHash } from 'node:crypto'
 import { canonicalizePath, stripDevicePrefix } from '../gate/canonical'
+import { readStableFile, sha256Hex, StableReadError } from '../repo/hash'
 import { parseDocument } from '../repo/frontmatter'
 import type { SupplementSource } from './sections'
 
-export const materialHash = (text: string | Buffer): string => createHash('sha256').update(text).digest('hex')
+/** 哈希单源(批F):sha256Hex 等价替换,指纹逐字节不变(字符串 utf8/Buffer 原始字节)。 */
+export const materialHash = (text: string | Buffer): string => sha256Hex(text)
 
-/** Same physical-file guarantees as finalized retrieval, synchronous for book transactions. */
+/** Same physical-file guarantees as finalized retrieval, synchronous for book transactions.
+ * 稳定读核心(批F)单源在 repo/hash.ts readStableFile——本函数保留路径合法性与别名检查、
+ * 大小/文本判定和原有错误文案(语义不变),stat 比对口径取三份实现中最严。 */
 export function readMaterialFile(base: string, relative: string): { text: string; hash: string } {
   const parts = relative.split('/')
   if (!relative || path.isAbsolute(relative) || relative.includes('\\') || parts.some(part => !part || part.startsWith('.') || part === 'node_modules' || /[\x00-\x1f:]/.test(part) || /[. ]$/.test(part))) throw new Error(`材料路径不合法：${relative}`)
@@ -16,23 +19,20 @@ export function readMaterialFile(base: string, relative: string): { text: string
     if (stripDevicePrefix(fs.realpathSync.native(target)) !== target) throw new Error(`材料路径包含链接或别名：${relative}`)
   }
   checkPath()
-  const initial = fs.lstatSync(target)
-  if (!initial.isFile() || initial.isSymbolicLink() || initial.nlink !== 1) throw new Error(`材料不是独立普通文件：${relative}`)
-  const fd = fs.openSync(target, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0))
+  let bytes: Buffer
   try {
-    const opened = fs.fstatSync(fd)
-    if (opened.dev !== initial.dev || opened.ino !== initial.ino || opened.nlink !== 1) throw new Error(`材料读取时被替换：${relative}`)
-    const bytes = fs.readFileSync(fd)
-    checkPath()
-    const after = fs.fstatSync(fd)
-    const current = fs.lstatSync(target)
-    if (after.size !== opened.size || after.mtimeMs !== opened.mtimeMs || after.ctimeMs !== opened.ctimeMs
-      || current.dev !== opened.dev || current.ino !== opened.ino || current.nlink !== 1) throw new Error(`材料读取时已变化：${relative}`)
-    if (bytes.includes(0)) throw new Error(`材料不是UTF-8文本：${relative}`)
-    // ignoreBOM:true 按编码规范是把 BOM 保留在解码文本里(而非剥除)——此处有意为之:文本忠实原始字节,
-    // 哈希(原始字节)与补充附件字数校验都依赖同一口径;BOM 的剥除归解析边界(parseDocument/清单读入)
-    return { text: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes), hash: materialHash(bytes) }
-  } finally { fs.closeSync(fd) }
+    bytes = readStableFile(base, relative)
+  } catch (error) {
+    if (!(error instanceof StableReadError)) throw error
+    if (error.code === 'not-plain-file') throw new Error(`材料不是独立普通文件：${relative}`)
+    if (error.code === 'replaced') throw new Error(`材料读取时被替换：${relative}`)
+    throw new Error(`材料读取时已变化：${relative}`)
+  }
+  checkPath()
+  if (bytes.includes(0)) throw new Error(`材料不是UTF-8文本：${relative}`)
+  // ignoreBOM:true 按编码规范是把 BOM 保留在解码文本里(而非剥除)——此处有意为之:文本忠实原始字节,
+  // 哈希(原始字节)与补充附件字数校验都依赖同一口径;BOM 的剥除归解析边界(parseDocument/清单读入)
+  return { text: new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes), hash: materialHash(bytes) }
 }
 
 export function readSupplementSource(bookRoot: string, source: SupplementSource, chapter: number) {

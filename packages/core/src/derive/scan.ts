@@ -10,7 +10,7 @@ import { parseDocument } from '../repo/frontmatter'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { isWindowEntryReady } from './states'
 import { carryoverApplicable, draftHashOf, parseReviewRecord, reviewInputFingerprintOf, reviewRecordHashOf, 处置状态列表, type ReviewRecord } from '../evidence/record'
-import { chapterNo, isMarkdownFileName } from '../repo/paths'
+import { chapterNo, isMarkdownFileName, matchChapterFileName } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { materialReviewIdentity } from '../assembly/read'
 import { chapterLengthIdentity, readChapterLength } from '../design/chapter-length'
@@ -132,19 +132,31 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   let 有草稿 = false
   let 唯一待审稿 = false
   let 唯一待审稿正文: string | null = null
-  if (fs.existsSync(草稿目录) && fs.statSync(草稿目录).isDirectory()) {
-    const drafts = fs.readdirSync(草稿目录).filter(isMarkdownFileName)
-    有草稿 = drafts.length > 0
-    const 待审 = drafts.filter((f) => {
-      const doc = parseDocument(fs.readFileSync(path.join(草稿目录, f), 'utf-8'))
-      return doc.ok && doc.data.fields['角色'] === '待审稿'
-    })
-    唯一待审稿 = 待审.length === 1
-    if (唯一待审稿) {
-      const doc = parseDocument(fs.readFileSync(path.join(草稿目录, 待审[0]!), 'utf-8'))
-      唯一待审稿正文 = doc.ok ? doc.data.body : null
+  // P1-1(批F) fail-closed 枚举:withFileTypes 只收 isFile 的 .md(同名目录/符号链接不炸);
+  // 逐文件 try/catch——单个草稿读不了记入 不可读、该稿跳过,不再击穿整个恢复视图。
+  // 唯一待审稿正文复用首遍已 parse 的 doc,消除双重读。
+  const 草稿目录rel = resolveDraftRel(root, '草稿目录', key)
+  const 待审正文: Array<string | null> = []
+  try {
+    const entries = fs.readdirSync(草稿目录, { withFileTypes: true })
+    const 草稿文件 = entries.filter((e) => e.isFile() && isMarkdownFileName(e.name))
+    有草稿 = 草稿文件.length > 0
+    for (const entry of 草稿文件) {
+      try {
+        const doc = parseDocument(fs.readFileSync(path.join(草稿目录, entry.name), 'utf-8'))
+        if (doc.ok && doc.data.fields['角色'] === '待审稿') {
+          待审正文.push(doc.data.body)
+        }
+      } catch {
+        不可读.push(`${草稿目录rel}/${entry.name}`)
+      }
     }
+  } catch (error) {
+    // 目录不存在(ENOENT)是正常「无草稿」;其余(读不了)记入降级事实位。
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') 不可读.push(草稿目录rel)
   }
+  唯一待审稿 = 待审正文.length === 1
+  if (唯一待审稿) 唯一待审稿正文 = 待审正文[0]!
 
   const 审核文 = readText(root, resolveDraftRel(root, '审核记录', key), 不可读)
   const 审核 = parseReview(审核文)
@@ -248,14 +260,18 @@ export function listChapters(root: string): ReadonlyArray<ChapterKey> {
     }
   })
 
-  // 真源区:确认细纲与定稿章(文件名即编号;[\\/] 兼容两种分隔符)
+  // 真源区:确认细纲与定稿章(前缀定卷,文件名过 matchChapterFileName 单源——批F 宽松 1–4 位)
   walk(path.join(root, '大纲/卷规划'), (p) => {
-    const m = /卷规划[\\/]卷(\d+)[\\/]章细纲[\\/](\d+)-(.+)\.md$/i.exec(p)
-    if (m !== null && isMarkdownFileName(p)) add({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
+    const m = /卷规划[\\/]卷(\d+)[\\/]章细纲[\\/]/i.exec(p)
+    if (m === null) return
+    const cm = matchChapterFileName(p.slice(m.index + m[0].length))
+    if (cm !== null && isMarkdownFileName(p)) add({ 卷: Number(m[1]), 章: cm.章, 章名: cm.章名 })
   })
   walk(path.join(root, '定稿'), (p) => {
-    const m = /定稿[\\/]卷(\d+)[\\/](\d+)-(.+)\.md$/i.exec(p)
-    if (m !== null && isMarkdownFileName(p)) add({ 卷: Number(m[1]), 章: Number(m[2]), 章名: m[3]! })
+    const m = /定稿[\\/]卷(\d+)[\\/]/i.exec(p)
+    if (m === null) return
+    const cm = matchChapterFileName(p.slice(m.index + m[0].length))
+    if (cm !== null && isMarkdownFileName(p)) add({ 卷: Number(m[1]), 章: cm.章, 章名: cm.章名 })
   })
 
   // 草稿区:目录名/文件名 `卷NN-NNNN-章名`(批8 起,章号四位)或旧格式 `卷NN-章名`(无章号→章:0

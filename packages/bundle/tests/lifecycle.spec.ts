@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import { apply, currentWorkspaceRoot, registerWorkspaceRoot, resetWorkspaceRoot } from '../src/index'
+import { apply, currentWorkspaceRoot, resetWorkspaceRoot } from '../src/index'
 import { NOVEL_TOOL_NAMES } from '../src/novel-tools'
 
 /** 临时工作范围:一本带契约的书。 */

@@ -25,11 +25,15 @@ export interface GitCommandResult {
   readonly noChanges?: boolean
 }
 
+/** git 调用统一 120s 超时(批F):书锁临界区内不设界会让挂起的 git(交互式钩子/坏仓)卡死整个写入面。 */
+const GIT_TIMEOUT_MS = 120_000
+
 export function runGit(bookRoot: string, args: readonly string[], env?: NodeJS.ProcessEnv): GitCommandResult {
   const r = spawnSync('git', args, {
     cwd: bookRoot,
     encoding: 'utf-8',
     windowsHide: true,
+    timeout: GIT_TIMEOUT_MS,
     ...(env === undefined ? {} : { env: { ...process.env, ...env } }),
   })
   if (r.error) return { status: 1, stderr: r.error.message, stdout: '' }

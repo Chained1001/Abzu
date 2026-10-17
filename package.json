@@ -2,7 +2,7 @@
   "name": "abzu-workspace",
   "private": true,
   "type": "module",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "description": "Abzu: a long-form fiction writing workspace for DeepSeek Harness",
   "packageManager": "pnpm@11.27.1",
   "scripts": {
@@ -25,10 +25,10 @@
     "node": "^22.19.0 || ^24.0.0"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "4.0.4",
+    "@deepseek-ai/cordis": "catalog:",
     "@types/node": "^22.0.0",
     "eslint": "9.39.1",
-    "typescript": "^5.5.0",
+    "typescript": "catalog:",
     "typescript-eslint": "8.71.0",
     "vitest": "4.1.11"
   },

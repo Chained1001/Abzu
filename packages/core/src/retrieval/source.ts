@@ -1,19 +1,20 @@
 import * as fs from 'node:fs'
 import { currentSceneRecord, proseParagraphs, readSceneRecords, sceneBodyHash, sceneChunks, SCENE_CACHE_PATH } from './scenes'
 import * as path from 'node:path'
-import { createHash } from 'node:crypto'
 import { authorDocumentPath, validateAuthorRelativePath } from '../revise/document'
 import { canonicalizePath, stripDevicePrefix } from '../gate/canonical'
 import { parseDocument } from '../repo/frontmatter'
 import { splitCandidateFacts } from '../repo/drafts'
-import { isMarkdownFileName } from '../repo/paths'
+import { isMarkdownFileName, matchChapterFileName } from '../repo/paths'
+import { sha256Hex } from '../repo/hash'
 import { TRANSACTION_DIR } from '../repo/lock'
 import { takeCachedSnapshot, putCachedSnapshot } from './cache'
 import { SearchError, type SearchChunk, type SearchDocument, type SearchIssue, type SearchSnapshot } from './types'
 
 export const CHUNK_VERSION = 'paragraph-800-overlap-256-v1'
 const MAX_DOCUMENT_BYTES = 16 * 1024 * 1024
-export const digest = (text: string | Buffer): string => createHash('sha256').update(text).digest('hex')
+/** 哈希单源(批F):与 core 各处 sha256 包装同字节(字符串 utf8/字节原样),指纹逐字节不变。 */
+export const digest = (text: string | Buffer): string => sha256Hex(text)
 
 /** Pin the checked file while reading, so a replaced path cannot supply outside bytes. */
 async function readCheckedFinalized(base: string, relative: string, signal?: AbortSignal): Promise<{ bytes: Buffer; absolutePath: string }> {
@@ -162,9 +163,12 @@ export async function scanFinalized(root: string, signal?: AbortSignal): Promise
         if (entry.isDirectory() && /^卷\d+$/.test(entry.name)) await walk(rel)
         continue
       }
-      const key = /^定稿\/卷(\d+)\/(\d{4,})-(.+)\.md$/i.exec(rel)
-      if (!key || !entry.isFile() || !isMarkdownFileName(rel)) continue
-      if (![Number(key[1]), Number(key[2])].every(value => Number.isSafeInteger(value) && value > 0)) {
+      // 章节文件名口径单源(批F,宽松 1–4 位):卷目录前缀定卷,文件名过 matchChapterFileName
+      const volumeMatch = /^定稿\/卷(\d+)\//i.exec(rel)
+      if (volumeMatch === null || !entry.isFile() || !isMarkdownFileName(rel)) continue
+      const key = matchChapterFileName(rel.slice(volumeMatch[0].length))
+      if (key === null) continue
+      if (!(Number.isSafeInteger(Number(volumeMatch[1])) && Number(volumeMatch[1]) > 0 && key.章 > 0)) {
         issue(rel, 'invalid-document', '定稿卷号或章号不是有效正整数'); continue
       }
       try {
@@ -188,7 +192,7 @@ export async function scanFinalized(root: string, signal?: AbortSignal): Promise
         const precedingLines = normalized.slice(0, offset).split('\n').length - 1
         const version = parsed.data.fields['版本']
         documents.push({
-          path: rel, absolutePath, hash, volume: Number(key[1]), chapter: Number(key[2]), title: key[3]!,
+          path: rel, absolutePath, hash, volume: Number(volumeMatch[1]), chapter: key.章, title: key.章名,
           version: typeof version === 'number' && Number.isFinite(version) || typeof version === 'string' && version.trim() ? version as string | number : '未知',
           prose, bodyHash, sceneStatus: scene?.status, sceneReason: scene?.reason,
           chunks: scene?.status === 'ready' ? sceneChunks(rel, hash, prose, precedingLines, scene) : chunksOf(rel, hash, prose, precedingLines),

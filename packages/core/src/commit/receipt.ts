@@ -1,9 +1,9 @@
 /** Durable evidence of an archive's exact write batch; never a source of book state. */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { canonicalizePath, isInsidePath } from '../gate/canonical'
+import { sha256Hex } from '../repo/hash'
 import type { FileOp } from '../repo/atomic'
 import { checkCommitPath } from './paths'
 import { runGit } from './git'
@@ -67,8 +67,9 @@ export function retconPackageInputs(root: string, packageDir: string | null): Re
   }))
 }
 
+/** 哈希单源(批F):sha256Hex 等价替换,指纹逐字节不变(字符串 utf8/Buffer 原始字节)。 */
 export function contentHash(content: string | Buffer): string {
-  return createHash('sha256').update(content).digest('hex')
+  return sha256Hex(content)
 }
 
 /** Reject links on every component, including the protected receipt directory. */
@@ -207,8 +208,9 @@ export function makeArchiveReceipt(
   const outputs = contents.map(({ relPath, content }): Output => {
     archiveFile(root, relPath)
     // Git clean filters/newline normalization can differ from the bytes on disk.
+    // 批F:同族 git spawnSync 一并加 120s 超时(收据在书锁临界区内计算,不得挂起)。
     const blob = spawnSync('git', ['hash-object', `--path=${relPath}`, '--stdin'], {
-      cwd: root, input: content, encoding: 'utf8', windowsHide: true,
+      cwd: root, input: content, encoding: 'utf8', windowsHide: true, timeout: 120_000,
     })
     if (blob.status !== 0 || !OBJECT.test(blob.stdout.trim())) throw new Error(`无法计算归档提交指纹:${relPath}`)
     return { relPath, sha256: contentHash(content), gitBlob: blob.stdout.trim() }

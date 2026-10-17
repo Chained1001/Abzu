@@ -23,8 +23,13 @@ function writeSettlementDecisionLocked(
   try {
     // 修复(0.0.20 批 bug7):清单是机器态 JSON,读取统一走 readMachineText(剥 BOM)——原先不剥,存 BOM 的清单会误报解析失败
     text = readMachineText(nodePath.join(bookRoot, rel))
-  } catch {
-    return { ok: false, reason: '待定稿包缺清单.json,无法回写裁决' }
+  } catch (error) {
+    // 批F io 分流(照 read.ts 范本):ENOENT 仍是「缺清单」;其余 errno 是「在、读不了」——
+    // 文案不得把读不了说成「缺」。
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { ok: false, reason: '待定稿包缺清单.json,无法回写裁决' }
+    }
+    return { ok: false, reason: `清单不可读,无法回写裁决:${rel}(${(error as NodeJS.ErrnoException).code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)})` }
   }
   const parsed = parseMachineJson(text, MACHINE_SCHEMA_VERSION)
   if (!parsed.ok) return { ok: false, reason: `清单解析失败:${parsed.detail}` }

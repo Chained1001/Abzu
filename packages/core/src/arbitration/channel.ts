@@ -44,6 +44,8 @@ export async function askAuthor(
       signal.addEventListener('abort', onAbort, { once: true })
     })
     const pending = askFn(request)
+    // race 兜底:取消先胜出后 askFn 才 reject 时,该拒绝已无人接手,不挂兜底会给进程留 unhandledRejection。
+    pending.catch(() => {})
     const response = cancellation === undefined ? await pending : await Promise.race([pending, cancellation])
     if (signal?.aborted || response === undefined) return cancelled
     const answer = response.answers.find((a) => a.id === kind) ?? response.answers[0]

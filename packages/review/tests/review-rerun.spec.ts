@@ -10,7 +10,6 @@ import {
   seedMinDesign,
   serializeDocument,
   writeCandidate,
-  writeReviewRecord,
 } from '@abzu/core'
 import {
   computeReview,

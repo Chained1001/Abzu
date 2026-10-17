@@ -13,7 +13,6 @@ import {
 } from '../repo/drafts'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
-import { paths } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { applyVersionFields, bumpVersion, extractVersionFields, initialVersion } from '../provenance'
 import { loadReviewRecord, readReviewRecordForUpdate, serializeReviewRecord, reviewRecordHashOf, 处置状态列表, type ReviewRecord, type 处置状态 } from '../evidence/record'

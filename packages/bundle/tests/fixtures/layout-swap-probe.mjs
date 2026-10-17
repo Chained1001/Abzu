@@ -322,7 +322,6 @@ try {
     if (!column) return null
     column.setAttribute('data-swap-probe-col', '')
     column.removeAttribute('data-rightbar-col')
-    const frame = column.parentElement
     const center = column.previousElementSibling
     return {
       inline: column.style.gridColumn + '|' + (center?.style.gridColumn ?? ''),

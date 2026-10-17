@@ -42,8 +42,9 @@ function resolveDraftKey(bookRoot: string, parsed: ChapterKey): ChapterKey {
 /**
  * 写稿门槛只剩路径形状一条:解析不出章键的草稿路径拒绝(推导不可见),
  * 其余一律放行——细纲确认状态与材料包状态经 reportDraftReadiness 如实呈报。
+ * (批F:参数 bookRoot 不再参与判定,按仓 lint 约定改 `_` 前缀保留调用面形状。)
  */
-export function gateWriteDraft(bookRoot: string, relPath: string):
+export function gateWriteDraft(_bookRoot: string, relPath: string):
   | { readonly allow: true }
   | { readonly allow: false; readonly reason: string } {
   if (!isDraftRelPath(relPath)) return { allow: true }

@@ -19,7 +19,6 @@ import {
   serializeDocument,
   writeCandidate,
   paths,
-  MACHINE_SCHEMA_VERSION,
 } from '@abzu/core'
 import { runReview } from '@abzu/review'
 
