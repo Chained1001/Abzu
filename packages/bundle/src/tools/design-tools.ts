@@ -36,7 +36,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const root = deps.workspaceRoot(sessionContext?.agent)
@@ -105,7 +105,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const root = deps.workspaceRoot(sessionContext?.agent)
@@ -153,7 +153,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -216,7 +216,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -279,7 +279,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -318,7 +318,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -360,7 +360,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -432,7 +432,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -485,7 +485,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -549,7 +549,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -633,7 +633,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)

@@ -133,6 +133,9 @@ describe('状态查询窗口化(批8,0.0.57)', () => {
     const first = trimmed.find((r) => r.key.章 === 1)
     expect(first).toBeDefined()
     expect(first && '摘要' in first && first.建议环节).toBe('未完成')
+    // 状态查询可跳过 injection 装配：不读细纲/材料包，避免长篇白读 20 份材料
+    const noInjection = listResumable(root, { includeInjection: false })
+    for (const row of noInjection.filter((r) => !('摘要' in r))) expect('injection' in row).toBe(false)
   })
 
   it('最近N章 非有限值(NaN/Infinity,0.0.60 守卫)回落默认 20,窗口化不失效', () => {

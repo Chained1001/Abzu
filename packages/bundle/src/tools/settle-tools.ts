@@ -38,7 +38,7 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -98,7 +98,7 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         if (!deps.askFn) return { ok: false, reason: '裁决通道未配置（需宿主注入 askFn）' }

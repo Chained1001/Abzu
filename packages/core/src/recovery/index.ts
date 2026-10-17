@@ -19,7 +19,8 @@ export interface ResumeSnapshot {
   readonly memory: MemoryQueryResult
   readonly reconciliation: LedgerReconciliationResult
   readonly statusCard: string
-  readonly injection: {
+  /** 仅在需要恢复注入时装配；状态查询可传 includeInjection:false 跳过材料包读取。 */
+  readonly injection?: {
     readonly 近况: string
     readonly 细纲: string
     readonly 材料段: Readonly<Record<string, string>>
@@ -103,13 +104,11 @@ export function renderStatusCard(bookRoot: string, key: ChapterKey): string {
   return renderStatusCardFrom(key, derived, status)
 }
 
-function rebuildResumeWithStatus(bookRoot: string, key: ChapterKey, status: BookStatus): ResumeSnapshot {
+function rebuildResumeWithStatus(bookRoot: string, key: ChapterKey, status: BookStatus, includeInjection = true): ResumeSnapshot {
   const facts = scanChapter(bookRoot, key)
   const derived = deriveChapterFacts(facts)
   const statusCard = renderStatusCardFrom(key, derived, status)
-  const confirmedRel = paths.确认细纲(key.卷, key.章, key.章名)
-  const 材料段 = loadMaterialPackage(bookRoot, key).段
-  return {
+  const base = {
     key,
     facts,
     derived,
@@ -117,6 +116,12 @@ function rebuildResumeWithStatus(bookRoot: string, key: ChapterKey, status: Book
     memory: status.memory,
     reconciliation: status.reconciliation,
     statusCard,
+  }
+  if (!includeInjection) return base
+  const confirmedRel = paths.确认细纲(key.卷, key.章, key.章名)
+  const 材料段 = loadMaterialPackage(bookRoot, key).段
+  return {
+    ...base,
     injection: { 近况: statusCard, 细纲: read(bookRoot, confirmedRel), 材料段 },
   }
 }
@@ -143,6 +148,8 @@ export interface ListResumableOptions {
   readonly 最近N章?: number
   /** 指定卷时该卷全量完整 rebuild(与近章窗口并集)。 */
   readonly 卷?: number
+  /** 是否装配 recovery injection（细纲＋材料段）；状态查询可传 false，省掉每章材料包读取。默认 true。 */
+  readonly includeInjection?: boolean
 }
 
 /**
@@ -173,7 +180,7 @@ export function listResumable(bookRoot: string, opts: ListResumableOptions = {})
         status = bookStatus(bookRoot, key.卷)
         statuses.set(key.卷, status)
       }
-      return rebuildResumeWithStatus(bookRoot, key, status)
+      return rebuildResumeWithStatus(bookRoot, key, status, opts.includeInjection !== false)
     }
     const 已定稿 = key.章 > 0 && finalizedExists(bookRoot, key)
     return { key, 摘要: true as const, 已定稿, 建议环节: 已定稿 ? ('完成' as const) : ('未完成' as const) }

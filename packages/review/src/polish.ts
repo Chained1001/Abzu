@@ -162,6 +162,8 @@ function skipCarryover(root: string, input: RecordPolishInput, record: ReviewRec
 }
 
 function polishCarryover(root: string, input: RecordPolishInput, record: ReviewRecord, polished: DraftView, parent: DraftView): RecordPolishResult {
+  // 确定性检查产「高」，技能侧第二套词表用「硬伤」；旧测试数据用过「严重」——统一按高级处理。
+  const isHighSeverity = (severity: string): boolean => severity === '高' || severity === '硬伤' || severity === '严重'
   // 1. 保真:两稿正文(不含候选事实段)对确认细纲硬约束核验
   const outlineText = readText(root, paths.确认细纲(input.卷, input.章, input.章名)) ?? ''
   const parentSplit = splitCandidateFacts(parent.body)
@@ -180,7 +182,7 @@ function polishCarryover(root: string, input: RecordPolishInput, record: ReviewR
   const 复核: { 模块名: string; 严重程度: string; 问题说明: string }[] = []
   for (const f of deterministicFindings(root, reviewKey(input), polished)) {
     if (oldKeys.has(`${f.模块名}\u001F${f.问题说明}`)) continue
-    if (f.严重程度 === '高') return { ok: false, reason: `确定性复核新增高级发现：${f.模块名}｜${f.问题说明}` }
+    if (isHighSeverity(f.严重程度)) return { ok: false, reason: `确定性复核新增高级发现：${f.模块名}｜${f.问题说明}` }
     复核.push({ 模块名: f.模块名, 严重程度: f.严重程度, 问题说明: f.问题说明 })
   }
 

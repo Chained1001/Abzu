@@ -36,7 +36,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -64,7 +64,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           const design = 已确认无内容.length === 0 ? derived : { ...derived, 已确认无内容 }
           // 窗口化(批8):完整重建只做「章号最大的 N 章＋章:0 未定位键＋指定卷」,其余章一行摘要——
           // 千章书不再对每章做 scanChapter＋材料包＋状态卡(O(章×全卷扫描) 返回数 MB)。
-          const resumable = listResumable(bookRoot, { ...(最近N章 === undefined ? {} : { 最近N章 }), ...(卷 === undefined ? {} : { 卷 }) })
+          const resumable = listResumable(bookRoot, { ...(最近N章 === undefined ? {} : { 最近N章 }), ...(卷 === undefined ? {} : { 卷 }), includeInjection: false })
           const chapters = resumable.map((r) => '摘要' in r
             ? { key: r.key, 摘要: true, 已定稿: r.已定稿, 建议环节: r.建议环节 }
             : {
@@ -159,7 +159,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -190,7 +190,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
       },
       output: {
         schema: { type: 'object', properties: { ok: { type: 'boolean' }, index: { type: 'object' }, code: { type: 'string' }, reason: { type: 'string' } }, required: ['ok'] },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: async (args, sessionContext) => {
         if (!sessionContext?.agent) return { ok: false, code: 'agent-required', reason: '索引管理需要当前主 Agent' }
@@ -239,7 +239,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -307,7 +307,7 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)

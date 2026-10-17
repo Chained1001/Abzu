@@ -784,7 +784,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('各档独立：过渡档允许低于主区间下限（下浮即其用途）、高潮档允许高于主上限')
     // F36 目标句＋现状注记成对出现（design/review 同步——core 契约解析器接受浮动行落地前，脚本遇浮动行报配置错误）
     for (const t of [design, review]) {
-      expect(t).toContain('按全带（全档最小值～全档最大值）核对')
+      expect(t).toContain('全带核对')
       expect(t).toContain('报「配置错误」')
     }
     // F41 浮动档数值建议句：按本书已发稿实测产出分布拟
@@ -1555,10 +1555,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     for (const t of [design, review, sect, drafting]) {
       expect(t, '浮动档四个消费位都应改档区间口径').toContain('档区间')
     }
-    expect(design).toContain('此时差额由人工按本章章型的档区间（含容差带）判')
+    expect(design).toContain('由人工按档判')
     expect(drafting).toContain('浮动档区间（含容差带）判')
     expect(review).toContain('审读按本章章型的浮动档区间判差额')
-    expect(review).toContain('core 契约解析器接受浮动行落地前脚本遇浮动行报「配置错误」')
+    expect(review).toContain('core 契约解析器接受浮动行落地前，脚本遇浮动行报「配置错误」')
     expect(sect).toContain('目标带＝作品契约「章节篇幅」主区间')
     expect(sect).toContain('合计低于目标带下限＝细纲事件量不足')
     // B.（0.0.50：画像卡组仲裁句与长句配额行随首章文风建档门删除退役——文风立场单源默认文风、密度数值单源写作卡；负断言保留防回退）
@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.67＋CHANGELOG 条目＋README×2（v2.9-C 裁决批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.68＋CHANGELOG 条目＋README×2（整体审查性能批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.67').toBe('0.0.67')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.67').toBe('0.0.67')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.67]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.68').toBe('0.0.68')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.68').toBe('0.0.68')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.68]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.67`).toContain('0.0.67')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.68`).toContain('0.0.68')
     }
   })
 
@@ -3294,8 +3294,8 @@ describe('skills 批次防回退断言组·0.0.57 规模批', () => {
   it('0.0.57 长篇规模批：settle 清理句＋arcplan 幕末结算第 1 步新口径＋草稿清理薄入口注册＋版本字段契约句', () => {
     // A. settle 沉淀步:定稿清理句(五处+快照+写时发现先分拣)
     const settle = readSkill('novel-settle')
-    expect(settle).toContain('入档成功后清理本章草稿区五处')
-    expect(settle).toContain('写时发现须在本步分拣完毕后再清理')
+    expect(settle).toContain('入档成功后自动清理本章草稿区五处')
+    expect(settle).toContain('入档前先完成写时发现分拣')
     expect(settle).toContain('草稿清理.mjs')
     // B. arcplan 幕末结算第 1 步新口径(草稿区随定稿清理,核对 pending 遗留)
     const arc = readSkill('novel-arcplan')
@@ -3533,5 +3533,21 @@ describe('skills 批次防回退断言组·0.0.67 v2.9-C 裁决批', () => {
     expect(template).toContain('打破条件：')
     expect(template).toContain('破例记录：')
     expect(read('packages/bundle/skills/novel-review/agents/世界内合理性审读.md')).toContain('铁则破例另查')
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.68 性能批', () => {
+  it('0.0.68：compact/懒装配/进度截断/材料摘要/沉淀与审读契约修复在位', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    expect(read('packages/bundle/src/scripts/materials-cli.ts')).toContain('全文')
+    expect(read('packages/core/src/progress/index.ts')).toContain('chapterListText')
+    expect(read('packages/core/src/recovery/index.ts')).toContain('includeInjection')
+    expect(read('packages/bundle/skills/novel-settle/SKILL.md')).toContain('五段解析器输入＋第六节')
+    expect(read('packages/bundle/skills/novel-review/agents/全量审读.md')).toContain('v2.9 补充判据')
+    expect(read('packages/bundle/skills/novel-review/SKILL.md')).toContain('近期正文衔接')
+    expect(read('packages/bundle/skills/novel-review/SKILL.md')).toContain('回写工具会按')
+    expect(read('packages/bundle/skills/novel-design/SKILL.md')).toContain('由人工按档判')
+    expect(read('packages/bundle/src/tools/review-tools.ts')).toContain('JSON.stringify(value)')
   })
 })

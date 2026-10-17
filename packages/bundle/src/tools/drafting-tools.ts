@@ -43,7 +43,7 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => {
         const book = resolveBook(args, sessionContext)
@@ -125,7 +125,7 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
           },
           required: ['ok'],
         },
-        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
       execute: (args, sessionContext) => acceptEditorSuggestion(deps.editorRequests, sessionContext?.agent, args),
     },

@@ -149,6 +149,18 @@ describe('书级进度卡渲染(纯函数,固定输入固定输出)', () => {
     const again = renderBookProgress(detail, { '大纲/故事骨架.md': never, '作品契约/契约.md': scoped }, ['卷末锚点未兑现'])
     expect(again).toBe(out)
   })
+
+  it('长书章列表只列首尾各 15 章，中间省略并提示按卷查', () => {
+    const root = mkBook(true)
+    const detail = scanDesignDetail(root)
+    const list = detail.章进度.已定稿 as { 卷: number; 章: number }[]
+    for (let i = 0; i < 40; i++) list.push({ 卷: 1, 章: 100 + i })
+    list.sort((a, b) => a.卷 - b.卷 || a.章 - b.章)
+    const out = renderBookProgress(detail, {}, [])
+    expect(out).toContain(`已定稿 ${list.length} 章`)
+    expect(out).toContain(`省略 ${list.length - 30} 章`)
+    expect(out).toContain('按卷查 story_status')
+  })
 })
 
 describe('activeChapterLine(每轮 context 瘦身)', () => {

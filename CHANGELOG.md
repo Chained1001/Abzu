@@ -2,6 +2,26 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.68] — 2026-10-18
+
+### Changed（整体审查·性能/token 批）
+
+- **工具输出 compact JSON**：30 处 `JSON.stringify(value, null, 2)` 改为 compact；`novel_get_story_status` 60 章实测 35,891→约 16,449 字符（−54%），状态查询省约 6–7k 估算 token/次。
+- **状态查询不再装配 recovery injection**：`listResumable` 新增 `includeInjection`（默认 true，状态路径传 false）；不再为 20 章白读 20 份材料包（实测 1.5s→约 0.6s，少读约 13.7 万字符）。
+- **进度卡章列表截断**：`renderBookProgress` 只列首尾各 15 章并标省略数；1000 章书从约 1.16 万字符降到约 2k 量级；完整明细按卷查 `story_status`。
+- **材料备料默认摘要**：`材料备料.mjs` 默认只输出段名/字数/完整性/缺口，不打印十段全文；需要逐字核对时加 `--全文 true`，避免与任务包重复内联。
+- **润色承接严重度兼容**：高级判定同时接受 `高`／`硬伤`／`严重`，避免技能侧第二套词表写回后高级问题静默穿过承接门。
+- **声明-实现一致性修复**：沉淀 SKILL 统一“五段解析器输入＋第六节人读候选”（原 L46 仍写五段）；备包“逐件预览”改为“先组包再逐件审阅”；入档前分拣写时发现、入档后自动清理的顺序写清；章摘要待归模块移到章末状态行之前；全量审读补 v2.9 六类判据；派发模板补“近期正文衔接/近章节奏背景”槽；发现项编号改为回写工具生成；章型浮动改为“脚本不支持、人工按档判”，删除“机械全带核对”的误导。
+
+### 测试
+
+- 新增/更新：`materials-cli` 默认摘要＋`--全文` 回归、`impact-recovery` 的 `includeInjection:false`、`progress` 长书章列表截断；skills-batches 同步沉淀/浮动/审读断言。
+- core 相关 55/55、skills 69/69、materials 4/4 通过。
+
+### 验证
+
+lint ✓｜core typecheck ✓｜bundle typecheck ✓｜build ✓｜dump-config-check ✓｜check:public ✓（677 文件/122 提交）｜check:version 0.0.68 ✓｜pack-check ✓（187 文件/13 技能/11 脚本，sha256 `bfa770bae093698f5f22352a869b56a1a7b2fc3ef9da459bbd182561417e101a`）。
+
 ## [0.0.67] — 2026-10-17
 
 ### Changed（v2.9-C 裁决落地）

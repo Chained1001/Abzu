@@ -21,6 +21,7 @@ export function materialsCli(argv: readonly string[]): number {
   const 卷 = Number(argValue(argv, '卷'))
   const 章 = Number(argValue(argv, '章'))
   const 章名 = argValue(argv, '章名')?.trim()
+  const 全文 = argValue(argv, '全文') === 'true'
   if (!book) {
     console.error('前置参数错误：必须传 --book 书仓路径')
     return 1
@@ -39,6 +40,9 @@ export function materialsCli(argv: readonly string[]): number {
   }
   try {
     const c = computeMaterials(book, { 卷, 章, 章名 })
+    const files = (c.文件 ?? []).map((f) => 全文
+      ? { relPath: f.relPath, content: f.content }
+      : { relPath: f.relPath, 字数: f.content.length })
     console.log(JSON.stringify({
       ok: c.ok,
       状态: c.状态,
@@ -46,8 +50,9 @@ export function materialsCli(argv: readonly string[]): number {
       gaps: c.gaps,
       合计字数: c.合计字数 ?? 0,
       段: c.段 ?? [],
-      文件: (c.文件 ?? []).map((f) => ({ relPath: f.relPath, content: f.content })),
-    }, null, 2))
+      摘要: !全文,
+      文件: files,
+    }))
     if (!c.ok) {
       console.error(`材料备料未完成：${c.gaps.join('；')}`)
       return 1

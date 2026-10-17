@@ -303,6 +303,19 @@ export function listConfirmedEmpty(detail: DesignDetail): string[] {
 }
 
 /** 书级进度卡渲染(纯函数:固定输入固定输出,不含时间戳)。 */
+const PROGRESS_CHAPTERS_PER_SIDE = 15
+
+/** 进度卡只列首尾各 15 章；长书全列会把上千个章名灌进上下文。 */
+function chapterListText(list: readonly { readonly 卷: number; readonly 章: number }[]): string {
+  const label = (c: { readonly 卷: number; readonly 章: number }): string =>
+    `卷${pad(c.卷)}第${String(c.章).padStart(4, '0')}章`
+  if (list.length === 0) return '无'
+  if (list.length <= PROGRESS_CHAPTERS_PER_SIDE * 2) return list.map(label).join('、')
+  const head = list.slice(0, PROGRESS_CHAPTERS_PER_SIDE).map(label).join('、')
+  const tail = list.slice(-PROGRESS_CHAPTERS_PER_SIDE).map(label).join('、')
+  return `${head}、…（省略 ${list.length - PROGRESS_CHAPTERS_PER_SIDE * 2} 章，按卷查 story_status）、${tail}`
+}
+
 export function renderBookProgress(
   detail: DesignDetail,
   history: Readonly<Record<string, LastCommitResult>>,
@@ -346,7 +359,7 @@ export function renderBookProgress(
   }
   lines.push('')
 
-  lines.push(`章进度：已定稿 ${detail.章进度.已定稿.length} 章（${detail.章进度.已定稿.map((c) => `卷${pad(c.卷)}第${String(c.章).padStart(4, '0')}章`).join('、') || '无'}）`)
+  lines.push(`章进度：已定稿 ${detail.章进度.已定稿.length} 章（${chapterListText(detail.章进度.已定稿)}）`)
   if (detail.章进度.活跃章 !== null) {
     const k = detail.章进度.活跃章
     lines.push(`活跃章：卷${pad(k.卷)} 第${String(k.章).padStart(4, '0')}章 ${k.章名}`)

@@ -113,7 +113,7 @@ describe('材料备料薄入口 CLI(R21 纯算切割)', () => {
 
   it('正常路径:段齐备输出十段＋材料清单.json 载荷,清单口径与顶层一致,且零写盘', () => {
     const root = confirmedBook()
-    const { code, data, err } = invoke(['--book', root, '--卷', '1', '--章', '1', '--章名', '开篇任务'])
+    const { code, data, err } = invoke(['--book', root, '--卷', '1', '--章', '1', '--章名', '开篇任务', '--全文', 'true'])
     expect(code, err).toBe(0)
     expect(data!.ok).toBe(true)
     expect(data!.状态).toBe('段齐备')
@@ -135,6 +135,19 @@ describe('材料备料薄入口 CLI(R21 纯算切割)', () => {
     expect(manifest.段[0]!.来源[0]).toBe('大纲/卷规划/卷01/章细纲/0001-开篇任务.md')
     // 纯算零写盘(R21):stdout 给主 Agent 读包判断,落盘经常驻工具
     expect(fs.existsSync(path.join(root, '草稿区', '材料包')), 'CLI 不得写盘').toBe(false)
+  })
+
+  it('默认摘要：不打印十段全文，只给路径/字数/完整性/缺口', () => {
+    const root = confirmedBook()
+    const { code, data, err } = invoke(['--book', root, '--卷', '1', '--章', '1', '--章名', '开篇任务'])
+    expect(code, err).toBe(0)
+    expect(data!.摘要).toBe(true)
+    const 文件 = data!.文件 as { relPath: string; content?: string; 字数?: number }[]
+    expect(文件).toHaveLength(11)
+    for (const f of 文件) {
+      expect(f.content).toBeUndefined()
+      expect(typeof f.字数).toBe('number')
+    }
   })
 
   it('前置未就绪:书仓无确认细纲时 ok:false 照常出 stdout 报告,stderr 指名缺口,退出码 1', () => {
