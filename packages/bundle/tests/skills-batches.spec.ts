@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.65＋CHANGELOG 条目＋README×2（门禁单源批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.66＋CHANGELOG 条目＋README×2（v2.9 方法论批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.65').toBe('0.0.65')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.65').toBe('0.0.65')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.65]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.66').toBe('0.0.66')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.66').toBe('0.0.66')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.66]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.65`).toContain('0.0.65')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.66`).toContain('0.0.66')
     }
   })
 
@@ -3493,5 +3493,23 @@ describe('skills 批次防回退断言组·0.0.65 门禁单源批', () => {
     expect(docs).toContain('文件工具写入不受 Abzu 门禁保护')
     expect(fs.existsSync(path.join(root, 'packages/core/tests/gate-decide.spec.ts'))).toBe(true)
     expect(fs.existsSync(path.join(root, 'packages/bundle/tests/gate-invariants.spec.ts'))).toBe(true)
+  })
+})
+
+describe('skills 批次防回退断言组·0.0.66 v2.9 方法论批', () => {
+  it('0.0.66 v2.9-A/B：关键判据/模板在位，铁则口径未被静默改写', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    expect(read('packages/bundle/skills/novel-drafting/references/正文-场景与动作.md')).toContain('打斗五步与燃点')
+    expect(read('packages/bundle/skills/novel-drafting/references/正文-展示与对白.md')).toContain('对话三层与人物语言四层')
+    expect(read('packages/bundle/skills/novel-outline/references/章纲-信息与情绪.md')).toContain('信息差三型与两个条件')
+    expect(read('packages/bundle/skills/novel-design/templates/世界书/人物档案条目模板.md')).toContain('选择链（可选')
+    expect(read('packages/bundle/skills/novel-arcplan/templates/卷纲固定段规格.md')).toContain('卷末三锚点核对')
+    expect(read('packages/bundle/skills/novel-outline/references/章纲-场景与节奏.md')).toContain('情感容量与四层弧线')
+    expect(read('packages/bundle/skills/novel-outline/references/章纲-章型与开篇.md')).toContain('黄金三章分工')
+    expect(read('packages/bundle/skills/novel-design/SKILL.md')).toContain('世界观-地图与势力')
+    // 铁则“绝对不能打破”是既有口径，v2.9-B 不得静默改成“默认不可打破”
+    expect(read('packages/bundle/skills/novel-design/references/世界观-规则与铁则.md')).toContain('绝对不能打破')
+    expect(read('packages/bundle/skills/novel-design/references/世界观-规则与铁则.md')).not.toContain('默认不可打破')
   })
 })
