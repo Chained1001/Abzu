@@ -17,6 +17,7 @@ export const referenceDocs = [
   'skills/novel-forage/assets/灵感库种子/索引.md',
   'skills/novel-outline/references/桥段参照.md',
   'skills/novel-drafting/agents/写作卡.md',
+  'skills/novel-drafting/agents/写作卡-索引.md',
   'skills/novel-design/references/参考标尺.md',
   'skills/novel-design/references/雷点清单.md',
   ...['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则', '世界常量'].map(name => `skills/novel-design/templates/世界书/${name}条目模板.md`),
@@ -35,7 +36,7 @@ export const referenceDocs = [
   ...['开书-构思与验证', '开书-读者与情绪定位', '开书-书名与简介', '开书-参考作品利用', '人物设计-主角', '人物设计-金手指设计', '人物设计-配角与群像', '人物设计-反派', '人物设计-弧光与关系', '人物设计-人物卡工具', '世界观-规则与铁则', '世界观-力量体系与天花板', '世界观-地图与势力', '世界观-经济与原创性', '大纲-主线与骨架', '大纲-激励事件与首尾', '大纲-换图与支线', '大纲-伏笔埋收', '大纲-牌局与结构检查', '卷纲-卷功能与结构', '卷纲-节奏与高潮', '卷纲-情节类型骨架']
     .map(name => `skills/novel-design/references/${name}.md`),
   ...['章纲-章型与开篇', '章纲-冲突与爽点', '章纲-场景与节奏', '章纲-信息与情绪'].map(name => `skills/novel-outline/references/${name}.md`),
-  ...['正文-展示与对白', '正文-场景与动作', '正文-视角落地', '正文-文笔修炼', '正文-开场转场与特殊戏', '正文-中文行文规范', '默认文风'].map(name => `skills/novel-drafting/references/${name}.md`),
+  ...['正文-展示与对白', '正文-场景与动作', '正文-视角落地', '正文-文笔修炼', '正文-开场转场与特殊戏', '正文-中文行文规范', '默认文风', '默认文风-速查'].map(name => `skills/novel-drafting/references/${name}.md`),
   ...['排障-索引与改稿流程', '排障-专项修复', '排障-长篇防崩'].map(name => `skills/novel-director/references/${name}.md`),
   'skills/novel-director/references/书房与检索.md',
 ]

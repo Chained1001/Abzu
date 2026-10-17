@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.69＋CHANGELOG 条目＋README×2（token 大头批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.70＋CHANGELOG 条目＋README×2（token 大头批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.69').toBe('0.0.69')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.69').toBe('0.0.69')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.69]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.70').toBe('0.0.70')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.70').toBe('0.0.70')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.70]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.69`).toContain('0.0.69')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.70`).toContain('0.0.70')
     }
   })
 
@@ -2049,8 +2049,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const reshape = fs.readFileSync(skillFile('novel-polish', 'references/2-节奏与重塑.md'), 'utf8')
     expect(reshape).toContain('以本书文风基准（契约第五部调整＋本书锚点＋默认文风）为准')
     const review = readSkill('novel-review')
-    expect(review).toContain('默认文风全文')
-    expect(review).toContain('references/默认文风.md 原样全文内联')
+    expect(review).toContain('默认文风速查')
+    expect(review).toContain('references/默认文风-速查.md')
+    expect(review).toContain('默认文风.md 全文')
     const styleReview = fs.readFileSync(skillFile('novel-review', 'agents/文风与表达审读.md'), 'utf8')
     expect(styleReview).toContain('文风贴合对照本书文风基准')
     const sweep = fs.readFileSync(skillFile('novel-review', 'agents/全量审读.md'), 'utf8')
@@ -2221,7 +2222,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(cards).toContain('选卡映射：推进场景带推进卡｜塑造场景带塑造卡｜动作高潮场景带动作卡｜环境展开场景带环境卡｜转场/分镜切换场景带转场卡')
     expect(cards).toContain('「场景功能」枚举单源在《细纲备料》技能包 templates/章细纲固定小节规格.md')
     const drafting = readSkill('novel-drafting')
-    expect(drafting).toContain('按确认细纲/材料包各单元「场景功能」标注与卡头选卡映射把对应卡**原文内联**任务包')
+    expect(drafting).toContain('写作卡-索引')
+    expect(drafting).toContain('原文内联**任务包')
     expect(drafting).toContain('按卡头节源对应的《正文-*》拆分件整读')
     expect(cards).toContain('卡头节源→件对照（07 已拆《正文-*》六件＋06 一节；拆分件整件读）')
     expect(cards).toContain('§7.1/§7.2/§7.8/§7.9→正文-展示与对白')
@@ -3552,8 +3554,8 @@ describe('skills 批次防回退断言组·0.0.68 性能批', () => {
   })
 })
 
-describe('skills 批次防回退断言组·0.0.69 token 大头批', () => {
-  it('0.0.69：设计四卡/细纲十查卡在位，卡不冒充判据单源', () => {
+describe('skills 批次防回退断言组·0.0.69/0.0.70 token 大头批', () => {
+  it('0.0.69/0.0.70：设计四卡/细纲十查/写作卡索引/默认文风速查在位，卡不冒充判据单源', () => {
     const root = path.join(__dirname, '..', '..', '..')
     const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
     for (const name of ['契约', '世界书', '骨架', '分卷']) {
@@ -3567,7 +3569,13 @@ describe('skills 批次防回退断言组·0.0.69 token 大头批', () => {
     expect(ten).toContain('深挖')
     expect(read('packages/bundle/skills/novel-design/SKILL.md')).toContain('步骤卡-契约')
     expect(read('packages/bundle/skills/novel-outline/SKILL.md')).toContain('步骤卡-写前十查')
+    const cardIndex = read('packages/bundle/skills/novel-drafting/agents/写作卡-索引.md')
+    expect(cardIndex).toContain('不整份读')
+    expect(read('packages/bundle/skills/novel-drafting/references/默认文风-速查.md')).toContain('完整判据')
+    expect(read('packages/bundle/skills/novel-drafting/SKILL.md')).toContain('写作卡-索引')
+    expect(read('packages/bundle/skills/novel-review/SKILL.md')).toContain('默认文风-速查')
+    expect(read('packages/bundle/skills/novel-polish/SKILL.md')).toContain('默认文风-速查')
     const contract = read('packages/bundle/scripts/artifact-contract.mjs')
-    for (const p of ['步骤卡-契约', '步骤卡-世界书', '步骤卡-骨架', '步骤卡-分卷', '步骤卡-写前十查']) expect(contract).toContain(p)
+    for (const p of ['步骤卡-契约', '步骤卡-世界书', '步骤卡-骨架', '步骤卡-分卷', '步骤卡-写前十查', '写作卡-索引', '默认文风-速查']) expect(contract).toContain(p)
   })
 })
