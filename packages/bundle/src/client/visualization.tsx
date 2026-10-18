@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, BookOpen, ExternalLink, Network, RefreshCw, Search, Workflow } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Compass, ExternalLink, Network, RefreshCw, Search, Workflow } from 'lucide-react'
 import type { ChapterView, StudyShelf } from '../study/types'
 import { RelationshipGraph } from './relationship-graph'
+import { StageOverview } from './stage-overview'
 import { WritingWorkflow } from './workflow-view'
 import type { StudyUI } from './browser'
 import type { EditorStore } from './store'
@@ -66,16 +67,16 @@ function WorkspaceVisual({ sessionId, store }: { sessionId: string; store: Edito
   const shelf = useStudy<StudyShelf>(sessionId, 'shelf', {}, state.refresh)
   const books = shelf.value?.books.filter(book => !book.error) ?? []
   const [choice, setChoice] = useState('')
-  const [mode, setMode] = useState<'workflow' | 'graph' | 'chapters'>('workflow')
+  const [mode, setMode] = useState<'stages' | 'workflow' | 'graph' | 'chapters'>('stages')
   const space = books.some(book => book.id === choice) ? choice : books[0]?.id
   return <div className="nw-viz">
-    <header className="nw-viz-header"><div><p>作品视图</p><h2>{mode === 'graph' ? '人物关系' : mode === 'workflow' ? '写作流程' : '章节进度'}</h2></div>
+    <header className="nw-viz-header"><div><p>作品视图</p><h2>{mode === 'stages' ? '创作阶段' : mode === 'graph' ? '人物关系' : mode === 'workflow' ? '写作流程' : '章节进度'}</h2></div>
       <div className="nw-viz-header-actions"><select aria-label="选择可视化作品" value={space ?? ''} onChange={event => setChoice(event.target.value)}>{books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select>
         <button type="button" className="nw-icon" aria-label="刷新作品视图" onClick={() => store.update(sessionId, { refresh: state.refresh + 1 })}><RefreshCw size={16} /></button></div></header>
-    <div className="nw-viz-switch" role="group" aria-label="可视化视图"><button type="button" aria-pressed={mode === 'workflow'} onClick={() => setMode('workflow')}><Workflow size={15} />写作流程</button><button type="button" aria-pressed={mode === 'graph'} onClick={() => setMode('graph')}><Network size={15} />人物关系</button>
+    <div className="nw-viz-switch" role="group" aria-label="可视化视图"><button type="button" aria-pressed={mode === 'stages'} onClick={() => setMode('stages')}><Compass size={15} />创作阶段</button><button type="button" aria-pressed={mode === 'workflow'} onClick={() => setMode('workflow')}><Workflow size={15} />写作流程</button><button type="button" aria-pressed={mode === 'graph'} onClick={() => setMode('graph')}><Network size={15} />人物关系</button>
       <button type="button" aria-pressed={mode === 'chapters'} onClick={() => setMode('chapters')}><BookOpen size={15} />章节进度</button></div>
     {shelf.error ? <p className="nw-error">{shelf.error}</p> : null}
-    {space ? <div key={space}>{mode === 'workflow' ? <WritingWorkflow {...{ sessionId, space, store, refresh: state.refresh }} /> : mode === 'graph' ? <RelationshipGraph {...{ sessionId, space, store, refresh: state.refresh }} /> : <ChapterProgress {...{ sessionId, space, store, refresh: state.refresh }} />}</div>
+    {space ? <div key={space}>{mode === 'stages' ? <StageOverview {...{ sessionId, space, refresh: state.refresh }} /> : mode === 'workflow' ? <WritingWorkflow {...{ sessionId, space, store, refresh: state.refresh }} /> : mode === 'graph' ? <RelationshipGraph {...{ sessionId, space, store, refresh: state.refresh }} /> : <ChapterProgress {...{ sessionId, space, store, refresh: state.refresh }} />}</div>
       : <p className="nw-empty">{shelf.loading ? '正在读取作品…' : '当前工作范围暂无作品。'}</p>}
   </div>
 }
