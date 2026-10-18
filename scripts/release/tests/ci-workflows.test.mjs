@@ -10,7 +10,7 @@ const { parse } = createRequire(path.join(root, 'packages/bundle/package.json'))
 const workflow = name => parse(fs.readFileSync(path.join(root, `.github/workflows/${name}.yml`), 'utf8'))
 
 test('both Windows runtimes keep complete, disjoint test shards and required policy checks', async () => {
-  const ci = workflow('v8-ci')
+  const ci = workflow('abzu-ci')
   assert.deepEqual(ci.jobs.quality.strategy.matrix.node, ['22.19.0', '24.15.0'])
   assert.deepEqual(ci.jobs.quality.strategy.matrix.shard, [1, 2])
   assert.deepEqual(ci.jobs.required.needs, ['policy', 'quality'])
