@@ -2,7 +2,7 @@
   "name": "abzu-workspace",
   "private": true,
   "type": "module",
-  "version": "0.0.81",
+  "version": "0.0.82",
   "description": "Abzu: a long-form fiction writing workspace for DeepSeek Harness",
   "packageManager": "pnpm@11.27.1",
   "scripts": {

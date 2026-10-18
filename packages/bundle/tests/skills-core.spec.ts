@@ -16,17 +16,17 @@ import { readSkill, skillPath } from './skill-test-helpers'
 const EXPECTED_SKILLS: ReadonlyArray<{ readonly name: string; readonly 中文名: string }> = [
   { name: 'novel-director', 中文名: '工作台总控' },
   { name: 'novel-inspiration', 中文名: '灵感与立项' },
-  { name: 'novel-forage', 中文名: '素材库与采风' },
   { name: 'novel-design', 中文名: '定调设计' },
   { name: 'novel-arcplan', 中文名: '卷幕规划' },
   { name: 'novel-outline', 中文名: '细纲备料' },
   { name: 'novel-drafting', 中文名: '正文起草' },
   { name: 'novel-review', 中文名: '全面审读' },
-  { name: 'novel-polish', 中文名: '精修润色' },
   { name: 'novel-revision', 中文名: '改稿' },
+  { name: 'novel-polish', 中文名: '精修润色' },
   { name: 'novel-settle', 中文名: '定稿沉淀' },
-  { name: 'novel-export', 中文名: '最小导出' },
+  { name: 'novel-forage', 中文名: '素材库与采风' },
   { name: 'novel-analyze', 中文名: '参考小说拆解' },
+  { name: 'novel-export', 中文名: '最小导出' },
 ]
 
 const BLACKLIST = ['家位', '门控', '闭环', '抓手', '世代']
@@ -94,6 +94,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     const director = readSkill('novel-director')
     const routes = [...director.matchAll(/^\| ([^|]+) \| `(novel-[a-z-]+)` \|$/gm)]
     expect(routes).toHaveLength(EXPECTED_SKILLS.length)
+    expect(routes.map(([, , name]) => name)).toEqual(EXPECTED_SKILLS.map((s) => s.name))
     for (const [, title, name] of routes) {
       expect(EXPECTED_SKILLS).toContainEqual({ name, 中文名: title })
       expect(SKILL_NAME_RE.test(name!)).toBe(true)

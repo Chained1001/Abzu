@@ -21,12 +21,14 @@ user-invocable: false
 | 细纲备料 | `novel-outline` |
 | 正文起草 | `novel-drafting` |
 | 全面审读 | `novel-review` |
-| 精修润色 | `novel-polish` |
 | 改稿 | `novel-revision` |
+| 精修润色 | `novel-polish` |
 | 定稿沉淀 | `novel-settle` |
-| 最小导出 | `novel-export` |
-| 参考小说拆解 | `novel-analyze` |
 | 素材库与采风 | `novel-forage` |
+| 参考小说拆解 | `novel-analyze` |
+| 最小导出 | `novel-export` |
+
+前 10 行是主线顺序；《素材库与采风》《参考小说拆解》是按需工具，《最小导出》随时可用，不进入章节状态机。
 
 ## 标准流程
 
