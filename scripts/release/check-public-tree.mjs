@@ -4,7 +4,7 @@ import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const rootFiles = new Set(['.gitattributes', '.gitignore', '.npmrc', 'LICENSE', 'README.md', 'CHANGELOG-archive.md', 'CHANGELOG.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'vitest.config.ts', 'eslint.config.mjs'])
+const rootFiles = new Set(['.gitattributes', '.gitignore', '.npmrc', 'LICENSE', 'README.md', 'CHANGELOG.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'vitest.config.ts', 'eslint.config.mjs'])
 export function checkPublicPath(file) {
   assert.ok(!file.includes('\\') && !file.includes(':') && !file.startsWith('/') && !file.split('/').includes('..'), `Unsafe public path: ${file}`)
   assert.ok(rootFiles.has(file) || /^(packages|scripts|docs|\.github)\//.test(file)
@@ -14,7 +14,7 @@ export function checkPublicPath(file) {
 }
 
 // History-only paths: deleted from the current tree but still present in past commits.
-const historyFiles = new Set(['CODE_OF_CONDUCT.md', 'CONTEXT.md', 'SECURITY.md', 'CONTRIBUTING.md', 'dsh-baseline.json', '.node-version'])
+const historyFiles = new Set(['CODE_OF_CONDUCT.md', 'CONTEXT.md', 'SECURITY.md', 'CONTRIBUTING.md', 'dsh-baseline.json', '.node-version', 'CHANGELOG-archive.md'])
 const historyPrefixes = ['site/', 'examples/']
 const isHistoryOnly = file => historyFiles.has(file) || historyPrefixes.some(prefix => file.startsWith(prefix))
 export function checkPublicText(file, data) {
