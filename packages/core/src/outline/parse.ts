@@ -3,7 +3,6 @@
  */
 
 import { parseDocument } from '../repo/frontmatter'
-import { parseSourceRef, type SourceRef } from '../repo/sourceRef'
 import { 定位段小节, 单元字段, type 定位段名, type 单元字段名 } from './template'
 
 export type ConstraintMark = '硬' | '软' | '自由'
@@ -184,6 +183,4 @@ export function parseOutline(text: string): ParsedOutline {
   }
 }
 
-export function parseSourceRefs(lines: readonly string[]): ReadonlyArray<SourceRef | null> {
-  return lines.map((line) => parseSourceRef(line.startsWith('来源') ? line : `来源:${line}`))
-}
+

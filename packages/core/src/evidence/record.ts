@@ -3,7 +3,7 @@
  */
 
 import * as path from 'node:path'
-import { readBookText } from '../repo/read'
+import { readBookTextOrNull } from '../repo/read'
 import { sha256Hex } from '../repo/hash'
 import type { ChapterKey } from '../derive/scan'
 import { writeFileAtomic } from '../repo/atomic'
@@ -160,11 +160,7 @@ export function isReviewIncomplete(record: ReviewRecord): boolean {
   return record.完成 !== true
 }
 
-function readText(root: string, rel: string): string | null {
-  // A-2：读原语单源（同样剥 BOM，与 readMachineText 口径一致）；判据不变——非 missing 也仍返回 null。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
+const readText = readBookTextOrNull
 
 function asDisposition(v: unknown): 处置状态 {
   if (typeof v === 'string' && (处置状态列表 as readonly string[]).includes(v)) return v as 处置状态

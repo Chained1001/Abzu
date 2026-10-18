@@ -1,4 +1,4 @@
-export { createBook, bookIdFromName, type CreateBookInput, type CreateBookResult } from './create'
+export { createBook, type CreateBookInput, type CreateBookResult } from './create'
 export {
   conceptSnapshotText,
   emptyContractBody,

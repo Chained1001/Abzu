@@ -25,7 +25,6 @@ export {
   actOutlineGaps,
   checkVolumeReady,
   planTimelineBody,
-  volumeDir,
   volumeOutlineGaps,
   幕纲必备段,
   卷纲脚手架段,

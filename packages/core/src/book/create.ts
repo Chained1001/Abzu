@@ -39,11 +39,6 @@ export function generateBookId(书名: string): string {
   return `b-${h.toString(36)}`
 }
 
-/** 兼容旧名(旧实现返回书名本身;新代码用 generateBookId)。 */
-export function bookIdFromName(书名: string): string {
-  return generateBookId(书名)
-}
-
 export function createBook(input: CreateBookInput): CreateBookResult {
   // 批F:validateSegment/assertSegment 双层守卫收一——assertSegment 内部即 validateSegment,行为不变
   try { assertSegment(input.书名, '书名') } catch (err) {

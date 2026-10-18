@@ -5,10 +5,6 @@
  * 进路径的字段(章名、条目名)一律白名单校验,防路径注入。
  */
 
-export interface RepoPaths {
-  readonly root: string
-}
-
 export const LEDGER_KINDS = ['故事线', '人物弧线', '承诺', '线索'] as const
 export const LEDGER_NAMES = [...LEDGER_KINDS, '时间线'] as const
 /** 本书记忆类别（0.0.50 收窄）：只余 文风（锚点段）与 决策（偏离处置等）。 */

@@ -1,6 +1,10 @@
 # 更新记录
 
-> 当前版本 0.0.80。更早版本见 git 历史；本文件只保留最近几次发布。
+> 当前版本 0.0.81。更早版本见 git 历史；本文件只保留最近几次发布。
+
+## [0.0.81] — 2026-10-18
+
+- core 读文本包装统一走 `readBookTextOrNull`；删除 `RepoPaths`、`volumeDir`、`parseSourceRefs`、`bookIdFromName` 四个无消费导出。
 
 ## [0.0.80] — 2026-10-18
 

@@ -3,7 +3,7 @@
  */
 
 import * as path from 'node:path'
-import { readBookText } from '../repo/read'
+import { readBookTextOrNull } from '../repo/read'
 import { sha256Hex } from '../repo/hash'
 import type { ChapterKey } from '../derive/scan'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
@@ -49,11 +49,7 @@ function sha256Of(content: string): string {
   return sha256Hex(content)
 }
 
-function readText(root: string, rel: string): string | null {
-  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
+const readText = readBookTextOrNull
 
 /**
  * 沉淀候选预校验:只解析不写,失败抛出解析器原话,调用方原样返回且不写任何文件。

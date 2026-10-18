@@ -10,7 +10,7 @@ import {
   chapterLengthIdentity,
   checkChapterLength,
   readChapterLength,
-  readBookText,
+  readBookTextOrNull,
   emptyReviewRecord,
   findPendingReviewDraft,
   loadReviewRecord,
@@ -60,12 +60,7 @@ export interface ReviewProseStats extends ProseTextCounts {
   readonly 统计口径: string
 }
 
-function readText(root: string, rel: string): string | null {
-  // 0.0.60:细纲读取改 core 的 readBookText——剥 BOM 与 scan/derive 同口径,
-  // 外部编辑器带 BOM 保存的细纲不再让审读指纹永远失配(承接永不成立)。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
+const readText = readBookTextOrNull
 
 function reviewId(key: ReviewKey): string {
   return `审-${String(key.卷).padStart(2, '0')}-${String(key.章).padStart(4, '0')}`

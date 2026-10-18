@@ -7,7 +7,7 @@ import * as path from 'node:path'
 import { parseWindow } from '../derive/scan'
 import { assertWindowEntryState, isWindowEntryReady } from '../derive/states'
 import { writeFileAtomic, type FileOp } from '../repo/atomic'
-import { assertSegment, LAYOUT, paths } from '../repo/paths'
+import { assertSegment, paths } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
 import { prepareDesignDoc, type DesignWriteResult } from './skeleton'
 
@@ -171,6 +171,4 @@ function exists(root: string, rel: string): boolean {
   try { return fs.existsSync(path.join(root, rel)) } catch { return false }
 }
 
-export function volumeDir(卷: number): string {
-  return LAYOUT.卷规划(卷)
-}
+

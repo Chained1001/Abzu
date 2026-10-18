@@ -5,7 +5,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { readBookText } from '../repo/read'
+import { readBookTextOrNull } from '../repo/read'
 import { parseWindow, type ChapterKey } from '../derive/scan'
 import { isWindowEntryReady } from '../derive/states'
 import { applyVersionFields, bumpVersion, initialVersion } from '../provenance'
@@ -39,11 +39,7 @@ export interface ConfirmOutlineInput {
   readonly 章名: string
 }
 
-function readText(root: string, rel: string): string | null {
-  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
+const readText = readBookTextOrNull
 
 function asRefLine(raw: string): string {
   const t = raw.trim()

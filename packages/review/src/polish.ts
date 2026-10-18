@@ -21,7 +21,7 @@ import {
   loadReviewRecord,
   parseDocument,
   paths,
-  readBookText,
+  readBookTextOrNull,
   readChapterLength,
   resolveDraftRel,
   readReviewRecordForUpdate,
@@ -66,12 +66,7 @@ interface DraftView {
   readonly 版本: number | null
 }
 
-function readText(root: string, rel: string): string | null {
-  // 0.0.60:细纲读取改 core 的 readBookText——剥 BOM 与 scan/computeReview 同口径,
-  // 外部编辑器带 BOM 保存的细纲不再让承接指纹永不成立(草稿读入后仍走 parseDocument,口径不变)。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
+const readText = readBookTextOrNull
 
 function draftViews(root: string, key: Pick<ChapterKey, '卷' | '章名'>): DraftView[] {
   const views: DraftView[] = []

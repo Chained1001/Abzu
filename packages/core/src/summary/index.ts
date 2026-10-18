@@ -7,7 +7,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { readBookText } from '../repo/read'
+import { readBookTextOrNull } from '../repo/read'
 import { entryChapterNo, queryLedger } from '../ledger'
 import { parseDocument } from '../repo/frontmatter'
 import { chapterNo, matchChapterFileName, pad, paths } from '../repo/paths'
@@ -30,11 +30,7 @@ export type VolumeSummaryCandidate =
       readonly 账本失败?: true
     }
 
-function readText(root: string, rel: string): string | null {
-  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
+const readText = readBookTextOrNull
 
 function bodyOnly(text: string): string {
   const r = parseDocument(text)
