@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.78＋CHANGELOG 条目＋README×2（0.0.78 第三批审计修复版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.79＋CHANGELOG 条目＋README×2（0.0.79 知识库重戳版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.78').toBe('0.0.78')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.78').toBe('0.0.78')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.78]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.79').toBe('0.0.79')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.79').toBe('0.0.79')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.79]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.78`).toContain('0.0.78')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.79`).toContain('0.0.79')
     }
   })
 
@@ -2726,7 +2726,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(ref('novel-outline', 'references/章纲-场景与节奏.md')).toContain('铺垫段只写叠 BUFF 的三件事吗？（反派多嚣张／众人多看衰／主角有什么暗牌')
     // 0.0.53 知识库 v2.8 集成重戳：三处源侧修补件的净版戳（全量戳位由 skills-core 净版纪律断言守）
     for (const [skill, file] of [['novel-design', 'references/开书-构思与验证.md'], ['novel-director', 'references/排障-长篇防崩.md'], ['novel-outline', 'references/章纲-场景与节奏.md']] as const) {
-      expect(ref(skill, file), `${file} 净版戳应为 v2.8`).toContain('源版本 v2.8')
+      expect(ref(skill, file), `${file} 净版戳应为 v2.8/v2.9`).toMatch(/源版本 v2\.(?:8|9)/)
     }
   })
 
