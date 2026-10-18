@@ -2,6 +2,21 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.74] — 2026-10-18
+
+### Changed（发布链验证与测试清理）
+
+- **正式 release:build 干跑通过**：0.0.73 产物含 tgz、源码包、release-notes、manifest、SHA256SUMS；notes 已被校验和覆盖，默认 preflight 跑 release tests＋check:version。
+- **测试分片文档**：技术文档补“普通测试用仓外 TEMP、esbuild/宿主 5 件用仓内 TEMP”的可复现跑法，避免把 Windows 文件锁/写盘限制误判成代码回归。
+- **死链清理**：删除 9 个无调用浏览器探针与 `start-study-check.mjs`；已知问题节同步删除“探针未被调用”残句。
+- **工具说明**：技术文档补 4 个未在 SKILL 主链命名的工具（编辑器建议/索引维护/已定稿检索/测试夹具），明确不是死代码。
+- **发布测试**：新增 manifest 发布面单测（private、publishConfig、生命周期钩子、workspace/@abzu 依赖）；release tests 22→27。
+- 版本钉位、README、CHANGELOG 同步 0.0.74。
+
+### 验证
+
+lint ✓｜typecheck ✓｜build ✓｜skills 72/72 ✓｜release tests 27/27 ✓｜check:public ✓（680 文件/128 提交）｜check:version 0.0.74 ✓｜pack-check ✓（194 文件/13 技能/11 脚本，sha256 `6fb4aec7df5f52c148b621cb2bff530f46d0de8c07d58468827ec326c6021b86`）。
+
 ## [0.0.73] — 2026-10-18
 
 ### Changed（品牌与连写上限收口）
