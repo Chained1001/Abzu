@@ -2865,7 +2865,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(arcSettle52).toContain('「一幕的定稿正文」')
     // E. 读者评审底本：对象类型加「幕正文」＋检查清单小节（原有三张不删）
     const reader = fs.readFileSync(skillFile('novel-design', 'agents/读者评审.md'), 'utf8')
-    expect(reader).toContain('骨架 / 分卷 / 卷纲 / 幕正文')
+    expect(reader).toContain('骨架 / 分卷 / 卷纲 / 幕纲 / 幕正文')
     expect(reader).toContain('### 对象＝幕正文（一幕的定稿正文，0.0.52 幕纲批新增对象类型）')
     expect(reader).toContain('R1 雷点扫描')
     expect(reader).toContain('R2 弃书点预测（本对象最重要）')
@@ -3843,5 +3843,76 @@ describe('skills 批次防回退断言组·02 设计两席真源查询＋人类�
     expect(design).toContain('第一遍预测—验证＋人类五问')
     expect(design).toContain('读者席真源列恒「不适用（本席不读真源）」')
     expect(design).toContain('按作家→读者串行')
+  })
+})
+
+describe('skills 批次防回退断言组·03 幕纲两席评审与关键幕门禁批', () => {
+  it('03：两席支持幕纲与六固定段，检查点分席，arcplan 派发/门禁，报告路径落到幕NN', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const writer = read('packages/bundle/skills/novel-design/agents/作家评审.md')
+    const reader = read('packages/bundle/skills/novel-design/agents/读者评审.md')
+    const arcplan = read('packages/bundle/skills/novel-arcplan/SKILL.md')
+    const memoSpec = read('packages/bundle/skills/novel-arcplan/templates/幕纲固定段规格.md')
+
+    // A. 两席对象类型增加幕纲＋对象路径（真源路径与规格一致）
+    for (const [label, text] of [['作家席', writer], ['读者席', reader]] as const) {
+      expect(text, `${label}: 对象类型应列幕纲`).toMatch(/对象类型 \| 骨架 \/ 分卷 \/ 卷纲 \/ 幕纲/)
+      expect(text, `${label}: 幕纲对象路径应在位`).toContain('大纲/卷规划/卷NN/幕纲/幕NN-<幕名>.md')
+      expect(text, `${label}: 报告路径应增幕NN`).toContain('{对象}：骨架/分卷/卷NN/幕NN')
+    }
+
+    // B. 六固定段：规格段标题＋作家席逐段检查点
+    const sixSegments = ['本幕故事', '线与伏笔', '出场人物', '查证清单', '章组排布', '幕末结算']
+    for (const seg of sixSegments) {
+      expect(memoSpec, `幕纲规格应含固定段「${seg}」`).toContain(`## ${seg}`)
+      expect(writer, `作家席幕纲检查应含固定段「${seg}」`).toContain(`**${seg}**`)
+    }
+
+    // C. 作家席检查点：故事五要素/旧新悬念远期到期/想要状态与规模/章数章组高潮调剂章序/结算/边界
+    for (const kw of ['起因', '目标', '阻碍', '高潮画面', '幕末状态']) {
+      expect(writer, `作家席本幕故事应含「${kw}」`).toContain(kw)
+    }
+    for (const kw of ['旧线', '新埋伏笔', '展开的悬念', '远期兑现点', '到期承诺']) {
+      expect(writer, `作家席线与伏笔应含「${kw}」`).toContain(kw)
+    }
+    expect(writer).toContain('想要')
+    expect(writer).toContain('状态')
+    expect(writer, '作家席应核人物规模随主角位阶').toContain('人物规模随主角当前位阶')
+    expect(writer, '作家席应核章数（不写数字）').toContain('章组章数合计')
+    expect(writer).toContain('高潮后调剂')
+    expect(writer).toContain('章序可在幕内调整')
+    expect(writer, '作家席只审幕级结构与因果').toContain('只审幕级结构与因果')
+    expect(writer, '作家席不审逐句文笔').toContain('不审逐句文笔')
+
+    // D. 读者席检查点：读者盼什么/幕末钩/情绪曲线/弃书点/信息给足＋两条隔离
+    for (const kw of ['本幕读者盼什么', '幕末钩', '情绪曲线', '弃书点', '信息是否给足']) {
+      expect(reader, `读者席幕纲检查应含「${kw}」`).toContain(kw)
+    }
+    expect(reader, '读者席不审章级正文事实').toContain('不审章级正文事实')
+    expect(reader, '读者席不读世界书与账本').toContain('不读世界书与账本')
+    expect(reader, '幕纲合法留白不误报信息不足').toContain('段标 `〔留白〕` 是合法状态')
+
+    // E. arcplan 派发与门禁：第一幕/关键幕两席、普通幕作家席或作者跳过、串行不通气、不拦卡但关键幕硬伤呈报
+    expect(arcplan, 'arcplan 应有幕纲评审节').toContain('### 幕纲评审与关键幕门禁')
+    expect(arcplan).toContain('第一幕与关键幕')
+    expect(arcplan).toContain('普通幕至少派作家评审')
+    expect(arcplan).toContain('作者明确跳过')
+    expect(arcplan).toContain('作家→读者串行')
+    expect(arcplan).toContain('两席独立互不通气')
+    expect(arcplan).toContain('评审不拦卡')
+    expect(arcplan, '关键幕硬伤未处置不得确认写入/开写整幕').toContain('不得确认写入幕纲、不得开写整幕')
+    expect(arcplan).toContain('先呈报作者裁决')
+
+    // F. 报告路径与 02 字段口径：幕NN_作家/幕NN_读者，真源/预测/负载性沿用（读者席真源不适用）
+    expect(arcplan).toContain('幕NN_作家.md')
+    expect(arcplan).toContain('幕NN_读者.md')
+    for (const [label, text] of [['作家席', writer], ['读者席', reader]] as const) {
+      for (const col of ['| 真源 |', '| 判定 |', '| 常理层 |', '| 预期 |', '| 文本 |', '| 差距 |', '| 负载性 |']) {
+        expect(text, `${label}: 幕纲报告应沿用 02 字段「${col}」`).toContain(col)
+      }
+    }
+    expect(reader).toContain('不适用（本席不读真源）')
+    expect(arcplan).toContain('读者席真源列恒「不适用（本席不读真源）」')
   })
 })
