@@ -20,6 +20,7 @@ export const referenceDocs = [
   'skills/novel-drafting/agents/写作卡-索引.md',
   'skills/novel-design/references/参考标尺.md',
   'skills/novel-design/references/雷点清单.md',
+  'skills/novel-design/references/变更影响分析.md',
   ...['人物档案', '世界规则', '力量体系', '组织', '地图', '局规则', '世界常量'].map(name => `skills/novel-design/templates/世界书/${name}条目模板.md`),
   'skills/novel-design/templates/对手梯队子表规格.md',
   'skills/novel-design/templates/步骤卡-契约.md',

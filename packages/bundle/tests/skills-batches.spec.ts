@@ -3691,3 +3691,88 @@ describe('skills 批次防回退断言组·07 起草心流分层批', () => {
     expect(drafting).toContain('**停笔交停笔报告**：只交一份报告不交稿')
   })
 })
+
+describe('skills 批次防回退断言组·变更影响分析批', () => {
+  it('05：L0-L4 分级＋变更包十八字段＋依赖顺序＋吃书补偿/回归＋双 SKILL 指针＋注册单源', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const refPath = path.join(root, 'packages/bundle/skills/novel-design/references/变更影响分析.md')
+    expect(fs.existsSync(refPath), 'novel-design/references/变更影响分析.md 应存在').toBe(true)
+    const text = fs.readFileSync(refPath, 'utf8')
+    // A. 分级：五级与五个级名全在位；定级不得只写代号
+    for (const level of ['L0', 'L1', 'L2', 'L3', 'L4']) expect(text, `分级应含「${level}」`).toContain(level)
+    for (const name of ['表达', '局部事实', '剧情人物', '硬设定契约', '已定稿已发布']) {
+      expect(text, `分级名称应含「${name}」`).toContain(name)
+    }
+    expect(text).toContain('就高不就低')
+    // B. 变更包字段：十八项逐项钉在模板节，散文里偶然出现不算
+    const packStart = text.indexOf('### 必填字段')
+    const packEnd = text.indexOf('### 受影响工件怎么取')
+    expect(packStart).toBeGreaterThanOrEqual(0)
+    expect(packEnd).toBeGreaterThan(packStart)
+    const pack = text.slice(packStart, packEnd)
+    for (const field of ['旧', '新', '原因', '影响人物', '影响关系', '影响能力', '影响知识', '影响社会', '事件链', '伏笔', '读者承诺', '受影响工件', '已写章节处理', '最小改法', '彻底改法', '吃书补偿', '回归验证', '作者裁决']) {
+      expect(pack, `变更包字段应含「${field}」行`).toContain(`| ${field} |`)
+    }
+    // C. 依赖顺序：逐层先后不可跳
+    expect(text).toContain('契约 → 世界书 → 骨架 → 分卷 → 卷纲 → 幕纲 → 细纲 → 正文 → 账本/摘要')
+    const orderSection = text.slice(text.indexOf('### 顺序链'), text.indexOf('### 逐层改法'))
+    expect(orderSection).toContain('不可跳层')
+    // D. 已写章节与回归：四件补偿＋定稿只增不改＋回归表
+    for (const item of ['正文补偿', '认知补偿', '承诺补偿', '账本／摘要补偿']) {
+      expect(text, `吃书补偿四件应含「${item}」`).toContain(item)
+    }
+    expect(text).toContain('定稿区只增不改')
+    expect(text).toContain('影响分析复跑')
+    expect(text).toContain('通过标准')
+    // E. 三例：职业变更／知识来源变更／剧情 A→B 各一
+    for (const example of ['例一：职业变更', '例二：知识来源变更', '例三：剧情 A→B']) {
+      expect(text, `应含「${example}」`).toContain(example)
+    }
+    // F. 双 SKILL 指针：何时必须读＋何时走提案/作者裁决
+    const design = readSkill('novel-design')
+    expect(design).toContain('[变更影响分析](references/变更影响分析.md)')
+    expect(design).toContain('L0-L4')
+    expect(design).toContain('L2 以上或命中已定稿/已发布，走提案与作者裁决')
+    const arcplan = readSkill('novel-arcplan')
+    expect(arcplan).toContain('references/变更影响分析.md')
+    expect(arcplan).toContain('L0-L4')
+    expect(arcplan).toContain('L2 以上走提案与作者裁决')
+    // G. 注册单源：artifact-contract 登记（pack-check 按 referenceDocs 校验打包面）
+    const contract = read('packages/bundle/scripts/artifact-contract.mjs')
+    expect(contract).toContain("'skills/novel-design/references/变更影响分析.md'")
+  })
+})
+
+describe('skills 批次防回退断言组·08 拆书机制消费闭环批', () => {
+  it('08：细纲机制使用登记＋任务包参考机制段＋消费回看，可选不阻塞正文', () => {
+    const outline = readSkill('novel-outline')
+    // 细纲消费入口：标志场景/作者点名触发检索，命中即登记五字段；可选、不强制每章、未拆书跳过
+    expect(outline).toContain('或作者点名时')
+    expect(outline).toContain('novel_reference_query search')
+    expect(outline).toContain('机制使用登记')
+    expect(outline).toContain('机制卡／版本／借什么原理／不借什么／用在哪单元')
+    expect(outline).toContain('写进候选细纲可选增补行或材料包补充')
+    expect(outline).toContain('不参与确认校验')
+    expect(outline).toContain('不强制每章查')
+    expect(outline).toContain('未拆书跳过')
+    expect(outline).toContain('借魂不借形')
+    // 起草任务包：可选段最多 1-2 条＋内联关键行＋借/不借边界；无则写「无」，不许子代理自编
+    const drafting = readSkill('novel-drafting')
+    expect(drafting).toContain('**本章参考机制（可选）**')
+    expect(drafting).toContain('带最多 1-2 条')
+    expect(drafting).toContain('内联机制卡的关键行')
+    expect(drafting).toContain('借什么原理、不借什么')
+    expect(drafting).toContain('无登记或未拆书写「无」')
+    expect(drafting).toContain('子代理不得自行编机制')
+    expect(drafting).toContain('参考机制只是分析建议')
+    // 分析侧消费回看：登记位置＋卷末回看；不改 save-idea/机制版本协议，失败不阻塞正文
+    const mech = fs.readFileSync(skillFile('novel-analyze', 'references/机制与灵感.md'), 'utf8')
+    expect(mech).toContain('## 消费回看')
+    expect(mech).toContain('机制使用登记')
+    expect(mech).toContain('卷末回看')
+    expect(mech).toContain('不改机制版本')
+    expect(mech).toContain('save-idea 的依据字段与版本协议')
+    expect(mech).toContain('机制消费失败不阻塞正文')
+  })
+})
