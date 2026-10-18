@@ -2243,7 +2243,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       '**在场**：直接呈现画面（他看到的/听到的/闻到的），不写"这时他看到了..."',
       '**节奏跟随**：按场景类型给节奏：打斗快、独白慢、对话跳；笔墨花在读者最关心的地方，不平均用力',
       //（0.0.55 章节循环技能批：角色自决加停笔报告、一气呵成改对包核对——句面随批更新）
-      '**角色自决**：写到"他不会这么做"就跟角色走，候选事实段注明偏离与原因；某个叙事单元立不住（人物不肯动、因果接不上、细纲事件量明显不够写）时不硬写到底——**停笔交停笔报告**：只交一份报告不交稿，写明「哪个单元、为什么立不住、建议细纲怎么改（一两句）」，主控按《细纲备料》重入节的轻量改纲通道改细纲后再派；牵动伏笔或窗口的停笔走轻量改纲，不硬掰',
+      '**角色自决**：写到"他不会这么做"就跟角色走，候选事实段注明偏离与原因；单元立不住（人物不肯动、因果接不上、事件量明显不够写）时不硬写到底——**停笔交停笔报告**：只交一份报告不交稿，写明「哪个单元、为什么立不住、建议细纲怎么改（一两句）」，主控走《细纲备料》重入节的轻量改纲通道改细纲后再派；牵动伏笔或窗口的停笔同上，不硬掰',
       '**找乐子**：开写前问哪里好玩：能埋会心的梗、能反的套路、能更活的人物就做；平淡过渡段生个事——小意外/小冲突/小反转；梗必须从人物嘴里长出来',
       '**读者在场**：落笔前想一下：他此刻盼着什么、你在哪吊他胃口、他会猜到吗——会猜到就绕开或放假烟雾弹引他猜错',
       '**一气呵成**：从第一句写到章末钩不中断——中断会把分析腔带进后文；**对包核对**——写到衣着、称谓、物价、能力表现等具体处对照材料包；包里没有的不编造具体数值与专名，写过去并就地标 `〔待查：…〕`；禁入泄露/POV 漂当场自改，事实错对材料包核验再改',
@@ -3142,7 +3142,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(fs.existsSync(worldConsistencyPath), 'novel-review/agents/世界内合理性审读.md 应存在').toBe(true)
     const worldConsistency = fs.readFileSync(worldConsistencyPath, 'utf8')
     expect(worldConsistency).toContain('模块名: 世界内合理性审读')
-    expect(worldConsistency).toContain('## 查什么（六条）')
+    expect(worldConsistency).toContain('## 审读第一步：真源优先')
+    expect(worldConsistency).toContain('## 七层常理')
     expect(worldConsistency).toContain('未建世界常量')
     const director = readSkill('novel-director')
     expect(director).toContain('共 9 份；连同全量审读，agents 目录共 10 个文件')
@@ -3618,5 +3619,75 @@ describe('skills 批次防回退断言组·0.0.69/0.0.70 token 大头批', () =>
     expect(read('packages/bundle/skills/novel-polish/SKILL.md')).toContain('默认文风-速查')
     const contract = read('packages/bundle/scripts/artifact-contract.mjs')
     for (const p of ['步骤卡-契约', '步骤卡-世界书', '步骤卡-骨架', '步骤卡-分卷', '步骤卡-写前十查', '写作卡-索引', '默认文风-速查']) expect(contract).toContain(p)
+  })
+})
+
+describe('skills 批次防回退断言组·世界内合理性真源优先＋七层常理批', () => {
+  it('世界内合理性：真源路由→条目/版本→四判定，七层常理与预测—验证，报告字段齐全', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const world = read('packages/bundle/skills/novel-review/agents/世界内合理性审读.md')
+    // 第一步：提取断言→路由真源→查条目/版本→四判定
+    expect(world).toContain('## 审读第一步：真源优先')
+    for (const step of ['### 1. 提取正文断言', '### 2. 路由真源', '### 3. 查条目与版本', '### 4. 判定四值']) {
+      expect(world, `第一步应含「${step}」`).toContain(step)
+    }
+    for (const source of ['世界书条目', '力量体系', '世界常量', '人物档案', '账本', '定稿', '近期衔接']) {
+      expect(world, `真源类型应含「${source}」`).toContain(source)
+    }
+    for (const verdict of ['有依据', '冲突', '设定缺口', '留白合法']) {
+      expect(world, `判定四值应含「${verdict}」`).toContain(verdict)
+    }
+    expect(world, '设定缺口不得用常识补标准').toContain('不得凭常识、历史常识或类型惯例替作者补标准')
+    expect(world).toContain('真源冲突')
+    // 七层常理
+    for (const layer of ['物理空间', '身体生命', '资源经济', '社会制度', '信息认知', '能力规则', '叙事因果']) {
+      expect(world, `七层常理应含「${layer}」`).toContain(layer)
+    }
+    // 预测—验证与只拦负载
+    expect(world).toContain('## 预测—验证')
+    for (const field of ['**预期**', '**文本**', '**差距**', '**判合理**']) {
+      expect(world, `预测—验证应含「${field}」`).toContain(field)
+    }
+    expect(world).toContain('只拦负载问题')
+    expect(world).toContain('类型惯例')
+    expect(world).toContain('铁则破例另查')
+    // 报告字段：真源类型/路径与版本、判定、常理层、预期/文本/差距、负载性
+    const report = world.slice(world.indexOf('【世界内合理性审读报告】'))
+    for (const field of ['真源类型:', '真源路径与版本:', '判定:', '常理层:', '预期:', '文本:', '差距:', '负载性:']) {
+      expect(report, `报告应带字段「${field}」`).toContain(field)
+    }
+    // 全量审读维度 9 同步：口径改真源/七层/预测—验证/设定缺口，旧的六条枚举清零
+    const sweep = read('packages/bundle/skills/novel-review/agents/全量审读.md')
+    for (const word of ['真源', '七层常理', '预测—验证', '设定缺口', '负载性', '常理层']) {
+      expect(sweep, `维度 9 摘要应含「${word}」`).toContain(word)
+    }
+    expect(sweep, '旧六条口径不得回潮').not.toContain('查什么六条')
+    // 派发模板仍备齐真源材料槽位
+    const reviewSkill = read('packages/bundle/skills/novel-review/SKILL.md')
+    for (const slot of ['相关设定摘要：', '世界常量与量级切片：', '近期正文衔接（维度 9 用）：', '账本到期线索摘录：']) {
+      expect(reviewSkill, `派发模板应含真源材料槽位「${slot}」`).toContain(slot)
+    }
+  })
+})
+
+describe('skills 批次防回退断言组·07 起草心流分层批', () => {
+  it('07：任务包带场景问题一行；写时三红线与交稿后热回看分层；候选事实/热回查/自评/停笔报告保留', () => {
+    const drafting = readSkill('novel-drafting')
+    // 场景问题：每单元一行，细纲没有时主控在包内补，不新增必填字段、不反向改细纲
+    expect(drafting).toContain('**场景问题**')
+    expect(drafting).toContain('场景问题：谁想要什么，但什么阻挡；结束时什么变了')
+    expect(drafting).toContain('不新增必填字段，不反向改细纲')
+    // 两层心智：写时只守三红线，写作卡/AI 痕迹/句法自查移交稿后热回看
+    expect(drafting).toContain('写时三红线')
+    expect(drafting).toContain('交稿后热回看')
+    expect(drafting).toContain('POV 不漂／禁入信息不泄／事实与材料包一致')
+    expect(drafting).toContain('写作卡、AI 痕迹、句法自查等不边走笔边逐条过')
+    expect(drafting).toContain('写时不过卡，留到交稿后热回看')
+    // 既有交付物与检查不因分层删除
+    expect(drafting).toContain('## 草稿候选事实')
+    expect(drafting).toContain('热回查：POV✓ 禁入✓ 事实✓')
+    expect(drafting).toContain('自评：最得意')
+    expect(drafting).toContain('**停笔交停笔报告**：只交一份报告不交稿')
   })
 })
