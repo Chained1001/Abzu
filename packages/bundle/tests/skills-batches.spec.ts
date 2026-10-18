@@ -4144,3 +4144,99 @@ describe('skills 批次防回退断言组·09 卷末设定审计批', () => {
     expect(contract).toContain("'skills/novel-arcplan/references/卷末设定审计.md'")
   })
 })
+
+describe('skills 批次防回退断言组·10 风险分级评审门禁批', () => {
+  it('10：对象×风险×强度表＋L0-L4＋关键卷/幕＋低风险留白＋作者降级记录＋三 SKILL 指针＋director 限额＋注册单源', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const refPath = skillFile('novel-director', 'references/评审分级与门禁.md')
+    expect(fs.existsSync(refPath), 'novel-director/references/评审分级与门禁.md 应存在').toBe(true)
+    const text = fs.readFileSync(refPath, 'utf8')
+
+    // A. 对象轴七类：骨架/分卷/卷纲/幕纲/章纲/正文/表达各一行
+    for (const obj of ['骨架', '分卷', '卷纲', '幕纲', '章纲', '正文', '表达']) {
+      expect(text, `对象应含「${obj}」`).toContain(`| ${obj} |`)
+    }
+
+    // B. 风险轴：L0-L4＋关键卷/幕、普通、过渡；冲突取高不取低
+    for (const level of ['L0', 'L1', 'L2', 'L3', 'L4']) {
+      expect(text, `风险级应含「${level}」`).toContain(level)
+    }
+    for (const risk of ['关键卷/幕', '普通', '过渡']) {
+      expect(text, `风险档应含「${risk}」`).toContain(risk)
+    }
+    expect(text, '冲突取高不取低').toContain('取高不取低')
+
+    // C. 强度轴：两席/作家/单维/确定性/润色五档齐（另加全量/留白）
+    for (const strength of ['两席', '作家', '单维', '确定性', '润色']) {
+      expect(text, `审查强度应含「${strength}」`).toContain(strength)
+    }
+
+    // D. 对象×风险×强度默认表：表头＋七行逐行钉（低风险可留白，不搞全量最严）
+    expect(text).toContain('## 二、默认表（对象 × 风险 × 强度）')
+    expect(text).toContain('| 对象 | 高档（关键卷/幕、L3-L4、首次确认） | 普通（L2、常规推进） | 过渡（L0-L1、过渡章/幕） |')
+    const rows = [
+      '| 骨架 | 两席 | 作家 | 留白（走 05 影响分析，不派评审） |',
+      '| 分卷 | 两席 | 作家 | 留白（走 05 影响分析，不派评审） |',
+      '| 卷纲 | 两席 | 作家 | 单维（章节结构或情节与因果） |',
+      '| 幕纲 | 两席 | 作家（作者可跳过） | 单维（章节结构） |',
+      '| 章纲 | 单维（按承载维度选信息披露/情节与因果/章节结构之一） | 确定性（十查机械＋固定小节规格核对） | 留白 |',
+      '| 正文 | 全量审读＋定向加深 | 全量审读 | 确定性＋单维（章节结构或文风与表达） |',
+      '| 表达 | 润色 | 润色 | 润色（作者稿可登记跳过） |',
+    ]
+    for (const row of rows) expect(text, `默认表行应在位：${row}`).toContain(row)
+
+    // E. 升级规则：硬设定/已定稿/读者承诺变更至少升一档；只升不降
+    for (const trigger of ['触发硬设定', '命中已定稿/已发布', '读者承诺变更']) {
+      expect(text, `升级触发应含「${trigger}」`).toContain(trigger)
+    }
+    expect(text).toContain('至少升一档')
+    expect(text).toContain('只升不降')
+
+    // F. 低风险留白合法：不搞全量最严；留白不是漏审
+    expect(text).toContain('低风险留白合法')
+    expect(text).toContain('不搞全量最严')
+    expect(text).toContain('留白不是漏审')
+
+    // G. 作者降级/跳过记录：门禁是默认强度＋固定字段＋书房资产落点
+    expect(text).toContain('门禁是默认强度')
+    expect(text).toContain('作者可显式降级/跳过并记录')
+    expect(text).toContain('评审分级记录.md')
+    for (const field of ['默认强度', '实际强度', '降级/跳过理由', '作者裁决', '硬伤处置']) {
+      expect(text, `记录字段应含「${field}」`).toContain(`| ${field} |`)
+    }
+    expect(text).toContain('书房资产非真源')
+    expect(text).toContain('不入书仓 git')
+
+    // H. 关键卷/幕硬伤：未处置不得静默开写，作者可带伤确认
+    expect(text).toContain('关键卷/幕的 🔴 硬伤未处置')
+    expect(text).toContain('不得静默开写')
+    expect(text).toContain('带伤确认')
+
+    // I. 三个 SKILL 指针：director 短指针＋长度限额，design/arcplan 按表路由
+    const director = readSkill('novel-director')
+    expect(director, 'director 应有分级门禁短指针').toContain('[评审分级与门禁](references/评审分级与门禁.md)')
+    expect(director).toContain('作者降级/跳过须记录')
+    expect(director.length, `SKILL 本体 ${director.length} 字符，超过瘦身上限 8500`).toBeLessThanOrEqual(8500)
+
+    const design = readSkill('novel-design')
+    expect(design, 'design 应指向分级门禁表').toContain('references/评审分级与门禁.md')
+    expect(design).toContain('作者可显式降级/跳过并记录')
+    expect(design).toContain('骨架/分卷与关键卷两席')
+    expect(design, '旧「不默认强制」应清零').not.toContain('不默认强制')
+
+    const arcplan = readSkill('novel-arcplan')
+    expect(arcplan, 'arcplan 应指向分级门禁表').toContain('references/评审分级与门禁.md')
+    expect(arcplan).toContain('关键卷/幕两席')
+    expect(arcplan).toContain('作者可显式降级/跳过并记录')
+
+    // J. 阶段地图横切同步：过渡章可轻审/留白，不回落「9 维不跳过」
+    const stage = read('packages/bundle/skills/novel-director/references/阶段地图.md')
+    expect(stage).toContain('评审分级与门禁.md')
+    expect(stage).toContain('过渡章可轻审或留白')
+
+    // K. 注册单源：artifact-contract 登记（pack-check 按 referenceDocs 校验打包面）
+    const contract = read('packages/bundle/scripts/artifact-contract.mjs')
+    expect(contract).toContain("'skills/novel-director/references/评审分级与门禁.md'")
+  })
+})

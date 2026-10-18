@@ -43,6 +43,7 @@ export const referenceDocs = [
   ...['排障-索引与改稿流程', '排障-专项修复', '排障-长篇防崩'].map(name => `skills/novel-director/references/${name}.md`),
   'skills/novel-director/references/书房与检索.md',
   'skills/novel-director/references/阶段地图.md',
+  'skills/novel-director/references/评审分级与门禁.md',
 ]
 export const thinScripts = [
   ['skills/novel-review/scripts/确定性检查.mjs', 'runChecksCli'],

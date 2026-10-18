@@ -95,7 +95,7 @@ user-invocable: false
 
 ## 节点路由（按事实清单的建议环节）
 
-作者明示跳步时按其指令，播报即可。
+作者明示跳步时按其指令播报；评审强度见 [评审分级与门禁](references/评审分级与门禁.md)，作者降级/跳过须记录。
 
 设计面：
 
@@ -117,7 +117,7 @@ user-invocable: false
 | 章细纲(待确认) | 《细纲备料》:候选呈作者,`novel_confirm_outline` 确认 |
 | 写作备料 | 《细纲备料》备料段:`novel_assemble_materials`;各段在缺如实播报,够不够开写由你判断。段九若播报「卷纲中未找到对应窗口内容」或工具错误，先播报原因，再用 `read`／`grep` 直取卷纲原文补齐本章窗口，不得静默自拟窗口内容 |
 | 写稿 | 《正文起草》：派发起草子代理，细纲与材料状态如实播报 |
-| 审核 | 《全面审读》:默认全量审读一次派发跑 9 维,`novel_record_review_findings` 按模块回写 |
+| 审核 | 《全面审读》:按门禁表定强度,9 维一次派发,`novel_record_review_findings` 按模块回写 |
 | 改稿 | 《改稿》:默认派改稿子代理产整稿、`novel_apply_revision_batch` 一次落实;`novel_apply_revision` 只作作者口述的小修快路 |
 | 润色 | 《精修润色》:审核通过后润色,经 `novel_record_polish` 登记承接(保真与确定性复核);作者稿或作者不要润色时登记跳过 |
 | 定稿准备与沉淀 | 《定稿沉淀》:`novel_prepare_pack` 组包呈裁决 |
