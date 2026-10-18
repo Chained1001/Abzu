@@ -86,9 +86,9 @@ function hasExactCell(value: string): boolean {
 }
 
 describe('参考标尺通用四层（票 02）', () => {
-  it('四层行数与 schema 完整：L0 14 条、L1 17 条、L2 八轴、L3 八项', () => {
-    expect(layerRows('L0')).toHaveLength(14)
-    expect(layerRows('L1')).toHaveLength(17)
+  it('四层行数与 schema 完整：L0 18 条、L1 20 条、L2 八轴、L3 八项', () => {
+    expect(layerRows('L0')).toHaveLength(18)
+    expect(layerRows('L1')).toHaveLength(20)
     expect(layerRows('L3')).toHaveLength(8)
 
     const axisRows = layerRows('L2').filter((r) => r.id.startsWith('L2-AX-'))
@@ -176,6 +176,74 @@ describe('参考标尺通用四层（票 02）', () => {
     expect(text).toContain('本书基线')
     expect(text).toContain('离群预警')
     expect(text).toContain('以本书自报为先')
+  })
+
+  it('世界复杂度层：压力源七类、社会接口、空间移动、背景事件、善后均有 L0–L2 定位', () => {
+    const byId = new Map(rows.map((r) => [r.id, r]))
+    const definition = (id: string): string => {
+      const row = byId.get(id)
+      expect(row, `缺少世界复杂度行 ${id}`).toBeDefined()
+      return row!.cells[2]!
+    }
+
+    const pressure = definition('L0-03')
+    for (const source of ['人', '制度', '资源', '自然', '时间', '关系', '自我']) {
+      expect(pressure, `L0-03 应含压力源「${source}」`).toContain(source)
+    }
+    expect(pressure).toContain('不以反派数量代替')
+
+    const interfaces = definition('L0-15')
+    for (const iface of ['市井', '官府', '军队', '宗门', '商队', '教会', '家族', '江湖']) {
+      expect(interfaces, `L0-15 应含社会接口「${iface}」`).toContain(iface)
+    }
+
+    const movement = definition('L0-16')
+    expect(movement, '物理移动不是通用必需，接口／压力源变化才是').toContain('物理移动不是通用必需')
+    for (const mode of ['驻地变化', '赶路', '逃亡', '远征', '换图']) {
+      expect(movement, `L0-16 应含移动形态「${mode}」`).toContain(mode)
+    }
+
+    const background = definition('L0-17')
+    for (const event of ['战争', '灾荒', '政变', '节日', '瘟疫', '物价', '门派内斗']) {
+      expect(background, `L0-17 应含背景事件「${event}」`).toContain(event)
+    }
+
+    const aftermath = definition('L0-18')
+    for (const question of ['谁看见', '谁传开', '谁追责', '谁收尸', '谁得利']) {
+      expect(aftermath, `L0-18 应含善后五问「${question}」`).toContain(question)
+    }
+
+    for (const id of ['L1-18', 'L1-19', 'L1-20']) {
+      expect(byId.has(id), `缺少世界复杂度 L1 行 ${id}`).toBe(true)
+    }
+    const worldRows = layerRows('L2').filter((r) => r.id.startsWith('L2-WC-'))
+    expect(worldRows, 'L2 世界复杂度形态档应有五条').toHaveLength(5)
+    for (const row of worldRows) expect(row.cells[1], `${row.id}: 须带轴=值键`).toMatch(/A[1-8]=/)
+
+    for (const id of ['L0-03', 'L0-15', 'L0-16', 'L0-17', 'L0-18']) {
+      expect(byId.get(id)!.gate, `${id}: 世界复杂度 L0 应可 gate:true`).toBe('true')
+    }
+    for (const row of [...layerRows('L1').filter((r) => ['L1-18', 'L1-19', 'L1-20'].includes(r.id)), ...worldRows]) {
+      expect(row.gate, `${row.id}: 未校准的世界复杂度行不得 gate:true`).toBe('false')
+    }
+  })
+
+  it('世界复杂度可被设计/卷规划消费：骨架、分卷、体量对账与压力升级段均有短指针', () => {
+    const skillRoot = path.join(__dirname, '..', 'skills')
+    const design = fs.readFileSync(path.join(skillRoot, 'novel-design', 'SKILL.md'), 'utf8')
+    const arcplan = fs.readFileSync(path.join(skillRoot, 'novel-arcplan', 'SKILL.md'), 'utf8')
+    const volumeSpec = fs.readFileSync(
+      path.join(skillRoot, 'novel-arcplan', 'templates', '卷纲固定段规格.md'),
+      'utf8',
+    )
+
+    for (const text of [design, arcplan, volumeSpec]) {
+      expect(text, '设计/卷规划消费点应点名「世界复杂度」').toContain('世界复杂度')
+      expect(text, '消费点应写明不只数反派与地图').toContain('不只数反派与地图')
+    }
+    for (const question of ['谁看见', '谁传开', '谁追责', '谁收尸', '谁得利']) {
+      expect(volumeSpec, `压力升级段应含善后五问「${question}」`).toContain(question)
+    }
   })
 
   it('标尺链路零具体书名/角色名，样本只用匿名编号', () => {
