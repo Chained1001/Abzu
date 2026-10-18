@@ -403,7 +403,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(writer, `作家评审根因三选一应含「${root}」`).toContain(root)
     }
     expect(writer).toContain('【待采风：查询词】')
-    expect(writer).toContain('只做首评')
+    //（04 评审台账批：首评声明升级为「首评默认＋增量复评」——旧「只做首评」退役）
+    expect(writer).toContain('首评默认')
+    expect(writer).toContain('增量复评')
     expect(writer).toContain('书房/评审/')
     // C. 读者评审：弃书点预测＋雷点清单逐类＋读者语言/判据双要求＋画像来源
     expect(reader).toContain('弃书点预测')
@@ -411,7 +413,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(reader).toContain('结论说人话、判据走格式')
     expect(reader).toContain('读者画像')
     expect(reader).toContain('§5.4')
-    expect(reader).toContain('只做首评')
+    //（04 评审台账批：首评声明升级为「首评默认＋增量复评」——旧「只做首评」退役）
+    expect(reader).toContain('首评默认')
+    expect(reader).toContain('增量复评')
     // D. 采风代理：两源顺序（0.0.58 起素材库＋网络，知识库源退役）＋孤证＋永不存原文＋热梗半衰期例外＋只写暂存＋站点经验
     expect(researcher).toContain('两源')
     expect(researcher).toContain('孤证')
@@ -3914,5 +3918,73 @@ describe('skills 批次防回退断言组·03 幕纲两席评审与关键幕门�
     }
     expect(reader).toContain('不适用（本席不读真源）')
     expect(arcplan).toContain('读者席真源列恒「不适用（本席不读真源）」')
+  })
+})
+
+describe('skills 批次防回退断言组·04 设计评审台账批', () => {
+  it('04：报告头六字段＋七列处置台账＋处置七值/负责人/复评状态＋增量复评＋两席与 SKILL 接线', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const writer = read('packages/bundle/skills/novel-design/agents/作家评审.md')
+    const reader = read('packages/bundle/skills/novel-design/agents/读者评审.md')
+    const design = read('packages/bundle/skills/novel-design/SKILL.md')
+    const arcplan = read('packages/bundle/skills/novel-arcplan/SKILL.md')
+
+    for (const [label, text] of [['作家席', writer], ['读者席', reader]] as const) {
+      // A. 报告头：评审编号/对象类型/对象路径与版本或哈希/判据版本/评审日期轮次/主问题
+      for (const field of ['- 评审编号：', '- 对象类型：', '- 对象路径与版本/哈希：', '- 判据版本：', '- 评审日期/轮次：', '**主问题（仅一个）**：']) {
+        expect(text, `${label}: 报告头应含「${field}」`).toContain(field)
+      }
+      // B. 处置台账七列（列名与列序逐字）
+      expect(text, `${label}: 处置台账应七列齐`).toContain('| 发现项编号 | 严重度 | 是否负载 | 处置 | 负责人 | 复评状态 | 备注 |')
+      // C. 处置七值（单源写法逐字）＋负责人四值＋复评状态四值
+      expect(text, `${label}: 处置七值应齐`).toContain('待处理 / 已解决 / 已修改 / 作者保留 / 已驳回 / 无法判断 / 已转提案')
+      expect(text, `${label}: 负责人四值应齐`).toContain('作者 / 主控 / 设计 / 卷幕')
+      expect(text, `${label}: 复评状态四值应齐`).toContain('待复评 / 通过 / 不通过 / 不适用')
+      for (const value of ['待处理', '已解决', '已修改', '作者保留', '已驳回', '无法判断', '已转提案']) {
+        expect(text, `${label}: 处置值「${value}」应在位`).toContain(value)
+      }
+      // D. 增量复评：新节＋只回归上一轮＋不重读全文＋新编号引用上轮＋主问题未解不改次要项＋通过条件
+      expect(text, `${label}: 应有增量复评节`).toContain('## 复评（增量）')
+      expect(text, `${label}: 只回归上轮主问题与待复评项`).toContain('只回归上轮主问题＋处置台账「待复评」项')
+      expect(text, `${label}: 复评不重读全文`).toContain('不重读全文')
+      expect(text, `${label}: 复评新编号引用上轮编号`).toContain('引用上轮编号')
+      expect(text, `${label}: 主问题未解不改次要项结论`).toContain('主问题未解不改次要项结论')
+      expect(text, `${label}: 复评通过条件四条应在位`).toContain('复评通过条件（四条全中才判通过）')
+      // E. 首评默认＋旧「无复评机制」清零＋两席独立/不互读报告不变
+      expect(text, `${label}: 首评默认`).toContain('首评默认')
+      expect(text, `${label}: 增量复评`).toContain('增量复评')
+      expect(text, `${label}: 旧「无复评机制」应清零`).not.toContain('本底本无复评机制')
+      expect(text, `${label}: 旧「只做首评」应清零`).not.toContain('只做首评')
+      expect(text, `${label}: 两席互不通气纪律不变`).toContain('两席互不通气，各自独立出具')
+      expect(text, `${label}: 禁读其他评审报告不变`).toContain('禁读其他评审报告')
+      // F. 处置与复评消费字段：来源映射/负责人路由/复评状态映射齐备
+      expect(text, `${label}: 处置值应有含义与复评状态默认映射`).toContain('复评状态四值')
+      expect(text, `${label}: 负责人应带根因预填路由`).toContain('按根因预填')
+    }
+
+    // G. 读者席特有：弃书点行以「弃-」并入台账
+    expect(reader, '读者席弃书点行应并入处置台账').toContain('弃-{#}')
+    expect(reader, '读者席复评回归范围应含弃书点行').toContain('（含弃书点行）')
+    expect(writer, '作家席台账编号与问题清单同号').toContain('发现项编号＝问题清单 #')
+
+    // H. design SKILL ③：首评默认/增量复评、落盘后主控读主问题与台账、作者裁决、按需复评、书房资产不入 git
+    expect(design, 'SKILL 派发段应改首评默认＋增量复评').toContain('两席均首评默认，收到复评请求走增量复评')
+    expect(design, 'SKILL 应写报告头与七列台账').toContain('七列（发现项编号/严重度/是否负载/处置/负责人/复评状态/备注）')
+    expect(design, 'SKILL 应写报告落盘后的主控消费').toContain('报告落盘后')
+    expect(design, 'SKILL 应要求读主问题与处置台账').toContain('主问题')
+    expect(design).toContain('处置台账')
+    expect(design, 'SKILL 应要求作者裁决').toContain('作者裁决')
+    expect(design, 'SKILL 应要求改完按需派增量复评').toContain('按需派增量复评')
+    expect(design).toContain('只回归上轮主问题＋处置台账「待复评」项')
+    expect(design, 'SKILL 应明确报告仍是书房资产').toContain('评审报告仍是书房资产')
+    expect(design, 'SKILL 应明确不入书仓 git').toContain('不入书仓 git')
+    expect(design, '旧「两席均只做首评」应清零').not.toContain('两席均只做首评')
+
+    // I. arcplan 幕纲批次同步复评口径（底本同一套，门禁段消费台账）
+    expect(arcplan, '幕纲派发应同步首评默认＋增量复评').toContain('收到复评请求走增量复评')
+    expect(arcplan, '幕纲报告字段应带七列处置台账').toContain('七列处置台账')
+    expect(arcplan, '幕纲报告落盘后应读主问题与台账').toContain('报告落盘后主控读主问题与处置台账')
+    expect(arcplan, '旧「两席均只做首评」应清零').not.toContain('两席均只做首评')
   })
 })
