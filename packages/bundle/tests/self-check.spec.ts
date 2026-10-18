@@ -112,6 +112,9 @@ describe('R1 装机自检（可查询的降级状态，纯增不改行为）', (
     const item = abzuSelfCheck().items.find((entry) => entry.id === 'workspace.root')
     expect(item?.status).toBe('ok')
     expect(item?.detail).toContain(path.basename(ws))
+    for (const dir of ['构想', '灵感池', '知识库']) {
+      expect(fs.statSync(path.join(ws, '书房', dir)).isDirectory()).toBe(true)
+    }
   })
 
   it('registry 后到时 pending→ok 收敛：degraded 让位给真值', () => {

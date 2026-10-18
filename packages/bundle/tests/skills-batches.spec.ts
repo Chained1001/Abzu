@@ -1487,9 +1487,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   it('0.0.27 文笔专项批：散文卡组七卡＋行文自查三 AI 味判据＋润色两密度定位＋版本纪律全套', () => {
     // A. 散文卡组：组节在位（不走场景挑选/整组带/场景卡优先三纪律）＋卡头与理论出处标注（0.0.31 起七卡→八卡——修辞上探卡入组）
     const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
-    expect(cards).toContain('## 散文卡组（文笔层八卡，随任务包整组带）')
+    expect(cards).toContain('## 散文卡组（文笔层八卡，按索引读 1–2 张）')
     expect(cards).toContain('不走场景功能挑选')
-    expect(cards).toContain('随任务包整组内联')
+    expect(cards).toContain('默认按 `写作卡-索引.md` 只读与本单元最相关的 1–2 张')
     expect(cards).toContain('与场景卡判据冲突时场景卡优先')
     for (const card of [
       '### 句法节奏卡〔theory-cards T015/T017/T022〕',
@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.75＋CHANGELOG 条目＋README×2（0.0.75 安装收口批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.76＋CHANGELOG 条目＋README×2（0.0.76 审计修复批版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.75').toBe('0.0.75')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.75').toBe('0.0.75')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.75]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.76').toBe('0.0.76')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.76').toBe('0.0.76')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.76]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.75`).toContain('0.0.75')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.76`).toContain('0.0.76')
     }
   })
 

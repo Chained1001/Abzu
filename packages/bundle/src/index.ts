@@ -26,6 +26,7 @@ import { uniqueBookRoot, scanBooks } from './bookshelf'
 import { attachStatusToAgent, type SystemPromptLike } from './status-context'
 import { canonicalizePath, isFullyQualifiedPath, isInsidePath } from '@abzu/core'
 import { attachPersonaToAgent, type AgentCtxLike } from './persona'
+import { scaffoldStudy } from './workspace'
 import { createNovelTools, type NovelToolDefinition, type ToolExecContext, type AgentLike } from './novel-tools'
 import type { AskFn, EmbeddingProvider } from '@abzu/core'
 import { EditorRequestHub } from './study/editor-requests'
@@ -530,6 +531,14 @@ export function apply(ctx: Context) {
     if (currentWorkspaceRoot() === undefined) claimed = claimProcessCwd()
     const settledRoot = currentWorkspaceRoot()
     const settledByFallback = workspaceRootState.isFallback
+    // registered workspace 才落书房脚手架；headless cwd 兜底不在用户目录里擅自建目录。
+    if (settledRoot !== undefined && !settledByFallback) {
+      try {
+        scaffoldStudy(settledRoot)
+      } catch (err) {
+        ctx.logger.warn(`[abzu-bundle] 书房脚手架创建失败（${settledRoot}）：${err instanceof Error ? err.message : String(err)}`)
+      }
+    }
     recordSelfCheck('workspace.root',
       settledRoot === undefined ? 'missing' : settledByFallback ? 'degraded' : 'ok',
       settledRoot === undefined ? '未认到工作范围：workspaceRegistry 缺席且 cwd 兜底不可用'

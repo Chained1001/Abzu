@@ -5,8 +5,7 @@
  * 落 `书房/{构想,灵感池,知识库}` 三空目录(幂等;0.0.50 起不再创建 作者记忆——该层已删除,
  * 已有用户磁盘上的 `书房/作者记忆/` 不删除、不迁移,代码只是不再读写)。
  *
- * 纯逻辑(校验/脚手架)与宿主接入分离:本文件校验与脚手架为纯函数可测,
- * `pickWorkspaceDirectory` 为判别式 switch(directoryPicker capability)。
+ * 纯逻辑(校验/脚手架)与宿主接入分离:本文件校验与脚手架为纯函数可测。
  */
 
 import * as fs from 'node:fs'
@@ -82,38 +81,6 @@ export function scaffoldStudy(workspaceRoot: string): readonly string[] {
     created.push(p)
   }
   return created
-}
-
-/** directoryPicker 判别式能力的最小类型(mirror dsh,防锁全量类型)。 */
-export type DirectoryPickerCapabilityLike =
-  | {
-      readonly kind: 'native'
-      readonly pick: (signal: AbortSignal) => Promise<string | null>
-    }
-  | {
-      readonly kind: 'browse'
-      readonly list: (p?: string, signal?: AbortSignal) => Promise<Readonly<{
-        readonly path: string
-        readonly entries: ReadonlyArray<{ readonly name: string; readonly path: string }>
-      }>>
-      readonly createDirectory: (p: string, name: string) => Promise<string>
-    }
-
-/**
- * 用 directoryPicker 选工作范围目录;后端未知时 hide affordance(返回 undefined)。
- * @returns 选定目录绝对路径;取消或不可用时 null/undefined。
- */
-export async function pickWorkspaceDirectory(
-  capability: DirectoryPickerCapabilityLike | undefined,
-  signal: AbortSignal,
-): Promise<string | null | undefined> {
-  if (capability === undefined) return undefined
-  if (capability.kind === 'native') {
-    return capability.pick(signal)
-  }
-  // browse 后端:需要应用内浏览器 UI 驱动(一级列目录)选目录;首版最小化
-  // 不自动选 home(防止未经作者选择就在家目录建 书房/),返回 undefined 待 UI 浏览。
-  return undefined
 }
 
 // 原 StorageDomainLike / persistWorkspaceRoot / loadWorkspaceRoot 删除(2026-09-01,审计甲2)。

@@ -1,5 +1,8 @@
 packages:
   - packages/*
+# dsh/cordis 为 peer 依赖，不重复安装；pnpm 11 起安装策略只在 workspace YAML 生效。
+autoInstallPeers: false
+strictPeerDependencies: false
 # Y12(批F):版本单源——四组公共依赖收敛 catalog,各 package.json 引 `catalog:`。
 catalog:
   typescript: ^5.5.0

@@ -49,16 +49,17 @@ const selection = core.selectCurrentVolume(root)
 const derived = core.deriveDesign(core.scanDesign(root, selection.kind === 'active' ? selection.卷 : selection.kind === 'planning' ? selection.规划卷 : 1))
 const 已确认无内容 = core.listConfirmedEmpty(core.scanDesignDetail(root))
 const resumable = core.listResumable(root)
-const cards = resumable.map((r) => r.statusCard)
+// 恢复清单按章返回摘要；只有最近窗口、第 0 章与指定卷带 statusCard，不能假设 200 章全有卡。
+const cards = resumable.flatMap((r) => (r.statusCard === undefined ? [] : [r.statusCard]))
 const elapsed = performance.now() - start
 
 // ── fixture 探针(取数前必须先过,不满足即抛不出数)──────────────────────────
 if (resumable.length !== TOTAL) throw new Error(`探针失败:可恢复章数 ${resumable.length} ≠ ${TOTAL}(检查章细纲文件名形状)`)
-if (cards.length !== TOTAL || cards.some((c) => !c.includes('近况｜'))) throw new Error('探针失败:statusCard 缺失或形状不对')
+if (cards.length === 0 || cards.some((c) => !c.includes('近况｜'))) throw new Error('探针失败:statusCard 缺失或形状不对')
 
 // ── 长篇护栏:200 章状态派生须在预算内完成(默认 10s,环境变量可覆盖)──────────
 const BUDGET_MS = Number(process.env.ABZU_STATUS_BUDGET_MS ?? 10_000)
-const result = { chapters: resumable.length, elapsedMs: Number(elapsed.toFixed(1)), budgetMs: BUDGET_MS, ok: elapsed < BUDGET_MS, 设计建议环节: derived.建议.环节, 已确认无内容: 已确认无内容.length }
+const result = { chapters: resumable.length, statusCards: cards.length, elapsedMs: Number(elapsed.toFixed(1)), budgetMs: BUDGET_MS, ok: elapsed < BUDGET_MS, 设计建议环节: derived.建议.环节, 已确认无内容: 已确认无内容.length }
 console.log(JSON.stringify(result))
 if (!result.ok) {
   console.error(`长篇性能护栏失败:${TOTAL} 章状态派生 ${result.elapsedMs}ms 超预算 ${BUDGET_MS}ms`)
