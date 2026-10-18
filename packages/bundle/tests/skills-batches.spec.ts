@@ -1965,16 +1965,24 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   })
 
   it('0.0.34 流程修复批（flow-fix 01-02）：灵感库主动供给（outline 备料段自动匹配）＋写时发现登记位（drafting 可选交子段＋settle 分拣三去向）＋版本纪律全套', () => {
-    // A. 工单 01 灵感库主动供给：备料段「自主补充材料」节内自动匹配——关键词 grep 全路径＋不整卡内联只取两列 ≤3 条＋正式入包走补充通道＋未建跳过不提示
+    // A. 工单 01 灵感库主动供给：备料段「自主补充材料」节内自动匹配——SKILL 留触发与指针，检索式/取用列/跳过口径随常驻瘦身下沉到 references/补充材料操作.md
     const outline = readSkill('novel-outline')
     const supplement = outline.slice(outline.indexOf('## 备料段'), outline.indexOf('## 工件契约'))
+    const supplementRef = fs.readFileSync(skillFile('novel-outline', 'references/补充材料操作.md'), 'utf8')
     expect(supplement, 'outline 备料段应含「灵感库自动匹配」小节').toContain('**灵感库自动匹配**')
-    expect(supplement).toContain('grep `<工作范围>/书房/灵感库/*/零件卡.md`')
-    expect(supplement).toContain('场景元素＋设定域＋情绪词')
-    expect(supplement).toContain('「化用启示」列＋「一句话（骨）」列')
-    expect(supplement).toContain('≤3 条')
-    expect(supplement).toContain('正式入包仍走既有补充通道')
-    expect(supplement).toContain('灵感库未建时直接跳过不提示')
+    expect(supplement).toContain('只取两列 ≤3 条')
+    expect(supplement).toContain('正式入包仍走补充通道')
+    expect(supplement, 'SKILL 应指向补充材料操作 reference').toContain('[补充材料操作](references/补充材料操作.md)')
+    expect(supplementRef).toContain('grep `<工作范围>/书房/灵感库/*/零件卡.md`')
+    expect(supplementRef).toContain('场景元素＋设定域＋情绪词')
+    expect(supplementRef).toContain('「化用启示」列＋「一句话（骨）」列')
+    expect(supplementRef).toContain('≤3 条')
+    expect(supplementRef).toContain('正式入包仍走既有补充通道')
+    expect(supplementRef).toContain('灵感库未建时直接跳过不提示')
+    // 四步补充操作细节随迁 reference：字段名/哈希往返/编号改移除/快照路径不得丢失
+    for (const detail of ['`材料清单哈希`', '`补充预览[].原文`', '`来源.读取哈希`', '`{操作: 移除, 编号}`', '`补充/<编号>.md`']) {
+      expect(supplementRef, `补充操作 reference 应含「${detail}」`).toContain(detail)
+    }
     // B1. 工单 02 写时发现登记位：drafting 候选事实段协议后接可选交子段——标题与前产行式＋三类示例＋宁少勿滥（本章已写走候选事实）
     const drafting = readSkill('novel-drafting')
     const candidateProtocol = drafting.slice(drafting.indexOf('**候选事实段（必交）**'), drafting.indexOf('2. 派发并等待完成'))
@@ -1991,14 +1999,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.82＋CHANGELOG 条目＋README×2（0.0.82 技能边界版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.83＋CHANGELOG 条目＋README×2（0.0.83 DOM/备料瘦身版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.82').toBe('0.0.82')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.82').toBe('0.0.82')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.82]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.83').toBe('0.0.83')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.83').toBe('0.0.83')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.83]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.82`).toContain('0.0.82')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.83`).toContain('0.0.83')
     }
   })
 
