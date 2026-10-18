@@ -37,3 +37,9 @@ export function readBookText(root: string, rel: string): BookTextResult {
   }
   return { ok: true, text: raw.replace(/^\uFEFF/, '') }
 }
+
+/** 读文本的 null 便捷版：missing/io 都返回 null；需要区分原因时用 `readBookText`。 */
+export function readBookTextOrNull(root: string, rel: string): string | null {
+  const result = readBookText(root, rel)
+  return result.ok ? result.text : null
+}

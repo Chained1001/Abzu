@@ -1,6 +1,6 @@
 {
   "name": "abzu",
-  "version": "0.0.79",
+  "version": "0.0.80",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -40,6 +40,10 @@
     "pack-check": "node scripts/pack-check.mjs"
   },
   "devDependencies": {
+    "@abzu/core": "workspace:*",
+    "@abzu/drafting": "workspace:*",
+    "@abzu/polish": "workspace:*",
+    "@abzu/review": "workspace:*",
     "@antv/g6": "5.1.1",
     "@codemirror/commands": "6.10.4",
     "@codemirror/lang-markdown": "6.5.2",
@@ -114,18 +118,17 @@
     "@types/diff": "7.0.2",
     "@types/markdown-it": "14.1.2",
     "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "@types/react-test-renderer": "18.3.1",
-    "@abzu/core": "workspace:*",
-    "@abzu/drafting": "workspace:*",
-    "@abzu/polish": "workspace:*",
-    "@abzu/review": "workspace:*",
     "d3-force": "3.0.0",
     "diff": "8.0.3",
     "dompurify": "3.4.16",
     "esbuild": "0.28.2",
+    "jsdom": "26.1.0",
     "lucide-react": "0.468.0",
     "markdown-it": "14.3.1",
     "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-test-renderer": "18.3.1",
     "typescript": "catalog:",
     "yaml": "catalog:"

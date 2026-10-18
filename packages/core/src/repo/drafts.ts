@@ -6,7 +6,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { parseDocument, serializeDocument } from './frontmatter'
 import { writeBatchAtomic } from './atomic'
-import { readBookText } from './read'
+import { readBookTextOrNull } from './read'
 import { extractVersionFields } from '../provenance'
 import { filenameCase, isMarkdownFileName } from './paths'
 import { resolveDraftRel, type DraftChapterKeyLike } from './draft-paths'
@@ -27,12 +27,6 @@ export interface DraftFile {
   readonly text: string
 }
 
-function readText(root: string, rel: string): string | null {
-  // A-2：读原语单源（ENOENT→missing，其余 errno→io）；本处判据不变——非 missing 也仍返回 null。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
-
 export function isNumberedDraftPath(relative: string): boolean {
   return /^草稿区\/草稿\/[^/]+\/稿\d+\.md$/.test(filenameCase(relative.replace(/\\/g, '/')))
 }
@@ -48,7 +42,7 @@ export function listChapterDrafts(bookRoot: string, key: DraftKey): readonly Dra
   try { names = fs.readdirSync(abs) } catch { return [] }
   return names.filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh')).flatMap((file) => {
     const relPath = path.posix.join(dir, file)
-    const text = readText(bookRoot, relPath)
+    const text = readBookTextOrNull(bookRoot, relPath)
     if (text === null) return []
     const doc = parseDocument(text)
     const fields = doc.ok ? doc.data.fields : {}

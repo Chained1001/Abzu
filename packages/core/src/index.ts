@@ -63,5 +63,5 @@ export {
 } from './repo/drafts'
 
 export { scanWorkspaceBooks, uniqueBookRoot, hasBooks, type WorkspaceBook } from './book/identity'
-export { readBookText, type BookTextResult } from './repo/read'
+export { readBookText, readBookTextOrNull, type BookTextResult } from './repo/read'
 export * from './reference'
