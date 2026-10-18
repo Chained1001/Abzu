@@ -363,3 +363,145 @@ describe('功能矩阵与反填充检查（票 04）', () => {
     }
   })
 })
+
+/**
+ * 本书节奏基线（票 05）。
+ *
+ * 守的是「外部先验 vs 本书实测」的分工，不是具体数值：
+ * 1. 工件属书房资产、非真源、不入书仓 git，路径固定；
+ * 2. 八项汇总齐全，每项都写取数口径（定稿章/章摘要/细纲怎么取）；
+ * 3. 冷启动前 1–10 章标「样本不足」，不伪造稳定基线；
+ * 4. 卷末三件后更新，记样本量/版本/变化/作者确认；
+ * 5. 先本书基线再通用标尺：偏离本书基线先解释，偏离标尺只做离群预警；
+ * 6. 自报覆盖写覆盖了哪条通用行、理由与作者确认；
+ * 7. design/arcplan 各带短指针；审读侧经材料包/任务包带基线摘要，不改 novel-review；
+ * 8. artifact-contract 登记新 reference；基线件零具体书名/角色名。
+ */
+describe('本书节奏基线（票 05）', () => {
+  const skillRoot = path.join(__dirname, '..', 'skills')
+  const baselinePath = path.join(skillRoot, 'novel-design', 'references', '本书节奏基线.md')
+  const baseline = fs.readFileSync(baselinePath, 'utf8')
+  const ITEMS = ['章长中位/波动', '钩型配比', '兑现间隔', 'POV 数', '场景数/章', '对话密度', '卷长', '卷内高潮位']
+
+  it('工件路径固定：书房资产、非真源、不入书仓 git', () => {
+    expect(fs.existsSync(baselinePath), 'novel-design/references/本书节奏基线.md 应存在').toBe(true)
+    expect(baseline, '工件路径应写全').toContain('`<工作范围>/书房/开书/<书名>/节奏基线.md`')
+    expect(baseline).toContain('书房资产')
+    expect(baseline).toContain('非真源')
+    expect(baseline).toContain('不入书仓 git')
+    expect(baseline, '写入通道用通用写工具（种子底子先例）').toContain('通用写工具')
+    expect(baseline, '书房资产不入真源，不经确认工具、不产生 design: 提交').toContain('不产生 `design:` 提交')
+  })
+
+  it('八项汇总齐全，每项都有取数口径与样本门槛', () => {
+    expect(baseline, '汇总表应列「项｜记什么｜取数口径｜样本门槛｜覆盖的通用行」').toContain(
+      '| 项 | 记什么 | 取数口径 | 样本门槛 | 覆盖的通用行 |',
+    )
+    const rows = baseline
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .filter((line) => ITEMS.some((item) => line.startsWith(`| ${item} |`)))
+    expect(rows, `八项汇总行应各有一行：缺 ${ITEMS.length - rows.length} 项`).toHaveLength(ITEMS.length)
+    for (const [index, row] of rows.entries()) {
+      expect(row.split('|').length, `${ITEMS[index]}: 汇总行列数不得少`).toBeGreaterThanOrEqual(6)
+      expect(row, `${ITEMS[index]}: 应带样本门槛（≥）`).toContain('≥')
+    }
+    const joined = rows.join('\n')
+    for (const ref of ['L3-02', 'L3-03', 'L3-04', 'L3-05']) {
+      expect(joined, `汇总项应回指《参考标尺》${ref}`).toContain(ref)
+    }
+    for (const source of ['定稿/卷', '章摘要', '章细纲', '章末双钩', '账本/承诺.md']) {
+      expect(baseline, `取数口径应点名来源「${source}」`).toContain(source)
+    }
+    expect(baseline, '写清分母口径（章数还是钩数）').toContain('分母')
+  })
+
+  it('冷启动：前 1–10 章标「样本不足」，不伪造稳定基线', () => {
+    expect(baseline).toContain('前 1–10 章')
+    expect(baseline).toContain('样本不足')
+    expect(baseline).toContain('不伪造稳定基线')
+    expect(baseline, '1–9 章应有明确状态').toContain('1–9 章')
+    expect(baseline, '样本不足是合法状态，不阻断流程').toContain('合法状态')
+    expect(baseline, '样本门槛表应列「能写什么」').toContain('| 样本量 | 状态 | 能写什么 |')
+  })
+
+  it('卷末更新：卷末三件后更新，记录样本量/版本/变化', () => {
+    expect(baseline).toContain('卷末三件')
+    expect(baseline).toContain('不逐章更新')
+    for (const field of ['样本量', '版本', '变化', '作者确认']) {
+      expect(baseline, `更新记录应含「${field}」`).toContain(field)
+    }
+    expect(baseline).toContain('变更记录')
+    expect(baseline, '只增不改：旧版本行保留').toContain('只增不改')
+    expect(baseline, '口径变更须标明，不跨口径比数').toContain('口径变更')
+  })
+
+  it('本书优先：先本书基线再通用标尺，偏离先解释、标尺只做离群预警', () => {
+    expect(baseline).toContain('先本书基线')
+    expect(baseline).toContain('再通用参考标尺')
+    expect(baseline).toContain('先解释')
+    expect(baseline).toContain('离群预警')
+    expect(baseline, '离群预警不拦卡').toContain('不拦卡')
+    for (const consumer of ['设计', '卷幕', '细纲', '审读']) {
+      expect(baseline, `消费位应覆盖「${consumer}」`).toContain(consumer)
+    }
+  })
+
+  it('自报覆盖：写清覆盖了哪条通用行、理由与作者确认，L0 与硬红线不覆盖', () => {
+    expect(baseline).toContain('自报覆盖')
+    expect(baseline).toContain('理由')
+    expect(baseline).toContain('作者确认')
+    expect(baseline).toContain('L3-07')
+    expect(baseline).toContain('L3-08')
+    expect(baseline).toContain('硬红线')
+    expect(baseline, 'L0 通用不变量一律不覆盖').toContain('L0 通用不变量一律不覆盖')
+    expect(baseline, '覆盖记录表列式应在位').toContain('| 覆盖项 | 覆盖的通用行 | 本书基线值（含样本量） | 理由 | 作者确认 | 状态 |')
+  })
+
+  it('消费接线：design/arcplan 短指针；审读侧经材料包/任务包带摘要，不改 novel-review', () => {
+    const design = fs.readFileSync(path.join(skillRoot, 'novel-design', 'SKILL.md'), 'utf8')
+    expect(design, 'design 应有新 reference 短指针').toContain('[本书节奏基线](references/本书节奏基线.md)')
+    expect(design, 'design 应写清先本书基线再通用标尺').toContain('先对本书基线')
+    expect(design, 'design 工件契约应登记节奏基线工件').toContain('| 节奏基线 |')
+    expect(design).toContain('`<工作范围>/书房/开书/<书名>/节奏基线.md`')
+    expect(design, '工件契约应写明卷末三件后更新').toContain('卷末三件后更新')
+
+    const arcplan = fs.readFileSync(path.join(skillRoot, 'novel-arcplan', 'SKILL.md'), 'utf8')
+    expect(arcplan, 'arcplan 卷末应指到基线件').toContain('references/本书节奏基线.md')
+    expect(arcplan, 'arcplan 应写清卷末三件后更新').toContain('本书节奏基线更新')
+    expect(arcplan, '审读侧经派发材料携带基线摘要').toContain('本书基线摘要')
+    expect(arcplan).toContain('材料包/任务包')
+    expect(arcplan, '审读底本与派发模板不动').toContain('不改审读底本')
+
+    const review = fs.readFileSync(path.join(skillRoot, 'novel-review', 'SKILL.md'), 'utf8')
+    expect(review, '审读侧不经派发模板内联（fixed-docs 计入文件不改）').not.toContain('本书节奏基线')
+    expect(review, '审读派发材料口径保持原样').toContain('分档参考区间动态摘录')
+
+    const fixedDocs = fs.readFileSync(
+      path.join(__dirname, '..', '..', '..', 'scripts', 'benchmarks', 'fixed-docs.mjs'),
+      'utf8',
+    )
+    expect(fixedDocs, '新 reference 不进 fixed-docs 预算').not.toContain('本书节奏基线')
+  })
+
+  it('artifact-contract 登记本书节奏基线 reference', () => {
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("'skills/novel-design/references/本书节奏基线.md'")
+  })
+
+  it('基线件零具体书名/角色名，书名一律用 <书名> 占位', () => {
+    const blacklist = [
+      '大奉打更人', '大奉',
+      '诡秘之主', '诡秘',
+      '我真没想重生啊', '重生啊',
+      '绍宋', '十日终焉', '十日',
+      '斗破苍穹', '斗破',
+      '道诡异仙', '道诡',
+      '魏渊', '罗塞尔', '徐芷溪',
+    ]
+    for (const name of blacklist) {
+      expect(baseline, `本书节奏基线不应出现具体书名/角色名「${name}」`).not.toContain(name)
+    }
+    expect(baseline).toContain('<书名>')
+  })
+})
