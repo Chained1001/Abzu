@@ -325,6 +325,15 @@ describe('设计侧确认提交(commitConfirmed,拍板 1/2/7)', () => {
     expect((log.stdout ?? '').trim()).toBe('design: 确认契约')
   })
 
+  it('fix 前缀携带章号返回 Result 失败，不向调用方抛错', () => {
+    const root = initRepo()
+    fs.mkdirSync(path.join(root, '作品契约'), { recursive: true })
+    fs.writeFileSync(path.join(root, '作品契约/契约.md'), '# 契约\n', 'utf-8')
+    const r = commitConfirmed({ bookRoot: root, paths: ['作品契约/契约.md'], prefix: 'fix', summary: '手改', chapterScope: 1 })
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.reason).toContain('design')
+  })
+
   it('路径越界与草稿区路径拒绝', () => {
     const root = initRepo()
     expect(commitConfirmed({ bookRoot: root, paths: ['知识库/写作/节拍.md'], prefix: 'design', summary: 'x' }).ok).toBe(false)

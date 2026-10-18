@@ -57,12 +57,17 @@ function commitConfirmedLocked(opts: CommitConfirmedOptions): CommitConfirmedRes
 
   // 文件已由写入器落盘;这里只做 add→commit,不做清单读取与 sha256 校验,
   // 也不做「目标已存在即拒绝」(设计侧是覆盖式写入)。
-  const message = formatCommitMessage({
-    prefix: opts.prefix,
-    summary: opts.summary,
-    lines: opts.lines,
-    chapterScope: opts.chapterScope,
-  })
+  let message: string
+  try {
+    message = formatCommitMessage({
+      prefix: opts.prefix,
+      summary: opts.summary,
+      lines: opts.lines,
+      chapterScope: opts.chapterScope,
+    })
+  } catch (err) {
+    return { ok: false, reason: err instanceof Error ? err.message : String(err) }
+  }
   const commit = commitWithIsolatedIndex(opts.bookRoot, dests, message)
   if (commit.noChanges) {
     return { ok: true, message: '无改动,未产生提交', dests, noChanges: true }
