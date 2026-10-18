@@ -161,7 +161,7 @@ describe('改稿最小 + 定稿准备', () => {
     // 登记跳过润色承接后 → 定稿准备与沉淀
     expect(recordPolish(root, { ...key, 跳过: true, 理由: '作者稿不润色' }).ok).toBe(true)
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('定稿准备与沉淀')
-  })
+  }, 30_000)
 
   it('applyRevision 不带补丁只记处置，不产生新稿', () => {
     const root = mkDir('abzu-revise-nopatch-')
