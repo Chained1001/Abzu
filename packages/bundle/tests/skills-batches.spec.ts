@@ -3988,3 +3988,69 @@ describe('skills 批次防回退断言组·04 设计评审台账批', () => {
     expect(arcplan, '旧「两席均只做首评」应清零').not.toContain('两席均只做首评')
   })
 })
+
+describe('skills 批次防回退断言组·06 设定就绪与设定债批', () => {
+  it('06：八类检查表＋必须/可留白分层＋设定债定义/格式/路径＋不要求开书前写满＋变更包衔接＋注册单源', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const refPath = path.join(root, 'packages/bundle/skills/novel-design/references/设定就绪与设定债.md')
+    expect(fs.existsSync(refPath), 'novel-design/references/设定就绪与设定债.md 应存在').toBe(true)
+    const text = fs.readFileSync(refPath, 'utf8')
+
+    // A. 检查表：八类设定逐类在位＋按故事需求裁剪
+    expect(text).toContain('## 三、八类检查表')
+    for (const category of ['力量', '经济', '社会', '地理', '日常', '信息', '军事', '超自然']) {
+      expect(text, `检查表应含「${category}」类`).toContain(`| ${category} |`)
+    }
+    expect(text).toContain('按故事需求裁剪')
+
+    // B. 分层：不适用/可留白/必须三态＋必须只到可执行
+    expect(text).toContain('## 二、按故事需求裁剪：必须与可留白')
+    for (const state of ['不适用', '可留白', '必须']) expect(text).toContain(state)
+    expect(text).toContain('必须只到可执行')
+    expect(text).toContain('没有的类就写「不适用」')
+
+    // C. 设定债定义与边界：已依赖＋真源未定义；评审只报缺口不补标准
+    expect(text).toContain('设定债＝已经依赖、但真源尚未定义的设定')
+    expect(text).toContain('已依赖处')
+    expect(text).toContain('设定缺口')
+    expect(text).toContain('评审不凭空补')
+    expect(text).toContain('不把「未定义」当「可自由编」')
+
+    // D. 记录格式：八字段＋五状态＋固定路径
+    for (const field of ['编号', '设定类', '已依赖处', '缺什么', '影响', '状态', '作者裁决', '补写落点']) {
+      expect(text, `设定债字段应含「${field}」`).toContain(`| ${field} |`)
+    }
+    for (const state of ['待补', '已补', '作者保留留白', '已升级变更包', '已失效']) {
+      expect(text, `设定债状态应含「${state}」`).toContain(state)
+    }
+    expect(text).toContain('书房/开书/<书名>/设定债.md')
+    expect(text).toContain('书房资产、非真源、不入书仓 git')
+
+    // E. 不要求开书前写满、不是门禁、债不挡开写
+    expect(text).toContain('不要求开书前写满')
+    expect(text).toContain('不是开书门禁')
+    expect(text).toContain('债不挡开写')
+
+    // F. 与 05 衔接：补写改变硬设定/已定稿走 L0-L4 变更包，不直接写死
+    expect(text).toContain('[变更影响分析](变更影响分析.md)')
+    expect(text).toContain('L0-L4')
+    expect(text).toContain('不直接写死')
+    expect(text).toContain('定稿区只增不改')
+
+    // G. SKILL 入口：reference 链接＋路径＋作者裁决＋不代补＋变更包；工件契约登记设定债资产位
+    const design = readSkill('novel-design')
+    expect(design).toContain('[设定就绪与设定债](references/设定就绪与设定债.md)')
+    expect(design).toContain('<工作范围>/书房/开书/<书名>/设定债.md')
+    expect(design).toContain('设定债')
+    expect(design).toContain('作者裁决补还是留')
+    expect(design).toContain('不把「未定义」当「可自由编」')
+    expect(design).toContain('L0-L4')
+    expect(design).toContain('不直接写死')
+    expect(design).toContain('| 设定债 |')
+
+    // H. 注册单源：artifact-contract 登记（pack-check 按 referenceDocs 校验打包面）
+    const contract = read('packages/bundle/scripts/artifact-contract.mjs')
+    expect(contract).toContain("'skills/novel-design/references/设定就绪与设定债.md'")
+  })
+})
