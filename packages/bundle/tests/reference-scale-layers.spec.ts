@@ -644,3 +644,120 @@ describe('参考标尺直接消费点接线（票 06）', () => {
     expect(measured.ok, 'fixed-docs 预算应达标').toBe(true)
   })
 })
+
+/**
+ * 标尺使用日志（票 07）。
+ *
+ * 守的是「显式决定留痕」的契约，不是每章流水：
+ * 1. 工件属书房资产、非真源、不入书仓 git，路径固定；
+ * 2. 八个字段齐：日期/卷章、引用行 ID、本书基线值/样本量、决定、理由、作者确认、结果、是否升级变更包；
+ * 3. 使用时机覆盖设计/卷幕/细纲/审读，卷末汇总；
+ * 4. 只记显式决定/偏离/覆盖/不适用，不记正常按基线写作的每章流水；
+ * 5. 与本书节奏基线、L3 自报覆盖、变更包衔接，且本件不改标尺数字；
+ * 6. design/arcplan 短指针、artifact-contract 登记、零具体书名。
+ */
+describe('标尺使用日志（票 07）', () => {
+  const skillRoot = path.join(__dirname, '..', 'skills')
+  const logPath = path.join(skillRoot, 'novel-design', 'references', '标尺使用日志.md')
+  const log = fs.readFileSync(logPath, 'utf8')
+
+  it('工件路径固定：书房资产、非真源、不入书仓 git', () => {
+    expect(fs.existsSync(logPath), 'novel-design/references/标尺使用日志.md 应存在').toBe(true)
+    expect(log, '工件路径应写全').toContain('`<工作范围>/书房/开书/<书名>/标尺使用日志.md`')
+    expect(log).toContain('书房资产')
+    expect(log).toContain('非真源')
+    expect(log).toContain('不入书仓 git')
+    expect(log, '写入通道用通用写工具').toContain('通用写工具')
+    expect(log, '书房资产不经确认工具、不产生 design: 提交').toContain('不产生 `design:` 提交')
+  })
+
+  it('八字段齐全，决定与结果枚举完整', () => {
+    expect(log, '主表字段应按约定顺序齐全').toContain(
+      '| 日期/卷章 | 引用的行 ID | 本书基线值/样本量 | 决定 | 理由 | 作者确认 | 结果 | 是否升级为变更包 |',
+    )
+    for (const decision of ['采用', '偏离', '自报覆盖', '不适用']) {
+      expect(log, `决定枚举应含「${decision}」`).toContain(decision)
+    }
+    expect(log, '决定应写四选一，避免模糊值').toContain('四选一')
+    for (const result of ['待观察', '有效', '无效', '反例']) {
+      expect(log, `结果枚举应含「${result}」`).toContain(result)
+    }
+    expect(log, '结果应写四选一').toContain('`待观察`／`有效`／`无效`／`反例`')
+    for (const field of ['日期/卷章', '引用的行 ID', '本书基线值/样本量', '作者确认', '理由', '是否升级为变更包']) {
+      expect(log, `字段说明应含「${field}」`).toContain(`| ${field} |`)
+    }
+  })
+
+  it('使用时机覆盖设计/卷幕/细纲/审读，并在卷末汇总', () => {
+    expect(log, '触发规则应写明每次显式引用参考标尺就记').toContain('每出现一次显式引用参考标尺的决定，就记一行')
+    for (const consumer of ['设计（契约／世界书体量／骨架／分卷／体量对账／确认前审查）', '卷幕（卷规划／分卷核对／幕纲／卷末三件／卷末设定审计）', '细纲（章细纲／写前十查）', '审读（材料包／任务包／报告／复评）']) {
+      expect(log, `使用时机应覆盖「${consumer}」`).toContain(consumer)
+    }
+    expect(log, '卷末应有汇总').toContain('卷末汇总')
+    expect(log, '汇总时点应在卷末三件与基线更新之后').toContain('卷末三件落盘、本书节奏基线更新之后')
+    expect(log, '汇总表应含计数列').toContain('| 卷 | 采用 | 偏离 | 自报覆盖 | 不适用 |')
+  })
+
+  it('不记每章流水：只记显式决定/偏离/覆盖/不适用', () => {
+    expect(log).toContain('不记正常按基线写作的每章流水')
+    expect(log, '应说明空行不记').toContain('没有显式决定就不写')
+    expect(log, '应说明不逐章重抄数值').toContain('不逐章重抄参考标尺数值或本书基线八项')
+    expect(log, '应说明复用不重复造行').toContain('复用')
+    expect(log, '日志膨胀是明确要防的失败').toContain('日志膨胀')
+  })
+
+  it('与本书节奏基线、自报覆盖、变更包衔接，且不改标尺数字', () => {
+    expect(log).toContain('本书节奏基线')
+    expect(log).toContain('L3-07')
+    expect(log).toContain('L3-08')
+    expect(log, '覆盖须写样本量').toContain('本书基线值＋样本量')
+    expect(log, '变更包应按 L0–L4 定级').toContain('L0–L4')
+    expect(log).toContain('是否升级为变更包')
+    expect(log, '升级变更包要带编号与主级').toContain('是（变更包 <编号>，主级 Lx）')
+    expect(log, '本件不改标尺数字').toContain('不在日志里改《参考标尺》数字')
+    expect(log, '日志只留痕不拦卡').toContain('只留痕')
+  })
+
+  it('消费接线：design/arcplan 短指针，卷末汇总接在基线更新之后', () => {
+    const design = fs.readFileSync(path.join(skillRoot, 'novel-design', 'SKILL.md'), 'utf8')
+    const pointers = design.match(/\[标尺使用日志\]\(references\/标尺使用日志\.md\)/g) ?? []
+    expect(pointers.length, 'design 至少两处标尺使用日志指针').toBeGreaterThanOrEqual(2)
+    expect(design, 'design 应写清只记显式决定、不记流水').toContain('不记正常按基线的每章流水')
+    expect(design, 'design 工件契约应登记日志工件').toContain('| 标尺使用日志 |')
+    expect(design).toContain('`<工作范围>/书房/开书/<书名>/标尺使用日志.md`')
+
+    const arcplan = fs.readFileSync(path.join(skillRoot, 'novel-arcplan', 'SKILL.md'), 'utf8')
+    expect(arcplan, 'arcplan 应指到日志件').toContain('references/标尺使用日志.md')
+    expect(arcplan, 'arcplan 卷规划应有使用留痕').toContain('参考标尺使用留痕')
+    expect(arcplan, 'arcplan 卷末应有汇总').toContain('参考标尺使用汇总')
+    expect(arcplan, 'arcplan 汇总须在基线更新之后').toContain('基线更新之后')
+    expect(arcplan, 'arcplan 工件契约应登记日志工件').toContain('| 标尺使用日志 |')
+
+    const fixedDocs = fs.readFileSync(
+      path.join(__dirname, '..', '..', '..', 'scripts', 'benchmarks', 'fixed-docs.mjs'),
+      'utf8',
+    )
+    expect(fixedDocs, '新 reference 不进 fixed-docs 预算').not.toContain('标尺使用日志')
+  })
+
+  it('artifact-contract 登记标尺使用日志 reference', () => {
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("'skills/novel-design/references/标尺使用日志.md'")
+  })
+
+  it('日志件零具体书名/角色名，书名一律用 <书名> 占位', () => {
+    const blacklist = [
+      '大奉打更人', '大奉',
+      '诡秘之主', '诡秘',
+      '我真没想重生啊', '重生啊',
+      '绍宋', '十日终焉', '十日',
+      '斗破苍穹', '斗破',
+      '道诡异仙', '道诡',
+      '魏渊', '罗塞尔', '徐芷溪',
+    ]
+    for (const name of blacklist) {
+      expect(log, `标尺使用日志不应出现具体书名/角色名「${name}」`).not.toContain(name)
+    }
+    expect(log).toContain('<书名>')
+  })
+})

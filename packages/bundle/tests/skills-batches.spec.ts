@@ -990,6 +990,8 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       const text = fs.readFileSync(f, 'utf8')
         .split('标尺校准_六书.json').join('')
         .split('存在本身就是标尺').join('')
+        // 票 07：「标尺使用日志.md」是固定工件名（专名），不算独立简称；其余仍须全称
+        .split('标尺使用日志').join('')
       expect(text, `${path.relative(skillsRoot, f)}: 独立「标尺」应全称化为「参考标尺」`).not.toMatch(/(?<!参考)标尺/)
     }
     // E. 类简称表＝序号前缀标识符协议（0.0.36 改指路单源；0.0.58 素材库批：十值改八值、单源随迁 novel-forage）
