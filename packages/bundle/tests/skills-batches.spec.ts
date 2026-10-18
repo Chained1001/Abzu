@@ -1151,15 +1151,15 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // 0.0.25 独立审查 R3：参考区间改出处可溯式（张力 60-80 取整自双书 62/78、泄压 ≤10 上浮留余）；无出处的 55-70 清零——负断言只钉配比行
     // 0.0.26 标尺 v0.5 批裁定同步：区间按驱动类型前缀分裂（张力驱动档 60-80% 三书并陈/情感驱动档 25-40%），旧「双书并陈」区间串随三书实证退役，断言随裁同步
     expect(scale).toContain('张力类 60-80%')
-    expect(scale).toContain('三书并陈取整区间')
-    expect(scale).toContain('张力档 ≤10%（双书 5%-6.4% 上浮留余）')
+    expect(scale).toContain('三样本并陈取整区间')
+    expect(scale).toContain('张力档 ≤10%（双样本 5%-6.4% 上浮留余）')
     const hookRatioRow = scale.split('\n').find((l) => l.includes('| 章末钩型配比 |'))
     expect(hookRatioRow, '参考标尺应有「章末钩型配比」行').toBeDefined()
     expect(hookRatioRow!, '配比行不得残留无出处的 55-70 区间').not.toContain('55-70')
-    expect(scale).toContain('诡秘张力类 62%')
-    expect(scale).toContain('大奉约 78%')
+    expect(scale).toContain('S2 张力类 62%')
+    expect(scale).toContain('S1 约 78%')
     // 0.0.26 独立审查 R2 同步：情感档泄压 ≤15% 出处改引重生啊（原误挂张力档双书 6.4%/5% 数据），断言随出处改钉重生啊口径串
-    expect(scale).toContain('情感档 ≤15%（重生啊单书口径：泄压类＝温情收束')
+    expect(scale).toContain('情感档 ≤15%（S3 单样本口径：泄压类＝温情收束')
     // A1 判据①：章末双钩节三列口径（钩型｜承诺｜兑现章号）＋定格即问号（A3 协同技法）
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     expect(sect).toContain('**承诺列**＋**兑现章号列**')
@@ -1331,14 +1331,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
   it('0.0.26 标尺 v0.5 五书校准批：驱动类型分带＋新四行＋五题材修正＋末卷扩＋v0.5 变更', () => {
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     // 1. 冲突①裁决（最大冲突）：钩型配比驱动类型分带——两带前缀＋硬红线不动＋情感重场替代张力钩＋泄压分档
-    expect(scale).toContain('两层制·驱动类型分带（五书实证 2026-10-11）')
+    expect(scale).toContain('两层制·驱动类型分带（S1–S5 实证 2026-10-11）')
     expect(scale).toContain('张力驱动档〔玄幻/悬疑/无限流〕')
     expect(scale).toContain('情感驱动档〔都市情感/女频〕')
-    expect(scale).toContain('张力类 25-40%（重生啊实测 25-35% 取整上浮）＋情绪类 40-60%＋情感重场替代张力钩')
+    expect(scale).toContain('张力类 25-40%（S3 实测 25-35% 取整上浮）＋情绪类 40-60%＋情感重场替代张力钩')
     expect(scale).toContain('情感档 ≤15%')
     expect(scale).toContain('分带不改')
     // 2. 冲突②裁决：大爽点三口径分驱
-    expect(scale).toContain('口径分驱（五书实证 2026-10-11，三口径并列）')
+    expect(scale).toContain('口径分驱（S1–S5 实证 2026-10-11，三口径并列）')
     expect(scale).toContain('每 15 章（≈5-7 万字）章制')
     expect(scale).toContain('间隔容忍至 25-30 万字')
     expect(scale).toContain('大会战间隔 75-100 章（卷单位）')
@@ -1347,7 +1347,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('都市情感慢热档 ×1.7≈**25 万字**')
     expect(scale).toContain('历史文极端慢热档 **50 万字位**')
     expect(scale).toContain('终卷收束期 60-110 万')
-    expect(scale).toContain('重生啊末卷 107 万＝常态卷（20-30 万）3.5 倍')
+    expect(scale).toContain('S3 末卷 107 万＝常态卷（20-30 万）3.5 倍')
     expect(scale).toContain('非终卷仍守 40 万')
     // 4. 新四行（每行五书证据标注＋【部分校准】或实测标注）：单元循环节拍/前传章型/终卷通胀律/信息释放分级
     expect(scale).toContain('| 单元循环节拍 |')
@@ -1361,7 +1361,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).toContain('放量渐次（终卷前 10-15 章起）不突变')
     expect(scale).toContain('| 信息释放分级 |')
     expect(scale).toContain('核心真相（题眼）置**倒数 5%**')
-    expect(scale).toContain('悬念型信息:期待型信息配比——悬疑型 ≈7:3（n=1，十日钩型口径移植、仅参考）；情感型待证')
+    expect(scale).toContain('悬念型信息:期待型信息配比——悬疑型 ≈7:3（n=1，S5 钩型口径移植、仅参考）；情感型待证')
     expect(scale).toContain('信息释放台账的方法论母行')
     // 5. 冲突⑤⑥裁决＋固定层/比例层五书实证替换
     expect(scale).toContain('平面谱＝0 阶特例')
@@ -1460,31 +1460,31 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(volumeRow, '参考标尺应有「单卷体量」行').toBeDefined()
     expect(volumeRow!).not.toContain('5.3 倍')
     expect(volumeRow!).toContain('章长峰值另见终卷通胀律行')
-    expect(volumeRow!).toContain('诡秘后三部章数递减而单卷体量上浮')
+    expect(volumeRow!).toContain('S2 后三部章数递减而单卷体量上浮')
     // C1 终卷通胀律行：警戒与章长峰值关系句＋打破条件情感峰例外
     expect(scale).toContain('章长极端峰值可超警戒，卷体量口径 3.5 倍为常态参考')
-    expect(scale).toContain('重生啊番外婚礼章 5.3 倍')
+    expect(scale).toContain('S3 番外婚礼章 5.3 倍')
     // C2 情感档张力类上缘 40%：行内 25-50 零残留
     const hookRow = scale.split('\n').find((l) => l.includes('| 章末钩型配比 |'))
     expect(hookRow, '参考标尺应有「章末钩型配比」行').toBeDefined()
     expect(hookRow!).not.toContain('25-50')
-    expect(hookRow!).toContain('25-40%（重生啊实测 25-35% 取整上浮）')
+    expect(hookRow!).toContain('25-40%（S3 实测 25-35% 取整上浮）')
     // R1 前传章型最小 4 章：行内 3-83 零残留
     const prequelRow = scale.split('\n').find((l) => l.includes('| 前传章型·篇幅曲线 |'))
     expect(prequelRow, '参考标尺应有「前传章型·篇幅曲线」行').toBeDefined()
     expect(prequelRow!).not.toContain('3-83')
     // R2 情感档泄压出处改引重生啊（原误挂张力档双书数据）
-    expect(hookRow!).toContain('情感档 ≤15%（重生啊单书口径：泄压类＝温情收束')
+    expect(hookRow!).toContain('情感档 ≤15%（S3 单样本口径：泄压类＝温情收束')
     // R3 卷纲结构类型枚举补单元循环型（十日报告点名缺口——枚举单源在模板）＋与标尺单元循环节拍行互指闭合
     expect(vol).toContain('单元循环型（单元六段循环：颁布→战术→执行意外→翻解→结算→间歇')
     expect(vol).toContain('节拍口径见《定调设计》技能包 references/参考标尺.md 节奏基准「单元循环节拍」行，该行在本类型选中时生效')
     expect(scale).toContain('卷纲结构类型选单元循环型时本行生效')
     // R4 信息释放分级行：5/5 归属钉在分级排期方法论（配比句 n=1 不在此实证内）
-    expect(scale).toContain('分级排期方法论 ✅五书实证 2026-10-11')
+    expect(scale).toContain('分级排期方法论 ✅S1–S5 实证 2026-10-11')
     // O1 历史行对话占比上限
-    expect(scale).toContain('对话占比上限 0.45（绍宋实测对话段占比 0.32-0.41 上浮）')
+    expect(scale).toContain('对话占比上限 0.45（S4 实测对话段占比 0.32-0.41 上浮）')
     // Nit：诡秘 3144 字符口径注＋支线双口径注
-    expect(scale).toContain('诡秘 3144 系**字符口径**')
+    expect(scale).toContain('S2 3144 系**字符口径**')
     expect(scale).toContain('4＝在用支线口径，含 1 弃线则 5-6')
   })
 
@@ -2165,7 +2165,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     // A. C1 快档数值单源：design 三档话术与标尺 2100-2500 对齐，旧 2300-2500 与「十日/道诡型」清零
-    expect(design).toContain('快节奏档 2100-2500（十日型）')
+    expect(design).toContain('快节奏档 2100-2500（样本 S5 型）')
     expect(design, '旧「2300-2500」漂移值应清零').not.toContain('2300-2500')
     expect(design, '标尺单源无「道诡型」，SKILL 不重述').not.toContain('道诡')
     // B. R1 出处注记负断言：skills/ 树（assets 种子数据除外）七类出处零命中（〔theory-cards T 编号〕与〔§x.y〕卡头合法声明不在其列）
@@ -2657,7 +2657,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(scale, `参考标尺不应残留「${stale}」`).not.toContain(stale)
     }
     expect(scale).toContain('｜确认前审查作家席「续航与体量」维逐行对标。')
-    expect(scale).toContain('（绍宋 80 章/28.5 万慢热至 50 万位首高潮）')
+    expect(scale).toContain('（S4 80 章/28.5 万慢热至 50 万位首高潮）')
     const techDoc = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '技术文档.md'), 'utf8')
     expect(techDoc).toContain('**参考标尺的校准沿革**')
     // B. 雷点清单：断更/太监行删除、差评与新书期/基本盘措辞改读者体验、变更记录移出
@@ -4238,5 +4238,42 @@ describe('skills 批次防回退断言组·10 风险分级评审门禁批', () =
     // K. 注册单源：artifact-contract 登记（pack-check 按 referenceDocs 校验打包面）
     const contract = read('packages/bundle/scripts/artifact-contract.mjs')
     expect(contract).toContain("'skills/novel-director/references/评审分级与门禁.md'")
+  })
+})
+
+describe('skills 批次防回退断言组·参考标尺链路去书名化', () => {
+  it('参考标尺及其直接消费链零具体书名/角色名，校准来源只用匿名样本编号', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const skills = path.join(root, 'packages', 'bundle', 'skills')
+    // 只守标尺的直接消费链；不把黑名单扩散到其他技能或 references。
+    const chain = [
+      'novel-design/references/参考标尺.md',
+      'novel-design/SKILL.md',
+      'novel-arcplan/SKILL.md',
+      'novel-outline/SKILL.md',
+      'novel-review/SKILL.md',
+      'novel-design/agents/作家评审.md',
+    ]
+    const blacklist = [
+      '大奉打更人', '大奉',
+      '诡秘之主', '诡秘',
+      '我真没想重生啊', '重生啊',
+      '绍宋', '十日终焉', '十日',
+      '斗破苍穹', '斗破',
+      '道诡异仙', '道诡',
+      '魏渊', '罗塞尔', '徐芷溪',
+    ]
+    for (const rel of chain) {
+      const text = fs.readFileSync(path.join(skills, rel), 'utf8')
+      for (const name of blacklist) {
+        expect(text, `${rel}: 不应出现具体书名/角色名「${name}」`).not.toContain(name)
+      }
+    }
+    const scale = fs.readFileSync(path.join(skills, chain[0]), 'utf8')
+    expect(scale).toContain('匿名样本组 S1–S5')
+    expect(scale).toContain('未进入核心校准')
+    expect(scale).toContain('未进入核心校准')
+    expect(scale).toContain('编号↔真实书名映射只存仓外档案、不入仓')
+    expect(fs.readFileSync(path.join(skills, 'novel-design/SKILL.md'), 'utf8')).toContain('样本 S5 型')
   })
 })
