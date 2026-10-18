@@ -505,3 +505,142 @@ describe('本书节奏基线（票 05）', () => {
     expect(baseline).toContain('<书名>')
   })
 })
+
+/**
+ * 直接消费点接线（票 06）。
+ *
+ * 守的是「行 ID＋状态」消费契约，不是具体数值：
+ * 1. 标尺内旧行名→新 ID 映射在位，映射与旧行名均可检索；
+ * 2. 设计/卷幕/细纲/审读/作家评审只引用存在的行 ID，无悬空引用；
+ * 3. 消费点不内联章数/字数/间隔等标尺数值，改按行 ID 取数（示例行与对象实况白名单）；
+ * 4. 旧行名保留兼容，本书契约/作者自报优先口径仍在；
+ * 5. fixed-docs 计入文件合计不超预算线。
+ */
+describe('参考标尺直接消费点接线（票 06）', () => {
+  const skillRoot = path.join(__dirname, '..', 'skills')
+  const CONSUMERS = [
+    { rel: 'novel-design/SKILL.md', role: '设计' },
+    { rel: 'novel-arcplan/SKILL.md', role: '卷幕' },
+    { rel: 'novel-outline/SKILL.md', role: '细纲' },
+    { rel: 'novel-review/SKILL.md', role: '审读' },
+    { rel: 'novel-design/agents/作家评审.md', role: '作家评审' },
+  ] as const
+  const consumerText = new Map(
+    CONSUMERS.map((consumer) => [consumer.rel, fs.readFileSync(path.join(skillRoot, consumer.rel), 'utf8')]),
+  )
+  const byId = new Map(rows.map((row) => [row.id, row]))
+  const ID_ANY = /L[0-3]-(?=[0-9A])[A-Za-z0-9-]+/
+  const ID_ALL = /L[0-3]-(?=[0-9A])[A-Za-z0-9-]+/g
+
+  const legacySection = text.slice(text.indexOf('## 八、旧行名索引'))
+  const legacyIndex = new Map<string, readonly string[]>()
+  for (const line of legacySection.split(/\r?\n/)) {
+    if (!line.startsWith('|')) continue
+    const cells = cellsOf(line)
+    if (cells.length < 3 || cells[0] === '旧行名' || cells[0]!.startsWith('---')) continue
+    const ids = [...cells[2]!.matchAll(/L[0-3]-[A-Za-z0-9-]+/g)].map((match) => match[0]!)
+    legacyIndex.set(cells[0]!, ids)
+  }
+
+  it('旧行名→新 ID 映射在位：索引覆盖关键旧行名，映射 ID 全部存在', () => {
+    expect(legacyIndex.size, '旧行名索引应至少 40 行').toBeGreaterThanOrEqual(40)
+    expect(text, '索引应写明旧行名→新 ID 映射').toContain('旧行名→新 ID')
+    for (const [name, ids] of legacyIndex) {
+      expect(hasExactCell(name), `旧行名「${name}」应在标尺表格中可精确检索`).toBe(true)
+      if (ids.length === 0) continue
+      for (const id of ids) {
+        expect(byId.has(id), `旧行名「${name}」映射到不存在的行 ID「${id}」`).toBe(true)
+      }
+    }
+    for (const name of [
+      '每章字数', '单卷体量', '大爽点间隔', '小爽点间隔', '章末钩型配比', '幕',
+      '三线断档红线', '幕内分批出细纲', '卷内防疲劳', '反派层级', '反派层级↔存活周期映射',
+      '换图 SOP', '第一个大高潮位置', '信息释放分级',
+    ]) {
+      expect(legacyIndex.has(name), `旧行名索引应含「${name}」`).toBe(true)
+      expect(legacyIndex.get(name)!.length, `旧行名「${name}」应映射到至少一个行 ID`).toBeGreaterThan(0)
+    }
+  })
+
+  it('行内 legacy 旧名全部可回索引：无孤立旧名', () => {
+    const indexNames = [...legacyIndex.keys()]
+    const orphan: string[] = []
+    for (const row of rows) {
+      if (row.legacy === '—') continue
+      for (const part of row.legacy.split(/[、，]/)) {
+        const base = part.replace(/（[^）]*）/g, '')
+        const covered =
+          legacyIndex.has(part) ||
+          legacyIndex.has(base) ||
+          indexNames.some((candidate) => candidate.startsWith(`${base}（`))
+        if (!covered) orphan.push(`${row.id}:${part}`)
+      }
+    }
+    expect(orphan, `以下 legacy 旧名在旧行名索引中查不到：${orphan.join('、')}`).toEqual([])
+  })
+
+  it('消费文档引用无悬空行 ID，且五个直接消费点都已接线', () => {
+    for (const { rel, role } of CONSUMERS) {
+      const body = consumerText.get(rel)!
+      const refs = [...new Set([...body.matchAll(ID_ALL)].map((match) => match[0]!))]
+      expect(refs.length, `${role}（${rel}）应至少引用一个标尺行 ID`).toBeGreaterThan(0)
+      const dangling = refs.filter((id) => !byId.has(id))
+      expect(dangling, `${role}（${rel}）引用了不存在的行 ID：${dangling.join('、')}`).toEqual([])
+    }
+  })
+
+  it('消费点不内联标尺数值：取数行只写行 ID＋旧行名（示例行白名单）', () => {
+    const VALUE_PATTERN = /(?:[0-9]+(?:\.[0-9]+)?\s*(?:[-–~]\s*[0-9]+)?\s*(?:章|字|万字|万))|(?:每\s*[0-9]+\s*章)/g
+    const WHITELIST = [
+      // 参考标尺对照表的示例行：卷03 预算 18 万字是对象实况，不是标尺值
+      '| L2-A3-01 单卷体量 | 卷03 预算 18 万字 | ✅ | — |',
+    ]
+    const violations: string[] = []
+    for (const { rel, role } of CONSUMERS) {
+      for (const [index, line] of consumerText.get(rel)!.split(/\r?\n/).entries()) {
+        if (!line.includes('参考标尺') && !ID_ANY.test(line)) continue
+        if (WHITELIST.some((allowed) => line.includes(allowed))) continue
+        const hits = line.replace(ID_ALL, '').match(VALUE_PATTERN)
+        if (hits !== null) violations.push(`${role} ${rel}:${index + 1}「${hits.join('、')}」`)
+      }
+    }
+    expect(violations, `消费点不得内联章数/字数/间隔数值（改行 ID 取数）：${violations.join('；')}`).toEqual([])
+  })
+
+  it('消费点引用格式＝行 ID＋旧行名，旧行名仍可查，本书契约自报优先口径保留', () => {
+    const pins: Array<readonly [string, string]> = [
+      ['novel-design/SKILL.md', '「L2-A4-01 每章字数」行'],
+      ['novel-design/SKILL.md', 'L2-A3-01／L1-11 单卷体量'],
+      ['novel-arcplan/SKILL.md', '「L2-A5-01 三线断档红线」行'],
+      ['novel-arcplan/SKILL.md', '「L2-A5-04 换图 SOP」行'],
+      ['novel-arcplan/SKILL.md', '「L2-A4-05／L1-13 幕」行'],
+      ['novel-outline/SKILL.md', '「L2-A4-06 幕内分批出细纲」行'],
+      ['novel-review/SKILL.md', 'L2-A4-01 每章字数'],
+      ['novel-review/SKILL.md', 'L1-01／L1-02 章级兑现密度与连续无兑现上限'],
+      ['novel-review/SKILL.md', 'L2-A1-03／L1-04 章末钩型配比'],
+      ['novel-design/agents/作家评审.md', '「L2-A3-01 单卷体量」行'],
+      ['novel-design/agents/作家评审.md', '「L2-A5-06 卷内防疲劳」行'],
+    ]
+    for (const [rel, pin] of pins) {
+      expect(consumerText.get(rel), `${rel} 应含消费格式「${pin}」`).toContain(pin)
+    }
+    for (const name of ['每章字数', '单卷体量', '三线断档红线', '换图 SOP', '幕', '章末钩型配比', '卷内防疲劳', '幕内分批出细纲']) {
+      expect(legacyIndex.has(name), `旧行名「${name}」仍应在索引中可查`).toBe(true)
+    }
+    for (const { rel, role } of CONSUMERS) {
+      expect(consumerText.get(rel), `${role} 应保留本书契约/作者自报优先口径`).toMatch(
+        /本书自报|契约自报|作者自报|本书契约|本书基线/,
+      )
+    }
+    expect(consumerText.get('novel-review/SKILL.md')).toContain('status/gate')
+    expect(consumerText.get('novel-design/agents/作家评审.md')).toContain('status/gate')
+  })
+
+  it('fixed-docs 通过：计入文件合计不超过基线 80% 预算线', async () => {
+    const module = await import('../../../scripts/benchmarks/fixed-docs.mjs')
+    const measured = module.measureFixedDocs()
+    const budget = Math.floor(measured.baseline * measured.target)
+    expect(measured.total, `fixed-docs 合计 ${measured.total} 应 ≤ ${budget}`).toBeLessThanOrEqual(budget)
+    expect(measured.ok, 'fixed-docs 预算应达标').toBe(true)
+  })
+})

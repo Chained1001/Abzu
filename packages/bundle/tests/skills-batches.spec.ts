@@ -1285,7 +1285,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(checks).toContain('近期窗口条目＋账本双记位漏写时本查兜底')
     expect(memoSpec).toContain('**验证到期自查**')
     expect(memoSpec).toContain('近期窗口条目＋`账本/线索.md`')
-    // 字数 3500 基准：标尺行＋design 示例新数值＋outline 四千字示例（旧两千字示例清零）
+    // 字数 3500 基准：标尺行＋design 示例新数值＋outline 分配重心改相对比例（不内联章长字数）
     expect(scale).toContain('**3500-4500 字**')
     expect(scale).toContain('作者裁定 2026-10-11：基准与下限抬至 3500')
     expect(scale).toContain('快节奏短章型须作者显式下调才可用')
@@ -1294,7 +1294,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('- 下限汉字数: 3500')
     expect(design).toContain('- 上限汉字数: 4500')
     expect(design).not.toContain('- 目标汉字数: 2000')
-    expect(outline).toContain('四千字示例')
+    expect(outline).toContain('按本章目标字数分配重心')
+    expect(outline).toContain('「L2-A4-01 每章字数」行取')
+    expect(outline).toContain('是分配重心例，不是固定比例或结构')
+    expect(outline).not.toContain('四千字示例')
     expect(outline).not.toContain('两千字示例')
     expect(outline).not.toContain('预计汉字数')
     // 单元配给：预期字数增补行＋「加单元（加事）不硬堆字」＋drafting 配给表＋写作卡判据
@@ -2101,7 +2104,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       '幕内分批',
       '幕内分批出细纲',
       //（0.0.62 审查修复批：「一次 N ≤5 章」数字退役，改《参考标尺》『幕内分批出细纲』行上限指针）
-      '一次按《参考标尺》『幕内分批出细纲』行上限取',
+      '一次按《参考标尺》「L2-A4-06 幕内分批出细纲」行上限取',
       '场景卡选择跨章看',
       '钩型配比跨章规划',
       '危机钩兑现章号跨章排、张力类占比按本幕窗口算而非单章',
@@ -2164,8 +2167,10 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const game = fs.readFileSync(skillFile('novel-design', 'templates/世界书/局规则条目模板.md'), 'utf8')
     const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
-    // A. C1 快档数值单源：design 三档话术与标尺 2100-2500 对齐，旧 2300-2500 与「十日/道诡型」清零
-    expect(design).toContain('快节奏档 2100-2500（样本 S5 型）')
+    // A. C1 快档数值单源：design 三档话术改指行 ID（数值单源在标尺 L2-A4-01），旧 2300-2500 与「十日/道诡型」清零
+    expect(design).toContain('快节奏档（样本 S5 型）')
+    expect(design, '设计消费点应引 L2-A4-01 行 ID').toContain('「L2-A4-01 每章字数」行')
+    expect(design, '三档数值不得在 SKILL 重述（单源在标尺）').not.toContain('2100-2500（样本 S5 型）')
     expect(design, '旧「2300-2500」漂移值应清零').not.toContain('2300-2500')
     expect(design, '标尺单源无「道诡型」，SKILL 不重述').not.toContain('道诡')
     // B. R1 出处注记负断言：skills/ 树（assets 种子数据除外）七类出处零命中（〔theory-cards T 编号〕与〔§x.y〕卡头合法声明不在其列）
@@ -2220,7 +2225,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     const scale = fs.readFileSync(skillFile('novel-design', 'references/参考标尺.md'), 'utf8')
     expect(scale).toContain('危机钩（即时威胁型）兑现章号距钩章 ≤5 章')
     const reviewSkill = fs.readFileSync(skillFile('novel-review', 'SKILL.md'), 'utf8')
-    expect(reviewSkill).toContain('每章字数三档、节拍分档与章末钩型配比行（全量审读维度 1 的危机钩兑现红线用）')
+    expect(reviewSkill).toContain('L2-A4-01 每章字数、L1-01／L1-02 章级兑现密度与连续无兑现上限、L2-A1-03／L1-04 章末钩型配比（全量审读维度 1 的危机钩兑现红线用）')
     // B. 写作卡选卡映射单源：卡头节带映射句，drafting 只留指路不再重述映射与 § 对照表
     const cards = fs.readFileSync(skillFile('novel-drafting', 'agents/写作卡.md'), 'utf8')
     expect(cards).toContain('选卡映射：推进场景带推进卡｜塑造场景带塑造卡｜动作高潮场景带动作卡｜环境展开场景带环境卡｜转场/分镜切换场景带转场卡')
@@ -2538,7 +2543,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(scale).not.toContain('章级·draft 回看')
     expect(checks).toContain('憋屈连续超线照参考标尺憋屈行')
     // H. N1 字数示例改标尺指针；N5/N12/N13 数值单源指针句面钉在 0.0.28/0.0.38/0.0.39 组随裁
-    expect(design).toContain('三档话术与基准照 references/参考标尺.md 每章字数行取（示例数值仅格式演示）')
+    expect(design).toContain('三档话术与基准照 references/参考标尺.md「L2-A4-01 每章字数」行取（示例数值仅格式演示）')
     // I. N7 格言预算指针：两底本改「数值随派发材料写作卡摘录行」，≤2/章 数值不再内联
     for (const t of [sweep, style]) {
       expect(t).toContain('数值随派发材料写作卡摘录行')
@@ -2611,7 +2616,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(writer).toContain('name: writer-reviewer')
     // B. 输入清单整读参考标尺＋判据引用格式＋对标纪律三条（参考标尺自身约定）
     expect(writer).toContain('| ✅ | 判据目录下 `参考标尺.md` | 续航与体量维的数值尺——整读，逐行对照产出参考标尺对照表 |')
-    expect(writer).toContain('参考标尺对标的判据引用格式＝参考标尺行名（如「单卷体量」行）')
+    expect(writer).toContain('参考标尺对标的判据引用格式＝行 ID＋旧行名（如「L2-A3-01 单卷体量」行）')
     expect(writer).toContain('⚠️待校准数值项不计入问题计数、禁作判据引用')
     expect(writer).toContain('修正系数全取 1.0＋如实标注「该题材参考标尺未校准」——绝不编造修正值')
     expect(writer).toContain('版权铁律：差异化核对只以契约「核心看点与差异化」部申报为准')
@@ -2621,7 +2626,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
       expect(writer, `作家评审应引判据节 ${sec}`).toContain(sec)
     }
     expect(writer).toContain('「卷目标与卷末状态」卷行·字数')
-    expect(writer).toContain('「三线断档红线」行')
+    expect(writer).toContain('「L2-A5-01 三线断档红线」行')
     expect(writer).toContain('参考标尺执行（逐行对照产出参考标尺对照表）：')
     expect(writer).toContain('卷间节奏：连卷压抑检测')
     expect(writer).toContain('粗锚降级检查')
@@ -2656,7 +2661,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     for (const stale of ['签约', '上架', '日更', '双更', '番茄', '运营', '## 校准计划', '## 变更记录', '留痕见变更记录']) {
       expect(scale, `参考标尺不应残留「${stale}」`).not.toContain(stale)
     }
-    expect(scale).toContain('｜确认前审查作家席「续航与体量」维逐行对标。')
+    expect(scale).toContain('｜确认前审查作家席「续航与体量」维逐行对标（L3-02～L3-06、L1-06、L1-10、L1-11、L2-A3-01）。')
     expect(scale).toContain('（S4 80 章/28.5 万慢热至 50 万位首高潮）')
     const techDoc = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '技术文档.md'), 'utf8')
     expect(techDoc).toContain('**参考标尺的校准沿革**')
@@ -2783,7 +2788,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('粗排时「故事阶段分配」小节标题不带状态')
     expect(design).toContain('卷行一律用阿拉伯数字两位（卷01、卷12）')
     expect(design).toContain('末附一行**体量提示**')
-    expect(design).toContain('预定篇幅约需 M 卷（按单卷体量行估）')
+    expect(design).toContain('预定篇幅约需 M 卷（按 L2-A3-01／L1-11 单卷体量行估）')
     // E. 世界常量模板：存在＋五节在位
     const constPath = skillFile('novel-design', 'templates/世界书/世界常量条目模板.md')
     expect(fs.existsSync(constPath), '世界常量条目模板应存在').toBe(true)
@@ -3449,7 +3454,7 @@ describe('skills 批次防回退断言组·0.0.62 审查修复批', () => {
     expect(actSpec).toContain('定义单源在《定调设计》技能包 templates/世界书/力量体系条目模板.md『升级节点』行')
     // E. P3-13 outline N≤5 指针句（数字退役，单源在参考标尺「幕内分批出细纲」行）
     const outline = readSkill('novel-outline')
-    expect(outline).toContain('一次按《参考标尺》『幕内分批出细纲』行上限取')
+    expect(outline).toContain('一次按《参考标尺》「L2-A4-06 幕内分批出细纲」行上限取')
     expect(outline, '「一次 N ≤5 章」数字应退役（单源在参考标尺）').not.toContain('一次 N ≤5 章')
   })
 })
