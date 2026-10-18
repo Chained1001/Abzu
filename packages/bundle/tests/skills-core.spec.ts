@@ -84,6 +84,9 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     const studyRef = path.join(__dirname, '..', 'skills', 'novel-director', 'references', '书房与检索.md')
     expect(fs.existsSync(studyRef), 'novel-director/references/书房与检索.md 应存在').toBe(true)
     expect(text).toContain('[书房与检索](references/书房与检索.md)')
+    const stageMap = path.join(__dirname, '..', 'skills', 'novel-director', 'references', '阶段地图.md')
+    expect(fs.existsSync(stageMap), 'novel-director/references/阶段地图.md 应存在').toBe(true)
+    expect(text).toContain('[阶段地图](references/阶段地图.md)')
     expect(text, '手写章回流引导必须留在 SKILL 本体（行为指令不下沉）').toContain('无既有草稿目录/无审核记录的新章手稿')
     expect(text).toContain('novel_import_draft')
     // 常驻体量上限：调度核心之外的内容走按需读取，SKILL 本体不得超过 8500 字符

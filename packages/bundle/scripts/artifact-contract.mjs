@@ -39,6 +39,7 @@ export const referenceDocs = [
   ...['正文-展示与对白', '正文-场景与动作', '正文-视角落地', '正文-文笔修炼', '正文-开场转场与特殊戏', '正文-中文行文规范', '默认文风', '默认文风-速查'].map(name => `skills/novel-drafting/references/${name}.md`),
   ...['排障-索引与改稿流程', '排障-专项修复', '排障-长篇防崩'].map(name => `skills/novel-director/references/${name}.md`),
   'skills/novel-director/references/书房与检索.md',
+  'skills/novel-director/references/阶段地图.md',
 ]
 export const thinScripts = [
   ['skills/novel-review/scripts/确定性检查.mjs', 'runChecksCli'],
