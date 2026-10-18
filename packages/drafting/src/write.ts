@@ -2,20 +2,18 @@
  * 单稿写作(插件规格 §5 草稿协议):干净上下文 / 硬约束提醒 / 版本 / 候选事实 / 完整性。
  */
 
-import * as fs from 'node:fs'
 import * as path from 'node:path'
 import {
   applyVersionFields,
   assertSegment,
   bumpVersion,
   composeBody,
-  extractVersionFields,
-  filenameCase,
   initialVersion,
   isMarkdownFileName,
+  listChapterDrafts,
+  nextDraftFileName,
   parseDocument,
   prepareDraftDemotions,
-  readBookText,
   resolveDraftRel,
   scanChapter,
   serializeDocument,
@@ -56,46 +54,21 @@ export interface DraftInfo {
 
 // 修复(0.0.20 批 bug4):本地 7 键副本缺「保真风险」且与 core 双源漂移——删除,改用 import 的 草稿字段序(8 键单源)。
 
-function readText(root: string, rel: string): string | null {
-  // Y5(批F):读原语单源——core readBookText 剥 BOM 与读侧同口径(带 BOM 草稿可解析);
-  // 判据不变:非 missing(io 失败)也仍返回 null,由调用方跳过。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
-
 /** 草稿目录双格式解析(批8):新键优先、旧键 fallback——旧书目录无感。 */
 function draftDir(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }): string {
   return resolveDraftRel(bookRoot, '草稿目录', key)
 }
 
-function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'> & { readonly 章?: number }): string[] {
-  const abs = path.join(bookRoot, draftDir(bookRoot, key))
-  if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
-  return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh'))
-}
-
-function parseDraftNo(file: string): number {
-  const m = /^稿(\d+)\.md$/.exec(filenameCase(file))
-  return m ? Number(m[1]) : 0
-}
-
 function latestVersion(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): number | null {
   let max: number | null = null
-  for (const file of listDraftFiles(bookRoot, key)) {
-    const text = readText(bookRoot, path.posix.join(draftDir(bookRoot, key), file))
-    if (text === null) continue
-    const doc = parseDocument(text)
-    if (!doc.ok) continue
-    const v = extractVersionFields(doc.data.fields).版本
-    if (v !== null && (max === null || v > max)) max = v
+  for (const draft of listChapterDrafts(bookRoot, key)) {
+    if (draft.版本 !== null && (max === null || draft.版本 > max)) max = draft.版本
   }
   return max
 }
 
 function nextFileName(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string {
-  const nos = listDraftFiles(bookRoot, key).map(parseDraftNo)
-  const next = nos.length === 0 ? 1 : Math.max(...nos) + 1
-  return `稿${next}.md`
+  return nextDraftFileName(bookRoot, key)
 }
 
 /** R1 播报(R1 落码 2026-09-05,原 gateCanWrite 门槛摘除):如实报告细纲与材料包状态,不拒绝写。 */
@@ -107,19 +80,13 @@ function readinessBroadcast(bookRoot: string, key: ChapterKey): string {
 }
 
 export function listDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): readonly DraftInfo[] {
-  return listDraftFiles(bookRoot, key).map((file) => {
-    const relPath = path.posix.join(draftDir(bookRoot, key), file)
-    const text = readText(bookRoot, relPath) ?? ''
-    const doc = parseDocument(text)
-    const fields = doc.ok ? doc.data.fields : {}
-    return {
-      file,
-      relPath,
-      角色: typeof fields['角色'] === 'string' ? fields['角色'] : null,
-      选定: fields['选定'] === true,
-      版本: extractVersionFields(fields).版本,
-    }
-  })
+  return listChapterDrafts(bookRoot, key).map(({ file, relPath, 角色, 选定, 版本 }) => ({
+    file,
+    relPath,
+    角色,
+    选定,
+    版本,
+  }))
 }
 
 function selectDraftLocked(
@@ -127,20 +94,16 @@ function selectDraftLocked(
   input: Pick<ChapterKey, '卷' | '章名'> & { readonly file: string },
 ): { readonly ok: boolean; readonly reason?: string } {
   assertSegment(input.章名, '章名')
-  const dir = draftDir(bookRoot, input)
   const target = isMarkdownFileName(input.file) ? input.file : `${input.file}.md`
-  const files = listDraftFiles(bookRoot, input)
-  if (!files.includes(target)) return { ok: false, reason: `草稿不存在:${target}` }
+  const drafts = listChapterDrafts(bookRoot, input)
+  if (!drafts.some((draft) => draft.file === target)) return { ok: false, reason: `草稿不存在:${target}` }
   // 先全量解析再写：目标稿解析失败时不能“跳过它仍报成功”，也不能写一半。
   const ops: FileOp[] = []
-  for (const file of files) {
-    const rel = path.posix.join(dir, file)
-    const text = readText(bookRoot, rel)
-    if (text === null) return { ok: false, reason: `草稿不可读:${file}` }
-    const doc = parseDocument(text)
-    if (!doc.ok) return { ok: false, reason: `草稿解析失败:${file}` }
-    const fields = { ...doc.data.fields, 选定: file === target }
-    ops.push({ relPath: rel, content: serializeDocument(fields, doc.data.body, 草稿字段序) })
+  for (const draft of drafts) {
+    const doc = parseDocument(draft.text)
+    if (!doc.ok) return { ok: false, reason: `草稿解析失败:${draft.file}` }
+    const fields = { ...doc.data.fields, 选定: draft.file === target }
+    ops.push({ relPath: draft.relPath, content: serializeDocument(fields, doc.data.body, 草稿字段序) })
   }
   writeBatchAtomic(bookRoot, ops)
   return { ok: true }

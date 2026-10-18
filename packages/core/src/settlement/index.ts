@@ -5,7 +5,7 @@ import type { ChapterKey } from '../derive/scan'
 import type { FileOp } from '../repo/atomic'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { applyVersionFields, bumpVersion, extractVersionFields, initialVersion } from '../provenance'
-import { assertSegment, LEDGER_KINDS, MEMORY_KINDS, paths } from '../repo/paths'
+import { assertSegment, chapterNo, LEDGER_KINDS, MEMORY_KINDS, paths } from '../repo/paths'
 import { bookMemoryOps, type BookMemoryInput } from '../memory/book'
 
 export const ledgerKinds = LEDGER_KINDS
@@ -288,7 +288,7 @@ export function parseFactSections(text: string): FactSection[] {
  */
 function factOps(bookRoot: string, sections: readonly FactSection[], chapter: ChapterKey, mode: SettlementMode): readonly FileOp[] {
   const ops: FileOp[] = []
-  const chapterLabel = `第${String(chapter.章).padStart(4, '0')}章`
+  const chapterLabel = `第${chapterNo(chapter.章)}章`
   const source = paths.定稿章(chapter.卷, chapter.章, chapter.章名)
   for (const section of sections) {
     assertSegment(section.module, '世界书模块名')
@@ -453,7 +453,7 @@ function timelineBlock(section: Section, chapter: ChapterKey, source: string, de
   const content = stripFields(section.body, ['章号', '来源', '裁决记录'])
   return [
     `## ${section.title}`,
-    `章号：第${String(chapter.章).padStart(4, '0')}章`,
+    `章号：第${chapterNo(chapter.章)}章`,
     `来源：${source}`,
     `裁决记录：${decision}`,
     '### 正文',

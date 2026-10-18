@@ -10,7 +10,7 @@
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
-import { isMarkdownFileName } from '../repo/paths'
+import { isMarkdownFileName, pad, pad4 } from '../repo/paths'
 import { writeFileAtomic } from '../repo/atomic'
 import { bookWriter } from '../repo/atomic'
 
@@ -71,11 +71,7 @@ export function nextProposalNumber(bookRoot: string): number {
 
 /** 编号对应的补偿事件落点(F3 移址):定稿/卷<NN>/补偿/补偿-<NNNN>.md(受跟踪路径)。 */
 function 补偿事件相对路径(卷: number, 编号: string): string {
-  return `定稿/卷${String(卷).padStart(2, '0')}/补偿/补偿-${编号}.md`
-}
-
-function pad4(n: number): string {
-  return String(n).padStart(4, '0')
+  return `定稿/卷${pad(卷)}/补偿/补偿-${编号}.md`
 }
 
 /** 登记提案（acquisition，不挂审批）。返回编号与相对路径。 */

@@ -8,7 +8,7 @@ import { readBookText } from '../repo/read'
 import { deriveChapterFacts, type ChapterDerivation } from '../derive/derive'
 import { listChapters, scanChapter, type ChapterFacts, type ChapterKey } from '../derive/scan'
 import { loadMaterialPackage } from '../assembly/read'
-import { paths } from '../repo/paths'
+import { chapterNo, pad, paths } from '../repo/paths'
 import { queryLedger, queryMemory, reconcileLedger, type LedgerQueryResult, type LedgerReconciliationResult, type MemoryQueryResult } from '../ledger'
 
 export interface ResumeSnapshot {
@@ -89,7 +89,7 @@ function bookStatus(bookRoot: string, volume: number): BookStatus {
 function renderStatusCardFrom(key: ChapterKey, derived: ChapterDerivation, status: BookStatus): string {
   const marker = derived.叠加标记.length === 0 ? '无' : derived.叠加标记.join('、')
   return [
-    `近况｜卷${String(key.卷).padStart(2, '0')} 第${String(key.章).padStart(4, '0')}章 ${key.章名}`,
+    `近况｜卷${pad(key.卷)} 第${chapterNo(key.章)}章 ${key.章名}`,
     `建议环节：${derived.建议.环节}（§8 第${derived.建议.row}行；建议仅供参考，判断归主 Agent）`,
     `复核标记：${marker}`,
     ...status.lines,

@@ -7,8 +7,10 @@ import * as path from 'node:path'
 import { 世界书最小模块, moduleHasConfirmedEntry } from '../derive/design'
 import { writeFileAtomic, type FileOp } from '../repo/atomic'
 import { serializeDocument } from '../repo/frontmatter'
-import { assertSegment } from '../repo/paths'
+import { assertSegment, LAYOUT } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
+
+const MODULE_DECL = `${LAYOUT.世界书}/模块声明.md`
 
 export type 世界书性质 = '计划' | '事实'
 
@@ -23,7 +25,7 @@ export interface WorldbookEntryFields {
 }
 
 function ensureModulesDeclaredLocked(bookRoot: string, extra: readonly string[] = []): void {
-  const abs = path.join(bookRoot, '世界书/模块声明.md')
+  const abs = path.join(bookRoot, MODULE_DECL)
   let existing = ''
   try {
     existing = fs.readFileSync(abs, 'utf-8')
@@ -38,7 +40,7 @@ function ensureModulesDeclaredLocked(bookRoot: string, extra: readonly string[] 
     if (!lines.some(line => line.trim() === `- ${name}`)) lines.push(`- ${name}`)
   }
   const body = `${lines.join('\n').replace(/\n+$/, '')}\n`
-  if (body !== existing) writeFileAtomic(bookRoot, '世界书/模块声明.md', body)
+  if (body !== existing) writeFileAtomic(bookRoot, MODULE_DECL, body)
 }
 
 export const ensureModulesDeclared = bookWriter(ensureModulesDeclaredLocked)
@@ -77,7 +79,7 @@ export const writeEntry = bookWriter(writeEntryLocked)
 export function checkWorldbookMinComplete(bookRoot: string):
   | { readonly ok: true }
   | { readonly ok: false; readonly gaps: readonly string[] } {
-  const 声明Abs = path.join(bookRoot, '世界书/模块声明.md')
+  const 声明Abs = path.join(bookRoot, MODULE_DECL)
   let 声明: string
   try {
     声明 = fs.readFileSync(声明Abs, 'utf-8')

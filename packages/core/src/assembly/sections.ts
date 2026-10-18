@@ -2,6 +2,8 @@
  * 材料包十段固定结构(格式规格 §9.2)。
  */
 
+import { pad } from '../repo/paths'
+
 export const 材料包十段 = [
   '本章任务与确认细纲',
   '硬约束禁区完成条件',
@@ -57,6 +59,6 @@ export interface SupplementRecord extends Omit<SectionRecord, '段'> {
 export type MaterialSectionRecord = SectionRecord | SupplementRecord
 
 export function sectionFileName(index: number, name: 材料包段名): string {
-  const nn = String(index + 1).padStart(2, '0')
+  const nn = pad(index + 1)
   return `${nn}-${name}.md`
 }

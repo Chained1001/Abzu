@@ -119,11 +119,11 @@ export function draftHashOf(body: string): string {
   return sha256Hex(body)
 }
 
-/** Stable object serialization for the review applicability fingerprint. */
-function stableJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`
+/** Stable recursive serialization for the review applicability fingerprint. */
+function stableFingerprintJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableFingerprintJson).join(',')}]`
   if (value !== null && typeof value === 'object') {
-    return `{${Object.keys(value as Record<string, unknown>).sort().map((key) => `${JSON.stringify(key)}:${stableJson((value as Record<string, unknown>)[key])}`).join(',')}}`
+    return `{${Object.keys(value as Record<string, unknown>).sort().map((key) => `${JSON.stringify(key)}:${stableFingerprintJson((value as Record<string, unknown>)[key])}`).join(',')}}`
   }
   return JSON.stringify(value) ?? 'null'
 }
@@ -149,7 +149,7 @@ export function reviewInputFingerprintOf(input: {
     方案: input.方案 ?? null,
     ...(input.章节篇幅 === undefined ? {} : { 章节篇幅: input.章节篇幅 }),
   }
-  return sha256Hex(stableJson(payload))
+  return sha256Hex(stableFingerprintJson(payload))
 }
 
 export function isNoFindingReview(record: ReviewRecord): boolean {

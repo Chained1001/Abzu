@@ -69,6 +69,11 @@ export function pad(n: number): string {
   return String(n).padStart(2, '0')
 }
 
+/** 四位编号(章号、提案号等)；调用方负责值域校验。 */
+export function pad4(n: number): string {
+  return String(n).padStart(4, '0')
+}
+
 /**
  * 章号合法域断言(批F,读写口径合一):整数 1–9999——读侧文件名口径是 `\d{1,4}`
  * (matchChapterFileName),写侧不得产出读侧认不出的五位以上章号。0 仅未定位章
@@ -83,7 +88,7 @@ function assertChapterNumber(n: number): void {
 /** 章号四位(格式规格 §2.2);入口断言 1–9999(0 占位语义保留,仍产 0000)。 */
 export function chapterNo(n: number): string {
   assertChapterNumber(n)
-  return String(n).padStart(4, '0')
+  return pad4(n)
 }
 
 /**

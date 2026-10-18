@@ -24,16 +24,9 @@ import {
   parseTimelineSections,
 } from '../settlement'
 import { bookWriter } from '../repo/atomic'
+import { 待定稿包七件 } from './artifacts'
 
-export const 待定稿包七件 = [
-  '正文.md',
-  '事实变更.md',
-  '时间线变更.md',
-  '账本变更.md',
-  '章摘要.md',
-  '卷对账.md',
-  '本书层记忆候选.md',
-] as const
+export { 待定稿包七件 } from './artifacts'
 
 /** 沉淀候选(沉淀子代理对账产出,主 Agent 经 novel_prepare_pack 传入):逐段预校验后写入七件。 */
 export interface 沉淀候选 {

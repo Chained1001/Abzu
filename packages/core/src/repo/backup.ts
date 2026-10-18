@@ -11,7 +11,7 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { canonicalizePath, isInsidePath } from '../gate/canonical'
 import { materialHash } from '../assembly/source'
-import { validateSegment } from './paths'
+import { pad, validateSegment } from './paths'
 
 export interface BackupEntry {
   /** 备份内的 posix 相对路径(书仓/…、书房/…、profiles/…)。 */
@@ -40,10 +40,6 @@ export type BackupReport =
     readonly 校验: { readonly 一致: number; readonly 不一致: readonly string[] }
   }
   | { readonly ok: false; readonly problems: readonly string[] }
-
-function pad(n: number): string {
-  return String(n).padStart(2, '0')
-}
 
 function localStamp(d = new Date()): string {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`

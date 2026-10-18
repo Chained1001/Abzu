@@ -66,6 +66,12 @@ jobs:
         if: matrix.shard == 1
       - run: pnpm --filter abzu pack-check
         if: matrix.shard == 1
+      - name: Long-form performance guard
+        if: matrix.shard == 1
+        run: pnpm benchmark:status
+      - name: Fixed-document budget guard
+        if: matrix.shard == 1
+        run: pnpm benchmark:fixed-docs
       - name: Generated notices are current
         if: matrix.shard == 1
         run: git diff --exit-code

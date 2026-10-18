@@ -10,7 +10,7 @@ import * as path from 'node:path'
 import { readBookText } from '../repo/read'
 import { entryChapterNo, queryLedger } from '../ledger'
 import { parseDocument } from '../repo/frontmatter'
-import { matchChapterFileName, pad, paths } from '../repo/paths'
+import { chapterNo, matchChapterFileName, pad, paths } from '../repo/paths'
 
 export type VolumeSummaryCandidate =
   | {
@@ -98,7 +98,7 @@ export function computeVolumeSummaryCandidate(bookRoot: string, 卷: number): Vo
       continue
     }
     章摘要来源.push(rel)
-    sections.push(`### 第${String(c.章).padStart(4, '0')}章 ${c.章名}\n\n${content}`)
+    sections.push(`### 第${chapterNo(c.章)}章 ${c.章名}\n\n${content}`)
   }
   if (缺章摘要.length > 0) {
     return { ok: false, reason: `卷${卷NN} 章摘要不齐（缺第 ${缺章摘要.join('、')} 章），如实报缺，不产候选不落盘`, 缺章摘要 }

@@ -10,19 +10,17 @@
  * (polish 不依赖 review;core 不依赖任何上层包)。
  */
 
-import * as fs from 'node:fs'
-import * as path from 'node:path'
 import {
   bookWriter,
   chapterLengthIdentity,
   checkChapterLength,
   countProseText,
   draftHashOf,
+  listChapterDrafts,
   loadMaterialPackage,
   loadReviewRecord,
   parseDocument,
   paths,
-  isMarkdownFileName,
   readBookText,
   readChapterLength,
   resolveDraftRel,
@@ -76,19 +74,12 @@ function readText(root: string, rel: string): string | null {
 }
 
 function draftViews(root: string, key: Pick<ChapterKey, '卷' | '章名'>): DraftView[] {
-  const dir = resolveDraftRel(root, '草稿目录', key)
-  let files: string[]
-  try { files = fs.readdirSync(path.join(root, ...dir.split('/'))) } catch { return [] }
   const views: DraftView[] = []
-  for (const file of files) {
-    if (!isMarkdownFileName(file)) continue
-    const rel = `${dir}/${file}`
-    const text = readText(root, rel)
-    if (text === null) continue
-    const doc = parseDocument(text)
+  for (const draft of listChapterDrafts(root, key)) {
+    const doc = parseDocument(draft.text)
     if (!doc.ok) continue
     const 版本 = doc.data.fields['版本']
-    views.push({ relPath: rel, body: doc.data.body, fields: doc.data.fields, 版本: typeof 版本 === 'number' ? 版本 : null })
+    views.push({ relPath: draft.relPath, body: doc.data.body, fields: doc.data.fields, 版本: typeof 版本 === 'number' ? 版本 : null })
   }
   return views
 }

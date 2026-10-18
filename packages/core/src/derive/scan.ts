@@ -10,9 +10,10 @@ import { parseDocument } from '../repo/frontmatter'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson } from '../repo/schema'
 import { isWindowEntryReady } from './states'
 import { carryoverApplicable, draftHashOf, parseReviewRecord, reviewInputFingerprintOf, reviewRecordHashOf, 处置状态列表, type ReviewRecord } from '../evidence/record'
-import { chapterNo, isMarkdownFileName, matchChapterFileName } from '../repo/paths'
+import { isMarkdownFileName, matchChapterFileName, pad, paths } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { materialReviewIdentity } from '../assembly/read'
+import { 待定稿包文件 } from '../prepare/artifacts'
 import { chapterLengthIdentity, readChapterLength } from '../design/chapter-length'
 
 export interface ChapterKey {
@@ -104,11 +105,9 @@ function parseReview(text: string | null): ReviewRecord | null {
   return parseReviewRecord(text)
 }
 
-const 待定稿包文件 = ['清单.json', '正文.md', '事实变更.md', '时间线变更.md', '账本变更.md', '章摘要.md', '卷对账.md', '本书层记忆候选.md'] as const
-
 export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   const { 卷, 章, 章名 } = key
-  const 卷NN = String(卷).padStart(2, '0')
+  const 卷NN = pad(卷)
   const 不可读: string[] = []
 
   const 窗口文 = readText(root, `大纲/卷规划/卷${卷NN}/近期窗口.md`, 不可读)
@@ -118,7 +117,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   const 候选文 = readText(root, resolveDraftRel(root, '候选细纲', key), 不可读)
   const 候选细纲 = 候选文 !== null && stateOf(候选文) === '候选'
 
-  const 确认文 = readText(root, `大纲/卷规划/卷${卷NN}/章细纲/${chapterNo(章)}-${章名}.md`, 不可读)
+  const 确认文 = readText(root, paths.确认细纲(卷, 章, 章名), 不可读)
   const 确认细纲 = 确认文 !== null && stateOf(确认文) === '已确认'
 
   const 材料清单 = readText(root, `${resolveDraftRel(root, '材料包目录', key)}/材料清单.json`, 不可读)
@@ -216,7 +215,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
     }
   }
 
-  const 已定稿 = readText(root, `定稿/卷${卷NN}/${chapterNo(章)}-${章名}.md`, 不可读) !== null
+  const 已定稿 = readText(root, paths.定稿章(卷, 章, 章名), 不可读) !== null
 
   // 「草稿需复核」的写侧落盘通道已退役(impact),草稿侧不再枚举;活来源只有细纲状态与审核证据过期
   const 需复核标记: string[] = []

@@ -7,7 +7,7 @@ import * as path from 'node:path'
 import { parseWindow } from '../derive/scan'
 import { assertWindowEntryState, isWindowEntryReady } from '../derive/states'
 import { writeFileAtomic, type FileOp } from '../repo/atomic'
-import { assertSegment, pad, paths } from '../repo/paths'
+import { assertSegment, LAYOUT, paths } from '../repo/paths'
 import { bookWriter } from '../repo/atomic'
 import { prepareDesignDoc, type DesignWriteResult } from './skeleton'
 
@@ -172,5 +172,5 @@ function exists(root: string, rel: string): boolean {
 }
 
 export function volumeDir(卷: number): string {
-  return `大纲/卷规划/卷${pad(卷)}`
+  return LAYOUT.卷规划(卷)
 }

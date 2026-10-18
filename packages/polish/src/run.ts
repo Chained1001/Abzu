@@ -2,7 +2,6 @@
  * 润色入口:读选定/最新草稿,写新版本;无保真风险才标 待审稿。
  */
 
-import * as fs from 'node:fs'
 import * as path from 'node:path'
 import {
   applyVersionFields,
@@ -12,7 +11,7 @@ import {
   extractVersionFields,
   filenameCase,
   initialVersion,
-  isMarkdownFileName,
+  listChapterDrafts,
   nextDraftFileName,
   parseDocument,
   paths,
@@ -47,24 +46,6 @@ export interface PolishResult {
 
 // 修复(0.0.20 批 bug4):8 键本地副本已是死代码(写侧实际用下方 import 的 草稿字段序)——删除,单源在 core repo/drafts.ts。
 
-function readText(root: string, rel: string): string | null {
-  // Y5(批F):读原语单源——core readBookText 剥 BOM 与读侧同口径(带 BOM 草稿可解析);
-  // 判据不变:非 missing(io 失败)也仍返回 null,由调用方跳过该稿。
-  const result = readBookText(root, rel)
-  return result.ok ? result.text : null
-}
-
-function listDraftFiles(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): string[] {
-  const abs = path.join(bookRoot, resolveDraftRel(bookRoot, '草稿目录', key))
-  if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) return []
-  return fs.readdirSync(abs).filter(isMarkdownFileName).sort((a, b) => a.localeCompare(b, 'zh'))
-}
-
-function parseDraftNo(file: string): number {
-  const m = /^稿(\d+)\.md$/.exec(filenameCase(file))
-  return m ? Number(m[1]) : 0
-}
-
 interface DraftView {
   readonly file: string
   readonly rel: string
@@ -75,15 +56,11 @@ interface DraftView {
 }
 
 function loadDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): DraftView[] {
-  const dir = resolveDraftRel(bookRoot, '草稿目录', key)
   const views: DraftView[] = []
-  for (const file of listDraftFiles(bookRoot, key)) {
-    const rel = path.posix.join(dir, file)
-    const text = readText(bookRoot, rel)
-    if (text === null) continue
-    const doc = parseDocument(text)
+  for (const draft of listChapterDrafts(bookRoot, key)) {
+    const doc = parseDocument(draft.text)
     if (!doc.ok) continue
-    views.push({ file, rel, text, fields: doc.data.fields, body: doc.data.body, no: parseDraftNo(file) })
+    views.push({ file: draft.file, rel: draft.relPath, text: draft.text, fields: doc.data.fields, body: doc.data.body, no: parseDraftNo(draft.file) })
   }
   return views
 }
@@ -92,6 +69,11 @@ function loadDrafts(bookRoot: string, key: Pick<ChapterKey, '卷' | '章名'>): 
  * 润色源:已有待审稿就在它之上继续润色(否则上一版成果会被丢弃),
  * 其次是选定草稿,最后退回最新一稿。
  */
+function parseDraftNo(file: string): number {
+  const m = /^稿(\d+)\.md$/.exec(filenameCase(file))
+  return m ? Number(m[1]) : 0
+}
+
 function pickSource(drafts: readonly DraftView[]): DraftView | null {
   if (drafts.length === 0) return null
   const pending = drafts.filter((d) => d.fields['角色'] === '待审稿')
@@ -106,7 +88,7 @@ function polishDraftLocked(bookRoot: string, key: PolishInput): PolishResult {
   const drafts = loadDrafts(bookRoot, key)
   const src = pickSource(drafts)
   if (src === null) {
-    return listDraftFiles(bookRoot, key).length === 0
+    return listChapterDrafts(bookRoot, key).length === 0
       ? { ok: false, relPath: '', 角色: '', risks: [], changes: [], reason: '无草稿' }
       : { ok: false, relPath: '', 角色: '', risks: [], changes: [], reason: '草稿解析失败' }
   }

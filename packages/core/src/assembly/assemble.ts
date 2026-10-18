@@ -13,7 +13,7 @@ import { parseOutline } from '../outline/parse'
 import { extractVersionFields } from '../provenance'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument } from '../repo/frontmatter'
-import { matchChapterFileName, pad, paths } from '../repo/paths'
+import { chapterNo, matchChapterFileName, pad, paths } from '../repo/paths'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { MACHINE_SCHEMA_VERSION, parseMachineJson, readMachineText, serializeMachineJson } from '../repo/schema'
 import { parseSourceRef } from '../repo/sourceRef'
@@ -343,10 +343,10 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
     const prevVolSummaryRel = paths.卷摘要(prev.卷)
     const prevVolSummary = readText(bookRoot, prevVolSummaryRel)
     if (prevVolSummary !== null && bodyOnly(prevVolSummary) !== '') {
-      衔接Parts.push(`### 卷${String(prev.卷).padStart(2, '0')} 卷摘要\n\n${bodyOnly(prevVolSummary)}`)
+      衔接Parts.push(`### 卷${pad(prev.卷)} 卷摘要\n\n${bodyOnly(prevVolSummary)}`)
       衔接Sources.push(prevVolSummaryRel)
     } else {
-      衔接Parts.push(`（卷${String(prev.卷).padStart(2, '0')} 无卷摘要）`)
+      衔接Parts.push(`（卷${pad(prev.卷)} 无卷摘要）`)
     }
   }
   if (prev === null) {
@@ -373,7 +373,7 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
     if (text === null) continue
     const content = stripSummaryHeading(text)
     if (content === '' || content === '（无摘要沉淀）') continue
-    summaries.push(`### 第${String(no).padStart(4, '0')}章 ${ck.章名}\n\n${content}`)
+    summaries.push(`### 第${chapterNo(no)}章 ${ck.章名}\n\n${content}`)
     衔接Sources.push(rel)
   }
   if (summaries.length > 0) 衔接Parts.push(summaries.join('\n\n'))
@@ -494,7 +494,7 @@ function computeBaseMaterials(bookRoot: string, input: AssembleInput): ComputedM
     }
   }
   if (卷纲 !== null && 卷纲段 === null) {
-    gaps.push(`卷纲中未找到对应窗口内容:四段内无小节命中「${windowName}」,请直读 大纲/卷规划/卷${String(input.卷).padStart(2, '0')}/卷纲.md`)
+    gaps.push(`卷纲中未找到对应窗口内容:四段内无小节命中「${windowName}」,请直读 大纲/卷规划/卷${pad(input.卷)}/卷纲.md`)
   }
   if (卷纲段 !== null) 暂定Parts.push(`### 卷纲·本章窗口\n\n${卷纲段}`)
   const 暂定行 = [契约Body ?? '', 卷纲Body ?? ''].join('\n').split('\n').filter((line) => line.includes('〔暂定〕') || line.includes('〔留白〕'))

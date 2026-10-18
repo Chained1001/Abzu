@@ -5,7 +5,7 @@
 
 import { 契约六部, 分卷布局八部, 故事骨架九部 } from '../derive/design'
 import { writeFileAtomic } from '../repo/atomic'
-import { pad } from '../repo/paths'
+import { pad, paths } from '../repo/paths'
 import { writeContract } from './contract'
 import { planTimelineBody, writePlanTimeline, writeRecentWindow, writeVolumeOutline } from './volume'
 import { ensureModulesDeclared, writeEntry } from './worldbook'
@@ -39,13 +39,13 @@ function seedMinDesignLocked(bookRoot: string, input: SeedMinDesignInput = {}): 
 
   writeFileAtomic(
     bookRoot,
-    '大纲/故事骨架.md',
+    paths.故事骨架(),
     ['# 故事骨架', '', ...故事骨架九部.map((n) => `- ${n} 〔已确认〕`), ''].join('\n'),
   )
   // 卷行归属「故事阶段分配」小节(任务21 F21-3):卷分配声明只认该小节;显式行级格式不变。
   writeFileAtomic(
     bookRoot,
-    '大纲/分卷布局.md',
+    paths.分卷布局(),
     [
       '# 分卷布局',
       '',

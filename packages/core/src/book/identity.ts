@@ -11,10 +11,12 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { authorDocumentPath } from '../revise/document'
 import { parseDocument } from '../repo/frontmatter'
+import { paths } from '../repo/paths'
 
-/** 目录树常量对策:契约目录(与 core LAYOUT.契约 一致,防字符串漂移)。 */
-const CONTRACT_DIR = '作品契约'
-const CONTRACT_FILE = '契约.md'
+/** 目录树常量从 LAYOUT 派生，避免手写字符串漂移。 */
+const CONTRACT_FILE_REL = paths.契约()
+const CONTRACT_DIR = path.posix.dirname(CONTRACT_FILE_REL)
+const CONTRACT_FILE = path.posix.basename(CONTRACT_FILE_REL)
 
 export interface WorkspaceBook {
   /** 目录名(即书名,格式规格 §2.1 `<书名>/`)。 */

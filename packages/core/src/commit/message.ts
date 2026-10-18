@@ -5,6 +5,8 @@
  *   提交点跟随作者确认(2026-08-29 拍板 1/7),ch: 不带 Scope。
  */
 
+import { chapterNo } from '../repo/paths'
+
 export const COMMIT_PREFIXES = ['ch', 'vol', 'design', 'retcon', 'fix'] as const
 export type CommitPrefix = (typeof COMMIT_PREFIXES)[number]
 
@@ -24,7 +26,7 @@ export function formatCommitMessage(input: CommitMessageInput): string {
   if (input.chapterScope !== undefined && input.prefix !== 'design') {
     throw new Error('章号 Scope 仅 design: 前缀携带')
   }
-  const scope = input.chapterScope === undefined ? '' : `(ch${String(input.chapterScope).padStart(4, '0')})`
+  const scope = input.chapterScope === undefined ? '' : `(ch${chapterNo(input.chapterScope)})`
   const head = `${input.prefix}${scope}: ${input.summary.trim()}`
   const extra = (input.lines ?? []).map((l) => l.trim()).filter((l) => l !== '')
   return extra.length === 0 ? head : [head, '', ...extra].join('\n')
