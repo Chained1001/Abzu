@@ -11,7 +11,7 @@ import {
   seedMinDesign,
   writeCandidate,
 } from '@abzu/core'
-import { loadDraftContext, writeDraft } from '../src/index'
+import { loadDraftContext, selectDraft, writeDraft } from '../src/index'
 
 const roots: string[] = []
 function mkBook(): string {
@@ -169,5 +169,16 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     const doc = parseDocument(fs.readFileSync(path.join(root, second.relPath), 'utf-8'))
     expect(doc.ok && doc.data.fields['版本']).toBe(2)
     expect(scanChapter(root, key).有草稿).toBe(true)
+  })
+
+  it('selectDraft 目标稿损坏时失败，不跳过并谎报成功', () => {
+    const root = mkBook()
+    const written = writeDraft(root, { ...key, body: '第一稿正文。' })
+    expect(written.ok).toBe(true)
+    const rel = '草稿区/草稿/卷01-0001-开篇任务/稿1.md'
+    fs.writeFileSync(path.join(root, rel), '---\n角色: [未闭合\n---\n坏稿', 'utf-8')
+    const result = selectDraft(root, { ...key, file: '稿1.md' })
+    expect(result.ok).toBe(false)
+    expect(result.reason).toContain('解析失败')
   })
 })

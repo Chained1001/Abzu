@@ -1550,7 +1550,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // A. F9 浮动档区间化：design 示例改区间式＋±12.5% 容差带（独立审查 R1——沙盘工作口径与 F9 建议句原值）＋单值式清零；三消费位档区间口径；F36 现状注记措辞同步（core 未实装注记保留）；R4 起草验收句补含容差带
     expect(design).toContain('章型浮动: 常规 3500-4500｜过渡 2800-3200｜高潮 4000-5500')
     expect(design).toContain('各档写「低-高」区间、各档给 ±12.5% 容差带')
-    expect(review).toContain('容差带口径照作品契约章节篇幅节（单源）')
+    expect(review).toContain('容差带口径照《定调设计》SKILL 章节篇幅节（单源）')
     expect(design).not.toContain('常规 3500｜过渡 2800｜高潮 4500')
     for (const t of [design, review, sect, drafting]) {
       expect(t, '浮动档四个消费位都应改档区间口径').toContain('档区间')
@@ -1991,14 +1991,14 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(settle).toContain('作者确认后改世界书')
     expect(settle).toContain('走影响分析前置呈报流程')
     expect(settle).toContain('分拣结果呈报作者，不自动落盘')
-    // C. 版本纪律全套：两 package.json 0.0.76＋CHANGELOG 条目＋README×2（0.0.76 审计修复批版本钉随本批走）
+    // C. 版本纪律全套：两 package.json 0.0.77＋CHANGELOG 条目＋README×2（0.0.77 第二批审计修复版本钉随本批走）
     const rootPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8'))
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
-    expect(rootPkg.version, '根 package.json 版本应为 0.0.76').toBe('0.0.76')
-    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.76').toBe('0.0.76')
-    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.76]')
+    expect(rootPkg.version, '根 package.json 版本应为 0.0.77').toBe('0.0.77')
+    expect(bundlePkg.version, 'bundle package.json 版本应为 0.0.77').toBe('0.0.77')
+    expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', 'CHANGELOG.md'), 'utf8')).toContain('## [0.0.77]')
     for (const readme of ['README.md', 'packages/bundle/README.md']) {
-      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.76`).toContain('0.0.76')
+      expect(fs.readFileSync(path.join(__dirname, '..', '..', '..', readme), 'utf8'), `${readme} 应含当前版本 0.0.77`).toContain('0.0.77')
     }
   })
 

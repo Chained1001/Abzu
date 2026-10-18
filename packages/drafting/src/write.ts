@@ -21,7 +21,6 @@ import {
   serializeDocument,
   splitCandidateFacts,
   writeBatchAtomic,
-  writeFileAtomic,
   草稿字段序,
   type ChapterKey,
   type FileOp,
@@ -132,15 +131,18 @@ function selectDraftLocked(
   const target = isMarkdownFileName(input.file) ? input.file : `${input.file}.md`
   const files = listDraftFiles(bookRoot, input)
   if (!files.includes(target)) return { ok: false, reason: `草稿不存在:${target}` }
+  // 先全量解析再写：目标稿解析失败时不能“跳过它仍报成功”，也不能写一半。
+  const ops: FileOp[] = []
   for (const file of files) {
     const rel = path.posix.join(dir, file)
     const text = readText(bookRoot, rel)
-    if (text === null) continue
+    if (text === null) return { ok: false, reason: `草稿不可读:${file}` }
     const doc = parseDocument(text)
-    if (!doc.ok) continue
+    if (!doc.ok) return { ok: false, reason: `草稿解析失败:${file}` }
     const fields = { ...doc.data.fields, 选定: file === target }
-    writeFileAtomic(bookRoot, rel, serializeDocument(fields, doc.data.body, 草稿字段序))
+    ops.push({ relPath: rel, content: serializeDocument(fields, doc.data.body, 草稿字段序) })
   }
+  writeBatchAtomic(bookRoot, ops)
   return { ok: true }
 }
 

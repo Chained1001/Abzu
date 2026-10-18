@@ -16,7 +16,7 @@
  */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { isBuiltin } from 'node:module'
 import * as esbuild from 'esbuild'
 import { writeNotices } from '../../../scripts/release/notices.mjs'
@@ -125,6 +125,12 @@ for (const [rel, fn] of THIN_SCRIPTS) {
   if (!libText.includes(fn)) throw new Error(`lib/index.js 未导出 ${fn},薄入口将无法加载:${rel}`)
 }
 console.log(`[bundle] 脚本薄入口接缝校验 ok (${THIN_SCRIPTS.length} 个薄入口 -> lib/index.js)`)
+
+// 字符串包含不足以证明入口可加载：真正 import 一次产物并核对具名导出。
+const libModule = await import(pathToFileURL(path.join(packageRoot, 'lib', 'index.js')).href)
+for (const [, fn] of THIN_SCRIPTS) {
+  if (typeof libModule[fn] !== 'function') throw new Error(`lib/index.js 的 ${fn} 不是可调用导出，薄入口会在运行时失败`)
+}
 
 writeNotices(packageRoot, [...hostBuilds, clientBuild])
 // Vendored diagram artwork is source input rather than an npm dependency.

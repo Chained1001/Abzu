@@ -22,6 +22,7 @@ import {
   loadReviewRecord,
   parseDocument,
   paths,
+  isMarkdownFileName,
   readBookText,
   readChapterLength,
   resolveDraftRel,
@@ -80,7 +81,7 @@ function draftViews(root: string, key: Pick<ChapterKey, '卷' | '章名'>): Draf
   try { files = fs.readdirSync(path.join(root, ...dir.split('/'))) } catch { return [] }
   const views: DraftView[] = []
   for (const file of files) {
-    if (!/\.md$/i.test(file)) continue
+    if (!isMarkdownFileName(file)) continue
     const rel = `${dir}/${file}`
     const text = readText(root, rel)
     if (text === null) continue
