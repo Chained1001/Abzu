@@ -56,10 +56,10 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # 薄入口测试会 spawn 引用 lib/index.js；先构建，避免把“CI 没 build”误报成测试失败。
+      - run: pnpm build
       - name: Run every test once per Node version across two shards
         run: pnpm test --shard=${{ matrix.shard }}/2 --reporter=default --reporter=json --reporter=./scripts/release/ci-reporter.mjs --outputFile=.tmp/ci/results.json
-      - run: pnpm build
-        if: matrix.shard == 1
       - run: pnpm --filter abzu typecheck
         if: matrix.shard == 1
       - run: pnpm --filter abzu dump-config-check
