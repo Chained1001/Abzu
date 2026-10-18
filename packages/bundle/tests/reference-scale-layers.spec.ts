@@ -262,3 +262,104 @@ describe('参考标尺通用四层（票 02）', () => {
     expect(text).toContain('匿名样本组 S1–S5')
   })
 })
+
+/**
+ * 功能矩阵与反填充检查（票 04）。
+ *
+ * 守的是结构判据：
+ * 1. 反派/地图场域/事件支线三张矩阵列齐，功能枚举齐；
+ * 2. 同层单位在功能/手段/关系/代价中至少两项不同，否则合并/改功能/删；
+ * 3. 数量够但功能重复＝结构问题，不为凑标尺加换皮单位；
+ * 4. 设计（骨架/分卷/体量对账）、卷幕（卷规划/卷末回看）、作家评审（骨架/分卷/卷纲）均有指针；
+ * 5. artifact-contract 登记新 reference；
+ * 6. 矩阵件不出现具体书名/角色名。
+ */
+describe('功能矩阵与反填充检查（票 04）', () => {
+  const skillRoot = path.join(__dirname, '..', 'skills')
+  const matrixPath = path.join(skillRoot, 'novel-design', 'references', '功能矩阵.md')
+  const matrix = fs.readFileSync(matrixPath, 'utf8')
+
+  it('三张矩阵齐全：反派/地图场域/事件支线的列与功能枚举在位', () => {
+    expect(fs.existsSync(matrixPath), 'novel-design/references/功能矩阵.md 应存在').toBe(true)
+
+    expect(matrix, '反派矩阵列应齐').toContain('| 层级 | 功能 | 与主角关系 | 出牌手段 | 退场方式 | 不能和谁重复 |')
+    for (const fn of ['压迫', '诱惑', '制度', '镜像', '资源', '自然', '时间', '关系', '自我']) {
+      expect(matrix, `反派功能枚举应含「${fn}」`).toContain(fn)
+    }
+
+    expect(matrix, '场域矩阵列应齐').toContain('| 地图／场域 | 功能 | 进入代价 | 离开后果 | 不能和谁重复 |')
+    for (const fn of ['新资源', '新规则', '新社会接口', '新压力源']) {
+      expect(matrix, `场域功能枚举应含「${fn}」`).toContain(fn)
+    }
+
+    expect(matrix, '事件支线矩阵列应齐').toContain('| 事件／支线 | 功能 | 不可逆结果 | 与主线接口 | 不能和谁重复 |')
+    for (const fn of ['升级', '揭示', '关系变化', '资源变化', '世界变化']) {
+      expect(matrix, `事件功能枚举应含「${fn}」`).toContain(fn)
+    }
+  })
+
+  it('同层去重：功能/手段/关系/代价至少两项不同，重复按合并/改功能/删处理', () => {
+    expect(matrix).toContain('功能、手段、关系、代价')
+    expect(matrix).toContain('至少两项不同')
+    expect(matrix, '应写明只换名字/数值/外观不算不同').toContain('只换名字、只换数值、只换外观不算不同')
+    for (const action of ['合并', '改功能', '删']) {
+      expect(matrix, `重复处理应含「${action}」`).toContain(action)
+    }
+    expect(matrix, '应写明层可合并不等于功能可省').toContain('层可合并，功能不可缺')
+  })
+
+  it('反填充：数量够但功能重复＝结构问题，不为凑标尺加换皮单位', () => {
+    expect(matrix).toContain('数量够但功能重复')
+    expect(matrix).toContain('结构问题')
+    expect(matrix).toContain('反填充')
+    expect(matrix).toContain('换皮')
+    expect(matrix, '应明确不为凑参考标尺的数量加换皮单位').toContain('不为凑参考标尺的数量加换皮单位')
+    expect(matrix, '应写明数量达标不等于结构通过').toContain('数量达标')
+  })
+
+  it('设计消费点：骨架/分卷/体量对账各有一处功能矩阵短指针', () => {
+    const design = fs.readFileSync(path.join(skillRoot, 'novel-design', 'SKILL.md'), 'utf8')
+    expect(design, '骨架段应有功能矩阵指针').toContain('对手梯队、场域与支线再按 [功能矩阵](references/功能矩阵.md)')
+    expect(design, '分卷段应有功能矩阵指针').toContain('分卷新增的主战层级、场域与支线按 [功能矩阵](references/功能矩阵.md)')
+    expect(design, '体量对账应有功能矩阵指针').toContain('数量达标后再过一道 [功能矩阵](references/功能矩阵.md)')
+    const pointers = design.match(/\[功能矩阵\]\(references\/功能矩阵\.md\)/g) ?? []
+    expect(pointers.length, 'design 至少三处功能矩阵指针').toBeGreaterThanOrEqual(3)
+  })
+
+  it('卷幕消费点：卷规划「功能矩阵核一遍」＋卷末回看', () => {
+    const arcplan = fs.readFileSync(path.join(skillRoot, 'novel-arcplan', 'SKILL.md'), 'utf8')
+    expect(arcplan).toContain('**功能矩阵核一遍')
+    expect(arcplan).toContain('references/功能矩阵.md')
+    expect(arcplan, '卷末应能回看单位是否真的带来变化').toContain('卷末回看（功能矩阵）')
+    expect(arcplan).toContain('不可逆结果兑现没有')
+  })
+
+  it('评审消费点：作家评审骨架/分卷/卷纲各加同层功能重复检查', () => {
+    const writer = fs.readFileSync(path.join(skillRoot, 'novel-design', 'agents', '作家评审.md'), 'utf8')
+    expect(writer).toContain('`功能矩阵.md`')
+    expect(writer, '骨架清单应查同层功能重复').toContain('同层功能重复：对手梯队各层代表对手')
+    expect(writer, '分卷清单应查同层功能重复').toContain('逐卷新增主战层级/场域/支线按《功能矩阵》')
+    expect(writer, '卷纲清单应查同层功能重复').toContain('同层功能重复（《功能矩阵》；叙事结构×弧线）')
+    expect(writer).toContain('数量够不是通过理由')
+  })
+
+  it('artifact-contract 登记功能矩阵 reference', () => {
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract).toContain("'skills/novel-design/references/功能矩阵.md'")
+  })
+
+  it('矩阵件零具体书名/角色名', () => {
+    const blacklist = [
+      '大奉打更人', '大奉',
+      '诡秘之主', '诡秘',
+      '我真没想重生啊', '重生啊',
+      '绍宋', '十日终焉', '十日',
+      '斗破苍穹', '斗破',
+      '道诡异仙', '道诡',
+      '魏渊', '罗塞尔', '徐芷溪',
+    ]
+    for (const name of blacklist) {
+      expect(matrix, `功能矩阵不应出现具体书名/角色名「${name}」`).not.toContain(name)
+    }
+  })
+})

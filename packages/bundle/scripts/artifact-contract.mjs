@@ -19,6 +19,7 @@ export const referenceDocs = [
   'skills/novel-drafting/agents/写作卡.md',
   'skills/novel-drafting/agents/写作卡-索引.md',
   'skills/novel-design/references/参考标尺.md',
+  'skills/novel-design/references/功能矩阵.md',
   'skills/novel-design/references/雷点清单.md',
   'skills/novel-design/references/变更影响分析.md',
   'skills/novel-design/references/设定就绪与设定债.md',
