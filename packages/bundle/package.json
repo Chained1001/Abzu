@@ -1,6 +1,6 @@
 {
   "name": "abzu",
-  "version": "0.0.72",
+  "version": "0.0.73",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {

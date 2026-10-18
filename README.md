@@ -1,8 +1,8 @@
 # Abzu
 
-> 当前版本：0.0.72 ｜ 配套 **DSH 0.2.1-rc.2** ｜ GPL-3.0-only ｜ 私有自用开发
+> 当前版本：0.0.73 ｜ GPL-3.0-only ｜ 私有自用开发
 
-Abzu 是运行在 [DeepSeek Harness](https://www.deepseek.com/harness/)（DSH）上的长篇网文写作工作台，目标是支撑几百万字级别的长篇小说。它把开书设计、逐章写作、审读修改、定稿沉淀与断点恢复放进一条可暂停、可继续的生产线；作品以本地文件和 Git 历史保存，进度从文件推导，不依赖会话记忆。
+Abzu 是长篇网文写作工作台，目标是支撑几百万字级别的长篇小说。它把开书设计、逐章写作、审读修改、定稿沉淀与断点恢复放进一条可暂停、可继续的生产线；作品以本地文件和 Git 历史保存，进度从文件推导，不依赖会话记忆。
 
 产品范围只覆盖写书技巧本身：不接入读者数据，不做平台运营和商业节奏。
 
@@ -23,15 +23,15 @@ Abzu 是运行在 [DeepSeek Harness](https://www.deepseek.com/harness/)（DSH）
 
 ## 开始使用
 
-1. 安装配套版本的 DSH 桌面端。
-2. 按技术文档"构建与安装"构建 tgz（产物名 `abzu-<version>.tgz`；桌面端"添加插件"也可输入 `abzu@<version>`），在 DSH 侧栏"插件 → 添加插件"安装并应用变更。`<version>` 取本次发布的包版本：以根 `package.json` 与 `packages/bundle/package.json` 的 `version` 为准，不写死在本节。
-3. 在 DSH 设置里配置聊天模型与凭据，选择一个工作区，在主会话里说出构想。
+1. 安装 Abzu 桌面端。
+2. 按技术文档"构建与安装"构建 tgz（产物名 `abzu-<version>.tgz`；桌面端"添加插件"也可输入 `abzu@<version>`），在侧栏"插件 → 添加插件"安装并应用变更。`<version>` 取本次发布的包版本：以根 `package.json` 与 `packages/bundle/package.json` 的 `version` 为准，不写死在本节。
+3. 在设置里配置聊天模型与凭据，选择一个工作区，在主会话里说出构想。
 
 模型服务由你配置，调用会产生费用。不承诺无人值守写完整本书；重要作品使用前请备份。
 
 ## 来源与许可
 
-基于 [lingfengQAQ/webnovel-writer](https://github.com/lingfengQAQ/webnovel-writer) v8.2.0 深度改造。项目继承 [GPL-3.0-only](LICENSE)：可以依照许可证使用、修改和分发（包括商用），分发时须保留必要声明并履行源码义务；第三方声明见 `packages/bundle/THIRD_PARTY_NOTICES.md` 与 `packages/bundle/licenses/`。仅用本工具创作，不会要求你的小说采用 GPL。
+本项目为独立实现，许可证 [GPL-3.0-only](LICENSE)：可以依照许可证使用、修改和分发（包括商用），分发时须保留必要声明并履行源码义务；第三方组件声明见 `packages/bundle/THIRD_PARTY_NOTICES.md` 与 `packages/bundle/licenses/`。仅用本工具创作，不会要求你的小说采用 GPL。
 
 ## 安全
 
