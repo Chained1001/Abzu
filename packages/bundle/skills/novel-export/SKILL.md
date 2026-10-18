@@ -1,6 +1,6 @@
 ---
 name: novel-export
-description: '当作者要通读、外发或存档已定稿内容时使用——按卷/章范围导出单一 Markdown 合集与来源清单到新目录，写盘前作者确认，读取实际文件验收。'
+description: '随时可用工具（不进入章节状态机）：当作者要通读、外发或存档已定稿内容时使用——按卷/章范围导出单一 Markdown 合集与来源清单到新目录，写盘前作者确认，读取实际文件验收。'
 disable-model-invocation: false
 user-invocable: false
 ---

@@ -1,6 +1,6 @@
 ---
 name: novel-analyze
-description: 作者希望从自备 TXT/EPUB 渐进拆解参考小说时使用；选择范围、核对配置模型处理许可，顺序拆书并保存有证据与适用条件的机制，再从机制探索新点子。
+description: 按需工具（不进入开书主流程）：作者希望从自备 TXT/EPUB 渐进拆解参考小说时使用；选择范围、核对配置模型处理许可，顺序拆书并保存有证据与适用条件的机制，再从机制探索新点子。
 disable-model-invocation: false
 user-invocable: false
 ---
