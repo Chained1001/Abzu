@@ -4054,3 +4054,93 @@ describe('skills 批次防回退断言组·06 设定就绪与设定债批', () =
     expect(contract).toContain("'skills/novel-design/references/设定就绪与设定债.md'")
   })
 })
+
+describe('skills 批次防回退断言组·09 卷末设定审计批', () => {
+  it('09：五类清单＋三去向＋卷末三件后顺序＋固定路径与便签回填＋06 设定债/05 变更包衔接＋边界与失败不阻塞＋注册单源', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const arc = readSkill('novel-arcplan')
+    const refPath = path.join(root, 'packages/bundle/skills/novel-arcplan/references/卷末设定审计.md')
+    expect(fs.existsSync(refPath), 'novel-arcplan/references/卷末设定审计.md 应存在').toBe(true)
+    const text = fs.readFileSync(refPath, 'utf8')
+
+    // A. 审计五类：新增设定（世界书条目/人物档案/力量体系/世界常量/账本线索）＋候选事实未回写＋设定债状态＋真源冲突＋过期/废弃
+    for (const category of ['新增设定', '候选事实未回写', '设定债状态', '真源冲突', '过期/废弃设定']) {
+      expect(text, `审计五类应含「${category}」`).toContain(category)
+    }
+    for (const kw of ['世界书条目', '人物档案', '力量体系', '世界常量', '账本线索']) {
+      expect(text, `新增设定类应覆盖「${kw}」`).toContain(kw)
+    }
+
+    // B. 三去向：回写／待补／冲突裁决
+    for (const dest of ['回写', '待补', '冲突裁决']) {
+      expect(text, `三去向应含「${dest}」`).toContain(dest)
+    }
+    expect(text).toContain('每条发现只归一个')
+
+    // C. 卷末顺序：三件批之后跑审计（SKILL 侧顺序＋短指针＋路径）
+    const batchAt = arc.indexOf('卷对账→卷摘要→下卷注意事项，三件一批')
+    const auditAt = arc.indexOf('卷末设定审计')
+    expect(batchAt, 'arcplan SKILL 应有卷末三件批句').toBeGreaterThanOrEqual(0)
+    expect(auditAt, 'arcplan SKILL 卷末段应加设定审计短指针').toBeGreaterThan(batchAt)
+    expect(arc).toContain('[卷末设定审计](references/卷末设定审计.md)')
+    expect(arc).toContain('<工作范围>/书房/开书/<书名>/卷NN-设定审计.md')
+    expect(arc, '审计件须标书房资产非真源').toContain('书房资产非真源')
+    expect(arc, '待补/冲突须回填下卷注意事项').toContain('待补/冲突并成一句')
+    expect(arc).toContain('下卷注意·卷<NN+1>：')
+    expect(arc).toContain('下一卷规划步 1 读取')
+    expect(text).toContain('书房/开书/<书名>/卷NN-设定审计.md')
+    expect(text).toContain('不入书仓 git')
+
+    // D. 与 06 设定债衔接：字段/五态/补写通道不重写、只指路＋三去向对应
+    expect(text).toContain('设定就绪与设定债.md')
+    expect(text).toContain('设定债.md')
+    for (const state of ['待补', '已补', '作者保留留白', '已升级变更包', '已失效']) {
+      expect(text, `06 设定债五态应含「${state}」`).toContain(state)
+    }
+    for (const dest of ['补写', '保留留白', '升级变更包']) {
+      expect(text, `与 06 三去向对应应含「${dest}」`).toContain(dest)
+    }
+
+    // E. 与 05 变更包衔接：冲突走 L0-L4 定级、出变更包、作者裁决
+    expect(text).toContain('变更影响分析.md')
+    expect(text).toContain('L0-L4')
+    expect(text).toContain('变更包')
+    expect(text).toContain('作者裁决')
+
+    // F. 边界：已定稿事实不静默改＋回写只经沉淀/确认工具＋候选未回写不当已确认设定＋冲突不拿正文当裁判
+    expect(text).toContain('已定稿事实不能静默改')
+    expect(arc).toContain('已定稿事实不得静默改')
+    expect(arc).toContain('回写只经沉淀/确认工具')
+    expect(text).toContain('候选事实未回写不能当已确认设定')
+    expect(text).toContain('不拿正文当裁判')
+    expect(text).toContain('novel_confirm_worldbook_entry')
+    expect(text).toContain('novel_apply_retcon')
+
+    // G. 失败不阻塞卷末但必须呈报
+    expect(text).toContain('失败不阻塞')
+    expect(text).toContain('必须呈报')
+    expect(arc).toContain('审计不拦卷末')
+
+    // H. 交接：卷摘要不改＋下卷注意事项＋下一卷规划消费
+    expect(text).toContain('审计不改卷摘要')
+    expect(text).toContain('下卷注意事项')
+    expect(text).toContain('下一卷规划')
+    expect(text).toContain('步 1')
+    expect(text).toContain('卷间衔接')
+
+    // I. 责任人与作者裁决
+    expect(text).toContain('责任人')
+    expect(text).toContain('作者裁决')
+
+    // J. 预算边界：审计正文只落 arcplan reference，不把 fixed-docs 与 settle 撑大
+    const fixedDocs = read('scripts/benchmarks/fixed-docs.mjs')
+    expect(fixedDocs, '新 reference 不进 fixed-docs 预算').not.toContain('卷末设定审计')
+    const settle = readSkill('novel-settle')
+    expect(settle, '审计正文不落 settle（fixed-docs 已计入 settle）').not.toContain('卷末设定审计')
+
+    // K. 注册单源：artifact-contract 登记新 reference（pack-check 按 referenceDocs 校验打包面）
+    const contract = read('packages/bundle/scripts/artifact-contract.mjs')
+    expect(contract).toContain("'skills/novel-arcplan/references/卷末设定审计.md'")
+  })
+})

@@ -32,6 +32,7 @@ export const referenceDocs = [
   'skills/novel-arcplan/templates/幕纲固定段规格.md',
   'skills/novel-arcplan/templates/步骤卡-卷规划.md',
   'skills/novel-arcplan/templates/步骤卡-幕末结算.md',
+  'skills/novel-arcplan/references/卷末设定审计.md',
   'skills/novel-outline/templates/章细纲固定小节规格.md',
   'skills/novel-outline/templates/步骤卡-章细纲.md',
   'skills/novel-outline/templates/步骤卡-写前十查.md',
