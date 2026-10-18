@@ -19,7 +19,9 @@ export default defineConfig({
     pool: process.env['CI'] ? diagnosticForks(diagnostics) : 'forks',
     // Keep process isolation; fatal Node reports omit environment values.
     execArgv: process.env['CI'] ? ['--report-on-fatalerror', '--report-exclude-env', `--report-directory=${diagnostics}`] : [],
-    testTimeout: 15_000,
+    // Windows runners with 2 workers can take >15s on single integration cases; 30s avoids
+    // false reds while still catching real hangs (CI job cap 20min).
+    testTimeout: 30_000,
     // afterAll fixture removal retries on slow Windows runners can exceed the 10s default.
     hookTimeout: 60_000,
     env: { TEMP: testTemp, TMP: testTemp, TMPDIR: testTemp },
