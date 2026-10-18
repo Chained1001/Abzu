@@ -3776,3 +3776,72 @@ describe('skills 批次防回退断言组·08 拆书机制消费闭环批', () =
     expect(mech).toContain('机制消费失败不阻塞正文')
   })
 })
+
+describe('skills 批次防回退断言组·02 设计两席真源查询＋人类预测批', () => {
+  it('02：作家席真源摘要/断言路由/设定缺口，读者席第一遍预测且不读世界书，两席人类五问与报告字段', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const read = (rel: string) => fs.readFileSync(path.join(root, rel), 'utf8')
+    const writer = read('packages/bundle/skills/novel-design/agents/作家评审.md')
+    const reader = read('packages/bundle/skills/novel-design/agents/读者评审.md')
+    const design = read('packages/bundle/skills/novel-design/SKILL.md')
+
+    // A. 作家席：任务包真源摘要槽位＋断言→真源→条目/版本→四判定
+    expect(writer, '作家席任务包应有真源摘要槽位').toContain('| 真源摘要 | 宿主自备 |')
+    expect(writer, '真源摘要只带相关条目，不塞完整世界书').toContain('不塞完整世界书')
+    for (const step of ['### 1. 提取计划断言', '### 2. 路由真源', '### 3. 查条目与版本', '### 4. 判定四值']) {
+      expect(writer, `作家席真源查询应含「${step}」`).toContain(step)
+    }
+    for (const source of ['契约', '世界书条目', '力量体系', '世界常量', '人物档案', '账本', '定稿', '计划本身']) {
+      expect(writer, `作家席真源类型应含「${source}」`).toContain(source)
+    }
+    for (const verdict of ['有依据', '冲突', '设定缺口', '留白合法']) {
+      expect(writer, `作家席判定四值应含「${verdict}」`).toContain(verdict)
+    }
+    expect(writer, '无真源写设定缺口，不得凭常识补标准').toContain('不得凭常识、历史常识或类型惯例替作者补标准')
+    expect(writer).toContain('真源冲突')
+    expect(writer, '旧口径（一律不读真源、事实全归章级审读）不得回潮').not.toContain('| 世界书/、账本/、定稿/ | 事实一致性归章级《全面审读》；本席只审设计侧工件本身 |')
+
+    // B. 读者席：第一遍预测—验证＋不读世界书/账本/真源摘要＋信息不足报阅读问题而非设定缺口
+    expect(reader).toContain('## 第一遍预测—验证（先当读者，再当评审）')
+    expect(reader, '第一遍要写「作为目标读者我预期……」').toContain('作为目标读者我预期')
+    for (const part of ['文本给', '差距']) {
+      expect(reader, `预测—验证应含「${part}」`).toContain(part)
+    }
+    expect(reader, '读者席仍不读世界书与账本').toContain('| 世界书/、账本/ |')
+    expect(reader, '宿主不向读者席传真源摘要').toContain('宿主不向本席传真源摘要')
+    expect(reader, '正文没给足信息报阅读问题、不报设定缺口').toContain('不报设定缺口')
+    expect(reader, '读者席不得长出真源路由（那是作家席流程）').not.toContain('### 2. 路由真源')
+    expect(reader, '读者席输入清单不得出现真源摘要 ✅ 槽').not.toContain('| ✅ | 宿主随包的「真源摘要」')
+
+    // C. 两席人类五问：五问逐句在位＋只拦负载＋类型惯例可合法
+    for (const [label, text] of [['作家席', writer], ['读者席', reader]] as const) {
+      expect(text, `${label}: 人类五问节应在位`).toContain('## 人类五问（只拦负载）')
+      for (const q of ['我预期什么', '文本给了什么', '这需要什么前提', '谁付代价', '谁看见谁善后']) {
+        expect(text, `${label}: 人类五问应含「${q}」`).toContain(q)
+      }
+      expect(text, `${label}: 只拦负载问题`).toContain('只拦负载问题')
+      expect(text, `${label}: 类型惯例可合法`).toContain('类型惯例')
+      expect(text, `${label}: 两席互不通气纪律不变`).toContain('两席互不通气，各自独立出具')
+    }
+
+    // D. 报告字段与票 01 对齐：真源/判定/常理层/预期/文本/差距/负载性（问题清单逐列在位）
+    expect(writer).toContain('| # | 维 | 严重度 | 位置 | 引证 | 问题 | 判据 | 真源 | 判定 | 常理层 | 预期 | 文本 | 差距 | 负载性 | 根因 | 建议 |')
+    expect(reader).toContain('| # | 类 | 严重度 | 位置 | 引证 | 问题（读者语言） | 判据 | 真源 | 判定 | 常理层 | 预期 | 文本 | 差距 | 负载性 | 根因 | 建议 |')
+    for (const [label, text] of [['作家席', writer], ['读者席', reader]] as const) {
+      for (const col of ['| 真源 |', '| 判定 |', '| 常理层 |', '| 预期 |', '| 文本 |', '| 差距 |', '| 负载性 |']) {
+        expect(text, `${label}: 报告应带字段列「${col}」`).toContain(col)
+      }
+    }
+    expect(reader, '读者席真源列恒不适用').toContain('不适用（本席不读真源）')
+    expect(reader, '读者席判定值不得含设定缺口').toContain('不得出现「设定缺口」')
+    expect(writer).toContain('- 真源摘要：{宿主提供的真源类型与条目范围；缺项列「未提供」}')
+
+    // E. design SKILL 派发段：作家席传真源摘要、读者席三参数隔离、两席预测—验证与人类五问
+    expect(design, '派发段应给作家席加真源摘要').toContain('作家席另加「真源摘要」')
+    expect(design, '读者席只带三参数、不传真源摘要').toContain('读者席只带三参数')
+    expect(design).toContain('不塞完整世界书')
+    expect(design).toContain('第一遍预测—验证＋人类五问')
+    expect(design).toContain('读者席真源列恒「不适用（本席不读真源）」')
+    expect(design).toContain('按作家→读者串行')
+  })
+})
