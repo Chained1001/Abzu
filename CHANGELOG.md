@@ -2,6 +2,18 @@
 
 此处记录 DSH 工作台安装包版本。v6 的更新记录保留在 master 分支。
 
+## [0.0.75] — 2026-10-18
+
+### Fixed（插件安装收口）
+
+- **发布包 peer 依赖去掉 `catalog:`**：`@deepseek-ai/cordis` 从 workspace catalog 协议改为明确版本 `4.0.5`，避免安装器在 monorepo 外解析失败；manifest 发布面校验新增 `catalog:` 拒绝。
+- **安装说明补本地目录路径**：先 `pnpm --filter abzu build`（或 `node scripts/bundle.mjs`），确认 `lib/`、`skills/`、`cordis.patch.yml` 后，在“添加插件”输入 `packages/bundle` 目录；明确不要输入 monorepo 根、GitHub 仓库根地址，GitHub/包名安装要求发布的是插件包本身。
+- 包 README 的本地目录安装、tgz 安装与独立 CLI 安装三条路径写清。
+
+### 验证
+
+lint ✓｜typecheck ✓｜build ✓｜skills 72/72 ✓｜release tests 27/27 ✓｜check:version 0.0.75 ✓｜pack-check ✓（194 文件/13 技能/11 脚本，sha256 `a5597c5ee73647ad41b89cdefad039412d83eb531e82a0e18cad43df0581d17a`）。
+
 ## [0.0.74] — 2026-10-18
 
 ### Changed（发布链验证与测试清理）

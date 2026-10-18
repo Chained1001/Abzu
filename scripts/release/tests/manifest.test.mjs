@@ -34,7 +34,7 @@ test('publishable manifest: lifecycle hooks rejected', () => {
 })
 
 test('publishable manifest: workspace/file/link and @abzu runtime deps rejected', () => {
-  for (const version of ['workspace:*', 'file:../x', 'link:../x']) {
+  for (const version of ['workspace:*', 'file:../x', 'link:../x', 'catalog:']) {
     assert.throws(() => checkPublishableManifest({ ...base(), dependencies: { lodash: version } }))
   }
   assert.throws(() => checkPublishableManifest({ ...base(), dependencies: { '@abzu/core': '^1.0.0' } }))

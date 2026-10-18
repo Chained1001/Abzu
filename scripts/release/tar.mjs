@@ -49,6 +49,6 @@ export function checkPublishableManifest(manifest) {
     assert.equal(manifest.scripts?.[hook], undefined, `Release packages must not run ${hook}`)
   }
   for (const [name, version] of Object.entries({ ...manifest.dependencies, ...manifest.optionalDependencies, ...manifest.peerDependencies })) {
-    assert.ok(!name.startsWith('@abzu/') && !/^(workspace:|file:|link:)/.test(version), 'Unpublished runtime dependency')
+    assert.ok(!name.startsWith('@abzu/') && !/^(workspace:|file:|link:|catalog:)/.test(version), 'Unpublished runtime dependency')
   }
 }
