@@ -221,6 +221,40 @@ describe('参考标尺通用四层（票 02）', () => {
     expect(row.cells.join(''), 'L1-03 应点名 S6 反例').toContain('S6')
     expect(row.cells.join(''), 'L1-03 应给出 S6 抽样数值').toContain('63%')
     expect(row.cells.join(''), 'L1-03 应把功能不变量指回 L0-02').toContain('L0-02')
+    expect(row.cells.join(''), 'L1-03 分母应排除显式余波／过渡章').toContain('显式标为余波')
+    expect(row.cells.join(''), 'L1-03 应写明合法无钩例外不进分母').toContain('不进分母')
+  })
+
+  it('票 08 C1：幕级节首术语 gloss——幕＝卷内单元/sequence，ACT-01A 不是 act，不得用 U1／U2 互证 act 比例', () => {
+    expect(text, '幕级节首应有术语 gloss').toContain('术语 gloss')
+    expect(text, '幕应解释为卷内单元').toContain('本参考标尺说的「幕」＝**卷内单元（≈sequence）**')
+    expect(text, '幕纲产品单位应指 ACT-01B').toContain('取 **L2-ACT-01B**')
+    expect(text, 'ACT-01A 不是 act').toContain('不是 act')
+    expect(text, '不得用 U1／U2 互证 act 比例').toContain('不得用 U1／U2 的幕长、幕数或比例互相印证 act 比例')
+    expect(text, '3 幕／5 幕是模式并列').toContain('模式并列')
+    expect(text, 'L1-13 的幕按卷内单元读').toContain('「幕」按卷内单元读')
+  })
+
+  it('票 08 C2：L1-06B 只限有成长弧的主角，flat arc 按 0 段豁免，不把 3–6 段当普遍必备', () => {
+    const row = rowById('L1-06B')
+    const joined = row.cells.join('')
+    expect(joined, 'L1-06B 应限定有成长弧的主角').toContain('有成长弧的主角')
+    expect(joined, 'L1-06B 应承认 flat arc').toContain('flat arc')
+    expect(joined, 'L1-06B 不变主角按 0 段豁免').toContain('0 段豁免')
+    expect(joined, 'L1-06B 不得把 3–6 段当普遍必备').toContain('不把 3–6 段当普遍必备')
+    expect(row.stability, '加限定后仍只作基准，不等于普遍必备').toBe('stable')
+  })
+
+  it('票 08 C3：L1-05 保持 provisional，情感／慢热档可超参考带且只作提示', () => {
+    const row = rowById('L1-05')
+    expect(row.stability, 'L1-05 不得升 stable').toBe('provisional')
+    expect(row.gate, 'L1-05 不得 gate').toBe('false')
+    const joined = row.cells.join('')
+    expect(joined, 'L1-05 应区分情感／慢热档').toContain('情感／慢热档')
+    expect(joined, 'L1-05 应允许超参考带').toContain('可超参考带')
+    expect(joined, 'L1-05 超出时只作提示').toContain('只作提示')
+    expect(joined, 'L1-05 应写明不升 stable').toContain('不升 stable')
+    expect(joined, 'L1-05 应区分泄压章与 sequel').toContain('sequel')
   })
 
   it('L2-A8-07 弱密度：删掉密度区间、降 provisional，不得像稳定密度', () => {
@@ -336,6 +370,27 @@ describe('参考标尺通用四层（票 02）', () => {
     expect(act11.stability, '相邻幕重复不可统计，不标 stable').toBe('provisional')
     expect(act11.cells.join(''), '不得写成零重复率').toContain('不能写成零重复率')
     expect(act11.cells.join(''), '相邻幕重复只作人工检查').toContain('只作人工检查')
+  })
+
+  it('票 08 ACT-02/ACT-07：5 阶段有公开旁证、6 段仅本地；stable 只保下限，不背书 4–6 与七类', () => {
+    const act02 = rowById('L2-ACT-02')
+    expect(act02.cells.join(''), 'ACT-02 应注明 5 阶段有公开旁证').toContain(
+      '5 个结构阶段有公开五要件模板的定性旁证',
+    )
+    expect(act02.cells.join(''), 'ACT-02 应注明 6 段只是本地观察').toContain(
+      '6 段只是本仓单元循环口径的本地观察',
+    )
+    expect(act02.cells.join(''), 'ACT-02 不把 6 段当稳定值').toContain('不当作稳定值')
+    expect(act02.stability, 'ACT-02 保持 provisional').toBe('provisional')
+
+    const act07 = rowById('L2-ACT-07')
+    expect(act07.stability, 'ACT-07 stable 只保下限').toBe('stable')
+    expect(act07.cells.join(''), 'ACT-07 stable 仅指下限').toContain('stable 仅指下限')
+    expect(act07.cells.join(''), 'ACT-07 不背书 4–6 与七类口径').toContain('公开经验不背书')
+    expect(act07.cells.join(''), 'ACT-07 仍保留参考区间 4–6').toContain('4–6')
+    expect(text, 'schema 应说明 ACT-07 stable 不覆盖 4–6 与七类').toContain(
+      '不覆盖同行 4–6 参考区间与七类分类口径',
+    )
   })
 
   it('L0 全定性：不变量正文不含阿拉伯数字（ID 除外）', () => {
@@ -491,6 +546,48 @@ describe('参考标尺通用四层（票 02）', () => {
       expect(text, `参考标尺不应出现具体书名/角色名「${name}」`).not.toContain(name)
     }
     expect(text).toContain('匿名样本组 S1–S5')
+  })
+
+  it('票 08 终验：三件无占位/实验/低置信，章纲不引 L2-A4-01，旧类目只作 legacy', () => {
+    const skillRoot = path.join(__dirname, '..', 'skills')
+    const references = [
+      SCALE_PATH,
+      path.join(skillRoot, 'novel-design', 'references', '证据台账.md'),
+      path.join(skillRoot, 'novel-design', 'references', '本书节奏基线.md'),
+    ]
+    for (const file of references) {
+      const body = fs.readFileSync(file, 'utf8')
+      const label = path.basename(file)
+      for (const marker of ['【待校准】', 'unverified', 'experimental', '【未验证】', '【低置信】']) {
+        expect(body, `${label} 不应残留占位「${marker}」`).not.toContain(marker)
+      }
+      expect(body, `${label} 不应出现低置信 low`).not.toMatch(/\blow\b/)
+      for (const legacy of ['固定层', '比例层', '题材包', '题材修正']) {
+        expect(body, `${label} 不应把「${legacy}」当现行`).not.toContain(legacy)
+      }
+    }
+    for (const file of references.slice(1)) {
+      expect(fs.readFileSync(file, 'utf8'), `${path.basename(file)} 不应把取数速查表当现行`).not.toContain(
+        '取数速查表',
+      )
+    }
+
+    const outlineRoot = path.join(skillRoot, 'novel-outline')
+    const walk = (dir: string): void => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const abs = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+          walk(abs)
+          continue
+        }
+        if (!entry.name.endsWith('.md')) continue
+        expect(
+          fs.readFileSync(abs, 'utf8'),
+          `${path.relative(skillRoot, abs)}: 章纲不得引用 L2-A4-01`,
+        ).not.toContain('L2-A4-01')
+      }
+    }
+    walk(outlineRoot)
   })
 })
 
@@ -713,6 +810,27 @@ describe('本书节奏基线（票 05）', () => {
       'utf8',
     )
     expect(fixedDocs, '新 reference 不进 fixed-docs 预算').not.toContain('本书节奏基线')
+  })
+
+  it('票 08：章长目标＝契约字数带＋起草核验，不归章纲', () => {
+    const row = baseline
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .find((line) => line.startsWith('| 细纲·章细纲/写前十查 |'))
+    expect(row, '消费表应有细纲消费行').toBeDefined()
+    expect(row, '细纲消费行应写契约字数带').toContain('契约字数带')
+    expect(row, '细纲消费行应写起草核验').toContain('起草核验')
+    expect(row, '细纲消费行不应把章长目标塞给章纲').not.toContain('章长目标、场景数')
+    expect(baseline, '基线消费表应写明章长目标不归章纲').toContain(
+      '章长目标＝契约字数带＋起草核验，不归章纲',
+    )
+    expect(baseline, '边界应写明章长目标不进章纲').toContain('章长目标不进章纲')
+
+    const outline = fs.readFileSync(path.join(skillRoot, 'novel-outline', 'SKILL.md'), 'utf8')
+    expect(outline, '章纲不引用 L2-A4-01').not.toContain('L2-A4-01')
+    expect(outline, '章纲只继承幕纲／契约字数带／账本').toContain(
+      '章纲只继承幕纲、契约字数带、账本承诺/信息边界',
+    )
   })
 
   it('artifact-contract 登记本书节奏基线 reference', () => {
