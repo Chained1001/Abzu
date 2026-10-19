@@ -1001,3 +1001,216 @@ describe('标尺使用日志（票 07）', () => {
     expect(log).toContain('<书名>')
   })
 })
+
+/**
+ * 证据台账（票 04）。
+ *
+ * 守的是「每行可追溯、参考标尺不重复长文」的分工，不是具体数值：
+ * 1. 台账存在，八列 schema（编号/覆盖行/来源/样本/方法/区间来源/stability/备注）齐全，编号唯一；
+ * 2. 参考标尺每一行恰好被一个台账条目覆盖：无未登记行、无悬空 ID、无重复登记；
+ * 3. 台账 stability 与所覆盖标尺行一致（L0 invariant、L1 分组 stable/provisional、L2 默认 provisional、幕级仅下限/存在性 stable、L3 stable）；
+ * 4. L0 evidence 列引用台账编号，头部与各层有短指针，参考标尺不复制台账长表；
+ * 5. 台账零具体书名/角色名、不复制原文；
+ * 6. artifact-contract 登记新 reference，fixed-docs 不计入。
+ */
+describe('证据台账（票 04）', () => {
+  const skillRoot = path.join(__dirname, '..', 'skills')
+  const ledgerPath = path.join(skillRoot, 'novel-design', 'references', '证据台账.md')
+  const ledger = fs.existsSync(ledgerPath) ? fs.readFileSync(ledgerPath, 'utf8') : ''
+  const HEADER =
+    '| 台账编号 | 覆盖行（ID 段） | 来源（原文样本/公开经验/推导） | 样本（S1–S5、n） | 方法（统计口径/切分规则） | 区间来源 | stability | 备注 |'
+
+  type LedgerRow = {
+    readonly id: string
+    readonly coverage: string
+    readonly source: string
+    readonly sample: string
+    readonly method: string
+    readonly interval: string
+    readonly stability: string
+    readonly note: string
+  }
+
+  function parseLedger(input: string): LedgerRow[] {
+    const list: LedgerRow[] = []
+    for (const line of input.replace(/\r\n/g, '\n').split('\n')) {
+      if (!line.startsWith('| EV-')) continue
+      const cells = cellsOf(line)
+      if (cells.length !== 8) throw new Error(`台账行列数应为 8，实为 ${cells.length}：${line.slice(0, 40)}`)
+      list.push({
+        id: cells[0]!,
+        coverage: cells[1]!,
+        source: cells[2]!,
+        sample: cells[3]!,
+        method: cells[4]!,
+        interval: cells[5]!,
+        stability: cells[6]!,
+        note: cells[7]!,
+      })
+    }
+    return list
+  }
+
+  const ledgerRows = parseLedger(ledger)
+
+  /** 覆盖行支持「L0-01～L0-12」形式的 ID 段，也接受逐条 ID 列表。 */
+  function coverageIds(cell: string): string[] {
+    const ids: string[] = []
+    const rest = cell.replace(
+      /(L[0-3]-[A-Za-z0-9-]+?)～(L[0-3]-[A-Za-z0-9-]+)/g,
+      (_whole: string, from: string, to: string) => {
+        const start = /^(.*?)(\d+)$/.exec(from)
+        const end = /^(.*?)(\d+)$/.exec(to)
+        if (start === null || end === null || start[1] !== end[1]) {
+          throw new Error(`台账覆盖行区间无法展开：${from}～${to}`)
+        }
+        for (let n = Number(start[2]); n <= Number(end[2]); n += 1) {
+          ids.push(`${start[1]}${String(n).padStart(start[2]!.length, '0')}`)
+        }
+        return ''
+      },
+    )
+    for (const match of rest.matchAll(/L[0-3]-[A-Za-z0-9-]+/g)) ids.push(match[0]!)
+    return [...new Set(ids)]
+  }
+
+  function ledgerEntryOf(): Map<string, string> {
+    const map = new Map<string, string>()
+    for (const entry of ledgerRows) {
+      for (const id of coverageIds(entry.coverage)) map.set(id, entry.id)
+    }
+    return map
+  }
+
+  it('台账存在、八列 schema 齐全、编号唯一，五层均有登记', () => {
+    expect(fs.existsSync(ledgerPath), 'novel-design/references/证据台账.md 应存在').toBe(true)
+    expect(ledger, '台账表头应为八列').toContain(HEADER)
+    expect(ledgerRows.length, '台账条目应覆盖五层且不少于 20 条').toBeGreaterThanOrEqual(20)
+
+    const ids = ledgerRows.map((entry) => entry.id)
+    expect(new Set(ids).size, '台账编号不得重复').toBe(ids.length)
+
+    for (const entry of ledgerRows) {
+      for (const [offset, cell] of [entry.coverage, entry.source, entry.sample, entry.method, entry.interval, entry.stability, entry.note].entries()) {
+        expect(cell.length, `${entry.id} 第 ${offset + 2} 列不得为空`).toBeGreaterThan(0)
+      }
+      expect(entry.source, `${entry.id}: 来源须标原文样本/公开经验/推导`).toMatch(/原文样本|公开经验|推导/)
+      expect(['invariant', 'stable', 'provisional'], `${entry.id}: stability「${entry.stability}」非法`).toContain(entry.stability)
+    }
+    for (const layer of ['L0', 'L1', 'L2', 'L3']) {
+      expect(ledgerRows.some((entry) => entry.coverage.includes(layer)), `台账应覆盖 ${layer} 组`).toBe(true)
+    }
+  })
+
+  it('覆盖行：标尺每行恰好被一个台账条目覆盖，无未登记行、无悬空 ID', () => {
+    const byId = new Map(rows.map((row) => [row.id, row]))
+    const cover = new Map<string, string[]>()
+    for (const entry of ledgerRows) {
+      const ids = coverageIds(entry.coverage)
+      if (ids.length === 0) {
+        expect(entry.coverage, `${entry.id}: 无行 ID 的条目须写明「无行 ID」`).toContain('无行 ID')
+      }
+      for (const id of ids) {
+        const list = cover.get(id) ?? []
+        list.push(entry.id)
+        cover.set(id, list)
+      }
+    }
+
+    const uncovered = rows.map((row) => row.id).filter((id) => !cover.has(id))
+    expect(uncovered, `以下参考标尺行未在证据台账登记：${uncovered.join('、')}`).toEqual([])
+
+    const dangling = [...cover.keys()].filter((id) => !byId.has(id))
+    expect(dangling, `台账覆盖了不存在的行 ID：${dangling.join('、')}`).toEqual([])
+
+    const duplicated = [...cover.entries()]
+      .filter(([, entries]) => entries.length > 1)
+      .map(([id, entries]) => `${id}←${entries.join('/')}`)
+    expect(duplicated, '同一行只应被一个台账条目覆盖').toEqual([])
+  })
+
+  it('台账 stability 与标尺行一致：L0 invariant、L1 分组、L2 默认 provisional（幕级仅下限/存在性 stable）、L3 stable', () => {
+    const byId = new Map(rows.map((row) => [row.id, row]))
+    const mismatched: string[] = []
+    for (const entry of ledgerRows) {
+      for (const id of coverageIds(entry.coverage)) {
+        const row = byId.get(id)
+        if (row === undefined) continue
+        if (row.stability !== entry.stability) {
+          mismatched.push(`${id}: 标尺 ${row.stability} ≠ 台账 ${entry.stability}（${entry.id}）`)
+        }
+      }
+    }
+    expect(mismatched, `台账与标尺 stability 不一致：${mismatched.join('；')}`).toEqual([])
+
+    const stableEntries = ledgerRows.filter((entry) => entry.stability === 'stable')
+    for (const id of ['L2-ACT-07', 'L2-ACT-10']) {
+      expect(
+        stableEntries.some((entry) => coverageIds(entry.coverage).includes(id)),
+        `${id}: 仅下限/存在性可 stable，应由 stable 台账条目覆盖`,
+      ).toBe(true)
+    }
+    for (const layer of ['L0', 'L3'] as const) {
+      const expected = layer === 'L0' ? 'invariant' : 'stable'
+      for (const row of layerRows(layer)) {
+        const entry = ledgerRows.find((candidate) => coverageIds(candidate.coverage).includes(row.id))
+        expect(entry?.stability, `${row.id}: ${layer} 组 stability 应为 ${expected}`).toBe(expected)
+      }
+    }
+  })
+
+  it('标尺行引用台账编号：L0 evidence 列带 EV，头部与各层有短指针，且不复制台账长表', () => {
+    expect(text, '头部短指针应指到台账路径').toContain('证据台账见 references/证据台账.md')
+    const pointers = text.match(/\[证据台账\]\(证据台账\.md\)/g) ?? []
+    expect(pointers.length, '头部＋四层各一条短指针').toBeGreaterThanOrEqual(5)
+    expect(text, '参考标尺不得复制台账长表').not.toContain('| 台账编号 | 覆盖行')
+
+    const ledgerOf = ledgerEntryOf()
+    for (const row of layerRows('L0')) {
+      const evidence = row.cells[3]!
+      const ev = /EV-\d{2}/.exec(evidence)?.[0]
+      expect(ev, `${row.id}: evidence 列应引用台账编号`).toBeDefined()
+      expect(ledgerOf.get(row.id), `${row.id}: 行内 EV 应与台账覆盖编号一致`).toBe(ev)
+    }
+  })
+
+  it('台账零具体书名/角色名，不复制原文（单元格长度受限）', () => {
+    const blacklist = [
+      '大奉打更人', '大奉',
+      '诡秘之主', '诡秘',
+      '我真没想重生啊', '重生啊',
+      '绍宋', '十日终焉', '十日',
+      '斗破苍穹', '斗破',
+      '道诡异仙', '道诡',
+      '魏渊', '罗塞尔', '徐芷溪',
+    ]
+    for (const name of blacklist) {
+      expect(ledger, `证据台账不应出现具体书名/角色名「${name}」`).not.toContain(name)
+    }
+    expect(ledger, '台账应声明不复制原文').toContain('不复制原文')
+    expect(ledger, '台账应声明不写书名/角色名').toContain('不写书名')
+    expect(ledger, '台账只作登记、不重述区间数值').toContain('不重述')
+    for (const entry of ledgerRows) {
+      for (const [label, cell] of [
+        ['覆盖行', entry.coverage],
+        ['来源', entry.source],
+        ['样本', entry.sample],
+        ['方法', entry.method],
+        ['区间来源', entry.interval],
+        ['备注', entry.note],
+      ] as const) {
+        expect(cell.length, `${entry.id} ${label}: 单格不得长到像原文摘录`).toBeLessThanOrEqual(240)
+      }
+    }
+  })
+
+  it('登记单源：artifact-contract 登记新 reference，fixed-docs 不计入', () => {
+    const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract, 'artifact-contract 应登记证据台账').toContain("'skills/novel-design/references/证据台账.md'")
+    const fixedDocs = fs.readFileSync(
+      path.join(__dirname, '..', '..', '..', 'scripts', 'benchmarks', 'fixed-docs.mjs'),
+      'utf8',
+    )
+    expect(fixedDocs, '新 reference 不进 fixed-docs 预算').not.toContain('证据台账')
+  })
+})

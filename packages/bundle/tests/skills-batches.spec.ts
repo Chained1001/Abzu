@@ -1298,8 +1298,9 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     expect(design).toContain('- 下限汉字数: 3500')
     expect(design).toContain('- 上限汉字数: 4500')
     expect(design).not.toContain('- 目标汉字数: 2000')
-    expect(outline).toContain('按本章目标字数分配重心')
-    expect(outline).toContain('「L2-A4-01 每章字数」行取')
+    expect(outline).toContain('按本章重心分配')
+    expect(outline).toContain('不取章长档、不锁段比')
+    expect(outline, '章纲不直接引用章长标尺 L2-A4-01（票 06 去标尺化）').not.toContain('L2-A4-01')
     expect(outline).toContain('是分配重心例，不是固定比例或结构')
     expect(outline).not.toContain('四千字示例')
     expect(outline).not.toContain('两千字示例')
@@ -1333,6 +1334,32 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     // Nit① ⑩钩诺呈报行示例带兑现章号；Nit② 「加单元不加字」旧措辞清零（统一为「加单元（加事）不硬堆字」）
     expect(checks).toContain('情绪钩承诺…｜兑现章号：…')
     expect(checks).not.toContain('加单元不加字')
+  })
+
+  it('06 章纲去标尺化：章纲不引章长标尺，字数归契约/起草/审读，按幕分批仍作生产参数', () => {
+    const outline = readSkill('novel-outline')
+    const sect = fs.readFileSync(skillFile('novel-outline', 'templates/章细纲固定小节规格.md'), 'utf8')
+    const checks = fs.readFileSync(skillFile('novel-outline', 'agents/写前十查.md'), 'utf8')
+    const drafting = readSkill('novel-drafting')
+    // A. 章纲不直接引用章长标尺行（L2-A4-01）——章长归契约/起草/审读
+    expect(outline, '章纲不得引用 L2-A4-01 章长行').not.toContain('L2-A4-01')
+    expect(outline, '章纲不得转述「每章字数」行').not.toContain('每章字数')
+    expect(outline, '章长不按参考标尺取数').toContain('章长不按参考标尺取数')
+    // B. 章纲只继承三源：幕纲／契约字数带／账本承诺与信息边界
+    expect(outline).toContain('章纲只继承幕纲、契约字数带、账本承诺/信息边界')
+    expect(outline).toContain('字数核验在起草／审读')
+    // C. L2-A4-06 按幕分批仍作生产参数（标尺只到幕纲，分批阈值仍取该行）
+    expect(outline).toContain('「L2-A4-06 幕内分批出细纲」行')
+    // D. 可选预期字数保留为规划辅助，不是门禁；实际核验在起草/审读
+    expect(sect).toContain('规划辅助，不是门禁')
+    expect(sect).toContain('实际字数核验在《正文起草》核验字数脚本与《全面审读》')
+    expect(checks).toContain('规划辅助，不是章长门禁')
+    // E. 起草侧：契约字数带＋核验脚本在位（行为不变）
+    expect(drafting).toContain('篇幅继承契约“章节篇幅”字数带')
+    expect(drafting).toContain('scripts/核验字数.mjs')
+    expect(drafting).toContain('契约字数带仍由审读阶段确定性脚本复核')
+    // F. 章纲不内联章长数值（单源仍在参考标尺与契约）
+    expect(outline, '章纲不写死字数区间').not.toMatch(/[0-9]+\s*[-–~]\s*[0-9]+\s*字/)
   })
 
   it('0.0.26 标尺 v0.5 五书校准批：驱动类型分带＋新四行＋五题材修正＋末卷扩＋v0.5 变更', () => {
@@ -4257,6 +4284,7 @@ describe('skills 批次防回退断言组·参考标尺链路去书名化', () =
     // 只守标尺的直接消费链；不把黑名单扩散到其他技能或 references。
     const chain = [
       'novel-design/references/参考标尺.md',
+      'novel-design/references/证据台账.md',
       'novel-design/SKILL.md',
       'novel-arcplan/SKILL.md',
       'novel-outline/SKILL.md',
@@ -4284,5 +4312,29 @@ describe('skills 批次防回退断言组·参考标尺链路去书名化', () =
     expect(scale).toContain('未进入核心校准')
     expect(scale).toContain('编号↔真实书名映射只存仓外档案、不入仓')
     expect(fs.readFileSync(path.join(skills, 'novel-design/SKILL.md'), 'utf8')).toContain('样本 S5 型')
+  })
+
+  it('票 04 证据台账批：台账落位、标尺短指针、注册单源、不进 fixed-docs', () => {
+    const root = path.join(__dirname, '..', '..', '..')
+    const skills = path.join(root, 'packages', 'bundle', 'skills')
+    const ledgerPath = path.join(skills, 'novel-design', 'references', '证据台账.md')
+    expect(fs.existsSync(ledgerPath), 'novel-design/references/证据台账.md 应存在').toBe(true)
+    const ledger = fs.readFileSync(ledgerPath, 'utf8')
+    expect(ledger, '台账表头应为八列').toContain(
+      '| 台账编号 | 覆盖行（ID 段） | 来源（原文样本/公开经验/推导） | 样本（S1–S5、n） | 方法（统计口径/切分规则） | 区间来源 | stability | 备注 |',
+    )
+    for (const layer of ['L0', 'L1', 'L2-ACT', 'L3']) {
+      expect(ledger, `台账应覆盖 ${layer} 组`).toContain(layer)
+    }
+    // 参考标尺只留短指针与行内台账编号，不复制长表
+    const scale = fs.readFileSync(path.join(skills, 'novel-design', 'references', '参考标尺.md'), 'utf8')
+    expect(scale, '标尺头部应有台账短指针').toContain('证据台账见 references/证据台账.md')
+    expect(scale, '标尺不得复制台账长表').not.toContain('| 台账编号 | 覆盖行')
+    expect(scale, 'L0 evidence 列应引用台账编号').toMatch(/\| S1–S5｜EV-\d{2} \|/)
+    // 注册单源＋预算面：新 reference 登记，但不进每章固定文档预算
+    const contract = fs.readFileSync(path.join(root, 'packages', 'bundle', 'scripts', 'artifact-contract.mjs'), 'utf8')
+    expect(contract, 'artifact-contract 应登记证据台账').toContain("'skills/novel-design/references/证据台账.md'")
+    const fixedDocs = fs.readFileSync(path.join(root, 'scripts', 'benchmarks', 'fixed-docs.mjs'), 'utf8')
+    expect(fixedDocs, '证据台账不进 fixed-docs 预算').not.toContain('证据台账')
   })
 })
