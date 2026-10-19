@@ -8,9 +8,9 @@ import * as path from 'node:path'
  * 这组测试守的是分层契约，不是具体校准值：
  * 1. 标尺只服务中文长篇连载网文，L0/L1 只在该范围内称通用，不称“所有小说通用”；
  * 2. L0 全定性、无阿拉伯数字；
- * 3. 每行 schema 完整（id/行名/口径/consumer/status/confidence/gate/legacy）；
+ * 3. 每行 schema 完整（id/行名/口径/consumer/status/confidence/stability/gate/legacy）；
  * 4. 全文无待补充占位：不出现【待校准】/unverified/experimental/low；
- * 5. L1 只有口径稳定、n≥4、无冲突的行可 gate:true；L2 默认 false；L3 本书基线 true；
+ * 5. L0 全 invariant；L1 口径稳定、n≥4、无冲突为 stable，partial/证据不足为 provisional；L2 与幕级 provisional；stable 不等于 gate:true；
  * 6. 旧行名在标尺内至少保留一个精确表格单元，消费点不断链；
  * 7. 标尺不出现具体书名/角色名。
  */
@@ -18,6 +18,7 @@ import * as path from 'node:path'
 const SCALE_PATH = path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md')
 const STATUS = new Set(['hard', 'range', 'qualitative'])
 const CONFIDENCE = new Set(['high', 'partial'])
+const STABILITY = new Set(['stable', 'provisional', 'invariant'])
 const GATE = new Set(['true', 'false'])
 
 type Row = {
@@ -27,6 +28,7 @@ type Row = {
   readonly cells: readonly string[]
   readonly status: string
   readonly confidence: string
+  readonly stability: string
   readonly gate: string
   readonly legacy: string
 }
@@ -45,7 +47,7 @@ function parseRows(text: string): Row[] {
     const cells = cellsOf(line)
     const layer = id.slice(0, 2) as Row['layer']
     const isL0L1 = layer === 'L0' || layer === 'L1'
-    const expected = isL0L1 ? 9 : 8
+    const expected = isL0L1 ? 10 : 9
     // schema 完整性由此断言兜底：列数不对时给出行号，便于定位
     expect(cells.length, `第 ${i + 1} 行 ${id}: 表格列数应为 ${expected}`).toBe(expected)
     if (isL0L1) {
@@ -56,8 +58,9 @@ function parseRows(text: string): Row[] {
         cells,
         status: cells[5]!,
         confidence: cells[6]!,
-        gate: cells[7]!,
-        legacy: cells[8]!,
+        stability: cells[7]!,
+        gate: cells[8]!,
+        legacy: cells[9]!,
       })
     } else {
       rows.push({
@@ -67,8 +70,9 @@ function parseRows(text: string): Row[] {
         cells,
         status: cells[4]!,
         confidence: cells[5]!,
-        gate: cells[6]!,
-        legacy: cells[7]!,
+        stability: cells[6]!,
+        gate: cells[7]!,
+        legacy: cells[8]!,
       })
     }
   }
@@ -82,14 +86,20 @@ function layerRows(layer: Row['layer']): Row[] {
   return rows.filter((r) => r.layer === layer)
 }
 
+function rowById(id: string): Row {
+  const row = rows.find((r) => r.id === id)
+  expect(row, `缺少标尺行 ${id}`).toBeDefined()
+  return row!
+}
+
 function hasExactCell(value: string): boolean {
   return text.split(/\r?\n/).some((line) => line.startsWith('|') && cellsOf(line).includes(value))
 }
 
 describe('参考标尺通用四层（票 02）', () => {
-  it('四层行数与 schema 完整：L0 18 条、L1 20 条、L2 八轴＋幕级、L3 八项', () => {
+  it('四层行数与 schema 完整：L0 18 条、L1 22 条、L2 八轴＋幕级、L3 八项', () => {
     expect(layerRows('L0')).toHaveLength(18)
-    expect(layerRows('L1')).toHaveLength(20)
+    expect(layerRows('L1')).toHaveLength(22)
     expect(layerRows('L3')).toHaveLength(8)
     expect(layerRows('L2')).toHaveLength(51)
 
@@ -108,6 +118,7 @@ describe('参考标尺通用四层（票 02）', () => {
       expect(row.cells[1], `${row.id}: 幕级行应标经验候选`).toContain('经验候选')
       expect(['range', 'qualitative'], `${row.id}: 幕级行只可用 range/qualitative`).toContain(row.status)
       expect(row.confidence, `${row.id}: 幕级行为经验候选，confidence 应为 partial`).toBe('partial')
+      expect(row.stability, `${row.id}: 幕级行 stability 应为 provisional`).toBe('provisional')
       expect(row.gate, `${row.id}: 幕级行不得 gate:true`).toBe('false')
     }
 
@@ -120,9 +131,105 @@ describe('参考标尺通用四层（票 02）', () => {
       }
       expect(STATUS.has(row.status), `${row.id}: status「${row.status}」非法`).toBe(true)
       expect(CONFIDENCE.has(row.confidence), `${row.id}: confidence「${row.confidence}」非法`).toBe(true)
+      expect(STABILITY.has(row.stability), `${row.id}: stability「${row.stability}」非法`).toBe(true)
       expect(GATE.has(row.gate), `${row.id}: gate「${row.gate}」非法`).toBe(true)
       expect(row.legacy.length, `${row.id}: legacy 不得为空（无旧行名写 —）`).toBeGreaterThan(0)
     }
+  })
+
+  it('stability 身份：L0 全 invariant、L1 按证据分 stable/provisional、L2 与幕级 provisional、L3 本书内 stable', () => {
+    expect(text, 'schema 应写明 stability 字段').toContain('`stability`')
+    for (const marker of ['`invariant`', '`stable`', '`provisional`']) {
+      expect(text, `schema 应解释 ${marker}`).toContain(marker)
+    }
+
+    for (const row of layerRows('L0')) {
+      expect(row.stability, `${row.id}: L0 行必须是 invariant`).toBe('invariant')
+    }
+
+    const stableL1 = new Set([
+      'L1-01', 'L1-02', 'L1-04', 'L1-06', 'L1-06A', 'L1-06B', 'L1-07', 'L1-12',
+    ])
+    for (const row of layerRows('L1')) {
+      const expected = stableL1.has(row.id) ? 'stable' : 'provisional'
+      expect(row.stability, `${row.id}: L1 应按 n≥4/无冲突标 stable，partial/证据不足标 provisional`).toBe(expected)
+      if (row.stability === 'provisional') {
+        expect(row.confidence, `${row.id}: provisional 行不应伪装高置信`).toBe('partial')
+      }
+    }
+
+    for (const row of layerRows('L2')) {
+      expect(row.stability, `${row.id}: L2 默认 provisional`).toBe('provisional')
+    }
+    for (const row of layerRows('L3')) {
+      expect(row.stability, `${row.id}: L3 本书覆盖为本书内稳定基线`).toBe('stable')
+    }
+  })
+
+  it('L1-06 拆为三行：主线数、支线数、成长弧段数，旧复合别名与旧 ID 保留', () => {
+    const main = rowById('L1-06')
+    const sub = rowById('L1-06A')
+    const growth = rowById('L1-06B')
+
+    expect(main.cells[1], 'L1-06 应为主线数').toContain('主线')
+    expect(main.cells[2], '主线数应保留 1–2 条').toContain('1–2')
+    expect(sub.cells[1], 'L1-06A 应为支线数').toContain('支线')
+    expect(sub.cells[2], '支线数应保留 3–8 条').toContain('3–8')
+    expect(growth.cells[1], 'L1-06B 应为成长弧段数').toContain('成长弧')
+    expect(growth.cells[2], '成长弧应保留 3–6 段').toContain('3–6')
+
+    for (const row of [main, sub, growth]) {
+      expect(row.stability, `${row.id}: 拆行后各自为 stable`).toBe('stable')
+      expect(row.confidence, `${row.id}: 拆行后各自为 high`).toBe('high')
+      expect(row.gate, `${row.id}: 拆行后各自保留 gate:true`).toBe('true')
+      expect(row.cells.join(''), `${row.id}: 拆行后不得再含复合区间`).not.toMatch(/1–2 主线＋3–8 线/)
+    }
+
+    // 旧复合行名与三个旧行名都留在索引，旧 ID 仍指向主线数
+    expect(text, '旧复合行名应保留在旧行名索引').toContain('| 主线／支线／成长弧 |')
+    expect(text, '旧行名→新 ID 映射应写明').toContain('旧行名→新 ID')
+    expect(text, '旧 ID 兼容说明应保留').toContain('旧 ID L1-06 继续指向主线数')
+    expect(text, '支线口径说明不得在拆行中丢失').toContain('4＝在用支线口径，含 1 弃线则 5-6')
+    expect(text, '情感线计第二主线的口径不得丢失').toContain('情感线可计第二主线')
+  })
+
+  it('L1-12 与 L2-A2-01 去重：方向在 L1，倍率数值单源在 L2', () => {
+    const direction = rowById('L1-12')
+    const multiplier = rowById('L2-A2-01')
+
+    expect(direction.cells.join(''), 'L1-12 不得再含具体倍率数值').not.toMatch(/[0-9]+(?:\.[0-9]+)?\s*倍/)
+    expect(direction.cells.join(''), 'L1-12 应指到倍率单源行').toContain('L2-A2-01')
+    expect(direction.cells.join(''), 'L1-12 应写明单源').toContain('单源')
+    expect(direction.stability, 'L1-12 方向口径稳定').toBe('stable')
+    expect(direction.gate, 'L1-12 只判方向、无统一倍率，不 gate').toBe('false')
+
+    expect(multiplier.cells.join(''), 'L2-A2-01 应保留倍率数值').toContain('3.5 倍')
+    expect(multiplier.cells.join(''), 'L2-A2-01 应保留峰值区间').toContain('2-5 倍')
+    expect(multiplier.cells.join(''), 'L2-A2-01 应声明倍率数值单源').toContain('倍率数值单源在本行')
+    expect(multiplier.gate, 'L2 仍不 gate').toBe('false')
+  })
+
+  it('L1-03 的 S6 反例有明确处理：降 partial 且不 gate，不伪装通用高置信', () => {
+    const row = rowById('L1-03')
+    expect(row.confidence, 'L1-03 应明确降为 partial').toBe('partial')
+    expect(row.stability, 'L1-03 应为 provisional').toBe('provisional')
+    expect(row.gate, 'L1-03 不得继续保持 gate:true').toBe('false')
+    expect(row.cells.join(''), 'L1-03 应点名 S6 反例').toContain('S6')
+    expect(row.cells.join(''), 'L1-03 应给出 S6 抽样数值').toContain('63%')
+    expect(row.cells.join(''), 'L1-03 应把功能不变量指回 L0-02').toContain('L0-02')
+  })
+
+  it('L2-A8-07 弱密度：删掉密度区间、降 provisional，不得像稳定密度', () => {
+    const row = rowById('L2-A8-07')
+    expect(row.stability, 'L2-A8-07 应为 provisional').toBe('provisional')
+    expect(row.confidence, 'L2-A8-07 应保持 partial').toBe('partial')
+    expect(row.gate, 'L2-A8-07 不得 gate').toBe('false')
+    const joined = row.cells.join('|')
+    expect(joined, 'L2-A8-07 不得保留 6–21/百万 的密度区间').not.toMatch(/[0-9]+\s*[-–~]\s*[0-9]+\s*\/\s*百万/)
+    expect(joined, 'L2-A8-07 不得保留旧区间').not.toContain('6–21')
+    expect(joined, 'L2-A8-07 不得保留旧区间（半角）').not.toContain('6-21')
+    expect(joined, 'L2-A8-07 应明确不得当稳定密度').toContain('不得当稳定密度')
+    expect(joined, 'L2-A8-07 应指回功能矩阵').toContain('功能矩阵')
   })
 
   it('定位：标题与适用范围为中文长篇连载网文，不称所有小说通用', () => {
@@ -180,16 +287,22 @@ describe('参考标尺通用四层（票 02）', () => {
   it('门禁规则：L0 全 true；L1 仅高置信稳定行 true；L2 全 false；L3 本书基线 true', () => {
     for (const row of layerRows('L0')) {
       expect(row.gate, `${row.id}: L0 应可 gate:true`).toBe('true')
+      expect(row.stability, `${row.id}: L0 身份为 invariant`).toBe('invariant')
     }
     for (const row of layerRows('L1')) {
       if (row.gate === 'true') {
         expect(row.status, `${row.id}: gate:true 的 L1 应为 range/hard`).toMatch(/^(range|hard)$/)
         expect(row.confidence, `${row.id}: gate:true 的 L1 应为高置信`).toBe('high')
+        expect(row.stability, `${row.id}: gate:true 的 L1 应为 stable`).toBe('stable')
         expect(row.cells.join(''), `${row.id}: gate:true 的 L1 不得含待校准`).not.toContain('待校准')
+      }
+      if (row.stability === 'provisional') {
+        expect(row.gate, `${row.id}: provisional 行不得 gate:true`).toBe('false')
       }
     }
     for (const row of layerRows('L2')) {
       expect(row.gate, `${row.id}: L2 默认只作对照，不得 gate:true`).toBe('false')
+      expect(row.stability, `${row.id}: L2 默认为 provisional`).toBe('provisional')
     }
     for (const row of layerRows('L3')) {
       expect(row.gate, `${row.id}: L3 本书基线应 gate:true`).toBe('true')
@@ -217,7 +330,7 @@ describe('参考标尺通用四层（票 02）', () => {
       '小爽点间隔', '大爽点间隔', '憋屈剧情上限', '卷内防疲劳', '单元故事体量',
       '单元循环节拍', '前传章型·篇幅曲线', '单卷体量', '终卷通胀律', '第一个大高潮位置',
       '每章字数', '续航线容量参考', '反派层级', '反派层级↔存活周期映射', '金手指台阶',
-      '主线', '主角成长弧', '主要人物', '升级点', '幕', '小反派', '中反派', '大地图',
+      '主线', '主角成长弧', '主线／支线／成长弧', '主要人物', '升级点', '幕', '小反派', '中反派', '大地图',
       '支线', '关键事件', '伏笔密度', '势力与组织', '核心谜团与悬念线', '章末钩子',
       '章末钩型配比', '爽点铺垫', '伏笔债务', '换图前 10 章', '换图 SOP', '升级间隔',
       '三线断档红线', '幕内分批出细纲', '信息释放分级', '伏笔三段保温（原伏笔债务）',
@@ -617,6 +730,15 @@ describe('参考标尺直接消费点接线（票 06）', () => {
       expect(legacyIndex.has(name), `旧行名索引应含「${name}」`).toBe(true)
       expect(legacyIndex.get(name)!.length, `旧行名「${name}」应映射到至少一个行 ID`).toBeGreaterThan(0)
     }
+  })
+
+  it('L1-06 拆行后旧别名仍可检索：主线→L1-06、支线→L1-06A、成长弧→L1-06B，复合名映射三行', () => {
+    expect(legacyIndex.get('主线'), '旧行名「主线」应仍映射到 L1-06').toContain('L1-06')
+    expect(legacyIndex.get('支线'), '旧行名「支线」应映射到 L1-06A').toContain('L1-06A')
+    expect(legacyIndex.get('主角成长弧'), '旧行名「主角成长弧」应映射到 L1-06B').toContain('L1-06B')
+    expect(legacyIndex.get('主线／支线／成长弧'), '旧复合行名应同时映射三行').toEqual(
+      expect.arrayContaining(['L1-06', 'L1-06A', 'L1-06B']),
+    )
   })
 
   it('行内 legacy 旧名全部可回索引：无孤立旧名', () => {
