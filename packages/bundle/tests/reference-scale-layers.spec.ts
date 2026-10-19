@@ -6,17 +6,18 @@ import * as path from 'node:path'
  * 参考标尺通用四层（票 02）。
  *
  * 这组测试守的是分层契约，不是具体校准值：
- * 1. L0 全定性、无阿拉伯数字；
- * 2. 每行 schema 完整（id/行名/口径/consumer/status/confidence/gate/legacy）；
- * 3. 低置信、待校准、未验证、experimental 不得 gate:true；
- * 4. L1 只有口径稳定、n≥4、无冲突的行可 gate:true；L2 默认 false；L3 本书基线 true；
- * 5. 旧行名在标尺内至少保留一个精确表格单元，消费点不断链；
- * 6. 标尺不出现具体书名/角色名。
+ * 1. 标尺只服务中文长篇连载网文，L0/L1 只在该范围内称通用，不称“所有小说通用”；
+ * 2. L0 全定性、无阿拉伯数字；
+ * 3. 每行 schema 完整（id/行名/口径/consumer/status/confidence/gate/legacy）；
+ * 4. 全文无待补充占位：不出现【待校准】/unverified/experimental/low；
+ * 5. L1 只有口径稳定、n≥4、无冲突的行可 gate:true；L2 默认 false；L3 本书基线 true；
+ * 6. 旧行名在标尺内至少保留一个精确表格单元，消费点不断链；
+ * 7. 标尺不出现具体书名/角色名。
  */
 
 const SCALE_PATH = path.join(__dirname, '..', 'skills', 'novel-design', 'references', '参考标尺.md')
-const STATUS = new Set(['hard', 'range', 'qualitative', 'experimental'])
-const CONFIDENCE = new Set(['high', 'partial', 'low', 'unverified'])
+const STATUS = new Set(['hard', 'range', 'qualitative'])
+const CONFIDENCE = new Set(['high', 'partial'])
 const GATE = new Set(['true', 'false'])
 
 type Row = {
@@ -86,15 +87,29 @@ function hasExactCell(value: string): boolean {
 }
 
 describe('参考标尺通用四层（票 02）', () => {
-  it('四层行数与 schema 完整：L0 18 条、L1 20 条、L2 八轴、L3 八项', () => {
+  it('四层行数与 schema 完整：L0 18 条、L1 20 条、L2 八轴＋幕级、L3 八项', () => {
     expect(layerRows('L0')).toHaveLength(18)
     expect(layerRows('L1')).toHaveLength(20)
     expect(layerRows('L3')).toHaveLength(8)
+    expect(layerRows('L2')).toHaveLength(51)
 
     const axisRows = layerRows('L2').filter((r) => r.id.startsWith('L2-AX-'))
     expect(axisRows).toHaveLength(8)
     expect(axisRows.map((r) => r.cells[1]!.slice(0, 2))).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'])
     expect(layerRows('L2').filter((r) => !r.id.startsWith('L2-AX-')).length).toBeGreaterThan(0)
+
+    const actRows = layerRows('L2').filter((r) => r.id.startsWith('L2-ACT-'))
+    expect(actRows, '幕级标尺应有 11 条').toHaveLength(11)
+    expect(actRows.map((r) => r.id)).toEqual([
+      'L2-ACT-01', 'L2-ACT-02', 'L2-ACT-03', 'L2-ACT-04', 'L2-ACT-05', 'L2-ACT-06',
+      'L2-ACT-07', 'L2-ACT-08', 'L2-ACT-09', 'L2-ACT-10', 'L2-ACT-11',
+    ])
+    for (const row of actRows) {
+      expect(row.cells[1], `${row.id}: 幕级行应标经验候选`).toContain('经验候选')
+      expect(['range', 'qualitative'], `${row.id}: 幕级行只可用 range/qualitative`).toContain(row.status)
+      expect(row.confidence, `${row.id}: 幕级行为经验候选，confidence 应为 partial`).toBe('partial')
+      expect(row.gate, `${row.id}: 幕级行不得 gate:true`).toBe('false')
+    }
 
     const ids = rows.map((r) => r.id)
     expect(new Set(ids).size, '行 id 不得重复').toBe(ids.length)
@@ -108,6 +123,51 @@ describe('参考标尺通用四层（票 02）', () => {
       expect(GATE.has(row.gate), `${row.id}: gate「${row.gate}」非法`).toBe(true)
       expect(row.legacy.length, `${row.id}: legacy 不得为空（无旧行名写 —）`).toBeGreaterThan(0)
     }
+  })
+
+  it('定位：标题与适用范围为中文长篇连载网文，不称所有小说通用', () => {
+    expect(text).toMatch(/^# 网文结构参考标尺$/m)
+    expect(text).toContain('中文长篇连载网文')
+    expect(text).toContain('章回体、连载更新、类型叙事')
+    expect(text).toContain('不宣称“所有小说通用”')
+    expect(text).toContain('本适用范围内')
+    expect(text).toContain('短篇／中篇')
+    expect(text).toContain('纯文学')
+  })
+
+  it('去外挂包：无题材包／题材修正表与题材数值修正，长度换算参考只留 L3 粗算', () => {
+    for (const banned of ['题材包', '题材修正', '玄幻', '都市', '女频', '打脸频率', '旧取数速查']) {
+      expect(text, `参考标尺不应保留外挂包标记「${banned}」`).not.toContain(banned)
+    }
+    for (const banned of ['100 万字·默认', '200 万字·默认', '300 万字·默认', '500 万字·默认', '200 万字·玄幻', '200 万字·都市', '100 万字·都市']) {
+      expect(text, `参考标尺不应保留旧速查算例「${banned}」`).not.toContain(banned)
+    }
+    expect(text).not.toMatch(/[+＋]\s*1\s*层|[-－]\s*1\s*层/)
+    expect(text).not.toMatch(/地图\s*[×x]\s*1\.\d|打脸频率\s*[×x]/)
+    expect(text, '衰减系数如保留只能叫长度换算参考').toContain('长度换算参考（L3，不 gate）')
+    expect(text).not.toContain('题材修正系数')
+  })
+
+  it('无待补充占位：不出现【待校准】/unverified/experimental/low', () => {
+    for (const marker of ['【待校准】', 'unverified', 'experimental', '【未验证】', '【低置信】', '待参考标尺校准流程定']) {
+      expect(text, `参考标尺不应残留待补充占位「${marker}」`).not.toContain(marker)
+    }
+    expect(rows.every((row) => STATUS.has(row.status))).toBe(true)
+    expect(rows.every((row) => CONFIDENCE.has(row.confidence))).toBe(true)
+  })
+
+  it('幕纲六段到幕级行的映射在位，检查表不写成硬性配额', () => {
+    expect(text).toContain('幕纲六段')
+    expect(text).toContain('| 幕纲六段 | 对应幕级行 | 检查什么 |')
+    for (const segment of ['本幕故事', '线与伏笔', '出场人物', '查证清单', '章组排布', '幕末结算']) {
+      expect(text, `幕纲六段映射应含「${segment}」`).toContain(segment)
+    }
+    for (let n = 1; n <= 11; n += 1) {
+      expect(text, `幕纲六段映射应引用 L2-ACT-${String(n).padStart(2, '0')}`).toContain(`L2-ACT-${String(n).padStart(2, '0')}`)
+    }
+    expect(text).toContain('不写成硬性配额')
+    expect(text).toContain('章纲层不写死字数')
+    expect(text).toContain('章长仍归契约／起草／审读')
   })
 
   it('L0 全定性：不变量正文不含阿拉伯数字（ID 除外）', () => {
@@ -136,15 +196,12 @@ describe('参考标尺通用四层（票 02）', () => {
     }
   })
 
-  it('低置信/待校准/未验证/experimental 一律不得 gate:true', () => {
+  it('证据纪律：无实验状态／低置信状态，L1 gate:true 行必须高置信且不含待校准', () => {
+    expect(rows.some((row) => row.status === 'experimental'), '不应再有 experimental 行').toBe(false)
+    expect(rows.some((row) => row.confidence === 'low' || row.confidence === 'unverified'), '不应再有低置信/未验证占位行').toBe(false)
     for (const row of rows) {
       const all = row.cells.join('')
-      if (row.status === 'experimental' || row.confidence === 'low' || row.confidence === 'unverified') {
-        expect(row.gate, `${row.id}: status/confidence 为实验或低置信时不得 gate:true`).toBe('false')
-      }
-      if (all.includes('待校准')) {
-        expect(row.gate, `${row.id}: 含待校准时不得 gate:true`).toBe('false')
-      }
+      expect(all, `${row.id}: 行内不得残留待校准`).not.toContain('待校准')
     }
   })
 
@@ -163,10 +220,10 @@ describe('参考标尺通用四层（票 02）', () => {
       '主线', '主角成长弧', '主要人物', '升级点', '幕', '小反派', '中反派', '大地图',
       '支线', '关键事件', '伏笔密度', '势力与组织', '核心谜团与悬念线', '章末钩子',
       '章末钩型配比', '爽点铺垫', '伏笔债务', '换图前 10 章', '换图 SOP', '升级间隔',
-      '三线断档红线', '幕内分批出细纲', '信息释放分级', '都市情感（都市子档）',
-      '历史（历史穿越）', '玄幻', '都市', '悬疑', '女频', '杂交题材合成规则',
-      '未覆盖题材兜底', '取数速查表', '衰减系数', '100 万字·默认', '200 万字·默认',
-      '300 万字·默认', '500 万字·默认', '200 万字·玄幻', '200 万字·都市', '100 万字·都市',
+      '三线断档红线', '幕内分批出细纲', '信息释放分级', '伏笔三段保温（原伏笔债务）',
+      '取数速查表', '衰减系数',
+      '幕长', '幕内章组', '幕内转折', '幕内高潮位', '幕内承诺兑现', '幕内大揭示',
+      '幕内压力源', '幕内状态变化', '幕内场域变化', '幕末钩', '相邻幕重复',
     ]
     const missing = legacyNames.filter((name) => !hasExactCell(name))
     expect(missing, `以下旧行名在参考标尺中无精确表格单元：${missing.join('、')}`).toEqual([])
@@ -532,7 +589,7 @@ describe('参考标尺直接消费点接线（票 06）', () => {
   const ID_ANY = /L[0-3]-(?=[0-9A])[A-Za-z0-9-]+/
   const ID_ALL = /L[0-3]-(?=[0-9A])[A-Za-z0-9-]+/g
 
-  const legacySection = text.slice(text.indexOf('## 八、旧行名索引'))
+  const legacySection = text.slice(text.indexOf('## 六、旧行名索引'))
   const legacyIndex = new Map<string, readonly string[]>()
   for (const line of legacySection.split(/\r?\n/)) {
     if (!line.startsWith('|')) continue
