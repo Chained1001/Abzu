@@ -1214,3 +1214,123 @@ describe('证据台账（票 04）', () => {
     expect(fixedDocs, '新 reference 不进 fixed-docs 预算').not.toContain('证据台账')
   })
 })
+
+/**
+ * 旧类目与别名清理（票 05）。
+ *
+ * 守的是「旧类目只是检索别名」：
+ * 1. 旧层导航/旧行名索引标题写明旧类目检索别名、不参与现行分层；
+ * 2. 分类列只写「旧类目」或「旧别名（已移除）」，不再出现固定层／比例层当作现行分类；
+ * 3. 取数速查表只保留「已移除→L3 长度换算参考」别名，不再是现行表或取数来源；
+ * 4. 旧行名→新 ID 映射完整、无悬空，旧行名仍可精确检索；
+ * 5. skills 消费文档与产品/规范文档不再把旧类目当取数来源。
+ */
+describe('旧类目与别名清理（票 05）', () => {
+  const skillRoot = path.join(__dirname, '..', 'skills')
+
+  type AliasRow = {
+    readonly name: string
+    readonly category: string
+    readonly target: string
+  }
+
+  function aliasRows(): AliasRow[] {
+    const section = text.slice(text.indexOf('## 六、旧行名索引'))
+    const list: AliasRow[] = []
+    for (const line of section.split(/\r?\n/)) {
+      if (!line.startsWith('|')) continue
+      const cells = cellsOf(line)
+      if (cells.length < 3 || cells[0] === '旧行名' || cells[0]!.startsWith('---')) continue
+      list.push({ name: cells[0]!, category: cells[1]!, target: cells[2]! })
+    }
+    return list
+  }
+
+  const table = aliasRows()
+
+  it('标题写明旧类目检索别名、不参与现行分层', () => {
+    expect(text, '旧层导航应改名为旧类目检索别名').toContain('## 五、旧类目检索别名（不参与现行分层）')
+    expect(text, '旧行名索引应标明只是旧类目检索别名').toContain('## 六、旧行名索引（旧类目检索别名，不参与现行分层）')
+    expect(text, '旧层导航标题应退役').not.toContain('旧层导航')
+    expect(text, '索引应写明旧类目列只标旧、不作取数来源').toContain('`旧类目` 列只标「旧」')
+  })
+
+  it('分类列只写旧类目或旧别名：固定层／比例层不再像现行分类', () => {
+    expect(text, '分类列表头应改为旧类目').toContain('| 旧行名 | 旧类目 | 新归属 |')
+    expect(text, '不应再有固定层作为现行分类').not.toContain('固定层')
+    expect(text, '不应再有比例层作为现行分类').not.toContain('比例层')
+    expect(table.length, '旧行名索引应至少 40 行').toBeGreaterThanOrEqual(40)
+    for (const row of table) {
+      expect(
+        ['旧类目', '旧别名（已移除）'],
+        `旧行名「${row.name}」的分类列应只标旧类目／旧别名，实为「${row.category}」`,
+      ).toContain(row.category)
+    }
+  })
+
+  it('取数速查表只保留「已移除→L3 长度换算参考」别名，不作为现行表', () => {
+    const alias = table.find((row) => row.name === '取数速查表')
+    expect(alias, '取数速查表应保留为旧行名别名').toBeDefined()
+    expect(alias!.category, '取数速查表只作旧别名并标已移除').toBe('旧别名（已移除）')
+    expect(alias!.target, '取数速查表别名应写已移除').toContain('已移除')
+    expect(alias!.target, '取数速查表别名应指向 L3 长度换算参考').toContain('L3 长度换算参考')
+    expect(text, '取数速查表不得再当标题').not.toMatch(/^#+.*取数速查表/m)
+    for (const line of text.split(/\r?\n/)) {
+      if (!line.includes('取数速查表')) continue
+      expect(line, '取数速查表只允许出现在已移除别名行/别名导航').toMatch(/已移除|旧别名/)
+    }
+  })
+
+  it('旧行名→新 ID 映射完整、无悬空，旧类目行名仍可查', () => {
+    const byId = new Set(rows.map((row) => row.id))
+    expect(table.length, '旧行名索引应有 53 条旧名').toBe(53)
+    const dangling: string[] = []
+    for (const row of table) {
+      expect(hasExactCell(row.name), `旧行名「${row.name}」应在标尺表格中仍可精确检索`).toBe(true)
+      const ids = [...row.target.matchAll(/L[0-3]-[A-Za-z0-9-]+/g)].map((match) => match[0]!)
+      for (const id of ids) if (!byId.has(id)) dangling.push(`${row.name}→${id}`)
+    }
+    expect(dangling, `旧行名映射到不存在的行 ID：${dangling.join('、')}`).toEqual([])
+
+    const pins: Array<readonly [string, string]> = [
+      ['反派层级', 'L1-07'],
+      ['主线', 'L1-06'],
+      ['支线', 'L1-06A'],
+      ['大地图', 'L1-08'],
+      ['核心谜团与悬念线', 'L2-A8-06'],
+      ['幕末钩', 'L2-ACT-10'],
+    ]
+    for (const [name, id] of pins) {
+      const row = table.find((candidate) => candidate.name === name)
+      expect(row, `旧行名「${name}」应在索引中可查`).toBeDefined()
+      expect(row!.target, `旧行名「${name}」应映射到 ${id}`).toContain(id)
+    }
+  })
+
+  it('消费点无悬空旧引用：skills 文档与产品/规范文档不再把旧类目当取数来源', () => {
+    const offenders: string[] = []
+    const walk = (dir: string): void => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const abs = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+          walk(abs)
+          continue
+        }
+        if (!entry.name.endsWith('.md') || abs === SCALE_PATH) continue
+        const body = fs.readFileSync(abs, 'utf8')
+        for (const term of ['固定层', '比例层', '取数速查表']) {
+          if (body.includes(term)) offenders.push(`${path.relative(skillRoot, abs)}:${term}`)
+        }
+      }
+    }
+    walk(skillRoot)
+    expect(offenders, `skills 文档不得再把旧类目当取数来源：${offenders.join('、')}`).toEqual([])
+
+    for (const doc of ['产品文档.md', '标准/技能编写规范.md']) {
+      const body = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', doc), 'utf8')
+      for (const term of ['固定层', '比例层', '取数速查表']) {
+        expect(body, `docs/${doc} 不得再把旧类目当取数来源（${term}）`).not.toContain(term)
+      }
+    }
+  })
+})
