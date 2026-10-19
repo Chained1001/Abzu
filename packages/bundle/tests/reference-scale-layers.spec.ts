@@ -10,7 +10,7 @@ import * as path from 'node:path'
  * 2. L0 全定性、无阿拉伯数字；
  * 3. 每行 schema 完整（id/行名/口径/consumer/status/confidence/stability/gate/legacy）；
  * 4. 全文无待补充占位：不出现【待校准】/unverified/experimental/low；
- * 5. L0 全 invariant；L1 口径稳定、n≥4、无冲突为 stable，partial/证据不足为 provisional；L2 与幕级 provisional；stable 不等于 gate:true；
+ * 5. L0 全 invariant；L1 口径稳定、n≥4、无冲突为 stable，partial/证据不足为 provisional；L2 默认 provisional，幕级仅下限/存在性可 stable；stable 不等于 gate:true；
  * 6. 旧行名在标尺内至少保留一个精确表格单元，消费点不断链；
  * 7. 标尺不出现具体书名/角色名。
  */
@@ -20,6 +20,9 @@ const STATUS = new Set(['hard', 'range', 'qualitative'])
 const CONFIDENCE = new Set(['high', 'partial'])
 const STABILITY = new Set(['stable', 'provisional', 'invariant'])
 const GATE = new Set(['true', 'false'])
+/** 幕级只有“下限／存在性”子句可 stable；同行区间仍 provisional（票 03）。 */
+const STABLE_ACT = new Set(['L2-ACT-07', 'L2-ACT-10'])
+const expectedStability = (id: string): string => (STABLE_ACT.has(id) ? 'stable' : 'provisional')
 
 type Row = {
   readonly line: number
@@ -101,7 +104,7 @@ describe('参考标尺通用四层（票 02）', () => {
     expect(layerRows('L0')).toHaveLength(18)
     expect(layerRows('L1')).toHaveLength(22)
     expect(layerRows('L3')).toHaveLength(8)
-    expect(layerRows('L2')).toHaveLength(51)
+    expect(layerRows('L2')).toHaveLength(53)
 
     const axisRows = layerRows('L2').filter((r) => r.id.startsWith('L2-AX-'))
     expect(axisRows).toHaveLength(8)
@@ -109,16 +112,17 @@ describe('参考标尺通用四层（票 02）', () => {
     expect(layerRows('L2').filter((r) => !r.id.startsWith('L2-AX-')).length).toBeGreaterThan(0)
 
     const actRows = layerRows('L2').filter((r) => r.id.startsWith('L2-ACT-'))
-    expect(actRows, '幕级标尺应有 11 条').toHaveLength(11)
+    expect(actRows, '幕级标尺应为 11 项 13 行（幕长拆 A/B 两级）').toHaveLength(13)
     expect(actRows.map((r) => r.id)).toEqual([
-      'L2-ACT-01', 'L2-ACT-02', 'L2-ACT-03', 'L2-ACT-04', 'L2-ACT-05', 'L2-ACT-06',
+      'L2-ACT-01', 'L2-ACT-01A', 'L2-ACT-01B',
+      'L2-ACT-02', 'L2-ACT-03', 'L2-ACT-04', 'L2-ACT-05', 'L2-ACT-06',
       'L2-ACT-07', 'L2-ACT-08', 'L2-ACT-09', 'L2-ACT-10', 'L2-ACT-11',
     ])
     for (const row of actRows) {
       expect(row.cells[1], `${row.id}: 幕级行应标经验候选`).toContain('经验候选')
       expect(['range', 'qualitative'], `${row.id}: 幕级行只可用 range/qualitative`).toContain(row.status)
       expect(row.confidence, `${row.id}: 幕级行为经验候选，confidence 应为 partial`).toBe('partial')
-      expect(row.stability, `${row.id}: 幕级行 stability 应为 provisional`).toBe('provisional')
+      expect(row.stability, `${row.id}: 除 ACT-07/10 的下限/存在性外，幕级行 stability 应为 provisional`).toBe(expectedStability(row.id))
       expect(row.gate, `${row.id}: 幕级行不得 gate:true`).toBe('false')
     }
 
@@ -137,7 +141,7 @@ describe('参考标尺通用四层（票 02）', () => {
     }
   })
 
-  it('stability 身份：L0 全 invariant、L1 按证据分 stable/provisional、L2 与幕级 provisional、L3 本书内 stable', () => {
+  it('stability 身份：L0 全 invariant、L1 按证据分 stable/provisional、L2 默认 provisional（幕级仅下限/存在性 stable）、L3 本书内 stable', () => {
     expect(text, 'schema 应写明 stability 字段').toContain('`stability`')
     for (const marker of ['`invariant`', '`stable`', '`provisional`']) {
       expect(text, `schema 应解释 ${marker}`).toContain(marker)
@@ -159,7 +163,7 @@ describe('参考标尺通用四层（票 02）', () => {
     }
 
     for (const row of layerRows('L2')) {
-      expect(row.stability, `${row.id}: L2 默认 provisional`).toBe('provisional')
+      expect(row.stability, `${row.id}: L2 默认 provisional；仅 ACT-07/10 的下限/存在性可 stable`).toBe(expectedStability(row.id))
     }
     for (const row of layerRows('L3')) {
       expect(row.stability, `${row.id}: L3 本书覆盖为本书内稳定基线`).toBe('stable')
@@ -272,9 +276,66 @@ describe('参考标尺通用四层（票 02）', () => {
     for (let n = 1; n <= 11; n += 1) {
       expect(text, `幕纲六段映射应引用 L2-ACT-${String(n).padStart(2, '0')}`).toContain(`L2-ACT-${String(n).padStart(2, '0')}`)
     }
+    expect(text, '幕纲的幕长取产品单位 B 行').toContain('| 本幕故事 | L2-ACT-01B')
+    expect(text, '章组排布取产品单位 B 行').toContain('| 章组排布 | L2-ACT-01B')
+    expect(text, '卷/部宏观幕只进卷纲/分卷对照').toContain('L2-ACT-01A 只进卷纲')
     expect(text).toContain('不写成硬性配额')
     expect(text).toContain('章纲层不写死字数')
     expect(text).toContain('章长仍归契约／起草／审读')
+  })
+
+  it('幕级标尺有样本区间/明确不可统计：幕长拆两级，ACT-07/10 仅下限/存在性 stable', () => {
+    const family = rowById('L2-ACT-01')
+    const macro = rowById('L2-ACT-01A')
+    const unit = rowById('L2-ACT-01B')
+
+    expect(family.cells.join(''), '族入口应指向宏观幕行').toContain('L2-ACT-01A')
+    expect(family.cells.join(''), '族入口应指向产品幕行').toContain('L2-ACT-01B')
+    expect(macro.cells.join(''), '卷/部级幕不是幕纲产品单位').toContain('不是幕纲产品单位')
+    for (const pinned of ['n=28', '159', '62.7 万', '115–230', '34.6–76.8']) {
+      expect(macro.cells.join(''), `宏观幕区间应含「${pinned}」`).toContain(pinned)
+    }
+    expect(unit.cells.join(''), '卷内单元幕是幕纲产品单位').toContain('幕纲产品单位取本行')
+    for (const pinned of ['n=14', '25', '18–29', '13–50', '6.1 万', '4.6–11.0']) {
+      expect(unit.cells.join(''), `单元幕区间应含「${pinned}」`).toContain(pinned)
+    }
+    for (const row of [macro, unit]) {
+      expect(row.stability, `${row.id}: 样本量/单编码者不足，不标 stable`).toBe('provisional')
+      expect(row.gate, `${row.id}: 幕级不 gate`).toBe('false')
+    }
+
+    const act02 = rowById('L2-ACT-02')
+    expect(act02.cells.join(''), '结构阶段不是章组配额').toContain('不作章组配额')
+    expect(act02.cells.join(''), '不得写成稳定章组数').toContain('不得写成稳定章组数')
+    const act03 = rowById('L2-ACT-03')
+    expect(act03.cells.join(''), '转折数量区间 1–3').toContain('1–3')
+    expect(act03.cells.join(''), '至少一次转折 27/27').toContain('27/27')
+    const act04 = rowById('L2-ACT-04')
+    expect(act04.cells.join(''), '单元幕高潮位区间').toContain('0.63–0.89')
+    expect(act04.cells.join(''), '高潮位中位 0.69').toContain('0.69')
+    expect(act04.cells.join(''), '章长峰值不等于高潮位').toContain('章长峰值≠高潮位')
+    const act05 = rowById('L2-ACT-05')
+    expect(act05.cells.join(''), '承诺/兑现只算主链级').toContain('主链级')
+    expect(act05.cells.join(''), '承诺/兑现样本 n=23').toContain('n=23')
+    const act06 = rowById('L2-ACT-06')
+    expect(act06.cells.join(''), '不强制每幕大揭示').toContain('不强制大揭示')
+    const act07 = rowById('L2-ACT-07')
+    expect(act07.stability, '压力源仅下限 stable').toBe('stable')
+    expect(act07.cells.join(''), '压力源 stable 下限 ≥2 类').toContain('至少两类')
+    expect(act07.cells.join(''), '压力源参考区间 4–6').toContain('4–6')
+    const act08 = rowById('L2-ACT-08')
+    expect(act08.cells.join(''), '关系/状态变化下限 15/15').toContain('15/15')
+    expect(act08.cells.join(''), '关系/状态变化数量 2–4').toContain('2–4')
+    const act09 = rowById('L2-ACT-09')
+    expect(act09.cells.join(''), '“两类”子句不可统计').toContain('该子句不可统计')
+    const act10 = rowById('L2-ACT-10')
+    expect(act10.stability, '幕末钩仅存在性 stable').toBe('stable')
+    expect(act10.cells.join(''), '幕末接口 28/28').toContain('28/28')
+    expect(act10.cells.join(''), '钩型配比不可统计').toContain('不可统计')
+    const act11 = rowById('L2-ACT-11')
+    expect(act11.stability, '相邻幕重复不可统计，不标 stable').toBe('provisional')
+    expect(act11.cells.join(''), '不得写成零重复率').toContain('不能写成零重复率')
+    expect(act11.cells.join(''), '相邻幕重复只作人工检查').toContain('只作人工检查')
   })
 
   it('L0 全定性：不变量正文不含阿拉伯数字（ID 除外）', () => {
@@ -302,7 +363,7 @@ describe('参考标尺通用四层（票 02）', () => {
     }
     for (const row of layerRows('L2')) {
       expect(row.gate, `${row.id}: L2 默认只作对照，不得 gate:true`).toBe('false')
-      expect(row.stability, `${row.id}: L2 默认为 provisional`).toBe('provisional')
+      expect(row.stability, `${row.id}: L2 默认 provisional；仅 ACT-07/10 的下限/存在性可 stable`).toBe(expectedStability(row.id))
     }
     for (const row of layerRows('L3')) {
       expect(row.gate, `${row.id}: L3 本书基线应 gate:true`).toBe('true')
