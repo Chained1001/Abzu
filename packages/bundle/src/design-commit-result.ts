@@ -5,7 +5,7 @@ import type { commitConfirmed } from '@abzu/core'
 import type { ToolExecContext } from './novel-tools'
 
 export const NATIVE_DESIGN_TOOLS = new Set([
-  'novel_update_contract', 'novel_update_skeleton', 'novel_update_volume_layout',
+  'novel_update_contract', 'novel_update_full_outline', 'novel_update_volume_layout',
   'novel_roll_window', 'novel_confirm_worldbook_entry', 'novel_confirm_volume_outline',
 ])
 

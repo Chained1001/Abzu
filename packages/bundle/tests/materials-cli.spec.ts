@@ -132,7 +132,7 @@ describe('材料备料薄入口 CLI(R21 纯算切割)', () => {
     expect(manifest.合计字数).toBe(data!.合计字数)
     expect(manifest.段).toHaveLength(10)
     expect(manifest.段.map((s) => s.段)).toEqual(段.map((s) => s.段))
-    expect(manifest.段[0]!.来源[0]).toBe('大纲/卷规划/卷01/章细纲/0001-开篇任务.md')
+    expect(manifest.段[0]!.来源[0]).toBe('故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md')
     // 纯算零写盘(R21):stdout 给主 Agent 读包判断,落盘经常驻工具
     expect(fs.existsSync(path.join(root, '草稿区', '材料包')), 'CLI 不得写盘').toBe(false)
   })

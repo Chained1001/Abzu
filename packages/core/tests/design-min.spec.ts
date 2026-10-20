@@ -134,7 +134,7 @@ describe('卷规划三件', () => {
     writeRecentWindow(root, 1, [{ 名称: '开篇', 状态: '已确认' }])
     expect(checkVolumeReady(root)).toEqual({ ok: true })
 
-    const tl = fs.readFileSync(path.join(root, '大纲/卷规划/卷01/计划时间线.md'), 'utf-8')
+    const tl = fs.readFileSync(path.join(root, '故事剧情/卷规划/卷01/计划时间线.md'), 'utf-8')
     expect(tl).toContain('## 窗口覆盖')
     expect(tl).toContain('开篇')
     expect(tl).toContain('## 窗口外锚点')

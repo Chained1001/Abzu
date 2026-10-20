@@ -179,7 +179,7 @@ describe('卷摘要事实边界与账本失败(F21-1/F21-2)', () => {
 
   it('④无法判定发生时点的条目报边界不明,不静默当作卷内事实', () => {
     const root = mkBook()
-    mkLedgerBook(root, 1, '# 线索\n\n## 无根线索\n状态：已埋\n计划来源：大纲/分卷布局.md@1\n\n### 正文\n无时点。\n')
+    mkLedgerBook(root, 1, '# 线索\n\n## 无根线索\n状态：已埋\n计划来源：故事剧情/分卷布局.md@1\n\n### 正文\n无时点。\n')
     const r = computeVolumeSummaryCandidate(root, 1)
     expect(r.ok).toBe(true)
     if (!r.ok) return

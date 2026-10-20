@@ -266,7 +266,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     expect(text).toContain('本章形状')
     expect(text).toContain('已排除走向')
     // 任务19:已定稿章细纲勘误走候选→再确认,只改设计工件无需吃书补偿
-    expect(text).toContain('已定稿章的细纲勘误')
+    expect(text).toContain('已定稿章的笔误/小修')
     expect(text).toContain('窗口条目已消费不影响确认')
     expect(text).toContain('无需吃书补偿')
   })

@@ -15,7 +15,7 @@ import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { resolveDraftRel } from '../repo/draft-paths'
 import { applyVersionFields, bumpVersion, extractVersionFields, initialVersion } from '../provenance'
-import { loadReviewRecord, readReviewRecordForUpdate, serializeReviewRecord, reviewRecordHashOf, 处置状态列表, type ReviewRecord, type 处置状态 } from '../evidence/record'
+import { loadReviewRecord, readReviewRecordForUpdate, serializeReviewRecord, reviewRecordHashOf, 处置状态列表, type FindingChangeMap, type ReviewRecord, type 处置状态 } from '../evidence/record'
 import type { ChapterKey } from '../derive/scan'
 import { lineDiff, type DiffLine } from './diff'
 import { followupReport, type FollowupReport } from './followup'
@@ -59,7 +59,7 @@ export type ApplyRevisionResult =
     }
   | { readonly ok: false; readonly reason: string }
 
-const TRUE_SOURCE = ['世界书', '大纲', '作品契约', '构想', '账本', '本书记忆'] as const
+const TRUE_SOURCE = ['世界书', '故事剧情', '作品契约', '构想', '账本', '本书记忆'] as const
 
 function checkRecord(record: ReviewRecord, actualHash: string, expectedHash?: string): string | undefined {
   if (expectedHash !== undefined && !/^[a-f0-9]{64}$/.test(expectedHash)) return '审核记录哈希格式无效'
@@ -99,6 +99,33 @@ function checkForwarded(bookRoot: string, key: Pick<ChapterKey, '卷' | '章' | 
   if (!Array.isArray(links) || !links.some(link => link !== null && typeof link === 'object'
     && link.卷 === key.卷 && link.章 === key.章 && link.章名 === key.章名 && link.发现项编号 === id)) {
     return `发现项 ${id}：提案 ${number} 未关联本章这条发现项；修正方法：登记提案时填写关联发现项，并请作者裁决该提案`
+  }
+  return undefined
+}
+
+/**
+ * 「发现项→改动」映射校验：给出可读拒绝理由，返回 undefined 表示可以记入。
+ * 映射是可选的，不传不校验；传了就必须是「改动位置非空 + 说明非空（或明确无改动）」。
+ */
+function checkChangeMap(id: string, map: unknown): string | undefined {
+  if (map === undefined) return undefined
+  if (map === null || typeof map !== 'object' || Array.isArray(map)) {
+    return `发现项 ${id}：改动映射形状非法，应为 {改动位置, 改动说明} 对象；修正方法：按改稿章程的「发现项→改动」清单逐条填 改动位置 与 改动说明`
+  }
+  const o = map as Record<string, unknown>
+  const 改动位置 = o['改动位置']
+  if (typeof 改动位置 !== 'string' || 改动位置.trim() === '') {
+    return `发现项 ${id}：改动映射缺「改动位置」；修正方法：填改动落在正文的哪一处（无正文改动写 无改动）`
+  }
+  const 改动说明 = o['改动说明']
+  if (改动说明 === undefined) {
+    return `发现项 ${id}：改动映射缺「改动说明」；修正方法：写一句话说明改了什么（无正文改动写原因）`
+  }
+  if (typeof 改动说明 !== 'string') {
+    return `发现项 ${id}：改动映射的「改动说明」必须是字符串；修正方法：用一句话说明改了什么`
+  }
+  if (改动说明.trim() === '') {
+    return `发现项 ${id}：改动映射的「改动说明」为空；修正方法：写一句话说明改了什么（无正文改动写原因）`
   }
   return undefined
 }
@@ -195,6 +222,8 @@ export interface RevisionBatchDisposition {
   readonly 处置: 处置状态
   /** 子代理映射清单或作者口述的那一行改动说明。 */
   readonly 改动说明?: string
+  /** 「发现项→改动」映射（可选）：这条发现项落到正文的改动位置与一句话说明。 */
+  readonly 改动映射?: FindingChangeMap
   readonly 提案编号?: string
 }
 
@@ -213,7 +242,14 @@ export interface ApplyRevisionBatchInput {
 }
 
 export type ApplyRevisionBatchResult =
-  | { readonly ok: true; readonly relPath?: string; readonly 更新条数: number; readonly 审核记录哈希: string }
+  | {
+      readonly ok: true
+      readonly relPath?: string
+      readonly 更新条数: number
+      readonly 审核记录哈希: string
+      /** 后续范围报告(M1:与单条落实同口径,只改处置亦然),对当前待审稿正文计算。 */
+      readonly followup: FollowupReport
+    }
   | { readonly ok: false; readonly reason: string }
 
 /**
@@ -241,6 +277,8 @@ function applyRevisionBatchLocked(
     }
     const finding = byId.get(d.发现项编号)
     if (finding === undefined) return { ok: false, reason: `发现项不存在：${d.发现项编号}` }
+    const badMap = checkChangeMap(d.发现项编号, d.改动映射)
+    if (badMap !== undefined) return { ok: false, reason: badMap }
     if (touchesTrueSource(finding.影响范围) && !upstreamAllowed(d.处置, input.新稿正文 !== undefined || input.候选事实 !== undefined)) {
       return { ok: false, reason: `发现项 ${d.发现项编号}：${UPSTREAM_REASON}。修正方法：把这条移出本批，改用不带新稿和补丁的纯处置批。可记作者保留、已驳回、无法判断或已转提案` }
     }
@@ -280,7 +318,7 @@ function applyRevisionBatchLocked(
   const 问题 = record.问题.map((p) => {
     const d = input.处置.find((x) => x.发现项编号 === p.发现项编号)
     if (d === undefined) return p
-    return { ...p, 处置: d.处置, 处置状态: d.处置, ...(d.处置 === '已转提案' ? { 转交提案: { 提案编号: forwardedNumber(d.提案编号, d.改动说明)! } } : {}), ...(d.改动说明 === undefined ? {} : { 处置说明: d.改动说明 }) }
+    return { ...p, 处置: d.处置, 处置状态: d.处置, ...(d.处置 === '已转提案' ? { 转交提案: { 提案编号: forwardedNumber(d.提案编号, d.改动说明)! } } : {}), ...(d.改动说明 === undefined ? {} : { 处置说明: d.改动说明 }), ...(d.改动映射 === undefined ? {} : { 改动映射: d.改动映射 }) }
   })
   const content = serializeReviewRecord({ ...record, 问题 })
   ops.push({
@@ -288,7 +326,12 @@ function applyRevisionBatchLocked(
     content,
   })
   writeBatchAtomic(bookRoot, ops)
-  return { ok: true, relPath, 更新条数: input.处置.length, 审核记录哈希: reviewRecordHashOf(content) }
+  // 后续范围报告（M1）：与单条落实同口径，对写入后的当前待审稿正文计算，不自动跑润色/审核
+  const currentPending = findPendingReviewDraft(bookRoot, key)
+  const currentDoc = currentPending === null ? null : parseDocument(currentPending.text)
+  const 当前正文 = currentDoc !== null && currentDoc.ok ? currentDoc.data.body : ''
+  const followup = followupReport(bookRoot, key, 当前正文, loadReviewRecord(bookRoot, key))
+  return { ok: true, relPath, 更新条数: input.处置.length, 审核记录哈希: reviewRecordHashOf(content), followup }
 }
 
 export const applyRevisionBatch = bookWriter(applyRevisionBatchLocked)

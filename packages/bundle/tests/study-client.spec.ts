@@ -7,7 +7,7 @@ import type { StudyDocument, StudySave } from '../src/study/types'
 
 vi.mock('../src/client/api', async importOriginal => ({ ...await importOriginal<typeof import('../src/client/api')>(), callStudy: vi.fn() }))
 const request = vi.mocked(callStudy)
-const doc = (name = 'a'): StudyDocument => ({ ref: { space: 'book:one', path: `大纲/${name}.md` }, owner: '作品', name: name + '.md', absolutePath: '/workspace/作品/大纲/' + name + '.md', body: '原文\n', hash: 'old-hash', version: 1 })
+const doc = (name = 'a'): StudyDocument => ({ ref: { space: 'book:one', path: `故事剧情/${name}.md` }, owner: '作品', name: name + '.md', absolutePath: '/workspace/作品/故事剧情/' + name + '.md', body: '原文\n', hash: 'old-hash', version: 1 })
 const result = (document: StudyDocument): StudySave => ({ operationId: 'test-operation-id', document, previousPath: document.ref.path, changed: true, changes: [], commit: 'saved', notification: 'delivered', route: '核对设计' })
 function deferred<T>() { let resolve!: (value: T) => void; const promise = new Promise<T>(done => { resolve = done }); return { promise, resolve } }
 beforeEach(() => { request.mockReset(); vi.stubGlobal('window', { confirm: vi.fn(() => true) }) })

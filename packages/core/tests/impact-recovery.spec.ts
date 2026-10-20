@@ -27,8 +27,8 @@ function mkBook(): string {
 describe('影响分析与断更恢复', () => {
   it('只标记真实来源引用者，定稿区保持只读', () => {
     const root = mkBook()
-    const downstream = '大纲/故事骨架.md'
-    writeFileAtomic(root, downstream, serializeDocument({ 状态: '已确认', 来源引用: ['作品契约/契约.md@1'] }, '# 故事骨架\n'))
+    const downstream = '故事剧情/全书大纲.md'
+    writeFileAtomic(root, downstream, serializeDocument({ 状态: '已确认', 来源引用: ['作品契约/契约.md@1'] }, '# 全书大纲\n'))
     writeFileAtomic(root, '定稿/卷01/0001-已完成.md', serializeDocument({ 状态: '已定稿', 来源引用: ['作品契约/契约.md@1'] }, '正文\n'))
     const report = analyzeImpact(root, paths.契约())
     expect(report.references.map((ref) => ref.relPath)).toContain(downstream)

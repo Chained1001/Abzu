@@ -2,7 +2,7 @@
  * 审读域工具：全书状态推导/已定稿检索/索引管理/隔离子代理发现项回写。
  */
 import { inheritNote, type NovelToolDefinition, type ToolShared } from './shared'
-import { deriveDesign, listResumable, listConfirmedEmpty, scanChapter, scanDesign, scanDesignDetail, selectCurrentVolume, searchFinalized, type IndexAction, indexFailure } from '@abzu/core'
+import { deriveDesign, listResumable, listConfirmedEmpty, scanChapter, scanDesign, scanDesignDetail, selectCurrentVolume, searchFinalized, summarizeReviewDigests, type IndexAction, indexFailure } from '@abzu/core'
 import { ingestFindings, recordPolish } from '@abzu/review'
 
 export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
@@ -337,6 +337,71 @@ export function createReviewTools(shared: ToolShared): NovelToolDefinition[] {
           }
         } catch (err) {
           return { ok: false, reason: `润色承接登记失败: ${err instanceof Error ? err.message : String(err)}` }
+        }
+      },
+    },
+    {
+      name: 'novel_review_summary',
+      description: '汇总已入档章的审读结果：发现项总数、严重程度分布、处置分布、各审读模块累计出问题次数、未完成审核的章数。用于「哪个模块老出问题」「这卷审得怎么样」这类跨章问题——数据来自入档时落盘的审读摘要（定稿/卷NN/审读摘要/），是只读聚合，不改任何真源。',
+      parameters: {
+        type: 'object',
+        properties: {
+          bookId: { type: 'string', description: '书id（必填）' },
+          卷: { type: 'number', minimum: 1, description: '只统计该卷；不传＝全书跨卷合计' },
+        },
+        required: ['bookId'],
+      },
+      output: {
+        schema: {
+          type: 'object',
+          properties: {
+            ok: { type: 'boolean', description: '是否成功' },
+            范围: { type: 'object', description: '统计范围：{ 卷: number|null }' },
+            已统计章数: { type: 'number', description: '参与统计的章数（已入档且有摘要）' },
+            缺摘要章数: { type: 'number', description: '有定稿章但读不到摘要的章数；这些章不在比例分母里，不当作零发现项' },
+            缺摘要章: { type: 'array', description: '缺摘要的章键列表' },
+            发现项合计: { type: 'number', description: '发现项总条数' },
+            严重程度: { type: 'object', description: '归一化后的 高/中/低/其他 分布' },
+            处置: { type: 'object', description: '处置状态分布（只列非零项）' },
+            已处置合计: { type: 'number', description: '已裁决条数' },
+            待处置合计: { type: 'number', description: '仍为「待处理」的条数' },
+            作者保留合计: { type: 'number', description: '作者保留条数——它不算已解决，单列以便区分「放过」与「改好」' },
+            未完成审核章数: { type: 'number', description: '摘要里 审核完成=false 的章数；这些章的计数应打折看' },
+            模块: { type: 'array', description: '按发现项总数降序的模块行：模块名/出现章数/发现项/高/完成章数' },
+            章: { type: 'array', description: '逐章行（卷/章/章名/审核完成/发现项总数/高/中/低/已处置/作者保留）' },
+            message: { type: 'string', description: '结果说明' },
+            reason: { type: 'string', description: '失败原因' },
+          },
+          required: ['ok'],
+        },
+        render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+      },
+      execute: (args, sessionContext) => {
+        const book = resolveBook(args, sessionContext)
+        if (!book.ok) return book
+        if (args['卷'] !== undefined && (!Number.isInteger(args['卷']) || Number(args['卷']) < 1)) {
+          return { ok: false, reason: `卷必须是正整数（收到：${String(args['卷'])}）` }
+        }
+        try {
+          const 卷 = args['卷'] === undefined ? undefined : Number(args['卷'])
+          const s = summarizeReviewDigests(book.bookRoot, 卷 === undefined ? {} : { 卷 })
+          if (s.已统计章数 === 0) {
+            return {
+              ...s,
+              ok: true,
+              message: s.缺摘要章数 === 0
+                ? '还没有已入档且有审读摘要的章——入档过的章才会写摘要，先写完并沉淀一章再看。'
+                : `本范围有 ${s.缺摘要章数} 章已定稿但没有审读摘要（摘要自本版起在入档时写，早期章没有）。`,
+            }
+          }
+          const 主要模块 = s.模块.slice(0, 3).map((m) => `${m.模块名}(${m.发现项}条/${m.出现章数}章)`).join('、')
+          return {
+            ...s,
+            ok: true,
+            message: `统计 ${s.已统计章数} 章、发现项 ${s.发现项合计} 条（高 ${s.严重程度.高}／中 ${s.严重程度.中}／低 ${s.严重程度.低}）；已处置 ${s.已处置合计}、待处置 ${s.待处置合计}、作者保留 ${s.作者保留合计}。${主要模块 === '' ? '无模块级发现项。' : `出问题最多的模块：${主要模块}。`}${s.未完成审核章数 > 0 ? `另有 ${s.未完成审核章数} 章审核未完成，其计数应打折看。` : ''}${s.缺摘要章数 > 0 ? `${s.缺摘要章数} 章有定稿但缺摘要，未计入比例。` : ''}`,
+          }
+        } catch (err) {
+          return { ok: false, reason: `审读汇总失败: ${err instanceof Error ? err.message : String(err)}` }
         }
       },
     },

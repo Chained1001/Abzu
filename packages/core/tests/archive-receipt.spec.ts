@@ -49,7 +49,7 @@ function fixture(): ArchiveOptions {
     '卷对账.md': '# 卷对账\n无偏离。\n',
     '清单.json': JSON.stringify({ 文件: [
       { 源: '正文.md', 目标: '定稿/卷01/0001-初见.md' },
-      { 源: '章摘要.md', 目标: '大纲/卷规划/卷01/章摘要/0001-初见.md' },
+      { 源: '章摘要.md', 目标: '故事剧情/卷规划/卷01/章摘要/0001-初见.md' },
     ], schemaVersion: 1 }),
   }
   for (const [name, content] of Object.entries(candidates)) put(root, `${packageDir}/${name}`, content)
@@ -66,7 +66,7 @@ function receiptPath(root: string): string {
   return path.join(dir, names[0]!)
 }
 function written(root: string): Record<string, string> {
-  return Object.fromEntries(['定稿/卷01/0001-初见.md', '大纲/卷规划/卷01/章摘要/0001-初见.md', '账本/时间线.md', '账本/故事线.md', '世界书/设定/铜铃.md', '本书记忆/克制.md', '本书记忆/索引.md']
+  return Object.fromEntries(['定稿/卷01/0001-初见.md', '故事剧情/卷规划/卷01/章摘要/0001-初见.md', '账本/时间线.md', '账本/故事线.md', '世界书/设定/铜铃.md', '本书记忆/克制.md', '本书记忆/索引.md']
     .map(relative => [relative, fs.readFileSync(path.join(root, relative), 'utf8')]))
 }
 
@@ -111,9 +111,9 @@ describe('归档可信收据(F06)', () => {
     const receipt = fs.readFileSync(receiptPath(options.bookRoot), 'utf8')
     fs.unlinkSync(path.join(options.bookRoot, '.git/hooks/pre-commit'))
     expect(writeSettlementDecision(options.bookRoot, { 卷: 1, 章名: '初见' }, '已批准').ok).toBe(true)
-    put(options.bookRoot, '大纲/其他.md', '归档重试前的另一笔提交\n')
-    git(options.bookRoot, 'add', '大纲/其他.md')
-    git(options.bookRoot, 'commit', '--only', '-m', 'design: 插入其他提交', '--', '大纲/其他.md')
+    put(options.bookRoot, '故事剧情/其他.md', '归档重试前的另一笔提交\n')
+    git(options.bookRoot, 'add', '故事剧情/其他.md')
+    git(options.bookRoot, 'commit', '--only', '-m', 'design: 插入其他提交', '--', '故事剧情/其他.md')
     const retried = inProcess({ ...options, settlement: { ...options.settlement!, 裁决记录: '重开后的批准时间' }, provenance: { callId: 'different-call' } })
     expect(retried.status, String(retried.stderr)).toBe(0)
     expect(JSON.parse(String(retried.stdout)).result).toMatchObject({ ok: true })
@@ -130,8 +130,8 @@ describe('归档可信收据(F06)', () => {
     const options = fixture()
     expect(inProcess(options, 'lost-response').status).toBe(88)
     const before = written(options.bookRoot)
-    put(options.bookRoot, '大纲/其他.md', '另一次作者修改\n')
-    git(options.bookRoot, 'add', '大纲/其他.md')
+    put(options.bookRoot, '故事剧情/其他.md', '另一次作者修改\n')
+    git(options.bookRoot, 'add', '故事剧情/其他.md')
     git(options.bookRoot, 'commit', '-m', 'design: 其他改动')
     const head = git(options.bookRoot, 'rev-parse', 'HEAD')
     expect(archiveChapter(options)).toMatchObject({ ok: true, alreadyCommitted: true })
@@ -170,21 +170,21 @@ describe('归档可信收据(F06)', () => {
   }, 30_000)
 
   it.each(['source', 'target', 'receipt', 'extra'])('已写未提交后 %s 被替换时拒绝，并保留全部证据', (kind) => {
-    const options: ArchiveOptions = { ...fixture(), ...(kind === 'extra' ? { extraPaths: ['大纲/窗口.md'] } : {}) }
-    if (kind === 'extra') put(options.bookRoot, '大纲/窗口.md', '# 已消费窗口\n')
+    const options: ArchiveOptions = { ...fixture(), ...(kind === 'extra' ? { extraPaths: ['故事剧情/窗口.md'] } : {}) }
+    if (kind === 'extra') put(options.bookRoot, '故事剧情/窗口.md', '# 已消费窗口\n')
     failCommit(options.bookRoot)
     expect(archiveChapter(options)).toMatchObject({ ok: false, written: true })
     if (kind === 'source') put(options.bookRoot, `${options.packageDir}/事实变更.md`, '# 事实变更\n## 设定\n### 铜铃\n换成另一份事实。\n')
     if (kind === 'target') put(options.bookRoot, '账本/时间线.md', '# 作者另改的时间线\n')
     if (kind === 'receipt') fs.writeFileSync(receiptPath(options.bookRoot), '{"schema":1}')
-    if (kind === 'extra') put(options.bookRoot, '大纲/窗口.md', '# 作者修改窗口\n')
+    if (kind === 'extra') put(options.bookRoot, '故事剧情/窗口.md', '# 作者修改窗口\n')
     const before = written(options.bookRoot)
     const receipt = fs.readFileSync(receiptPath(options.bookRoot), 'utf8')
     fs.unlinkSync(path.join(options.bookRoot, '.git/hooks/pre-commit'))
     expect(archiveChapter(options)).toMatchObject({ ok: false, reason: expect.stringMatching(/冲突|损坏/) })
     expect(written(options.bookRoot)).toEqual(before)
     expect(fs.readFileSync(receiptPath(options.bookRoot), 'utf8')).toBe(receipt)
-    if (kind === 'extra') expect(fs.readFileSync(path.join(options.bookRoot, '大纲/窗口.md'), 'utf8')).toBe('# 作者修改窗口\n')
+    if (kind === 'extra') expect(fs.readFileSync(path.join(options.bookRoot, '故事剧情/窗口.md'), 'utf8')).toBe('# 作者修改窗口\n')
     expect(git(options.bookRoot, 'rev-list', '--count', 'HEAD')).toBe('1')
   })
 

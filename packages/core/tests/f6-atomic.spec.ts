@@ -31,7 +31,7 @@ describe('F6:跨盘原子写入', () => {
     writeFileAtomic(bookRoot, rel, '跨盘原子写入正文。\n\n第二段。')
     expect(fs.readFileSync(nodePath.join(bookRoot, rel), 'utf-8')).toContain('跨盘原子写入正文')
     writeBatchAtomic(bookRoot, [
-      { relPath: '大纲/卷规划/卷01/章细纲/0001-开篇任务.md', content: '# 章细纲\n' },
+      { relPath: '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md', content: '# 章细纲\n' },
       { relPath: '草稿区/草稿/卷01-开篇任务/稿1.md', content: '草稿正文' },
     ])
     expect(fs.existsSync(nodePath.join(bookRoot, '草稿区/草稿/卷01-开篇任务/稿1.md'))).toBe(true)

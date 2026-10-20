@@ -58,7 +58,7 @@ describe('R21 脚本只算不写(computeReview 与 ingestFindings 分工)', () =
     readyBookWithPendingDraft(root)
     const target = path.join(root, changed === '草稿'
       ? '草稿区/草稿/卷01-0001-开篇任务/稿1.md'
-      : '大纲/卷规划/卷01/章细纲/0001-开篇任务.md')
+      : '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md')
     const original = fs.readFileSync
     let reads = 0
     vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof fs.readFileSync>) => {

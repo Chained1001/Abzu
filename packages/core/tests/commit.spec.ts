@@ -209,7 +209,7 @@ describe('清单入档', () => {
   it.each([
     ['a/b', '定稿/卷01/0001-a/b.md'],
     ['尾点.', '定稿/卷01/0001-尾点..md'],
-    ['带\x07控制符', '大纲/卷规划/卷01/章摘要/0001-带\x07控制符.md'],
+    ['带\x07控制符', '故事剧情/卷规划/卷01/章摘要/0001-带\x07控制符.md'],
   ] as const)('章名白名单:archiveChapter 拒绝含「%s」的清单目标,零写入零提交', (章名, 目标) => {
     const root = initRepo()
     const r = archiveChapter({ bookRoot: root, files: [{ 目标, 内容: '正文\n' }], summary: 'x' })
@@ -217,7 +217,7 @@ describe('清单入档', () => {
     if (r.ok) return
     expect(r.reason).toContain('章名')
     expect(fs.existsSync(path.join(root, '定稿'))).toBe(false)
-    expect(fs.existsSync(path.join(root, '大纲'))).toBe(false)
+    expect(fs.existsSync(path.join(root, '故事剧情'))).toBe(false)
     expect(git(root, ['log', '--oneline']).stdout?.trim()).toBe('')
   })
 })
@@ -267,10 +267,10 @@ describe('设计侧确认提交(commitConfirmed,拍板 1/2/7)', () => {
 
   it('携带活跃章号:design(ch0012): 确认细纲', () => {
     const root = initRepo()
-    fs.mkdirSync(path.join(root, '大纲/章细纲/卷01'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/章细纲/卷01/0012-初见.md'), '# 细纲\n', 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情/章细纲/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/章细纲/卷01/0012-初见.md'), '# 细纲\n', 'utf-8')
     const r = commitConfirmed({
-      bookRoot: root, paths: ['大纲/章细纲/卷01/0012-初见.md'], prefix: 'design',
+      bookRoot: root, paths: ['故事剧情/章细纲/卷01/0012-初见.md'], prefix: 'design',
       summary: '确认细纲·初见', chapterScope: 12,
     })
     expect(r.ok).toBe(true)
@@ -280,19 +280,19 @@ describe('设计侧确认提交(commitConfirmed,拍板 1/2/7)', () => {
 
   it('整批多文件一次提交(拍板 7:一次确认一次提交)', () => {
     const root = initRepo()
-    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/卷纲.md'), '# 卷纲\n', 'utf-8')
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/近期窗口.md'), '# 近期窗口\n', 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/卷纲.md'), '# 卷纲\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/近期窗口.md'), '# 近期窗口\n', 'utf-8')
     const r = commitConfirmed({
       bookRoot: root,
-      paths: ['大纲/卷规划/卷01/卷纲.md', '大纲/卷规划/卷01/近期窗口.md'],
+      paths: ['故事剧情/卷规划/卷01/卷纲.md', '故事剧情/卷规划/卷01/近期窗口.md'],
       prefix: 'design', summary: '卷纲·线索推进',
     })
     expect(r.ok).toBe(true)
     const show = git(root, ['-c', 'core.quotepath=false', 'show', '--name-only', '--pretty=format:'])
     const names = (show.stdout ?? '').split('\n').map((l) => l.trim()).filter((l) => l !== '')
-    expect(names).toContain('大纲/卷规划/卷01/卷纲.md')
-    expect(names).toContain('大纲/卷规划/卷01/近期窗口.md')
+    expect(names).toContain('故事剧情/卷规划/卷01/卷纲.md')
+    expect(names).toContain('故事剧情/卷规划/卷01/近期窗口.md')
     expect(git(root, ['rev-list', '--count', 'HEAD']).stdout?.trim()).toBe('1')
   })
 
@@ -380,13 +380,13 @@ describe('归档附加提交路径(extraPaths,拍板 1:窗口标记随 ch:)', ()
 
   it('窗口标记随 ch: 提交,先前已提交的真源不在其中', () => {
     const root = initRepo()
-    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/近期窗口.md'), '# 近期窗口\n', 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/近期窗口.md'), '# 近期窗口\n', 'utf-8')
     // 真源先经 design: 提交(提交点跟随确认),归档不再携带。
-    const confirmed = commitConfirmed({ bookRoot: root, paths: ['大纲/卷规划/卷01/近期窗口.md'], prefix: 'design', summary: '滚动窗口' })
+    const confirmed = commitConfirmed({ bookRoot: root, paths: ['故事剧情/卷规划/卷01/近期窗口.md'], prefix: 'design', summary: '滚动窗口' })
     expect(confirmed.ok).toBe(true)
     // 归档流程标记窗口已消费(此处直接改文件模拟),随 ch: 一并提交。
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/近期窗口.md'), '# 近期窗口\n- 初见 〔已消费〕\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/近期窗口.md'), '# 近期窗口\n- 初见 〔已消费〕\n', 'utf-8')
     const pkg = path.join(root, '草稿区/定稿准备/卷01-初见')
     fs.mkdirSync(pkg, { recursive: true })
     fs.writeFileSync(path.join(pkg, '正文.md'), '第一章\n', 'utf-8')
@@ -394,13 +394,13 @@ describe('归档附加提交路径(extraPaths,拍板 1:窗口标记随 ch:)', ()
       schemaVersion: 1,
       文件: [{ 源: '正文.md', 目标: '定稿/卷01/0003-初见.md' }],
     }))
-    const r = archiveChapter({ bookRoot: root, packageDir: pkg, summary: '初见入档', extraPaths: ['大纲/卷规划/卷01/近期窗口.md'] })
+    const r = archiveChapter({ bookRoot: root, packageDir: pkg, summary: '初见入档', extraPaths: ['故事剧情/卷规划/卷01/近期窗口.md'] })
     expect(r.ok).toBe(true)
     const show = git(root, ['-c', 'core.quotepath=false', 'show', '--name-only', '--pretty=format:', 'HEAD'])
     const names = (show.stdout ?? '').split('\n').map((l) => l.trim()).filter((l) => l !== '')
     expect(names).toContain('定稿/卷01/0003-初见.md')
-    expect(names).toContain('大纲/卷规划/卷01/近期窗口.md')
-    const last = lastCommitOf(root, '大纲/卷规划/卷01/近期窗口.md')
+    expect(names).toContain('故事剧情/卷规划/卷01/近期窗口.md')
+    const last = lastCommitOf(root, '故事剧情/卷规划/卷01/近期窗口.md')
     expect(last.ok).toBe(true)
     if (last.ok) expect(last.prefix).toBe('ch')
   })
@@ -420,13 +420,13 @@ describe('归档附加提交路径(extraPaths,拍板 1:窗口标记随 ch:)', ()
 describe('某工件最近一次提交(lastCommitOf,拍板 3)', () => {
   it('从 design(chNNNN) Scope 解析章号', () => {
     const root = initRepo()
-    fs.mkdirSync(path.join(root, '大纲/章细纲/卷01'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/章细纲/卷01/0012-初见.md'), '# 细纲\n', 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情/章细纲/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/章细纲/卷01/0012-初见.md'), '# 细纲\n', 'utf-8')
     expect(commitConfirmed({
-      bookRoot: root, paths: ['大纲/章细纲/卷01/0012-初见.md'], prefix: 'design',
+      bookRoot: root, paths: ['故事剧情/章细纲/卷01/0012-初见.md'], prefix: 'design',
       summary: '确认细纲·初见', chapterScope: 12,
     }).ok).toBe(true)
-    const r = lastCommitOf(root, '大纲/章细纲/卷01/0012-初见.md')
+    const r = lastCommitOf(root, '故事剧情/章细纲/卷01/0012-初见.md')
     expect(r.ok).toBe(true)
     if (!r.ok) return
     expect(r.prefix).toBe('design(ch0012)')
@@ -453,9 +453,9 @@ describe('某工件最近一次提交(lastCommitOf,拍板 3)', () => {
 
   it('从未提交→kind never;非 git 仓→kind error', (ctx) => {
     const root = initRepo()
-    fs.mkdirSync(path.join(root, '大纲'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/卷纲.md'), '# 卷纲\n', 'utf-8')
-    git(root, ['add', '大纲/卷纲.md'])
+    fs.mkdirSync(path.join(root, '故事剧情'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/卷纲.md'), '# 卷纲\n', 'utf-8')
+    git(root, ['add', '故事剧情/卷纲.md'])
     git(root, ['commit', '-m', 'vol: 建书'])
     const never = lastCommitOf(root, '作品契约/契约.md')
     expect(never.ok).toBe(false)

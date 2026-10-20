@@ -29,7 +29,7 @@ function fixture() {
     fs.mkdirSync(path.dirname(path.join(base, rel)), { recursive: true })
     fs.writeFileSync(path.join(base, rel), body)
   }
-  put(root, '大纲/卷规划/卷01/卷纲.md', '# 卷纲\n\n' + ['叙事结构', '弧线', '线索推进', '卷末兑现'].map(name => `## ${name}\n\n章3承接城门事件，核对铜符。\n`).join('\n'))
+  put(root, '故事剧情/卷规划/卷01/卷纲.md', '# 卷纲\n\n' + ['叙事结构', '弧线', '线索推进', '卷末兑现'].map(name => `## ${name}\n\n章3承接城门事件，核对铜符。\n`).join('\n'))
   put(root, '草稿区/草稿/卷01-0003-章3/稿1.md', serializeDocument({ 角色: '待审稿', 版本: 1 }, '主角继续前行，铜符仍在袖中。'))
   put(root, '世界书/人物档案/关系补记.md', '# 关系原文\n第二章后两人约定共同守门。【关系变化样本】\n')
   put(workspace, '书房/构想/早期决定.md', '# 作者决定\n主角始终拒绝加入内卫。【早期决策样本】\n')

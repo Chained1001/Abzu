@@ -4,8 +4,8 @@ import * as path from 'node:path'
 import * as os from 'node:os'
 import {
   actOutlineGaps, contractTemplate, parseDocument, parseWindow, prepareActOutline, prepareContract, prepareEntry,
-  preparePlanTimeline, prepareRecentWindow, prepareSkeleton, prepareVolumeLayout, prepareVolumeOutline,
-  serializeDocument, updateSkeleton, updateVolumeLayout, volumeOutlineGaps, windowExtraLines, writeContract,
+  preparePlanTimeline, prepareRecentWindow, prepareFullOutline, prepareVolumeLayout, prepareVolumeOutline,
+  serializeDocument, updateFullOutline, updateVolumeLayout, volumeOutlineGaps, windowExtraLines, writeContract,
 } from '../src'
 import { removeSync } from '../src/repo/remove'
 
@@ -20,7 +20,7 @@ const put = (rel: string, text: string) => {
 describe('单文件设计准备', () => {
   it('所有准备函数只生成完整文件，不创建目录或写盘', () => {
     const ops = [
-      prepareContract(root), prepareSkeleton(root, '# 骨架'), prepareVolumeLayout(root, '# 分卷'),
+      prepareContract(root), prepareFullOutline(root, '# 全书大纲'), prepareVolumeLayout(root, '# 分卷'),
       prepareVolumeOutline(root, 1, '# 卷纲'), preparePlanTimeline(root, 1, '# 时间线'),
       prepareRecentWindow(1, [{ 名称: '开篇', 状态: '暂定' }]),
       prepareEntry('人物档案', '主角', { 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '对谈' }),
@@ -47,10 +47,10 @@ describe('单文件设计准备', () => {
   })
 
   it.each([
-    ['故事骨架', prepareSkeleton, updateSkeleton],
+    ['全书大纲', prepareFullOutline, updateFullOutline],
     ['分卷布局', prepareVolumeLayout, updateVolumeLayout],
   ] as const)('%s 保留字段、内容变化升版、原样重跑不再升版', (name, prepare, write) => {
-    const rel = `大纲/${name}.md`
+    const rel = `故事剧情/${name}.md`
     const before = serializeDocument({ 版本: 3, 父版本: 2, 状态: '已确认', 自定义: '保留' }, '# 旧正文')
     put(rel, before)
     const op = prepare(root, '# 新正文\r\n')
@@ -65,8 +65,8 @@ describe('单文件设计准备', () => {
 
   it.each([
     ['作品契约/契约.md', () => prepareContract(root)],
-    ['大纲/故事骨架.md', () => prepareSkeleton(root, '新正文')],
-    ['大纲/分卷布局.md', () => prepareVolumeLayout(root, '新正文')],
+    ['故事剧情/全书大纲.md', () => prepareFullOutline(root, '新正文')],
+    ['故事剧情/分卷布局.md', () => prepareVolumeLayout(root, '新正文')],
   ] as const)('%s 解析失败或不可读时拒绝覆盖', (rel, prepare) => {
     const invalid = '---\n书id: [未闭合\n---\n原正文\n'
     put(rel, invalid)
@@ -103,7 +103,7 @@ const 幕纲正文 = [
 describe('幕纲准备与段名校验(0.0.52 幕纲批)', () => {
   it('prepareActOutline 纯文本写入、补末尾换行、不建目录；幕号两位', () => {
     const op = prepareActOutline(root, 1, 2, '渡口疑云', 幕纲正文.trimEnd())
-    expect(op.relPath).toBe('大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md')
+    expect(op.relPath).toBe('故事剧情/卷规划/卷01/幕纲/幕02-渡口疑云.md')
     expect(op.content.endsWith('\n')).toBe(true)
     expect(op.content).toContain('## 本幕故事')
     expect(fs.readdirSync(root)).toEqual([])
@@ -159,10 +159,10 @@ describe('近期窗口写侧防护(状态词表/保留行)', () => {  it('词表
 
 describe('卷纲/计划时间线/幕纲 frontmatter 版本字段(批8,0.0.57)', () => {
   it('三个 prepare* 走 prepareDesignDoc:首次 v1、正文变化 +1、原样重跑复用版本', () => {
-    put('大纲/卷规划/卷01/卷纲.md', serializeDocument({ 状态: '已确认', 版本: 2 }, '# 卷纲\n'))
+    put('故事剧情/卷规划/卷01/卷纲.md', serializeDocument({ 状态: '已确认', 版本: 2 }, '# 卷纲\n'))
     const op = prepareVolumeOutline(root, 1, '# 卷纲 新正文')
     expect(parseDocument(op.content)).toMatchObject({ ok: true, data: { fields: { 版本: 3, 父版本: 2, 状态: '已确认', 生成模块: '卷纲确认' } } })
-    expect(op.result).toMatchObject({ relPath: '大纲/卷规划/卷01/卷纲.md', 版本: 3, 首次写入: false })
+    expect(op.result).toMatchObject({ relPath: '故事剧情/卷规划/卷01/卷纲.md', 版本: 3, 首次写入: false })
     // 原样重跑复用版本(重试不产生新版本)
     const again = prepareVolumeOutline(root, 1, '# 卷纲 新正文')
     expect(again.result.版本).toBe(3)
@@ -171,7 +171,7 @@ describe('卷纲/计划时间线/幕纲 frontmatter 版本字段(批8,0.0.57)', 
     expect(timeline.result).toMatchObject({ 版本: 1, 首次写入: true })
     expect(parseDocument(timeline.content)).toMatchObject({ ok: true, data: { fields: { 版本: 1, 生成模块: '计划时间线确认' } } })
     const act = prepareActOutline(root, 1, 2, '渡口疑云', '# 幕纲')
-    expect(act.result).toMatchObject({ relPath: '大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md', 版本: 1, 首次写入: true })
+    expect(act.result).toMatchObject({ relPath: '故事剧情/卷规划/卷01/幕纲/幕02-渡口疑云.md', 版本: 1, 首次写入: true })
     expect(parseDocument(act.content)).toMatchObject({ ok: true, data: { fields: { 版本: 1, 生成模块: '幕纲确认' } } })
   })
 

@@ -157,7 +157,7 @@ describe('F4:目标章边界(世界已发生)', () => {
     ].join('\n'), 'utf-8')
     fs.writeFileSync(nodePath.join(root, '账本/人物弧线.md'), [
       '# 人物弧线', '',
-      '## 配角线', '类型：人物弧线', '状态：已兑现', '计划来源：大纲/故事骨架.md@1',
+      '## 配角线', '类型：人物弧线', '状态：已兑现', '计划来源：故事剧情/全书大纲.md@1',
       '实际落点：定稿/卷01/0199-转折.md', '来源：定稿/卷01/0199-转折.md',
       '### 正文', '配角在第199章兑现', '',
     ].join('\n'), 'utf-8')
@@ -183,9 +183,9 @@ describe('F4:目标章边界(世界已发生)', () => {
     ].join('\n')
     writeCandidate(root, { 卷, 章, 章名, 来源引用: refs, body })
     // 近期窗口须有匹配条目,确认门槛才过
-    fs.mkdirSync(nodePath.join(root, '大纲/卷规划', `卷${nn}`), { recursive: true })
-    if (!fs.existsSync(nodePath.join(root, '大纲/卷规划', `卷${nn}`, '近期窗口.md'))) {
-      fs.writeFileSync(nodePath.join(root, '大纲/卷规划', `卷${nn}`, '近期窗口.md'), `# 近期窗口\n\n- ${章名} 〔已确认〕\n`, 'utf-8')
+    fs.mkdirSync(nodePath.join(root, '故事剧情/卷规划', `卷${nn}`), { recursive: true })
+    if (!fs.existsSync(nodePath.join(root, '故事剧情/卷规划', `卷${nn}`, '近期窗口.md'))) {
+      fs.writeFileSync(nodePath.join(root, '故事剧情/卷规划', `卷${nn}`, '近期窗口.md'), `# 近期窗口\n\n- ${章名} 〔已确认〕\n`, 'utf-8')
     }
     const c = confirmOutline(root, { 卷, 章, 章名 })
     if (!c.ok) throw new Error(`confirm failed:${c.gaps.join(';')}`)

@@ -2,7 +2,7 @@
 export const workflowStages = [
   { id: 'idea', label: '构思', group: 'book', note: '收集灵感，确定这本书要讲什么。' },
   { id: 'design', label: '设定', group: 'book', note: '作品定调、人物与世界设定。' },
-  { id: 'skeleton', label: '骨架', group: 'book', note: '整理故事主线与关键转折。' },
+  { id: 'fullOutline', label: '全书大纲', group: 'book', note: '整理故事主线与关键转折。' },
   { id: 'volumes', label: '分卷', group: 'book', note: '安排各卷的目标与篇幅。' },
   { id: 'volume', label: '卷纲', group: 'book', note: '规划当前卷和近期章节。' },
   { id: 'volume-close', label: '卷末收束', group: 'book', note: '核对卷末状态并确认卷摘要。' },
@@ -20,7 +20,7 @@ export type RunState = 'preparing' | 'running' | 'waiting' | 'success' | 'attent
 export const runLabels: Record<RunState, string> = { preparing: '准备中', running: '进行中', waiting: '待确认', success: '操作完成', attention: '待处理', error: '出错了', stopped: '已中断', unknown: '待核对' }
 export const toolStages: Readonly<Record<string, WorkflowStage>> = {
   novel_create_book: 'idea', novel_update_contract: 'design', novel_confirm_worldbook_entry: 'design',
-  novel_update_skeleton: 'skeleton', novel_update_volume_layout: 'volumes', novel_confirm_volume_outline: 'volume', novel_roll_window: 'volume',
+  novel_update_full_outline: 'fullOutline', novel_update_volume_layout: 'volumes', novel_confirm_volume_outline: 'volume', novel_roll_window: 'volume',
   novel_new_outline_draft: 'outline', novel_confirm_outline: 'outline', novel_assemble_materials: 'materials',
   novel_import_draft: 'draft', novel_record_review_findings: 'review', novel_record_polish: 'polish', novel_apply_revision: 'revise', novel_apply_revision_batch: 'revise',
   novel_prepare_pack: 'settle', novel_settle_chapter: 'confirm',

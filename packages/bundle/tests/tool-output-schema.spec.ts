@@ -37,7 +37,7 @@ describe('工具 output.schema 与真实返回形状一致(dsh 校验器)', () =
       ['novel_search_finalized', { bookId, query: '林舟' }],
       ['novel_search_finalized', { bookId, query: '' }],
       ['novel_update_contract', { bookId, partName: '题材与读者定位', state: '已确认', content: 'x' }],
-      ['novel_update_skeleton', { bookId, 正文: '# 故事骨架\n\n- 第一幕 〔已确认〕\n' }],
+      ['novel_update_full_outline', { bookId, 正文: '# 全书大纲\n\n- 第一幕 〔已确认〕\n' }],
       ['novel_roll_window', { bookId, 卷: 1, action: '追加', 名称: '探章' }],
       ['novel_confirm_worldbook_entry', { bookId, 模块: '人物档案', 名称: '甲', 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '对谈' }],
       ['novel_get_book_progress', { bookId }],

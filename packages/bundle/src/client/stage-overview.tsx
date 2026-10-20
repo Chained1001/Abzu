@@ -80,7 +80,7 @@ export function StageOverview({ sessionId, space, refresh }: Props) {
       <p className="nw-stage-gate"><strong>退出条件</strong>{stage.gate}</p>
     </div>
     <StageHealthSection health={health} />
-    <p className="nw-viz-note">阶段按章节文件推断；开卷与设计阶段以主会话的状态校准为准。</p>
+    <p className="nw-viz-note">四阶段是给人看的导航，不是机器判据；当前段按章节文件粗判，设计面以 novel_get_story_status 的事实清单为准。</p>
     {chapters.error ? <p className="nw-error" role="alert">{chapters.error}</p> : null}
   </section>
 }

@@ -139,6 +139,98 @@ describe('处置只改所选字段，审核证据保持原始适用范围', () =
     }
   })
 
+  it('不传改动映射时旧行为不变：记录里没有 改动映射，返回形状只多 followup', () => {
+    const f = fixture(2)
+    const before = JSON.parse(f.text())
+    const result = applyRevisionBatch(f.root, { ...key, 新稿正文: '她离开城门。', 处置: [{ 发现项编号: 'f-1', 处置: '已解决', 改动说明: '合并了前两句' }] })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    // 旧字段一个不少
+    expect(result.更新条数).toBe(1)
+    expect(result.relPath).toBeTruthy()
+    expect(result.审核记录哈希).toBe(reviewRecordHashOf(f.text()))
+    // 未回填映射：记录里不得凭空多出该字段（旧调用方写出的记录逐字不变）
+    const after = JSON.parse(f.text())
+    expect(after.问题[0]).not.toHaveProperty('改动映射')
+    expect(after.问题[0].处置状态).toBe('已解决')
+    expect(after.问题[0].处置说明).toBe('合并了前两句')
+    // 其余发现项与非处置字段原样保留
+    expect(after.问题.slice(1)).toEqual(before.问题.slice(1))
+    expect(after.模块).toEqual(before.模块)
+  })
+
+  it('传了改动映射时写入审核记录并可回读；未传的条目不受影响', () => {
+    const f = fixture(2)
+    const result = applyRevisionBatch(f.root, {
+      ...key,
+      新稿正文: '她离开城门。',
+      处置: [
+        { 发现项编号: 'f-1', 处置: '已解决', 改动说明: '合并前两句', 改动映射: { 改动位置: '第1段', 改动说明: '把两句并成一句' } },
+        { 发现项编号: 'f-2', 处置: '作者保留', 改动映射: { 改动位置: '无改动', 改动说明: '作者确认保留' } },
+      ],
+    })
+    expect(result.ok).toBe(true)
+    const written = JSON.parse(f.text())
+    expect(written.问题[0].改动映射).toEqual({ 改动位置: '第1段', 改动说明: '把两句并成一句' })
+    expect(written.问题[1].改动映射).toEqual({ 改动位置: '无改动', 改动说明: '作者确认保留' })
+    // 回读同口径
+    const record = loadReviewRecord(f.root, key)!
+    expect(record.问题[0]!.改动映射).toEqual({ 改动位置: '第1段', 改动说明: '把两句并成一句' })
+    expect(record.问题[1]!.改动映射).toEqual({ 改动位置: '无改动', 改动说明: '作者确认保留' })
+  })
+
+  it.each([
+    ['缺改动位置', { 改动说明: '只写说明' }, '缺「改动位置」'],
+    ['改动位置为空白', { 改动位置: '   ', 改动说明: '只写说明' }, '缺「改动位置」'],
+    ['缺改动说明', { 改动位置: '第1段' }, '缺「改动说明」'],
+    ['改动说明为空白', { 改动位置: '第1段', 改动说明: '  ' }, '「改动说明」为空'],
+    ['改动说明非字符串', { 改动位置: '第1段', 改动说明: 42 }, '必须是字符串'],
+    ['不是对象', '第1段', '形状非法'],
+    ['是数组', [{ 改动位置: '第1段' }], '形状非法'],
+  ])('非法改动映射被拒：%s，整批不写且理由可读', (_label, map, expected) => {
+    const f = fixture(2)
+    const before = f.text()
+    const result = applyRevisionBatch(f.root, {
+      ...key,
+      新稿正文: '她离开城门。',
+      处置: [{ 发现项编号: 'f-1', 处置: '已解决', 改动映射: map as never }],
+    })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.reason).toContain('f-1')
+    expect(result.reason).toContain(expected)
+    expect(result.reason).toContain('修正方法：')
+    // 整批不写：记录与待审稿逐字不变
+    expect(f.text()).toBe(before)
+    expect(fs.readFileSync(path.join(f.root, pendingRel), 'utf8')).toBe(f.draft)
+    expect(fs.readdirSync(path.join(f.root, paths.草稿目录(1, key.章, key.章名)))).toEqual(['稿1.md'])
+  })
+
+  it('batch 返回值带 followup：硬约束回查失败与仍待处置都能拿到', () => {
+    // 造一份「含〔硬〕出现类约束」的确认细纲，正文没提到该词即回查失败
+    // （用夹具里任何位置都不出现的词——候选事实段会随新稿带过，也一并核对）
+    const f = fixture(2)
+    const 细纲文 = ['# 章细纲', '', '## 定位段', '', '### 章节功能', '', '- 〔硬〕本章必须出现「郑姓旗官」', ''].join('\n')
+    const 细纲绝对 = path.join(f.root, paths.确认细纲(1, key.章, key.章名))
+    fs.mkdirSync(path.dirname(细纲绝对), { recursive: true })
+    fs.writeFileSync(细纲绝对, 细纲文)
+    const result = applyRevisionBatch(f.root, { ...key, 新稿正文: '她离开城门。', 处置: [{ 发现项编号: 'f-2', 处置: '作者保留' }] })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.followup).toBeDefined()
+    expect(Array.isArray(result.followup.硬约束回查失败)).toBe(true)
+    expect(Array.isArray(result.followup.仍待处置)).toBe(true)
+    expect(Array.isArray(result.followup.建议重跑)).toBe(true)
+    // 新稿没写「郑姓旗官」→ 硬约束回查失败；f-1 仍是待处理 → 仍待处置
+    expect(result.followup.硬约束回查失败.some(line => line.includes('郑姓旗官'))).toBe(true)
+    expect(result.followup.仍待处置.map(p => p.发现项编号)).toContain('f-1')
+    // 与单条落实同口径
+    const single = applyRevision(f.root, key, { 发现项编号: 'f-1', 处置: '作者保留' })
+    expect(single.ok).toBe(true)
+    if (!single.ok) return
+    expect(Object.keys(result.followup).sort()).toEqual(Object.keys(single.followup).sort())
+  })
+
   it('上游实际修改不能借纯处置放行', () => {
     const f = fixture(21, true)
     const before = f.text()

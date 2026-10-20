@@ -48,7 +48,7 @@ export async function checkReliability({ root, book, main, ctx, _service, execut
 
   await check('当前宿主中文候选生成编辑确认与失败恢复', async () => {
     const candidate = '草稿区/章细纲/卷09-0000-可靠性样本.md'
-    put('大纲/卷规划/卷09/近期窗口.md', '# 近期窗口\n\n- 可靠性样本 〔已确认〕\n')
+    put('故事剧情/卷规划/卷09/近期窗口.md', '# 近期窗口\n\n- 可靠性样本 〔已确认〕\n')
     const unit = i => `### 单元 ${i}\n${core.单元字段.map(field => `- ${field}: 中文第${i}项，“引号”、破折号——😀 é A1。`).join('\n')}`
     const body = `# 章细纲\n\n## 定位段\n${core.定位段小节.map(name => `### ${name}\n${name === '章节功能' ? '- 〔硬〕' : ''}主角抵达城门，核对前置。`).join('\n\n')}\n\n## 细纲段\n\n${Array.from({ length: 12 }, (_, i) => unit(i + 1)).join('\n\n')}\n`
     const createArgs = { bookId: 'loader-book', 卷: 9, 章名: key.章名, 正文: body, 来源引用: ['作品契约/契约.md@1'] }
@@ -84,7 +84,7 @@ export async function checkReliability({ root, book, main, ctx, _service, execut
       const confirmation = await call('novel_confirm_outline', confirmArgs)
       assert.equal(confirmation.ok, true, JSON.stringify(confirmation))
       assert.equal(fs.existsSync(file_path), false)
-      const confirmed = read('大纲/卷规划/卷09/章细纲/9001-可靠性样本.md')
+      const confirmed = read('故事剧情/卷规划/卷09/章细纲/9001-可靠性样本.md')
       assert.equal(core.parseDocument(confirmed).data.body.trim(), core.parseDocument(expected).data.body.trim())
       assert.match(git('log', '-1', '--format=%s'), /^design\(ch9001\):/)
       report.chineseRoundtrip = { generatedBytes: Buffer.byteLength(body), creationPayloadBytes: Buffer.byteLength(JSON.stringify(createArgs)), maximumEditPayloadBytes: Math.max(...editSizes), confirmationPayloadBytes: Buffer.byteLength(JSON.stringify(confirmArgs)), edits: 6, byteExact: true, failedEditUnchanged: true, backendGeneration: 'not covered by this deterministic Loader test' }

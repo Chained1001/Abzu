@@ -4,13 +4,13 @@
  * 供主管 Agent 显式调用，严格保证不变量、路径解析与状态跃迁：
  * - novel_create_book: 建书立项（带构想完整度校验 N2）
  * - novel_update_contract: 安全更新作品契约分部（防 N1 抹除）；分部「已确认」时随确认产生 design: 提交
- * - novel_seed_min_design: 测试/走查专用（默认不注册，见 NOVEL_TEST_TOOL_NAMES）：注入占位设计骨架；成功后整批一次 design: 提交
+ * - novel_seed_min_design: 测试/走查专用（默认不注册，见 NOVEL_TEST_TOOL_NAMES）：注入占位设计；成功后整批一次 design: 提交
  * - novel_get_story_status: 获取全书/章节真源推导状态（N4）
  * - novel_select_book: 显式切换当前会话正在写的书
  * - novel_prepare_pack: 组装待定稿包七件（定稿准备，呈作者裁决前）
  * - novel_settle_chapter: 作者批准后定稿原子沉淀（ch: 单次 Git 提交，不变量 1/6）
  * - novel_new_outline_draft / novel_confirm_outline: 候选细纲落草稿区 / 确认落真源（design(chNNNN): 整批提交）
- * - novel_update_skeleton / novel_update_volume_layout: 故事骨架 / 分卷布局更新（design: 整批提交）
+ * - novel_update_full_outline / novel_update_volume_layout: 全书大纲 / 分卷布局更新（design: 整批提交）
  * - novel_confirm_worldbook_entry / novel_confirm_volume_outline: 世界书条目 / 卷纲与计划时间线确认（design: 整批提交）
  * - novel_roll_window: 近期窗口追加条目 / 标记已消费（design: 提交）
  * - novel_assemble_materials: 组装材料包（幂等重建；readiness 播报）
@@ -60,7 +60,7 @@ export const NOVEL_TOOL_NAMES: readonly string[] = [
   'novel_settle_chapter',
   'novel_new_outline_draft',
   'novel_confirm_outline',
-  'novel_update_skeleton',
+  'novel_update_full_outline',
   'novel_update_volume_layout',
   'novel_roll_window',
   'novel_confirm_worldbook_entry',
@@ -71,6 +71,7 @@ export const NOVEL_TOOL_NAMES: readonly string[] = [
   'novel_import_draft',
   'novel_record_review_findings',
   'novel_record_polish',
+  'novel_review_summary',
   'novel_record_proposal',
   'novel_resolve_proposal',
   'novel_apply_retcon',
@@ -148,7 +149,7 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
   const locked = new Set([
     'novel_new_outline_draft', 'novel_prepare_pack',
     'novel_update_contract', 'novel_seed_min_design', 'novel_confirm_outline',
-    'novel_update_skeleton', 'novel_update_volume_layout', 'novel_roll_window',
+    'novel_update_full_outline', 'novel_update_volume_layout', 'novel_roll_window',
     'novel_confirm_worldbook_entry', 'novel_confirm_volume_outline',
     'novel_assemble_materials', 'novel_apply_revision', 'novel_apply_revision_batch',
     'novel_import_draft', 'novel_record_review_findings', 'novel_record_polish', 'novel_record_proposal',

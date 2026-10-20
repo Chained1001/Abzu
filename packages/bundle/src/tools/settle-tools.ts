@@ -2,7 +2,7 @@
  * 定稿域工具：待定稿包组装/作者批准后原子沉淀。
  */
 import { provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { archiveDraftChapter, pad, paths, preparePack, archiveChapter, withBookWrite, askAuthor, writeSettlementDecision, resolveDraftRel, snapshotDraft } from '@abzu/core'
+import { archiveDraftChapter, pad, paths, packGateGaps, preparePack, archiveChapter, withBookWrite, askAuthor, writeSettlementDecision, resolveDraftRel, snapshotDraft, writeReviewDigest } from '@abzu/core'
 import { captureApprovalFiles } from '../approval-snapshot'
 
 export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
@@ -60,6 +60,9 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
           ...(textArg('章摘要') === undefined ? {} : { 章摘要: textArg('章摘要') }),
           ...(textArg('事实变更') === undefined ? {} : { 事实变更: textArg('事实变更') }),
         }
+        // 组包前置闸：审核须完成、润色须承接或登记跳过（判据在 core.packGateGaps，此处只拦不判）
+        const gateGaps = packGateGaps(bookRoot, key)
+        if (gateGaps.length > 0) return { ok: false, reason: gateGaps.join('；') }
         try {
           const res = preparePack(bookRoot, key, 沉淀候选)
           if (!res.ok) return { ok: false, reason: res.reason }
@@ -133,12 +136,27 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
             return { ok: false, reason }
           }
           if (!decisionWrite.ok) return { ok: false, reason: decisionWrite.reason }
+          // 跨章留痕(0.0.87):审核记录随入档清理,先把它的计数摘要落到定稿区,再让 archiveChapter
+          // 用 extraPaths 把摘要并进同一次 ch: 提交——清理之后统计源不再断。
+          // 摘要先落盘是收据机制的要求(makeArchiveReceipt 读磁盘字节),故写在 archiveChapter 之前。
+          const digest = (() => {
+            try {
+              return writeReviewDigest(bookRoot, key)
+            } catch (err) {
+              return { ok: false as const, reason: err instanceof Error ? err.message : String(err) }
+            }
+          })()
+          // 摘要写不成**不阻断入档**,只如实进返回——与「清理失败不阻断入档」同一口径:
+          // 入档是作者的既定决定,不该因派生物失败被反悔;丢掉的一律显式说出来,不静默。
+          const digestNote = digest.ok ? '' : `；审读摘要未落盘(${digest.reason}),本章跨章统计源缺失`
+          const extraPaths = digest.ok ? [digest.relPath] : []
           try {
             const res = archiveChapter({
               bookRoot,
               packageDir: resolveDraftRel(bookRoot, '待定稿包目录', key),
               summary,
               settlement: { 章节: key, 批准: true, 裁决记录: `作者于 ${new Date().toISOString()} 批准定稿入档（kind=${decision.kind}, 决定=${decision.决定}）` },
+              extraPaths,
               provenance: provenanceOf(sessionContext),
             })
             if (!res.ok) return { ok: false, reason: res.reason }
@@ -153,7 +171,7 @@ export function createSettleTools(shared: ToolShared): NovelToolDefinition[] {
             } catch (cleanupErr) {
               cleanupNote = `草稿区清理失败:${cleanupErr instanceof Error ? cleanupErr.message : String(cleanupErr)}（入档不受影响，可跑 草稿清理.mjs --执行 true 补清）。`
             }
-            return { ok: true, message: `定稿沉淀完成（${res.message}），入档：${res.dests.join('、')}。${cleanupNote}` }
+            return { ok: true, message: `定稿沉淀完成（${res.message}），入档：${res.dests.join('、')}。${cleanupNote}${digestNote}` }
           } catch (err) {
             return { ok: false, reason: `定稿沉淀失败: ${err instanceof Error ? err.message : String(err)}` }
           }

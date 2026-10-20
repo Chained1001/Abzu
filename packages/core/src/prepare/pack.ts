@@ -5,7 +5,7 @@
 import * as path from 'node:path'
 import { readBookTextOrNull } from '../repo/read'
 import { sha256Hex } from '../repo/hash'
-import type { ChapterKey } from '../derive/scan'
+import { scanChapter, type ChapterKey } from '../derive/scan'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { parseDocument, serializeDocument } from '../repo/frontmatter'
 import { assertSegment, paths } from '../repo/paths'
@@ -108,6 +108,9 @@ export function computePack(bookRoot: string, key: ChapterKey, 沉淀候选?: �
   const pending = findPendingReviewDraft(bookRoot, key)
   if (pendingCount > 1) return { ok: false, dir, reason: `待审稿不唯一:${pendingCount}份` }
   if (pendingCount === 0 || pending === null) return { ok: false, dir, reason: '无待审稿' }
+
+  // 审核完成/润色承接的**门禁不在这里**，在工具层 `novel_prepare_pack`（见 packGateGaps）。
+  // computePack 是纯计算：夹具与测试直调它造包是合法用法，不该被流程状态挡住。
 
   if (沉淀候选 !== undefined) {
     try {
@@ -214,3 +217,32 @@ function preparePackLocked(bookRoot: string, key: ChapterKey, 沉淀候选?: 沉
 }
 
 export const preparePack = bookWriter(preparePackLocked)
+
+/**
+ * 组包前置闸（门禁本体，工具层调用；纯函数、只读、不写盘）。
+ *
+ * 为什么在工具层而不是 computePack：computePack 是纯计算，测试与夹具直调它造包是合法用法
+ * （见 reliability-fix1 / proposal 等用例），在那里拦会误伤。工具层才是「作者/主控真走的那道门」，
+ * 与 gateWriteDraft 的分工一致：core 出判据，工具层用。
+ *
+ * 只拦「明确不成立」的两态，理由给解法，且无审核记录的老书不误拦：
+ * - 有审核记录但未完成 → 停（待回写或待处置）
+ * - 审核完成但润色未承接 → 停（润色承接或登记跳过）
+ */
+export function packGateGaps(bookRoot: string, key: ChapterKey): string[] {
+  let facts
+  try {
+    facts = scanChapter(bookRoot, key)
+  } catch {
+    // 扫描失败不阻断组包（读取/解析异常另有专门的失败分流），只放行
+    return []
+  }
+  const gaps: string[] = []
+  if (facts.有审核记录 && !facts.审核完成) {
+    gaps.push('本章审核未完成（仍有待回写模块或待处置发现项）：先跑《全面审读》并逐条处置，再组包')
+  }
+  if (facts.审核完成 && !facts.润色已承接) {
+    gaps.push('审核已通过但润色未承接：《精修润色》登记承接（novel_record_polish），或作者不要润色时登记跳过，再组包')
+  }
+  return gaps
+}

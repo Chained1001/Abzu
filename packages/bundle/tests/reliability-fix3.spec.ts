@@ -39,7 +39,7 @@ function makeBook(): string {
     '- 行动/冲突: 观察', '- 信息披露: 无', '- 状态变化: 警觉', '',
   ].join('\n')
   writeCandidate(root, { 卷: key.卷, 章: key.章, 章名: key.章名, 来源引用: ['作品契约/契约.md@1'], body: outline })
-  put(root, '大纲/卷规划/卷01/近期窗口.md', '# 近期窗口\n\n- 审计章 〔已确认〕\n')
+  put(root, '故事剧情/卷规划/卷01/近期窗口.md', '# 近期窗口\n\n- 审计章 〔已确认〕\n')
   const confirmed = confirmOutline(root, key)
   if (!confirmed.ok) throw new Error(confirmed.gaps.join(';'))
   put(root, `${paths.草稿目录(key.卷, key.章, key.章名)}/稿1.md`, serializeDocument({ 角色: '待审稿', 选定: true }, '主角握住铜符，走进城门。'))

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import type { ChapterView } from '../src/study/types'
 import { creatorStages, inferCreatorStage } from '../src/client/stage-data'
 import { deriveStageHealth } from '../src/client/stage-health'
@@ -19,6 +21,30 @@ describe('四阶段导航数据', () => {
     expect(inferCreatorStage(0)).toBe('book')
     expect(inferCreatorStage(1)).toBe('chapter')
     expect(inferCreatorStage(120)).toBe('chapter')
+  })
+})
+
+describe('阶段地图与代码事实对齐（A 案：降级为纯导航）', () => {
+  const map = fs.readFileSync(
+    path.join(__dirname, '..', 'skills', 'novel-director', 'references', '阶段地图.md'),
+    'utf8',
+  )
+
+  it('明说四阶段不是机器判据，并给出两套真实判据的指针', () => {
+    expect(map).toContain('不是机器判据')
+    expect(map).toContain('DesignPosition')
+    expect(map).toContain('deriveChapterFacts')
+  })
+
+  it('文档侧孤儿项清零：不再出现「素材卡」与「世界书基线」', () => {
+    expect(map).not.toContain('素材卡')
+    expect(map).not.toContain('世界书基线')
+    expect(map, '采风实物名是 forage 的零件卡').toContain('零件卡')
+  })
+
+  it('幕纲确认如实标注无 derive 事实项（不造判据）', () => {
+    expect(map).toContain('幕纲确认')
+    expect(map).toContain('没有 derive 事实项')
   })
 })
 

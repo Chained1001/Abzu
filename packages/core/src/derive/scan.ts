@@ -110,7 +110,7 @@ export function scanChapter(root: string, key: ChapterKey): ChapterFacts {
   const 卷NN = pad(卷)
   const 不可读: string[] = []
 
-  const 窗口文 = readText(root, `大纲/卷规划/卷${卷NN}/近期窗口.md`, 不可读)
+  const 窗口文 = readText(root, `故事剧情/卷规划/卷${卷NN}/近期窗口.md`, 不可读)
   const 窗口就绪 = 窗口文 !== null && parseWindow(窗口文).some((e) => isWindowEntryReady(e.state))
 
   // 草稿区五处(批8):新键 `卷NN-NNNN-章名` 优先、旧键 `卷NN-章名` fallback(旧书无感)
@@ -245,7 +245,7 @@ export function listChapters(root: string): ReadonlyArray<ChapterKey> {
   const add = (k: ChapterKey) => seen.set(`${k.卷}/${k.章}/${k.章名}`, k)
 
   // 卷规划近期窗口(近期窗口条目);已消费/已失效条目是历史记录,不再是可进入的章(拍板:窗口失效过滤)
-  walk(path.join(root, '大纲/卷规划'), (p) => {
+  walk(path.join(root, '故事剧情/卷规划'), (p) => {
     const m = /卷规划[\\/]卷(\d+)[\\/]近期窗口\.md$/i.exec(p)
     if (m !== null && isMarkdownFileName(p)) {
       const 卷 = Number(m[1])
@@ -260,7 +260,7 @@ export function listChapters(root: string): ReadonlyArray<ChapterKey> {
   })
 
   // 真源区:确认细纲与定稿章(前缀定卷,文件名过 matchChapterFileName 单源——批F 宽松 1–4 位)
-  walk(path.join(root, '大纲/卷规划'), (p) => {
+  walk(path.join(root, '故事剧情/卷规划'), (p) => {
     const m = /卷规划[\\/]卷(\d+)[\\/]章细纲[\\/]/i.exec(p)
     if (m === null) return
     const cm = matchChapterFileName(p.slice(m.index + m[0].length))

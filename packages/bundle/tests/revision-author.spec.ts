@@ -166,7 +166,7 @@ describe('M1:ingestAuthorRevision 原样落盘', () => {
     const root = mkBook()
     withRecord(root)
     // 细纲硬约束另加一条出现类:必须出现「郑姓旗官」
-    const 细纲相对 = '大纲/卷规划/卷01/章细纲/0001-开篇任务.md'
+    const 细纲相对 = '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md'
     const 原文 = fs.readFileSync(path.join(root, 细纲相对), 'utf-8')
     fs.writeFileSync(path.join(root, 细纲相对), 原文.replace('- 〔硬〕开场必须点名主角现身', '- 〔硬〕本章必须出现「郑姓旗官」'), 'utf-8')
     const r = ingestAuthorRevision(root, key, '一段平淡的过场正文。')

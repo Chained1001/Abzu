@@ -21,8 +21,8 @@ function book() {
   const dir = path.join(root, '草稿区/草稿/卷01-开篇任务')
   fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(path.join(dir, '稿1.md'), serializeDocument({ 角色: '待审稿', 版本: 1 }, '甲'.repeat(2500) + '\n\n## 草稿候选事实\n- 事实：不计入'))
-  fs.mkdirSync(path.join(root, '大纲/卷规划/卷01/章细纲'), { recursive: true })
-  fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/章细纲/0001-开篇任务.md'), serializeDocument({ 状态: '已确认', 版本: 1 }, '# 章细纲\n\n## 定位段\n\n### 章节功能\n完成一场交锋。'))
+  fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01/章细纲'), { recursive: true })
+  fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md'), serializeDocument({ 状态: '已确认', 版本: 1 }, '# 章细纲\n\n## 定位段\n\n### 章节功能\n完成一场交锋。'))
   return root
 }
 

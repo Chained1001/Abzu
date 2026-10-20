@@ -67,7 +67,7 @@ describe('章细纲(格式规格 §3.3)', () => {
       卷: 1,
       章: 1,
       章名: '开篇任务',
-      来源引用: ['作品契约/契约.md@1', '大纲/卷规划/卷01/卷纲.md@1'],
+      来源引用: ['作品契约/契约.md@1', '故事剧情/卷规划/卷01/卷纲.md@1'],
       body,
     })
     const confirmed = confirmOutline(root, key)
@@ -85,7 +85,7 @@ describe('章细纲(格式规格 §3.3)', () => {
       卷: 1,
       章: 1,
       章名: '开篇任务',
-      来源引用: ['作品契约/契约.md@1', '大纲/卷规划/卷01/卷纲.md@1'],
+      来源引用: ['作品契约/契约.md@1', '故事剧情/卷规划/卷01/卷纲.md@1'],
     })
     const gate = checkConfirmable(root, key)
     expect(gate.ok).toBe(false)
@@ -122,7 +122,7 @@ describe('章细纲(格式规格 §3.3)', () => {
 
 describe('已定稿章细纲勘误(候选→再确认, F-001/任务19)', () => {
   const errataKey = { 卷: 1, 章: 10, 章名: '第十章 急殓' } as const
-  const refs = ['作品契约/契约.md@1', '大纲/卷规划/卷01/卷纲.md@1']
+  const refs = ['作品契约/契约.md@1', '故事剧情/卷规划/卷01/卷纲.md@1']
 
   function outlineBody(代词: string): string {
     return [
@@ -160,7 +160,7 @@ describe('已定稿章细纲勘误(候选→再确认, F-001/任务19)', () => {
     ])
     const finalizedAbs = path.join(root, '定稿/卷01/0010-第十章 急殓.md')
     fs.mkdirSync(path.dirname(finalizedAbs), { recursive: true })
-    fs.writeFileSync(finalizedAbs, '---\n状态: 已定稿\n来源细纲版本: 大纲/卷规划/卷01/章细纲/0010-第十章 急殓.md@1\n---\n# 第十章 急殓\n\n正文一律用「他」。\n', 'utf-8')
+    fs.writeFileSync(finalizedAbs, '---\n状态: 已定稿\n来源细纲版本: 故事剧情/卷规划/卷01/章细纲/0010-第十章 急殓.md@1\n---\n# 第十章 急殓\n\n正文一律用「他」。\n', 'utf-8')
     const finalizedBytes = fs.readFileSync(finalizedAbs, 'utf-8')
     return { root, finalizedAbs, finalizedBytes }
   }

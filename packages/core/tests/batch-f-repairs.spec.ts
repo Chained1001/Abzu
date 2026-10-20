@@ -182,7 +182,7 @@ describe('X7 io 三态分流(读不了 ≠ 不存在)', () => {
 
   it('卷规划目录读不了 → 全书对账 ok:false kind:unreadable;真缺失不报不可读', () => {
     const unreadable = mkRoot('vol1')
-    put(unreadable, '大纲/卷规划', '不是目录')
+    put(unreadable, '故事剧情/卷规划', '不是目录')
     const r = reconcileBookLedger(unreadable)
     expect(r.ok).toBe(false)
     if (!r.ok) {
@@ -264,7 +264,7 @@ describe('X9 matchChapterFileName 单源(宽松 1–4 位)', () => {
 
   it('各读侧一致认到 12-名字.md:listChapters / 卷摘要 / 检索索引 / 导出 / 账本章号', async () => {
     const root = mkRoot('m9')
-    put(root, '大纲/卷规划/卷01/章细纲/12-名字.md', serializeDocument({ 状态: '已确认' }, '# 细纲'))
+    put(root, '故事剧情/卷规划/卷01/章细纲/12-名字.md', serializeDocument({ 状态: '已确认' }, '# 细纲'))
     put(root, '定稿/卷01/12-名字.md', serializeDocument({ 状态: '已定稿' }, '第12章正文。'))
     put(root, paths.章摘要(1, 12, '名字'), '# 章摘要\n\n第12章摘要：钩子。')
     put(root, paths.账本('线索'), '# 线索\n')

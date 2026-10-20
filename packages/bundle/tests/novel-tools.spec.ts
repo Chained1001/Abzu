@@ -62,7 +62,7 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
     expect((await call('novel_get_story_status', { bookId: created.bookId })).design.事实项).toContainEqual({ 名称: '世界书最小模块足够', 事实: false })
     expect(await call('novel_confirm_worldbook_entry', { ...args, 模块: '世界规则', 名称: '灵力', 类型: '规则', 正文: '灵力只能通过睡眠恢复。' })).toMatchObject({ ok: true })
     expect((await call('novel_get_story_status', { bookId: created.bookId })).design.事实项).toContainEqual({ 名称: '世界书最小模块足够', 事实: true })
-    expect((await call('novel_get_story_status', { bookId: created.bookId })).design.建议).toBe('故事骨架')
+    expect((await call('novel_get_story_status', { bookId: created.bookId })).design.建议).toBe('全书大纲')
     fs.appendFileSync(declaration, '\n作者说明：保留地方风俗。\n')
     const custom = { ...args, 模块: '地方风俗', 名称: '祭典' }
     expect(await call('novel_confirm_worldbook_entry', custom)).toMatchObject({ ok: true })
@@ -193,7 +193,7 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
     // seed 只写占位确认态:不再建议开写就绪，同时列出缺少正文的分部(#165)
     const design = (statusRes as unknown as { design: { 建议: string; 已确认无内容?: string[] } }).design
     expect(design.建议).toBe('作品定调')
-    expect(design.已确认无内容).toEqual(expect.arrayContaining(['故事骨架·主角目标与成长轨迹', '世界书·人物档案/主角']))
+    expect(design.已确认无内容).toEqual(expect.arrayContaining(['全书大纲·主角目标与成长轨迹', '世界书·人物档案/主角']))
   })
 
   it('seed 只供测试/走查：默认不注册、不进 NOVEL_TOOL_NAMES，testTools 开启才注册', () => {
@@ -314,7 +314,7 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
     expect(Number(count())).toBe(Number(beforeSeed) + 1)
     const seedShow = git(['show', '--name-only', '--pretty=format:', 'HEAD']).stdout?.split('\n').map((l) => l.trim()).filter((l) => l !== '')
     expect(seedShow?.length).toBeGreaterThan(1)
-    expect(seedShow).toContain('大纲/故事骨架.md')
+    expect(seedShow).toContain('故事剧情/全书大纲.md')
 
     // 重跑 seed:幂等,无新提交
     const seedReplay = (await seedTool.execute({ bookId: createRes.bookId })) as { ok: boolean }
@@ -335,7 +335,7 @@ describe('novel_roll_window 窗口防护(状态词表/读失败分类/保留行)
       bookRoot,
       bookId: created.bookId,
       roll: tools.find((t) => t.name === 'novel_roll_window')!,
-      windowPath: path.join(bookRoot, '大纲/卷规划/卷01/近期窗口.md'),
+      windowPath: path.join(bookRoot, '故事剧情/卷规划/卷01/近期窗口.md'),
     }
   }
 
@@ -456,23 +456,23 @@ describe('novel_note_pending 路径预校验（P2-5：与 commit 路径同形，
     const tools = createNovelTools({ nativeWrite: nativeWriteStub, workspaceRoot: () => ws, bookRootOfBookId: () => bookRoot })
     const created = await tools.find((t) => t.name === 'novel_create_book')!.execute({ bookName, concept: CONCEPT }) as { ok: boolean; bookId: string }
     expect(created.ok).toBe(true)
-    fs.mkdirSync(path.join(bookRoot, '大纲'), { recursive: true })
-    fs.writeFileSync(path.join(bookRoot, '大纲/故事骨架.md'), '# 故事骨架\n\n## 线索悬念伏笔\n\n- 开场点名主角\n')
+    fs.mkdirSync(path.join(bookRoot, '故事剧情'), { recursive: true })
+    fs.writeFileSync(path.join(bookRoot, '故事剧情/全书大纲.md'), '# 全书大纲\n\n## 线索悬念伏笔\n\n- 开场点名主角\n')
     return { ws, bookId: created.bookId, note: tools.find((t) => t.name === 'novel_note_pending')! }
   }
 
   it('合法真源路径照常写便签并随 design: 提交', async () => {
     const { note, bookId } = await setup('便签书')
-    const r = await note.execute({ bookId, relPath: '大纲/故事骨架.md', 节名: '线索悬念伏笔', 文本: '补：铜铃来历' }) as { ok: boolean; relPath?: string }
+    const r = await note.execute({ bookId, relPath: '故事剧情/全书大纲.md', 节名: '线索悬念伏笔', 文本: '补：铜铃来历' }) as { ok: boolean; relPath?: string }
     expect(r.ok).toBe(true)
-    expect(r.relPath).toBe('大纲/故事骨架.md')
+    expect(r.relPath).toBe('故事剧情/全书大纲.md')
   })
 
   it('穿越段／书仓外／知识库与配置域顶层在进 core 读取前被拒，不泄露存在性差异', async () => {
     const { ws, note, bookId } = await setup('穿越书')
     // 书仓外造一个带同名分节的真文件：预校验失效时报文会从「路径非法」变成「没有分节」——这就是探测信道
     fs.writeFileSync(path.join(ws, '书外.md'), '# 外部\n\n## 线索悬念伏笔\n\n外部内容\n')
-    for (const bad of ['../书外.md', '..\书外.md', '大纲/../../书外.md', '知识库/条目.md', 'profiles/x.md', '草稿区/稿1.md']) {
+    for (const bad of ['../书外.md', '..\书外.md', '故事剧情/../../书外.md', '知识库/条目.md', 'profiles/x.md', '草稿区/稿1.md']) {
       const r = await note.execute({ bookId, relPath: bad, 节名: '线索悬念伏笔', 文本: 'x' }) as { ok: boolean; reason: string }
       expect(r.ok, bad).toBe(false)
       expect(r.reason, bad).toContain('待补便签路径非法')

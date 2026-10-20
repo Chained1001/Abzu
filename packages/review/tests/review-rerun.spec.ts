@@ -180,7 +180,7 @@ describe('陈旧记录的重跑通道（D-002 回归）', () => {
     const settled = loadReviewRecord(root, key)!
     expect(settled.完成).toBe(true)
     // 换稿＋改细纲 → 指纹陈旧
-    const outlinePath = path.join(root, '大纲/卷规划/卷01/章细纲/0001-开篇任务.md')
+    const outlinePath = path.join(root, '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md')
     fs.writeFileSync(outlinePath, `${fs.readFileSync(outlinePath, 'utf-8')}\n- 〔硬〕本章不得出现火枪\n`, 'utf-8')
     putPending(root, `雨停得早。${HARD}。他回头看了一眼。`)
     expect(scanChapter(root, key).审核证据过期).toBe(true)

@@ -57,16 +57,16 @@ describe('paths 当前书路径解析', () => {
   const rootOf = (id: string): string | undefined => roots.get(id)
 
   it('书id+仓内相对路径 → 仓内绝对路径', () => {
-    const r = resolveToBookPath(rootOf, 'book-a:大纲/故事骨架.md')
+    const r = resolveToBookPath(rootOf, 'book-a:故事剧情/全书大纲.md')
     expect(r.ok).toBe(true)
     if (r.ok) expect(r.path).toContain('书仓')
   })
 
   it('裸相对路径拒绝(PRD §4.7)', () => {
-    const r = resolveToBookPath(rootOf, '大纲/故事骨架.md')
+    const r = resolveToBookPath(rootOf, '故事剧情/全书大纲.md')
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.reason).toContain('裸相对路径拒绝')
-    expect(parseBookPathInput('大纲/故事骨架.md').kind).toBe('bare-relative')
+    expect(parseBookPathInput('故事剧情/全书大纲.md').kind).toBe('bare-relative')
   })
 
   it('未知书id 拒绝', () => {
@@ -82,10 +82,10 @@ describe('paths 当前书路径解析', () => {
   })
 
   it('绝对路径:直接放行由门禁再判', () => {
-    const absolute = process.platform === 'win32' ? 'D:/repo/书仓/甲/大纲/骨架.md' : '/repo/书仓/甲/大纲/骨架.md'
+    const absolute = process.platform === 'win32' ? 'D:/repo/书仓/甲/故事剧情/全书大纲.md' : '/repo/书仓/甲/故事剧情/全书大纲.md'
     const r = resolveToBookPath(rootOf, absolute)
     expect(r.ok).toBe(true)
-    if (r.ok) expect(r.path).toContain('大纲/骨架.md')
+    if (r.ok) expect(r.path).toContain('故事剧情/全书大纲.md')
   })
 })
 
@@ -214,8 +214,8 @@ describe('progressLineOf 选书近况(一行固定形状,只扫当前卷)', () =
   it('有章节动静时输出固定形状一行;连续两次求值完全相同', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-progress-'))
     // 构造有近期窗口+候选细纲的最小书仓
-    fs.mkdirSync(path.join(dir, '大纲', '卷规划', '卷01'), { recursive: true })
-    fs.writeFileSync(path.join(dir, '大纲', '卷规划', '卷01', '近期窗口.md'), '# 近期窗口\n\n- 第一章 〔已确认〕\n\n', 'utf8')
+    fs.mkdirSync(path.join(dir, '故事剧情', '卷规划', '卷01'), { recursive: true })
+    fs.writeFileSync(path.join(dir, '故事剧情', '卷规划', '卷01', '近期窗口.md'), '# 近期窗口\n\n- 第一章 〔已确认〕\n\n', 'utf8')
     fs.mkdirSync(path.join(dir, '草稿区', '章细纲'), { recursive: true })
     fs.writeFileSync(path.join(dir, '草稿区', '章细纲', '卷01-第一章.md'), '---\n状态: 候选\n---\n', 'utf8')
     const line = progressLineOf(dir)

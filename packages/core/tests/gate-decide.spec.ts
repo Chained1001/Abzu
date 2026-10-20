@@ -54,7 +54,7 @@ describe('decideBookWrite(书仓内写入门禁单源)', () => {
     expect(idea.kind).toBe('deny')
     if (idea.kind === 'deny') expect(idea.reason).toMatch(/构想快照建书后只读/)
 
-    const source = decideBookWrite(root, '大纲/故事骨架.md')
+    const source = decideBookWrite(root, '故事剧情/全书大纲.md')
     expect(source.kind).toBe('deny')
     if (source.kind === 'deny') expect(source.reason).toMatch(/真源区.*文件工具不得改写/)
   })
@@ -80,7 +80,7 @@ describe('decideBookWrite(书仓内写入门禁单源)', () => {
       '草稿区/草稿/随意路径/稿1.md',
       '定稿/卷01/0001-初见.md',
       '构想/构想快照.md',
-      '大纲/故事骨架.md',
+      '故事剧情/全书大纲.md',
     ]
     for (const rel of rels) {
       const absolute = path.join(root, rel)
@@ -96,7 +96,7 @@ describe('decideBookWrite(书仓内写入门禁单源)', () => {
       '草稿区/草稿/随意路径/稿1.md',
       '定稿/卷01/0001-初见.md',
       '构想/构想快照.md',
-      '大纲/故事骨架.md',
+      '故事剧情/全书大纲.md',
       '../越界.md',
     ]
     for (const target of targets) {

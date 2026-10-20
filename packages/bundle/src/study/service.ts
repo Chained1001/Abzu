@@ -14,13 +14,13 @@ import type { IndexBook } from '../indexing/manager'
 import { readStoryGraph } from './graph'
 
 const MAX_DOCUMENT_BYTES = 4 * 1024 * 1024
-const ROOT_ORDER = ['作品契约', '构想', '大纲', '世界书', '定稿', '账本', '本书记忆', '草稿区']
+const ROOT_ORDER = ['作品契约', '构想', '故事剧情', '世界书', '定稿', '账本', '本书记忆', '草稿区']
 
 export function routeForDocument(ref: FileRef): string {
   if (ref.space === 'shared') return '共享资料更新：只处理相关构想或灵感，不默认复审所有书'
   if (/^草稿区\/草稿\//.test(ref.path)) return '作者改稿：校准章节状态，保留作者原文，复审受影响项'
   if (/章细纲/.test(ref.path)) return '细纲与备料：核对变更和下游材料影响'
-  if (/^(大纲|世界书|作品契约)\//.test(ref.path)) return '设计变更：核对并报告本次修改的影响；需要下游修改时只呈报提案，等待作者决定'
+  if (/^(故事剧情|世界书|作品契约)\//.test(ref.path)) return '设计变更：核对并报告本次修改的影响；需要下游修改时只呈报提案，等待作者决定'
   if (/^定稿\//.test(ref.path)) return '定稿更正：进入吃书补偿，不直接覆盖定稿'
   if (/^账本\//.test(ref.path)) return '账本与时序核对：检查事实一致性和受影响章节'
   return '校准作品现状，再按修改内容选择对应节点'

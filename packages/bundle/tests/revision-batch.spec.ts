@@ -12,6 +12,8 @@ import {
   writeCandidate,
 } from '@abzu/core'
 import { ingestFindings, registerDefaultChecks, resetChecks, runReview } from '@abzu/review'
+import { createNovelTools } from '../src/novel-tools'
+import { nativeWriteStub } from './fixtures/native-write-stub'
 
 const roots: string[] = []
 function mkDir(prefix: string): string {
@@ -189,5 +191,118 @@ describe('改稿批(A8)', () => {
       处置: [{ 发现项编号: '审-01-0001-作者意见-1', 处置: '已解决' }],
     })
     expect(res).toMatchObject({ ok: false, reason: expect.stringContaining('须呈报上游') })
+  })
+})
+
+describe('改稿批工具面：followup 与「发现项→改动」映射', () => {
+  function makeTools(root: string) {
+    const tools = createNovelTools({
+      nativeWrite: nativeWriteStub,
+      workspaceRoot: () => root,
+      bookRootOfBookId: () => root,
+      testTools: true,
+    })
+    const call = async (name: string, args: Record<string, unknown>) =>
+      await tools.find((t) => t.name === name)!.execute(args, { agent: { id: 'a', session: { append: () => {} } } } as never) as Record<string, unknown> & { ok: boolean }
+    return { call }
+  }
+
+  const bookId = '改稿批书'
+
+  function ready(root: string): void {
+    confirmWithHard(root)
+    putPending(root, `综上所述，${HARD}。`)
+    seedFindings(root)
+  }
+
+  it('不传改动映射时旧行为不变：工具照常落实，记录里没有 改动映射', async () => {
+    const root = mkDir('abzu-tool-map-absent-')
+    ready(root)
+    const { call } = makeTools(root)
+    const res = await call('novel_apply_revision_batch', {
+      bookId, 卷: 1, 章: 1, 章名: key.章名,
+      新稿正文: `改后正文。${HARD}。`,
+      处置: [{ 发现项编号: '审-01-0001-作者意见-1', 处置: '已解决', 改动说明: '合并了前两句' }],
+    }) as { ok: boolean; relPath?: string; 更新条数?: number; followup?: { 硬约束回查失败: string[] } }
+    expect(res.ok, JSON.stringify(res)).toBe(true)
+    expect(res.relPath).toBe(`草稿区/草稿/卷01-${key.章名}/稿2.md`)
+    expect(res.更新条数).toBe(1)
+    const record = loadReviewRecord(root, key)!
+    expect(record.问题.find((p) => p.发现项编号 === '审-01-0001-作者意见-1')).not.toHaveProperty('改动映射')
+  })
+
+  it('batch 返回值带 followup（与 novel_import_draft 同形状，硬约束回查口径一致）', async () => {
+    const root = mkDir('abzu-tool-followup-')
+    ready(root)
+    // 确认细纲再加一条确定性「出现」类硬约束：新稿不写该词 → 回查失败非空
+    const 细纲相对 = `故事剧情/卷规划/卷01/章细纲/0001-${key.章名}.md`
+    const 原文 = fs.readFileSync(path.join(root, 细纲相对), 'utf-8')
+    fs.writeFileSync(path.join(root, 细纲相对), 原文.replace(`- 〔硬〕${HARD}`, `- 〔硬〕${HARD}\n- 〔硬〕本章必须出现「郑姓旗官」`), 'utf-8')
+    const { call } = makeTools(root)
+    // 新稿既不写 HARD（语义类）也不写「郑姓旗官」（确定性出现类）
+    const res = await call('novel_apply_revision_batch', {
+      bookId, 卷: 1, 章: 1, 章名: key.章名,
+      新稿正文: '改后正文，没提那句硬约束。',
+      处置: [
+        { 发现项编号: '审-01-0001-作者意见-1', 处置: '已解决' },
+        { 发现项编号: '审-01-0001-作者意见-2', 处置: '作者保留' },
+      ],
+    }) as { ok: boolean; followup?: { 硬约束回查失败: string[]; 需语义审读: string[]; 仍待处置: { 发现项编号: string }[]; 建议重跑: string[] } }
+    expect(res.ok, JSON.stringify(res)).toBe(true)
+    expect(res.followup).toBeDefined()
+    // 形状与 novel_import_draft 的 followup 一致（四键同集）
+    expect(Object.keys(res.followup!).sort()).toEqual(['仍待处置', '建议重跑', '硬约束回查失败', '需语义审读'])
+    // 确定性出现类：正文缺「郑姓旗官」→ 回查失败
+    expect(res.followup!.硬约束回查失败.some((l) => l.includes('郑姓旗官'))).toBe(true)
+    // 语义类：HARD 不伪装成通过或失败，落需语义审读
+    expect(res.followup!.需语义审读.length).toBeGreaterThan(0)
+    // 第 3 条仍留待处理 → 仍待处置能点出来
+    expect(res.followup!.仍待处置.map((p) => p.发现项编号)).toContain('审-01-0001-作者意见-3')
+  })
+
+  it('传入的改动映射被保存并可回读', async () => {
+    const root = mkDir('abzu-tool-map-present-')
+    ready(root)
+    const { call } = makeTools(root)
+    const res = await call('novel_apply_revision_batch', {
+      bookId, 卷: 1, 章: 1, 章名: key.章名,
+      新稿正文: `改后正文。${HARD}。`,
+      处置: [
+        { 发现项编号: '审-01-0001-作者意见-1', 处置: '已解决', 改动映射: { 改动位置: '第1段', 改动说明: '把两句并成一句' } },
+        { 发现项编号: '审-01-0001-作者意见-2', 处置: '作者保留', 改动映射: { 改动位置: '无改动', 改动说明: '作者确认保留' } },
+      ],
+    }) as { ok: boolean }
+    expect(res.ok, JSON.stringify(res)).toBe(true)
+    const record = loadReviewRecord(root, key)!
+    expect(record.问题.find((p) => p.发现项编号 === '审-01-0001-作者意见-1')?.改动映射).toEqual({ 改动位置: '第1段', 改动说明: '把两句并成一句' })
+    expect(record.问题.find((p) => p.发现项编号 === '审-01-0001-作者意见-2')?.改动映射).toEqual({ 改动位置: '无改动', 改动说明: '作者确认保留' })
+  })
+
+  it.each([
+    ['缺改动位置', { 改动说明: '只写说明' }, '缺「改动位置」'],
+    ['缺改动说明', { 改动位置: '第1段' }, '缺「改动说明」'],
+    ['改动说明为空白', { 改动位置: '第1段', 改动说明: '   ' }, '「改动说明」为空'],
+    ['不是对象', '第1段', '形状非法'],
+  ])('非法改动映射被工具拒绝且理由可读：%s', async (_label, map, expected) => {
+    const root = mkDir('abzu-tool-map-bad-')
+    ready(root)
+    const { call } = makeTools(root)
+    const res = await call('novel_apply_revision_batch', {
+      bookId, 卷: 1, 章: 1, 章名: key.章名,
+      新稿正文: `改后正文。${HARD}。`,
+      处置: [{ 发现项编号: '审-01-0001-作者意见-1', 处置: '已解决', 改动映射: map }],
+    }) as { ok: boolean; reason?: string; code?: string }
+    expect(res.ok).toBe(false)
+    // schema 层或 core 层拒绝均可，但必须点名这条发现项并可读
+    if (res.code === 'invalid-args') {
+      expect(res.reason).toContain('改动映射')
+    } else {
+      expect(res.reason).toContain('审-01-0001-作者意见-1')
+      expect(res.reason).toContain(expected)
+      expect(res.reason).toContain('修正方法：')
+    }
+    // 整批不写
+    expect(listChapterDrafts(root, key).map((d) => d.file)).toEqual(['稿1.md'])
+    expect(loadReviewRecord(root, key)!.问题.find((p) => p.发现项编号 === '审-01-0001-作者意见-1')?.处置状态).toBe('待处理')
   })
 })

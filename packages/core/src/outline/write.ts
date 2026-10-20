@@ -17,7 +17,8 @@ import { resolveDraftRel } from '../repo/draft-paths'
 import { resolveInsideBookOrNull } from '../gate/paths'
 import { parseSourceRef, type SourceRef } from '../repo/sourceRef'
 import { parseOutline } from './parse'
-import { 定位段小节, 单元字段 } from './template'
+import { 四固定小节缺失, 定位段小节, 单元字段 } from './template'
+import { format章型, 派发口径, 章型问题, parse章型 } from './chapter-type'
 import { emptyCandidateBody } from './template'
 import { bookWriter } from '../repo/atomic'
 
@@ -27,6 +28,8 @@ export interface WriteCandidateInput {
   readonly 章名: string
   readonly body?: string
   readonly 来源引用?: readonly string[]
+  /** 章型双轴：`<承诺档>·<情绪位>`，如「过渡·余波」；不写则只播报不拦。 */
+  readonly 章型?: string
 }
 
 export type Confirmable =
@@ -103,6 +106,7 @@ function writeCandidateLocked(bookRoot: string, input: WriteCandidateInput): str
       状态: '候选',
       身份: { 卷: input.卷, 章: input.章 ?? 0, 章名: input.章名 },
       ...(refs.length > 0 ? { 来源引用: refs } : {}),
+      ...(input.章型 === undefined || input.章型.trim() === '' ? {} : { 章型: input.章型.trim() }),
     },
     initialVersion('章细纲'),
   )
@@ -154,12 +158,36 @@ export function checkConfirmable(bookRoot: string, key: Pick<ChapterKey, '卷' |
     if (parsed.constraints.length === 0) gaps.push('约束分级缺失:正文至少一行带行内标记〔硬〕/〔软〕/〔自由〕（章节功能或单元行，不是独立小节）')
     const precondition = parsed.定位['前置条件核对结果']
     if (precondition === undefined || precondition.trim() === '') gaps.push('前置条件核对结果缺失')
+
+    // 四固定小节软校验(业务设计修正):存量细纲没有这四节,硬拦会让旧书全部确认不了,
+    // 故只播报。与章型/卷纲第五段同款口径——缺则播报,非法才拦。
+    const 小节缺失 = 四固定小节缺失(candidateText)
+    if (小节缺失 !== null) 播报.push(小节缺失)
+
+    // 章型双轴(业务设计修正 1)：非法值拦截，缺失只播报不拦——旧书没有这个字段，
+    // 强制会让存量书全部无法确认；播报足以让作者每次都看见，未来可升为硬校验。
+    const 文档 = parseDocument(candidateText)
+    const 章型原值: unknown = 文档.ok ? 文档.data.fields['章型'] : undefined
+    const 章型错 = 章型问题(章型原值)
+    if (章型错 !== null) gaps.push(章型错)
+    else {
+      // 章型问题已判合法，此处只需区分「标了」与「没标」
+      const parsed章型 = 章型原值 === undefined || String(章型原值).trim() === '' ? null : parse章型(章型原值)
+      if (parsed章型 === null) {
+        播报.push('章型未标：建议在候选 frontmatter 写 `章型: <承诺档>·<情绪位>`（如「过渡·余波」）——不标也能确认，但审读与润色拿不到本章强度，只能全量跑')
+      } else {
+        // 派发口径(业务设计修正)：章型翻成下游三件事，在确认时一次说清，
+        // 免得审读/润色各自再猜一遍强度。此处只播报，不构成确认门槛。
+        const 口径 = 派发口径(parsed章型)
+        播报.push(`章型 ${format章型(parsed章型)} → 细纲${口径.规格}／十查${口径.十查}／审读${口径.审读}${口径.须调剂式 ? '（须指定调剂式：防连续钝收）' : ''}`)
+      }
+    }
   }
 
   for (const line of refLines) {
     const ref = parseSourceRef(asRefLine(line))
     if (ref === null) {
-      gaps.push(`来源引用无效:${line}（合法形态：来源:<仓内相对路径>@<版本>，如 大纲/卷规划/卷01/卷纲.md@1；或 来源:作者自定义 / 来源:对谈共创；锚点、行号、绝对路径均非法）`)
+      gaps.push(`来源引用无效:${line}（合法形态：来源:<仓内相对路径>@<版本>，如 故事剧情/卷规划/卷01/卷纲.md@1；或 来源:作者自定义 / 来源:对谈共创；锚点、行号、绝对路径均非法）`)
       continue
     }
     const result = checkRef(bookRoot, ref, line)

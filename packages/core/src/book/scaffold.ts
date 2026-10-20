@@ -5,7 +5,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { applyVersionFields, initialVersion } from '../provenance'
-import { 契约六部, 分卷布局八部, 故事骨架九部, 世界书最小模块 } from '../derive/design'
+import { 契约六部, 分卷布局八部, 全书大纲九部, 世界书最小模块 } from '../derive/design'
 import { parseConcept, serializeConcept, type Concept } from '../inspire/concept'
 import { writeBatchAtomic, type FileOp } from '../repo/atomic'
 import { runtimeIgnoreLine } from '../repo/transaction'
@@ -25,8 +25,8 @@ export function emptyContractBody(bookId?: string): string {
   return `${fm}# 作品契约\n\n${labeledHeadings(契约六部, '留白')}`
 }
 
-export function emptySkeletonBody(): string {
-  return `# 故事骨架\n\n${labeledHeadings(故事骨架九部, '留白')}`
+export function emptyFullOutlineBody(): string {
+  return `# 全书大纲\n\n${labeledHeadings(全书大纲九部, '留白')}`
 }
 
 export function emptyVolumeLayoutBody(): string {
@@ -60,7 +60,7 @@ export function scaffoldBookFiles(bookRoot: string, concept: Concept | string, o
   const ops: FileOp[] = [
     { relPath: paths.契约(), content: emptyContractBody(opts.bookId) },
     { relPath: paths.构想快照(), content: conceptSnapshotText(concept) },
-    { relPath: paths.故事骨架(), content: emptySkeletonBody() },
+    { relPath: paths.全书大纲(), content: emptyFullOutlineBody() },
     { relPath: paths.分卷布局(), content: emptyVolumeLayoutBody() },
     { relPath: paths.卷纲(1), content: emptyVolumeOutlineBody() },
     { relPath: paths.计划时间线(1), content: emptyPlanTimelineBody() },

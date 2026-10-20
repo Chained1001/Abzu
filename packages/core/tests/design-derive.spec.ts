@@ -12,7 +12,7 @@ function facts(over: Partial<DesignFacts> = {}): DesignFacts {
     构想冻结: true,
     契约六部已确认: true,
     世界书最小模块足够: true,
-    骨架当前阶段已确认: true,
+    全书大纲前两部已确认: true,
     当前卷分配完整: true,
     卷纲存在: true,
     计划时间线存在: true,
@@ -35,8 +35,8 @@ describe('设计侧事实清单与建议(格式规格 §8;R1:建议无权威)', 
   it('世界构建:最小模块不足', () => {
     expect(deriveDesign(facts({ 世界书最小模块足够: false })).建议).toBe('世界构建')
   })
-  it('故事骨架:当前阶段未确认', () => {
-    expect(deriveDesign(facts({ 骨架当前阶段已确认: false })).建议).toBe('故事骨架')
+  it('全书大纲:当前阶段未确认', () => {
+    expect(deriveDesign(facts({ 全书大纲前两部已确认: false })).建议).toBe('全书大纲')
   })
   it('分卷布局:当前卷分配不完整', () => {
     expect(deriveDesign(facts({ 当前卷分配完整: false })).建议).toBe('分卷布局')
@@ -77,7 +77,7 @@ describe('设计侧扫描(文件事实)', () => {
   it('窗口无可进入条目→当前卷规划', () => {
     const root = mkBook()
     seedReady(root)
-    put(root, '大纲/卷规划/卷01/近期窗口.md', '- 初见 〔暂定〕\n')
+    put(root, '故事剧情/卷规划/卷01/近期窗口.md', '- 初见 〔暂定〕\n')
     expect(deriveDesign(scanDesign(root)).建议).toBe('当前卷规划')
   })
 

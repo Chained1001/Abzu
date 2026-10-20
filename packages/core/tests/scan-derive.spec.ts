@@ -31,7 +31,7 @@ describe('扫描器→推导端到端(真实文件树)', () => {
     const root = mkBook()
 
     // 窗口就绪
-    put(root, '大纲/卷规划/卷01/近期窗口.md', '# 近期窗口\n\n- 初见 〔已确认〕\n- 铺垫 〔暂定〕\n')
+    put(root, '故事剧情/卷规划/卷01/近期窗口.md', '# 近期窗口\n\n- 初见 〔已确认〕\n- 铺垫 〔暂定〕\n')
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('章细纲(待定位)')
 
     // 候选细纲(草稿区)
@@ -39,7 +39,7 @@ describe('扫描器→推导端到端(真实文件树)', () => {
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('章细纲(待确认)')
 
     // 确认入真源区
-    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
     expect(deriveChapterFacts(scanChapter(root, key)).建议.环节).toBe('写作备料')
 
     // 材料包段齐备
@@ -99,7 +99,7 @@ describe('扫描器→推导端到端(真实文件树)', () => {
 
   it('叠加标记:细纲需复核被带出且不改位置', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '需复核' }))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '需复核' }))
     put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     const r = deriveChapterFacts(scanChapter(root, key))
     expect(r.建议.环节).toBe('写稿') // 行 4 照常(建议仅供参考)
@@ -108,7 +108,7 @@ describe('扫描器→推导端到端(真实文件树)', () => {
 
   it('BOM:外部编辑器保存的窗口/候选细纲/材料清单/待审稿字段不静默丢失', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/近期窗口.md', '\uFEFF# 近期窗口\n\n- 初见 〔已确认〕\n- 铺垫 〔暂定〕\n')
+    put(root, '故事剧情/卷规划/卷01/近期窗口.md', '\uFEFF# 近期窗口\n\n- 初见 〔已确认〕\n- 铺垫 〔暂定〕\n')
     expect(scanChapter(root, key).窗口就绪).toBe(true)
     put(root, '草稿区/章细纲/卷01-初见.md', '\uFEFF' + md({ 状态: '候选' }))
     expect(scanChapter(root, key).候选细纲).toBe(true)
@@ -132,7 +132,7 @@ describe('扫描器→推导端到端(真实文件树)', () => {
 
   it('章枚举:listChapters 跨目录收集且去重', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
     put(root, '草稿区/章细纲/卷01-铺垫.md', md({ 状态: '候选' }))
     put(root, '定稿/卷01/0001-序幕.md', md({ 状态: '已定稿' }))
     const keys = listChapters(root)
@@ -152,7 +152,7 @@ describe('扫描器→推导端到端(真实文件树)', () => {
 describe('审核记录口径与 review 写侧对齐(M1/M2/M6)', () => {
   function reviewedBook() {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0003-初见.md', md({ 状态: '已确认' }))
     put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     put(root, '草稿区/草稿/卷01-初见/稿1.md', md({ 角色: '待审稿' }, '第一章正文'))
     const draftBody = parseDocument(md({ 角色: '待审稿' }, '第一章正文')).data.body
@@ -217,7 +217,7 @@ describe('审核记录口径与 review 写侧对齐(M1/M2/M6)', () => {
 describe('章键归并与窗口失效过滤(拍板 7 配套)', () => {
   it('窗口第七章 + 真源 0007-第七章 → 只返回一条键(章=7);已消费/已失效窗口项不产生键', () => {
     const root = mkBook()
-    const 卷规划 = path.join(root, '大纲/卷规划/卷01')
+    const 卷规划 = path.join(root, '故事剧情/卷规划/卷01')
     fs.mkdirSync(卷规划, { recursive: true })
     fs.writeFileSync(path.join(卷规划, '近期窗口.md'), [
       '# 近期窗口',
@@ -273,7 +273,7 @@ describe('草稿区键带章号(批8,0.0.57)——新键解析与旧目录 fallb
 
   it('scanChapter 旧目录 fallback:旧格式五处工件照常读,新键不存在时读旧键', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
     put(root, '草稿区/材料包/卷01-第七章/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     put(root, '草稿区/草稿/卷01-第七章/稿1.md', md({ 角色: '待审稿' }, '正文'))
     put(root, '草稿区/审核/卷01-第七章.json', JSON.stringify({ schemaVersion: 1, 完成: false, 问题: [], 模块: {} }))
@@ -285,7 +285,7 @@ describe('草稿区键带章号(批8,0.0.57)——新键解析与旧目录 fallb
 
   it('scanChapter 新键优先:两代目录同在时读新键(写侧产物权威)', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
     put(root, '草稿区/材料包/卷01-第七章/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     put(root, '草稿区/材料包/卷01-0007-第七章/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '组装中' }))
     expect(scanChapter(root, key7).材料包状态).toBe('组装中')
@@ -293,12 +293,12 @@ describe('草稿区键带章号(批8,0.0.57)——新键解析与旧目录 fallb
 
   it('候选细纲按 卷+章名 认领:0000 占位与旧格式同名候选都能被定位后的章读到', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
     // 候选先于定位落盘(工具不带章号 → 0000 占位)
     put(root, '草稿区/章细纲/卷01-0000-第七章.md', md({ 状态: '候选' }))
     expect(scanChapter(root, key7).候选细纲).toBe(true)
     const root2 = mkBook()
-    put(root2, '大纲/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
+    put(root2, '故事剧情/卷规划/卷01/章细纲/0007-第七章.md', md({ 状态: '已确认' }))
     // 旧书:候选在旧格式路径
     put(root2, '草稿区/章细纲/卷01-第七章.md', md({ 状态: '候选' }))
     expect(scanChapter(root2, key7).候选细纲).toBe(true)
@@ -314,7 +314,7 @@ describe('草稿区键带章号(批8,0.0.57)——新键解析与旧目录 fallb
 
     // 目标键不在时走认领循环:第 3 章只认 0000 占位,不碰 第7章 的候选
     const root2 = mkBook()
-    put(root2, '大纲/卷规划/卷01/章细纲/0003-同名.md', md({ 状态: '已确认' }))
+    put(root2, '故事剧情/卷规划/卷01/章细纲/0003-同名.md', md({ 状态: '已确认' }))
     put(root2, '草稿区/章细纲/卷01-0000-同名.md', md({ 状态: '候选' }))
     put(root2, '草稿区/章细纲/卷01-0007-同名.md', md({ 状态: '候选' }))
     expect(resolveCandidateOutlineRel(root2, { 卷: 1, 章: 3, 章名: '同名' })).toBe('草稿区/章细纲/卷01-0000-同名.md')

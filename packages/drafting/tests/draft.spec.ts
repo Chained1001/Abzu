@@ -107,7 +107,7 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
   it('Y5 带 BOM 的确认细纲照常解析，硬约束不丢', () => {
     const root = mkBook()
     confirmReady(root)
-    const rel = '大纲/卷规划/卷01/章细纲/0001-开篇任务.md'
+    const rel = '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md'
     const raw = fs.readFileSync(path.join(root, rel), 'utf-8')
     // 外部编辑器带 BOM 保存:读侧单源(core readBookText 剥 BOM)后仍能解析
     fs.writeFileSync(path.join(root, rel), '\uFEFF' + raw.replace('〔软〕', '〔硬〕'), 'utf-8')
@@ -130,8 +130,8 @@ describe('单稿写作(插件规格 §5 草稿协议)', () => {
     expect(fs.existsSync(path.join(root, '世界书'))).toBe(true)
     const world = fs.readFileSync(path.join(root, '世界书/人物档案/主角.md'), 'utf-8')
     expect(world).not.toContain('巷口多了一盏灯')
-    expect(fs.existsSync(path.join(root, '大纲/卷规划/卷01/章细纲/0001-开篇任务.md'))).toBe(true)
-    const outline = fs.readFileSync(path.join(root, '大纲/卷规划/卷01/章细纲/0001-开篇任务.md'), 'utf-8')
+    expect(fs.existsSync(path.join(root, '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md'))).toBe(true)
+    const outline = fs.readFileSync(path.join(root, '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md'), 'utf-8')
     expect(outline).not.toContain('巷口多了一盏灯')
   })
 

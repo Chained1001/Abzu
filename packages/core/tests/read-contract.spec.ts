@@ -118,9 +118,9 @@ describe('读侧契约：IO 故障不得被说成「不存在」', () => {
 
   it('⑤ 近期窗口 / 确认细纲不可读 → scan 出降级事实位、resume 注入「读取失败」', () => {
     const root = mkRoot()
-    fs.mkdirSync(path.join(root, '大纲', '卷规划', '卷01', '章细纲'), { recursive: true })
-    toDir(path.join(root, '大纲', '卷规划', '卷01', '近期窗口.md'))
-    toDir(path.join(root, '大纲', '卷规划', '卷01', '章细纲', '0001-开篇任务.md'))
+    fs.mkdirSync(path.join(root, '故事剧情', '卷规划', '卷01', '章细纲'), { recursive: true })
+    toDir(path.join(root, '故事剧情', '卷规划', '卷01', '近期窗口.md'))
+    toDir(path.join(root, '故事剧情', '卷规划', '卷01', '章细纲', '0001-开篇任务.md'))
 
     const facts = scanChapter(root, KEY) as unknown as Record<string, unknown>
     expect(facts['读取降级'], JSON.stringify(facts)).toBe(true)

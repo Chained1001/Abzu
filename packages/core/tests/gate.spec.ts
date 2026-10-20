@@ -43,9 +43,9 @@ describe('文件门禁(不变量 4/5)', () => {
     if (d.kind === 'deny') expect(d.reason).toMatch(/构想快照建书后只读/)
   })
 
-  it('拒绝写入大纲/(真源,非文件工具)', () => {
+  it('拒绝写入故事剧情/(真源,非文件工具)', () => {
     const root = mkBook()
-    const d = decidePreExecute(root, write(path.join(root, '大纲/故事骨架.md')))
+    const d = decidePreExecute(root, write(path.join(root, '故事剧情/全书大纲.md')))
     expect(d.kind).toBe('deny')
     if (d.kind === 'deny') expect(d.reason).toMatch(/真源区.*文件工具不得改写/)
   })
@@ -95,7 +95,7 @@ describe('写稿门槛(R1 落码:播报不拒绝)', () => {
 
   it('材料包组装中:放行写入,readiness 播报材料包状态', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
     put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '组装中' }))
     const rel = '草稿区/草稿/卷01-初见/稿1.md'
     expect(decidePreExecute(root, write(path.join(root, rel)))).toEqual({ kind: 'allow' })
@@ -113,7 +113,7 @@ describe('写稿门槛(R1 落码:播报不拒绝)', () => {
 
   it('确认细纲+材料包段齐备→允许写草稿,readiness 全绿(说明不含材料包段)', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
     put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段齐备' }))
     const rel = '草稿区/草稿/卷01-初见/稿1.md'
     const d = decidePreExecute(root, write(path.join(root, rel)))
@@ -126,7 +126,7 @@ describe('写稿门槛(R1 落码:播报不拒绝)', () => {
 
   it('对照:材料包段有缺→仍放行写入(R1 播报不拒绝),readiness 追加播报材料包段有缺', () => {
     const root = mkBook()
-    put(root, '大纲/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
+    put(root, '故事剧情/卷规划/卷01/章细纲/0003-初见.md', serializeDocument({ 状态: '已确认' }, '细纲'))
     put(root, '草稿区/材料包/卷01-初见/材料清单.json', JSON.stringify({ schemaVersion: 1, 状态: '段有缺' }))
     const rel = '草稿区/草稿/卷01-初见/稿1.md'
     const d = decidePreExecute(root, write(path.join(root, rel)))

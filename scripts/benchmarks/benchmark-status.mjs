@@ -19,14 +19,14 @@ const TOTAL = VOLUMES * CHAPTERS_PER_VOLUME
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-benchmark-status-'))
 const doc = (title, body) => `# ${title}\n\n${body}`
 for (let v = 1; v <= VOLUMES; v += 1) {
-  fs.mkdirSync(path.join(root, '大纲/卷规划', `卷${String(v).padStart(2, '0')}`, '章细纲'), { recursive: true })
-  fs.writeFileSync(path.join(root, '大纲/卷规划', `卷${String(v).padStart(2, '0')}`, '卷纲.md'), doc(`卷${v}卷纲`, '定位段:测试。\n'))
-  fs.writeFileSync(path.join(root, '大纲/卷规划', `卷${String(v).padStart(2, '0')}`, '计划时间线.md'), '# 计划时间线\n\n## 窗口覆盖\n\n## 窗口外锚点\n')
-  fs.writeFileSync(path.join(root, '大纲/卷规划', `卷${String(v).padStart(2, '0')}`, '近期窗口.md'), '# 近期窗口\n')
+  fs.mkdirSync(path.join(root, '故事剧情/卷规划', `卷${String(v).padStart(2, '0')}`, '章细纲'), { recursive: true })
+  fs.writeFileSync(path.join(root, '故事剧情/卷规划', `卷${String(v).padStart(2, '0')}`, '卷纲.md'), doc(`卷${v}卷纲`, '定位段:测试。\n'))
+  fs.writeFileSync(path.join(root, '故事剧情/卷规划', `卷${String(v).padStart(2, '0')}`, '计划时间线.md'), '# 计划时间线\n\n## 窗口覆盖\n\n## 窗口外锚点\n')
+  fs.writeFileSync(path.join(root, '故事剧情/卷规划', `卷${String(v).padStart(2, '0')}`, '近期窗口.md'), '# 近期窗口\n')
   for (let c = 0; c < CHAPTERS_PER_VOLUME; c += 1) {
     const chapterNo = (v - 1) * CHAPTERS_PER_VOLUME + c + 1
     const name = `章${chapterNo}`
-    fs.writeFileSync(path.join(root, '大纲/卷规划', `卷${String(v).padStart(2, '0')}`, '章细纲', `${String(chapterNo).padStart(4, '0')}-${name}.md`), doc(`${name}细纲`, '任务:测试推进。\n'))
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划', `卷${String(v).padStart(2, '0')}`, '章细纲', `${String(chapterNo).padStart(4, '0')}-${name}.md`), doc(`${name}细纲`, '任务:测试推进。\n'))
     const draftDir = path.join(root, '草稿区/草稿', `卷${String(v).padStart(2, '0')}-${name}`)
     fs.mkdirSync(draftDir, { recursive: true })
     fs.writeFileSync(path.join(draftDir, '稿1.md'), `---\n角色: 草稿\n---\n# ${name}\n\n正文占位。\n`)

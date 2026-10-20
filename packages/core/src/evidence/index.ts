@@ -17,6 +17,7 @@ export {
   归一化严重程度,
   是高级严重程度,
   type Finding,
+  type FindingChangeMap,
   type ModuleRunState,
   type ReviewPlan,
   type ReviewRecord,
@@ -26,3 +27,5 @@ export {
   type 严重程度,
   type 严重程度归一,
 } from './record'
+export { buildReviewDigest, loadReviewDigest, writeReviewDigest, type 审读摘要记录, type 审读摘要模块行, type 审读摘要写入结果 } from './digest'
+export { summarizeReviewDigests, type 审读汇总, type 审读汇总章行, type 审读汇总模块行 } from './digest-report'

@@ -170,7 +170,7 @@ function resumeArchive(root: string, receipt: ArchiveReceipt, provenance?: Opera
 }
 
 const 定稿章 = /^定稿\/卷(\d+)\/(\d{4})-(.+)\.md$/
-const 章摘要目标 = /^大纲\/卷规划\/卷\d+\/章摘要\/\d{4}-(.+)\.md$/
+const 章摘要目标 = /^故事剧情\/卷规划\/卷\d+\/章摘要\/\d{4}-(.+)\.md$/
 
 /** 章名白名单(B2):清单目标凡定稿章/章摘要形态,章名段过 assertSegment——`a/b` 建嵌套目录、尾点章名在 Windows 产生不一致仓。 */
 function assertTargetChapterNames(targets: readonly string[]): void {

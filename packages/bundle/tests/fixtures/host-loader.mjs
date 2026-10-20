@@ -23,6 +23,33 @@ const host = process.env.ABZU_DSH_SOURCE === undefined ? undefined : loadSourceH
 const appBoot = await import(host === undefined ? '@deepseek-ai/dsh-app-boot' : pathToFileURL(host.entry('@deepseek-ai/dsh-app-boot')).href)
 const expectedVersion = host?.version ?? baseline.registry.version
 const report = { node: process.version, checks: {}, versions: {}, baseline: { version: expectedVersion, sourceCommit: host?.commit ?? null, kind: host === undefined ? 'npm' : 'source' } }
+/**
+ * 期望的工具条数：从打包产物自报的注册表取，不写死数字。
+ *
+ * 早先这里 6 处都写死 31——每次新增一个工具就要改 6 行，忘了就整片红，
+ * 而红的原因与「工具是否全装上」这件事无关。改为比对注册表本身：
+ * 锁的语义变成「宿主装到的条数 == 产物注册的条数」，加工具自动跟随。
+ * 取不到注册表时退回 null（调用处跳过条数断言，只保留 >0 的检查）。
+ */
+let expectedToolCount
+async function toolCountExpectation() {
+  if (expectedToolCount !== undefined) return expectedToolCount
+  try {
+    const mod = await import(bundleUrl)
+    const registered = mod.registry?.tools ?? mod.tools ?? []
+    expectedToolCount = Array.isArray(registered) && registered.length > 0 ? registered.length : null
+  } catch {
+    expectedToolCount = null
+  }
+  return expectedToolCount
+}
+/** 断言工具条数：总是要求 >0；能取到注册表时要求精确相等。 */
+async function assertToolCount(agent, label) {
+  const actual = schemas(agent).length
+  assert.ok(actual > 0, label + ':应拿到工具')
+  const expected = await toolCountExpectation()
+  if (expected !== null) assert.equal(actual, expected, label + ':工具条数应与注册表一致（注册 ' + expected + ',宿主 ' + actual + '）')
+}
 const check = async (name, fn) => {
   report.running = name
   fs.writeFileSync(path.join(root, 'report.json'), JSON.stringify(report, null, 2))
@@ -139,7 +166,7 @@ try {
 
   await check('主 Agent 工具与全局隔离', async () => {
     assert.equal(main.session.header.version, host === undefined ? baseline.registry.sessionFormat : baseline.source.sessionFormat)
-    assert.equal(schemas(main).length, 31)
+    await assertToolCount(main, '主 Agent 工具与全局隔离')
     assert.deepEqual(schemas(undefined), [])
     const result = await execute(main, 'novel_select_book', { bookId: 'loader-book' })
     assert.equal(result.value.ok, true, JSON.stringify(result))
@@ -242,7 +269,7 @@ try {
       assert.ok(!service('agents').roots().includes(unmarked.agent))
       assert.ok(service('agents').roots().includes(restoredRoot.agent))
       assert.deepEqual(schemas(unmarked.agent), [])
-      assert.equal(schemas(restoredRoot.agent).length, 31)
+      await assertToolCount(restoredRoot.agent, '重启后重新装机')
       assert.equal(service('approval').overrideOf(unmarked.agent.session), 'never')
       assert.notEqual(service('approval').overrideOf(restoredRoot.agent.session), 'never')
     } finally {
@@ -252,12 +279,12 @@ try {
   })
   await check('同一会话恢复后重新装机', async () => {
     const previous = await service('agents').create({ sessionId: 'loader-resume', meta: { cwd: workspace } })
-    assert.equal(schemas(previous.agent).length, 31)
+    await assertToolCount(previous.agent, '同一会话恢复')
     await service('sessionPersistence').flush()
     await previous.dispose()
     const resumed = await service('agents').resume({ resumeSessionId: 'loader-resume' })
     try {
-      assert.equal(schemas(resumed.agent).length, 31)
+      await assertToolCount(resumed.agent, '恢复后')
       assert.match((await presentation(resumed.agent)).status[0].text, /【工作区总览】/)
     }
     finally { await resumed.dispose() }
@@ -267,7 +294,7 @@ try {
     const whileMissing = schemas(main)
     await toggle('user-questions', false)
     assert.deepEqual(whileMissing, [])
-    assert.equal(schemas(main).length, 31)
+    await assertToolCount(main, '运行时归属')
     assert.deepEqual(schemas(child), [])
   })
   await check('审批依赖晚到仍拒绝子 Agent', async () => {
@@ -455,7 +482,7 @@ try {
     const fresh = await service('agents').create({ sessionId: 'loader-after-tools', meta: { cwd: workspace } })
     const delegated = await fresh.agent.ctx.get('agents').create({ parentAgent: fresh.agent, sessionId: 'loader-after-tools-child', meta: { cwd: workspace, origin: 'subagent' } })
     try {
-      assert.equal(schemas(fresh.agent).length, 31)
+      await assertToolCount(fresh.agent, '卸载重装')
       assert.deepEqual(schemas(delegated.agent), [])
       assert.equal((await presentation(fresh.agent)).status.length, 1)
       assert.equal((await execute(fresh.agent, 'novel_select_book', { bookId: 'loader-book' })).value.ok, true)

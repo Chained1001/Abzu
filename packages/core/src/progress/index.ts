@@ -62,7 +62,7 @@ export interface DesignDetail {
    */
   readonly 读取降级?: { readonly 状态: string; readonly 文件: readonly string[] }
   readonly 契约: DesignDocDetail
-  readonly 骨架: DesignDocDetail
+  readonly 全书大纲: DesignDocDetail
   readonly 分卷: DesignDocDetail & { readonly 各卷: readonly { readonly 卷号: number; readonly 状态: string }[] }
   readonly 卷规划: readonly VolumePlanDetail[]
   readonly 世界书: {
@@ -117,10 +117,10 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
     return null
   }
   const 契约文 = read(paths.契约())
-  const 骨架文 = read(paths.故事骨架())
+  const 全书大纲文 = read(paths.全书大纲())
   const 分卷文 = read(paths.分卷布局())
 
-  // 契约分部按六部全量给出(未写的部标「留白」),骨架/分卷按实际标注行。
+  // 契约分部按六部全量给出(未写的部标「留白」),全书大纲/分卷按实际标注行。
   const 契约标注 = new Map(parseDocDetail(契约文 ?? '').map((p) => [p.名称, p]))
   const 契约分部: DesignPartDetail[] = 契约文 === null ? [] : 契约六部.map((n) => {
     const hit = 契约标注.get(n)
@@ -141,7 +141,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
 
   // 卷规划:扫描已有的卷目录(不预设只看当前卷)。
   const 卷规划: VolumePlanDetail[] = []
-  const 卷规划根 = path.join(bookRoot, '大纲/卷规划')
+  const 卷规划根 = path.join(bookRoot, '故事剧情/卷规划')
   let 卷目录: string[] = []
   try {
     卷目录 = fs.readdirSync(卷规划根).filter((n) => /^卷\d+$/.test(n)).sort()
@@ -213,7 +213,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
     内容问题: scanDesign(bookRoot, 卷).内容问题 ?? [],
     ...(不可读.length === 0 ? {} : { 读取降级: { 状态: degraded('unreadable', 可读), 文件: 不可读 } }),
     契约: { 路径: paths.契约(), 分部: 契约分部 },
-    骨架: { 路径: paths.故事骨架(), 分部: parseDocDetail(骨架文 ?? '') },
+    全书大纲: { 路径: paths.全书大纲(), 分部: parseDocDetail(全书大纲文 ?? '') },
     分卷: { 路径: paths.分卷布局(), 分部: parseDocDetail(分卷文 ?? ''), 各卷 },
     卷规划,
     世界书: { 已声明模块, 未声明模块, 各模块 },
@@ -225,7 +225,7 @@ export function scanDesignDetail(bookRoot: string, volume?: number): DesignDetai
 const PENDING_RE = /^\s*待补[:：]/
 
 /** 待补便签只写设计真源工件；定稿/构想为冻结区、账本与记忆有专属写入路径、草稿区不随 design: 提交。 */
-const PENDING_TARGET_TOPS = new Set(['作品契约', '大纲', '世界书'])
+const PENDING_TARGET_TOPS = new Set(['作品契约', '故事剧情', '世界书'])
 
 /**
  * 待补便签写入器(算不出来的才落盘):在 relPath 工件的「节名」分节内写/清 `待补：<文本>` 行。
@@ -235,7 +235,7 @@ function writePendingLocked(bookRoot: string, relPath: string, 节名: string, �
   | { readonly ok: true; readonly relPath: string }
   | { readonly ok: false; readonly reason: string } {
   const top = relPath.split('/')[0]?.trim() ?? ''
-  if (!PENDING_TARGET_TOPS.has(top)) return { ok: false, reason: `待补便签只写设计真源（作品契约/大纲/世界书），拒绝:${relPath}` }
+  if (!PENDING_TARGET_TOPS.has(top)) return { ok: false, reason: `待补便签只写设计真源（作品契约/故事剧情/世界书），拒绝:${relPath}` }
   const text = readText(bookRoot, relPath)
   if (text === null) return { ok: false, reason: `工件不存在:${relPath}` }
   const lines = text.split('\n')
@@ -291,7 +291,7 @@ export function listConfirmedEmpty(detail: DesignDetail): string[] {
     for (const p of parts) if (p.无内容 === true) out.push(`${label}·${p.名称}`)
   }
   doc('契约', detail.契约.分部)
-  doc('故事骨架', detail.骨架.分部)
+  doc('全书大纲', detail.全书大纲.分部)
   doc('分卷布局', detail.分卷.分部)
   for (const vp of detail.卷规划) doc(`卷${pad(vp.卷号)}卷纲`, vp.卷纲)
   for (const m of detail.世界书.各模块) for (const n of m.无正文 ?? []) out.push(`世界书·${m.名称}/${n}`)
@@ -330,7 +330,7 @@ export function renderBookProgress(
   const part = (d: DesignDocDetail) => d.分部.map((p) => `- ${p.名称}〔${p.状态}〕${p.无内容 === true ? '（无内容）' : ''}${p.待补.length > 0 ? `（待补:${p.待补.join(';')}）` : ''}｜${改动章(history, d.路径)}`)
 
   lines.push(`契约（${detail.契约.路径}）`, ...part(detail.契约), '')
-  lines.push(`故事骨架（${detail.骨架.路径}）`, ...part(detail.骨架), '')
+  lines.push(`全书大纲（${detail.全书大纲.路径}）`, ...part(detail.全书大纲), '')
   lines.push(`分卷布局（${detail.分卷.路径}）`, ...part(detail.分卷))
   if (detail.分卷.各卷.length > 0) {
     lines.push(`各卷：${detail.分卷.各卷.map((v) => `卷${pad(v.卷号)}〔${v.状态}〕`).join('、')}`)
@@ -451,7 +451,7 @@ export function selectCurrentVolume(bookRoot: string): CurrentVolumeSelection {
   const 准备卷 = new Set<number>()
   let 卷目录: string[] = []
   try {
-    卷目录 = fs.readdirSync(path.join(bookRoot, '大纲/卷规划')).filter((n) => /^卷\d+$/.test(n))
+    卷目录 = fs.readdirSync(path.join(bookRoot, '故事剧情/卷规划')).filter((n) => /^卷\d+$/.test(n))
   } catch {
     卷目录 = []
   }
@@ -463,7 +463,7 @@ export function selectCurrentVolume(bookRoot: string): CurrentVolumeSelection {
     const hasWindow = windowText !== null && parseWindow(windowText).length > 0
     let hasOutlineFiles = false
     try {
-      hasOutlineFiles = fs.readdirSync(path.join(bookRoot, `大纲/卷规划/${name}/章细纲`)).some(isMarkdownFileName)
+      hasOutlineFiles = fs.readdirSync(path.join(bookRoot, `故事剧情/卷规划/${name}/章细纲`)).some(isMarkdownFileName)
     } catch { /* 无细纲目录 */ }
     if (hasOutline || hasTimeline || hasWindow || hasOutlineFiles) 准备卷.add(v)
   }
@@ -531,7 +531,7 @@ export function activeChapterLine(bookRoot: string):
   }
   let 细纲: string[] = []
   try {
-    细纲 = fs.readdirSync(path.join(bookRoot, `大纲/卷规划/卷${pad(当前卷)}/章细纲`))
+    细纲 = fs.readdirSync(path.join(bookRoot, `故事剧情/卷规划/卷${pad(当前卷)}/章细纲`))
   } catch {
     细纲 = []
   }

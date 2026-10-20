@@ -115,19 +115,19 @@ describe('运行链路接线(工具面验收)', () => {
     const candidateCount = count()
 
     // 同批整改文件:先改动分卷布局(上游提案的下游整改),随确认整批一次提交
-    const layout = path.join(bookRoot, '大纲/分卷布局.md')
+    const layout = path.join(bookRoot, '故事剧情/分卷布局.md')
     fs.writeFileSync(layout, `${fs.readFileSync(layout, 'utf-8')}- 卷02 〔留白〕\n`, 'utf-8')
 
     const confirmed = await call('novel_confirm_outline', {
-      bookId, 卷: 1, 章: 1, 章名: '开篇任务', 批次文件: ['大纲/分卷布局.md'],
+      bookId, 卷: 1, 章: 1, 章名: '开篇任务', 批次文件: ['故事剧情/分卷布局.md'],
     })
     expect(confirmed.ok).toBe(true)
     // 与同族设计侧确认工具一致:输出带 DESIGN_COMMIT_FIELDS(提交成功=committed,不可重试)
     expect(confirmed).toMatchObject({ commitState: 'committed', retryable: false })
-    const subject = git(bookRoot, ['log', '-1', '--pretty=%s', '--', '大纲/卷规划/卷01/章细纲/0001-开篇任务.md']).stdout?.trim()
+    const subject = git(bookRoot, ['log', '-1', '--pretty=%s', '--', '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md']).stdout?.trim()
     expect(subject).toBe('design(ch0001): 确认细纲·开篇任务')
     const names = git(bookRoot, ['-c', 'core.quotepath=false', 'show', '--name-only', '--pretty=format:', 'HEAD']).stdout?.split('\n').map((l) => l.trim())
-    expect(names).toContain('大纲/分卷布局.md')
+    expect(names).toContain('故事剧情/分卷布局.md')
     expect(Number(count())).toBe(Number(candidateCount) + 1)
 
     // 幂等重放:候选已删、真源已落位 → 补提交通道跑一次,无改动无新提交;unchanged 非失败、不可重试
@@ -155,15 +155,15 @@ describe('运行链路接线(工具面验收)', () => {
 
     const roll = await call('novel_roll_window', { bookId, 卷: 1, action: '标已消费', 名称: '开篇任务' })
     expect(roll.ok).toBe(true)
-    const log = git(bookRoot, ['log', '-1', '--pretty=%s', '--', '大纲/卷规划/卷01/近期窗口.md']).stdout?.trim()
+    const log = git(bookRoot, ['log', '-1', '--pretty=%s', '--', '故事剧情/卷规划/卷01/近期窗口.md']).stdout?.trim()
     expect(log).toMatch(/^design: 近期窗口·标已消费/)
 
     const append = await call('novel_roll_window', { bookId, 卷: 1, action: '追加', 名称: '第二章风波' })
     expect(append.ok).toBe(true)
 
-    const skeleton = await call('novel_update_skeleton', { bookId, 正文: '# 故事骨架\n\n- 第一幕 〔已确认〕\n' })
-    expect(skeleton.ok).toBe(true)
-    expect(git(bookRoot, ['log', '-1', '--pretty=%s', '--', '大纲/故事骨架.md']).stdout?.trim()).toMatch(/^design: 故事骨架/)
+    const fullOutline = await call('novel_update_full_outline', { bookId, 正文: '# 全书大纲\n\n- 第一幕 〔已确认〕\n' })
+    expect(fullOutline.ok).toBe(true)
+    expect(git(bookRoot, ['log', '-1', '--pretty=%s', '--', '故事剧情/全书大纲.md']).stdout?.trim()).toMatch(/^design: 全书大纲/)
 
     const worldbook = await call('novel_confirm_worldbook_entry', {
       bookId, 模块: '人物档案', 名称: '配角甲', 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '对谈共创',
@@ -370,7 +370,7 @@ describe('运行链路接线(工具面验收)', () => {
     const body1 = '# 卷摘要\n\n## 章摘要汇编\n\n### 第0001章 开篇任务\n\n摘要：开场。\n'
     const c1 = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '卷摘要', 正文: body1, summary: '卷摘要·卷01' })
     expect(c1.ok).toBe(true)
-    const sumRel = '大纲/卷规划/卷01/卷摘要.md'
+    const sumRel = '故事剧情/卷规划/卷01/卷摘要.md'
     const sum1 = fs.readFileSync(path.join(bookRoot, sumRel), 'utf-8')
     expect(sum1).toMatch(/版本:\s*1/)
     expect(sum1).toMatch(/状态:\s*已确认/)
@@ -385,13 +385,13 @@ describe('运行链路接线(工具面验收)', () => {
     expect(sum3).toMatch(/父版本:\s*1/)
 
     // B3 消费映射:卷1证完成(3章定稿)→ planning(1,2);B1:章级计划无事实→待核对
-    fs.writeFileSync(path.join(bookRoot, '大纲/卷规划/卷01/卷纲.md'), ['# 卷纲', '', '卷01｜1 案／3 章，单章约 100 字', '', '## 叙事结构 〔已确认〕', '', 'x', '', '## 弧线 〔留白〕', '', '## 线索推进 〔留白〕', '', '## 卷末兑现 〔留白〕', ''].join('\n'), 'utf-8')
+    fs.writeFileSync(path.join(bookRoot, '故事剧情/卷规划/卷01/卷纲.md'), ['# 卷纲', '', '卷01｜1 案／3 章，单章约 100 字', '', '## 叙事结构 〔已确认〕', '', 'x', '', '## 弧线 〔留白〕', '', '## 线索推进 〔留白〕', '', '## 卷末兑现 〔留白〕', ''].join('\n'), 'utf-8')
     for (let n = 1; n <= 3; n += 1) {
       const fin = path.join(bookRoot, `定稿/卷01/${String(n).padStart(4, '0')}-第${n}章.md`)
       fs.mkdirSync(path.dirname(fin), { recursive: true })
       fs.writeFileSync(fin, `---\n状态: 已定稿\n---\n第${n}章正文\n`, 'utf-8')
     }
-    fs.writeFileSync(path.join(bookRoot, '大纲/卷规划/卷01/计划时间线.md'), '# 计划时间线\n\n## 窗口覆盖\n- 第三章 渡口\n', 'utf-8')
+    fs.writeFileSync(path.join(bookRoot, '故事剧情/卷规划/卷01/计划时间线.md'), '# 计划时间线\n\n## 窗口覆盖\n- 第三章 渡口\n', 'utf-8')
 
     const progress = await call('novel_get_book_progress', { bookId }) as { ok: boolean; 卷: number; 规划卷?: number; 待核对?: { 名称: string; 章号: number; 本章事实: string[] }[]; 渲染: string }
     expect(progress.ok).toBe(true)
@@ -454,7 +454,7 @@ describe('运行链路接线(工具面验收)', () => {
       '## 章组排布', '', '第一组：开场与发现。', '',
       '## 幕末结算', '', '〔留白〕', '',
     ].join('\n')
-    const rel = '大纲/卷规划/卷01/幕纲/幕02-渡口疑云.md'
+    const rel = '故事剧情/卷规划/卷01/幕纲/幕02-渡口疑云.md'
 
     // 正例：写入真源、产生 design: 提交、版本 1
     const ok = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 2, 幕名: '渡口疑云', 正文: 幕纲文, summary: '幕纲·卷01·幕02' })
@@ -488,7 +488,7 @@ describe('运行链路接线(工具面验收)', () => {
     expect(String(gaps.reason)).toContain('幕纲段落不完整:查证清单')
     expect(Array.isArray(gaps.gaps) ? (gaps.gaps as string[]) : []).toContain('幕纲段落不完整:查证清单')
     // 拒写不落盘
-    expect(fs.existsSync(path.join(bookRoot, '大纲/卷规划/卷01/幕纲/幕01-渡口疑云.md'))).toBe(false)
+    expect(fs.existsSync(path.join(bookRoot, '故事剧情/卷规划/卷01/幕纲/幕01-渡口疑云.md'))).toBe(false)
 
     // 反例五：幕名非法（含路径分隔符）→ 抛错（工具 catch 后 ok:false）
     const badName = await call('novel_confirm_volume_outline', { bookId, 卷: 1, 目标: '幕纲', 幕: 1, 幕名: 'a/b', 正文: 幕纲文 })

@@ -47,8 +47,8 @@ export function parseChineseVolume(text: string): number | undefined {
 export const LAYOUT = {
   契约: '作品契约',
   构想: '构想',
-  大纲: '大纲',
-  卷规划: (卷: number) => `大纲/卷规划/卷${pad(卷)}`,
+  故事剧情: '故事剧情',
+  卷规划: (卷: number) => `故事剧情/卷规划/卷${pad(卷)}`,
   世界书: '世界书',
   定稿: (卷: number) => `定稿/卷${pad(卷)}`,
   账本: '账本',
@@ -154,8 +154,8 @@ export function legacyDraftKeySegment(卷: number, 章名: string): string {
 export const paths = {
   契约: () => '作品契约/契约.md',
   构想快照: () => '构想/构想快照.md',
-  故事骨架: () => '大纲/故事骨架.md',
-  分卷布局: () => '大纲/分卷布局.md',
+  全书大纲: () => '故事剧情/全书大纲.md',
+  分卷布局: () => '故事剧情/分卷布局.md',
   卷纲: (卷: number) => `${LAYOUT.卷规划(卷)}/卷纲.md`,
   计划时间线: (卷: number) => `${LAYOUT.卷规划(卷)}/计划时间线.md`,
   近期窗口: (卷: number) => `${LAYOUT.卷规划(卷)}/近期窗口.md`,
@@ -168,6 +168,13 @@ export const paths = {
   卷摘要: (卷: number) => `${LAYOUT.卷规划(卷)}/卷摘要.md`,
   定稿章: (卷: number, 章: number, 章名: string) =>
     `${LAYOUT.定稿(卷)}/${chapterNo(章)}-${章名}.md`,
+  /**
+   * 审读摘要(0.0.87):入档时由工具把审核记录压成计数快照,落在定稿区卷目录下的子目录。
+   * 用 `.json` 而非 `.md`:定稿区所有章扫描器（检索/进度/导出/组装/章号冲突）只认
+   * 卷目录正下方的 `NNNN-章名.md`,子目录里的机器态文件对它们不可见。
+   */
+  审读摘要: (卷: number, 章: number, 章名: string) =>
+    `${LAYOUT.定稿(卷)}/审读摘要/${chapterNo(章)}-${章名}.json`,
   账本: (名: LedgerName) => `账本/${名}.md`,
   /** @deprecated 旧格式(一类一文件)读侧兼容;新写入走 本书记忆条目/本书记忆索引。 */
   记忆: (类: MemoryKind) => `本书记忆/${类}.md`,

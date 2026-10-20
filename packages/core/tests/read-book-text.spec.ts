@@ -38,12 +38,12 @@ describe('readBookText（A-2 步 1）', () => {
 
   it('ENOENT → missing（detail 带路径）', () => {
     const root = mkBook()
-    const result = readBookText(root, '大纲/不存在.md')
+    const result = readBookText(root, '故事剧情/不存在.md')
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
       expect(result.reason).toBe('missing')
-      expect(result.detail).toContain('大纲/不存在.md')
+      expect(result.detail).toContain('故事剧情/不存在.md')
     }
   })
 

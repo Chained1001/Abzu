@@ -11,7 +11,7 @@ import { removeSync } from '../../core/src/repo/remove'
 let root: string
 beforeEach(() => { root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-native-')) })
 afterEach(() => { removeSync(root) })
-const op = { relPath: '大纲/故事骨架.md', content: '# 完整正文\n' }
+const op = { relPath: '故事剧情/全书大纲.md', content: '# 完整正文\n' }
 const success: ToolExecutionResult = { isError: false, value: { written: true }, content: [] }
 const context = (signal = new AbortController().signal): ToolExecContext => ({
   agent: { id: 'main' }, token: Symbol('business-call') as ToolExecutionToken,
@@ -116,19 +116,19 @@ describe('设计工具写入前置条件', () => {
   })
 
   it('宿主能力缺席时拒绝直接覆盖；业务校验失败时不发起原生写入', async () => {
-    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/故事骨架.md'), '原文\n')
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/全书大纲.md'), '原文\n')
     const deps = { workspaceRoot: () => root, bookRootOfBookId: () => root }
-    const missing = createNovelTools(deps).find(tool => tool.name === 'novel_update_skeleton')!
+    const missing = createNovelTools(deps).find(tool => tool.name === 'novel_update_full_outline')!
     expect(await missing.execute({ bookId: 'book', 正文: '新文' })).toMatchObject({ ok: false, reason: expect.stringMatching(/无版本保护/) })
-    expect(fs.readFileSync(path.join(root, '大纲/故事骨架.md'), 'utf8')).toBe('原文\n')
+    expect(fs.readFileSync(path.join(root, '故事剧情/全书大纲.md'), 'utf8')).toBe('原文\n')
     const nativeWrite = vi.fn()
     const tools = createNovelTools({ ...deps, nativeWrite })
     const invalid = tools.find(tool => tool.name === 'novel_confirm_volume_outline')!
     expect(await invalid.execute({ bookId: 'book', 卷: 1, 目标: '卷纲', 正文: '缺少四段卷纲' })).toMatchObject({ ok: false, reason: expect.stringMatching(/段落不完整/) })
-    fs.writeFileSync(path.join(root, '大纲/故事骨架.md'), '---\n版本: [坏格式\n---\n旧文')
-    const skeleton = tools.find(tool => tool.name === 'novel_update_skeleton')!
-    expect(await skeleton.execute({ bookId: 'book', 正文: '新文' })).toMatchObject({ ok: false, reason: expect.stringMatching(/解析失败/) })
+    fs.writeFileSync(path.join(root, '故事剧情/全书大纲.md'), '---\n版本: [坏格式\n---\n旧文')
+    const fullOutline = tools.find(tool => tool.name === 'novel_update_full_outline')!
+    expect(await fullOutline.execute({ bookId: 'book', 正文: '新文' })).toMatchObject({ ok: false, reason: expect.stringMatching(/解析失败/) })
     expect(nativeWrite).not.toHaveBeenCalled()
   })
 })

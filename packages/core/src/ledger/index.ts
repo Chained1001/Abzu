@@ -525,7 +525,7 @@ function parsePlanItems(text: string, source: string): PlanParse {
 }
 
 /**
- * 扫描 `大纲/卷规划`。
+ * 扫描 `故事剧情/卷规划`。
  * `requirePlan` 为全书对账发现集（须有计划时间线）；否则只计规划目录，供单卷兜底。
  * 批F io 分流：目录列举 ENOENT 是「没有卷规划」（空集），其余 errno 返回 unreadable——
  * 全书对账不得在目录读不了时假报「无偏离」。
@@ -533,14 +533,14 @@ function parsePlanItems(text: string, source: string): PlanParse {
 type VolumeScan = { readonly ok: true; readonly volumes: readonly number[] } | { readonly ok: false; readonly kind: 'unreadable'; readonly reason: string }
 
 function listVolumeNumbers(bookRoot: string, requirePlan: boolean): VolumeScan {
-  const base = path.join(bookRoot, '大纲', '卷规划')
+  const base = path.join(bookRoot, '故事剧情', '卷规划')
   let ents: fs.Dirent[]
   try {
     ents = fs.readdirSync(base, { withFileTypes: true })
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code
     if (code === 'ENOENT') return { ok: true, volumes: [] }
-    return { ok: false, kind: 'unreadable', reason: `卷规划目录不可读:大纲/卷规划——${code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)}` }
+    return { ok: false, kind: 'unreadable', reason: `卷规划目录不可读:故事剧情/卷规划——${code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)}` }
   }
   const volumes = new Set<number>()
   for (const ent of ents) {
@@ -558,7 +558,7 @@ function listVolumeNumbers(bookRoot: string, requirePlan: boolean): VolumeScan {
       } catch (error) {
         const code = (error as NodeJS.ErrnoException).code
         if (code !== 'ENOENT') {
-          return { ok: false, kind: 'unreadable', reason: `计划时间线不可读:大纲/卷规划/${ent.name}/计划时间线.md——${code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)}` }
+          return { ok: false, kind: 'unreadable', reason: `计划时间线不可读:故事剧情/卷规划/${ent.name}/计划时间线.md——${code ?? '未知错误'}:${error instanceof Error ? error.message : String(error)}` }
         }
         planned = false
       }

@@ -181,7 +181,7 @@ describe('Git 驱动的后台索引', () => {
     await ready(next)
     expect(embed).toHaveBeenCalledTimes(2)
     expect(embed.mock.calls[1]![0][0]!.text).toBe('第二章原文')
-    put('大纲/故事骨架.md', '只是设计更新')
+    put('故事剧情/全书大纲.md', '只是设计更新')
     const design = commit('design only')
     await ready(design)
     expect(embed).toHaveBeenCalledTimes(2)
@@ -200,12 +200,12 @@ describe('Git 驱动的后台索引', () => {
     const off = onBookCommit(event => { observed.push([...event.paths]); throw new Error('observer failure') })
     try {
       const result = withBookWrite(book.root, () => {
-        writeBatchAtomic(book.root, [{ relPath: '大纲/故事骨架.md', content: '作者保存仍可完成' }])
-        return commitWithIsolatedIndex(book.root, ['大纲/故事骨架.md'], 'design: while embedding')
+        writeBatchAtomic(book.root, [{ relPath: '故事剧情/全书大纲.md', content: '作者保存仍可完成' }])
+        return commitWithIsolatedIndex(book.root, ['故事剧情/全书大纲.md'], 'design: while embedding')
       })
       expect(result.status).toBe(0)
       await Promise.resolve()
-      expect(observed).toEqual([['大纲/故事骨架.md']])
+      expect(observed).toEqual([['故事剧情/全书大纲.md']])
       expect(fs.existsSync(path.join(book.root, '.abzu/book.lock'))).toBe(false)
     } finally { off(); response.resolve([[1, 0]]) }
     await ready()

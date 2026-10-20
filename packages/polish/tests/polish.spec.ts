@@ -178,7 +178,7 @@ describe('去AI痕迹润色', () => {
   it('Y5 细纲 io 失败（不可读）时 polishDraft 明确失败，不静默按空细纲润色', () => {
     const root = mkBook()
     readyDraft(root, `巷口风大。${HARD}。他没有回头。`)
-    const outlineAbs = path.join(root, '大纲/卷规划/卷01/章细纲/0001-开篇任务.md')
+    const outlineAbs = path.join(root, '故事剧情/卷规划/卷01/章细纲/0001-开篇任务.md')
     fs.rmSync(outlineAbs)
     fs.mkdirSync(outlineAbs) // 同名目录：读取必失败且非 ENOENT（EISDIR/EPERM → io 分流）
     const r = polishDraft(root, key)

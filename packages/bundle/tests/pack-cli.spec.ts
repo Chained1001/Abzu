@@ -129,7 +129,7 @@ describe('定稿备包薄入口 CLI(R21 纯算切割)', () => {
     const 清单 = JSON.parse(文件.find((f) => f.relPath.endsWith('清单.json'))!.content) as { 校验: string; 工件: unknown[]; 文件: { 目标: string }[] }
     expect(清单.校验).toBe('通过')
     expect(清单.工件).toHaveLength(7)
-    expect(清单.文件.map((f) => f.目标)).toEqual(['定稿/卷01/0001-开篇任务.md', '大纲/卷规划/卷01/章摘要/0001-开篇任务.md'])
+    expect(清单.文件.map((f) => f.目标)).toEqual(['定稿/卷01/0001-开篇任务.md', '故事剧情/卷规划/卷01/章摘要/0001-开篇任务.md'])
     // 纯算零写盘(R21):落盘经常驻工具 novel_prepare_pack
     expect(fs.existsSync(path.join(root, '草稿区', '定稿准备')), 'CLI 不得写盘').toBe(false)
   })

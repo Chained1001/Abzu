@@ -5,8 +5,8 @@ import { resolveLayers } from '../src/config/resolve'
 
 describe('来源引用语法(格式规格 §7.2)', () => {
   it('仓内路径@版本', () => {
-    const r = parseSourceRef('来源:大纲/卷规划/卷01/卷纲.md@5')
-    expect(r).toEqual({ kind: '仓内', path: '大纲/卷规划/卷01/卷纲.md', version: '5' })
+    const r = parseSourceRef('来源:故事剧情/卷规划/卷01/卷纲.md@5')
+    expect(r).toEqual({ kind: '仓内', path: '故事剧情/卷规划/卷01/卷纲.md', version: '5' })
   })
   it('全角冒号兼容(B9 方言容忍)', () => {
     expect(parseSourceRef('来源：作品契约/契约.md@2')?.kind).toBe('仓内')
@@ -23,7 +23,7 @@ describe('来源引用语法(格式规格 §7.2)', () => {
   it('拒绝:路径穿越、盘符、无版本', () => {
     expect(parseSourceRef('来源:../窃.md@1')).toBeNull()
     expect(parseSourceRef('来源:D:/x.md@1')).toBeNull()
-    expect(parseSourceRef('来源:大纲/卷纲.md')).toBeNull()
+    expect(parseSourceRef('来源:故事剧情/卷纲.md')).toBeNull()
     expect(parseSourceRef('随便一行')).toBeNull()
   })
 })

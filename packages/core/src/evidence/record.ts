@@ -31,6 +31,15 @@ export function 是高级严重程度(value: string): boolean {
   return 归一化严重程度(value) === '高'
 }
 
+/**
+ * 「发现项→改动」映射（改稿批可选回填）：这一条发现项落到正文的改动位置与一句话说明。
+ * 无正文改动时 改动位置 写「无改动」，改动说明 写原因（改稿章程的输出格式）。
+ */
+export interface FindingChangeMap {
+  readonly 改动位置: string
+  readonly 改动说明?: string
+}
+
 export interface Finding {
   readonly 审核编号: string
   readonly 模块名: string
@@ -51,6 +60,8 @@ export interface Finding {
   readonly 处置: 处置状态
   /** 改稿批回填:子代理映射清单或作者口述的那一行改动说明。 */
   readonly 处置说明?: string
+  /** 改稿批回填:「发现项→改动」映射（改动位置＋一句话说明）；缺省＝该条未回填映射。 */
+  readonly 改动映射?: FindingChangeMap
   readonly 转交提案?: { readonly 提案编号: string }
 }
 
@@ -177,6 +188,19 @@ export function storedDisposition(raw: { readonly 处置状态?: unknown; readon
   return value === '已转提案' ? '待处理' : value
 }
 
+/**
+ * 「发现项→改动」映射解析：形状非法就整体丢弃该字段（返回 undefined），不让一条手工
+ * 改坏的映射把整份审核记录打成 parse-error——与 润色 承接字段同口径。
+ */
+function asChangeMap(raw: unknown): FindingChangeMap | undefined {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const o = raw as Record<string, unknown>
+  const 改动位置 = o['改动位置']
+  if (typeof 改动位置 !== 'string' || 改动位置.trim() === '') return undefined
+  const 改动说明 = typeof o['改动说明'] === 'string' ? o['改动说明'] : undefined
+  return { 改动位置, ...(改动说明 === undefined ? {} : { 改动说明 }) }
+}
+
 function asFinding(raw: unknown, stored = true): Finding | null {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return null
   const o = raw as Record<string, unknown>
@@ -201,6 +225,10 @@ function asFinding(raw: unknown, stored = true): Finding | null {
     处置,
     ...(处置 === '已转提案' && o['转交提案'] !== undefined ? { 转交提案: o['转交提案'] as Finding['转交提案'] } : {}),
     ...(typeof o['处置说明'] === 'string' ? { 处置说明: o['处置说明'] } : {}),
+    ...(() => {
+      const 改动映射 = asChangeMap(o['改动映射'])
+      return 改动映射 === undefined ? {} : { 改动映射 }
+    })(),
   }
 }
 

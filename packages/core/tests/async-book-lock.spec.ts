@@ -18,7 +18,7 @@ describe('等待原生写入时的书仓锁', () => {
       await paused
       expect(fs.existsSync(lockPath())).toBe(true)
       await withBookLockAsync(root, async () => {
-        withBookLock(root, () => writeBatchAtomic(root, [{ relPath: '大纲/故事骨架.md', content: '正文\n' }]))
+        withBookLock(root, () => writeBatchAtomic(root, [{ relPath: '故事剧情/全书大纲.md', content: '正文\n' }]))
       })
       expect(fs.existsSync(lockPath())).toBe(true)
     }, { operationId: 'async-native-write', callId: 'call-1' })
@@ -29,9 +29,9 @@ describe('等待原生写入时的书仓锁', () => {
       expect(fs.readFileSync(lockPath(), 'utf8')).toBe(owner)
     } finally { release(); await task }
     expect(fs.existsSync(lockPath())).toBe(false)
-    expect(fs.readFileSync(path.join(root, '大纲/故事骨架.md'), 'utf8')).toBe('正文\n')
+    expect(fs.readFileSync(path.join(root, '故事剧情/全书大纲.md'), 'utf8')).toBe('正文\n')
     const audit = JSON.parse(fs.readFileSync(path.join(root, '.abzu/operations/async-native-write.json'), 'utf8'))
-    expect(audit).toMatchObject({ status: 'completed', callId: 'call-1', targets: ['大纲/故事骨架.md'] })
+    expect(audit).toMatchObject({ status: 'completed', callId: 'call-1', targets: ['故事剧情/全书大纲.md'] })
   })
 
   it.each(['throw', 'failure'] as const)('%s 时释放锁并保留失败审计，随后能重新写入', async mode => {

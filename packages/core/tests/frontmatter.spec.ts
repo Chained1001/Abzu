@@ -76,7 +76,7 @@ describe('frontmatter 序列化(B9 稳定输出)', () => {
     expect(text.startsWith('---\n')).toBe(true)
   })
   it('往返一致', () => {
-    const text = serializeDocument({ 状态: '已确认', 来源引用: '大纲/卷规划/卷01/卷纲.md@5' }, '# 标题\n内容')
+    const text = serializeDocument({ 状态: '已确认', 来源引用: '故事剧情/卷规划/卷01/卷纲.md@5' }, '# 标题\n内容')
     const r = parseDocument(text)
     expect(r.ok).toBe(true)
     if (r.ok) {

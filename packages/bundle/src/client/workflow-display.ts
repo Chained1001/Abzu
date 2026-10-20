@@ -3,7 +3,7 @@ import { runLabels, type RunState, type WorkflowCall, type WorkflowView } from '
 /** Display groups follow the approved Archify artwork; they never authorize or schedule work. */
 export const workflowNodes = [
   { id: 'concept', label: '构思立项', note: '探索构想，作者确认后建书并选定当前作品。' },
-  { id: 'design', label: '作品定调', note: '契约、世界书、骨架、分卷和卷纲经作者确认；远期允许留白。' },
+  { id: 'design', label: '作品定调', note: '契约、世界书、全书大纲、分卷和卷纲经作者确认；远期允许留白。' },
   { id: 'outline', label: '章细纲', note: '从近期窗口定位本章，呈报并确认细纲。' },
   { id: 'materials', label: '写作备料', note: '读取真源与材料，核对缺口；本章已委托时继续写作。' },
   { id: 'draft', label: '起草', note: '起草子代理或作者稿产出唯一待审稿，交审读。' },
@@ -23,7 +23,7 @@ export const inFlight = (call: WorkflowCall) => call.ended === undefined && ['ru
 export function workflowNodeForCall(call: WorkflowCall): WorkflowNodeId | undefined {
   if (call.stage === 'confirm') return call.state === 'waiting' ? 'approval' : 'settled'
   const mapping: Partial<Record<NonNullable<WorkflowCall['stage']>, WorkflowNodeId>> = {
-    idea: 'concept', design: 'design', skeleton: 'design', volumes: 'design', volume: 'design',
+    idea: 'concept', design: 'design', fullOutline: 'design', volumes: 'design', volume: 'design',
     outline: 'outline', materials: 'materials', draft: 'draft', polish: 'package',
     review: 'review', revise: 'revision', settle: 'package', 'volume-close': 'volume',
   }

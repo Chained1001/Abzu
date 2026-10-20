@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
-import { deriveDesign, scanDesign, 故事骨架九部 } from '../src/derive/design'
+import { deriveDesign, scanDesign, 全书大纲九部 } from '../src/derive/design'
 import { scanDesignDetail, renderBookProgress } from '../src/progress'
 import { seedMinDesign } from '../src/design/seed'
 import { LEDGER_NAMES, paths } from '../src/repo/paths'
@@ -32,15 +32,15 @@ function readyBook(): string {
 }
 
 describe('#165 内容与就绪建议同源', () => {
-  it('当前必要骨架确认，远期七部留白/暂定与生命周期子条目不妨碍开写，查询不写盘', () => {
+  it('当前必要全书大纲确认，远期七部留白/暂定与生命周期子条目不妨碍开写，查询不写盘', () => {
     const root = readyBook()
-    const text = 故事骨架九部.map((name, index) => `## ${name} 〔${index < 2 ? '已确认' : index % 2 ? '暂定' : '留白'}〕\n${index < 2 ? '主角想找回航图，船主拒绝同行。\n- 航图线索 〔已埋〕\n' : ''}`).join('\n')
-    put(root, paths.故事骨架(), text)
+    const text = 全书大纲九部.map((name, index) => `## ${name} 〔${index < 2 ? '已确认' : index % 2 ? '暂定' : '留白'}〕\n${index < 2 ? '主角想找回航图，船主拒绝同行。\n- 航图线索 〔已埋〕\n' : ''}`).join('\n')
+    put(root, paths.全书大纲(), text)
     expect(deriveDesign(scanDesign(root)).建议).toBe('开写就绪')
     const progress = renderBookProgress(scanDesignDetail(root), {}, [])
     expect(progress).toContain('留白')
     expect(progress).toContain('暂定')
-    expect(fs.readFileSync(path.join(root, paths.故事骨架()), 'utf8')).toBe(text)
+    expect(fs.readFileSync(path.join(root, paths.全书大纲()), 'utf8')).toBe(text)
   })
 
   it.each([
@@ -49,17 +49,17 @@ describe('#165 内容与就绪建议同源', () => {
     ['## 结局方向与远期锚点 〔留白〕\n\n## 结局方向与远期锚点 〔已确认〕\n公开真相。', '状态冲突'],
     ['', '缺少分部'],
   ])('远期放宽仍拒绝损坏状态与空确认：%s', (replacement, issue) => {
-    const root = readyBook(), file = path.join(root, paths.故事骨架())
+    const root = readyBook(), file = path.join(root, paths.全书大纲())
     fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/## 结局方向与远期锚点[\s\S]*$/, replacement))
     const result = deriveDesign(scanDesign(root))
-    expect(result.建议).toBe('故事骨架')
+    expect(result.建议).toBe('全书大纲')
     expect(result.内容问题).toContainEqual(expect.objectContaining({ 分部: '结局方向与远期锚点', 问题: issue }))
   })
   it('占位确认态保留原标签事实，但不再建议开写就绪', () => {
     const root = emptyBook()
     const facts = scanDesign(root)
     expect(facts.契约六部已确认).toBe(true)
-    expect(facts.骨架当前阶段已确认).toBe(true)
+    expect(facts.全书大纲前两部已确认).toBe(true)
     expect(deriveDesign(facts).建议).not.toBe('开写就绪')
     expect(facts.内容问题).toEqual(expect.arrayContaining([expect.objectContaining({ 路径: paths.契约(), 分部: '叙事方式与文风基调' })]))
     const detail = scanDesignDetail(root)
@@ -75,7 +75,7 @@ describe('#165 内容与就绪建议同源', () => {
 
   it.each([
     [paths.契约(), '## 叙事方式与文风基调 〔已确认〕\n<!-- 尚未填 -->\n### 空子标题\n待补：文风\n', '作品定调'],
-    [paths.故事骨架(), '# 骨架\n- 主角目标与成长轨迹 〔已确认〕\n', '故事骨架'],
+    [paths.全书大纲(), '# 全书大纲\n- 主角目标与成长轨迹 〔已确认〕\n', '全书大纲'],
     ['世界书/人物档案/主角.md', serializeDocument({ 状态: '已确认' }, '# 主角\n<!-- 空 -->'), '世界构建'],
     [paths.分卷布局(), '# 分卷布局\n## 故事阶段分配\n- 卷01 〔已确认〕\n', '分卷布局'],
     [paths.卷纲(1), '# 卷纲\n## 叙事结构 〔已确认〕\n### 空子标题\n## 弧线 〔留白〕\n## 线索推进 〔留白〕\n## 卷末兑现 〔留白〕\n', '当前卷规划'],

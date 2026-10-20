@@ -29,6 +29,15 @@ export interface TimelineAnchor {
 
 export const 卷纲脚手架段 = ['叙事结构', '弧线', '线索推进', '卷末兑现'] as const
 
+/**
+ * 卷纲第五段(0.0.87)。**不在 卷纲脚手架段 里，因为它是软校验**：
+ * 建书脚手架只建四段(book/scaffold.ts)，「压力升级检查」是本卷规划时新加的第五段，
+ * 存量书没有它。若并入 卷纲脚手架段 走硬校验，旧卷纲一律确认不了——
+ * 与章型同款处理：缺段只播报，写错/写了但五项不全才拦。
+ * 规格单源：novel-arcplan/templates/卷纲固定段规格.md「压力升级检查」。
+ */
+export const 卷纲第五段 = '压力升级检查' as const
+
 /** 幕纲六个必备段(规格单源:novel-arcplan/templates/幕纲固定段规格.md)。 */
 export const 幕纲必备段 = ['本幕故事', '线与伏笔', '出场人物', '查证清单', '章组排布', '幕末结算'] as const
 
@@ -46,6 +55,36 @@ function sectionTitles(body: string): ReadonlySet<string> {
 export function volumeOutlineGaps(body: string): string[] {
   const titles = sectionTitles(body)
   return 卷纲脚手架段.filter((name) => !titles.has(name)).map((name) => `卷纲段落不完整:${name}`)
+}
+
+/**
+ * 卷纲第五段的软校验：返回播报（缺口提示），不返回 gap。
+ *
+ * 只播报不拦的理由同章型：存量卷纲没有这一段，硬拦会让旧书无法确认。
+ * 但「写了就必须像样」——标题在位却一个核对项都没有，等于走了形式，这时要报。
+ */
+export function volumeUpgradeCheckNotice(body: string): string | null {
+  const titles = sectionTitles(body)
+  if (!titles.has(卷纲第五段)) {
+    return `卷纲未写第五段「${卷纲第五段}」：本卷规划要求逐条过五核对项（规格见 novel-arcplan/templates/卷纲固定段规格.md）；存量卷纲可后补，不拦确认`
+  }
+  // 标题在 → 看有没有实际内容（五核对项至少写出可辨认的条目行）
+  const lines = body.split(/\r?\n/)
+  const start = lines.findIndex((l) => new RegExp(`^##\\s+${卷纲第五段}`).test(l.trim()))
+  if (start < 0) return null
+  let end = lines.length
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i]!.trim())) { end = i; break }
+  }
+  const bodyText = lines.slice(start + 1, end).join('\n').trim()
+  const 条目数 = lines
+    .slice(start + 1, end)
+    .filter((l) => /^\s*(?:\d+[.、)]|[-*+])\s+\S/.test(l)).length
+  if (bodyText === '' || bodyText.includes('〔留白〕')) return null
+  if (条目数 === 0) {
+    return `卷纲第五段「${卷纲第五段}」有标题但没有分条核对项：五核对项须逐条写（可标〔留白〕并说明原因）`
+  }
+  return null
 }
 
 /** 幕纲段名缺口:六个必备段缺一即报(幕末结算开幕时留白合法,但标题须在位)。 */

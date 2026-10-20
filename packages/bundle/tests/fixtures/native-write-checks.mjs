@@ -28,7 +28,7 @@ export async function checkNativeWrites({ root, book, main, ctx, service, execut
   const head = () => git('rev-parse', 'HEAD').trim()
   const contract = { partName: '题材与读者定位', state: '已确认', content: '原生写入确认的新定位' }
   const contractPath = '作品契约/契约.md'
-  const skeletonPath = '大纲/故事骨架.md'
+  const fullOutlinePath = '故事剧情/全书大纲.md'
   const outline = '# 卷纲\n\n## 叙事结构\n开篇\n\n## 弧线\n成长\n\n## 线索推进\n伏笔\n\n## 卷末兑现\n兑现\n'
   try {
     await check('七类设计文件复用原生观察与 design 提交', async () => {
@@ -36,11 +36,11 @@ export async function checkNativeWrites({ root, book, main, ctx, service, execut
         ['novel_update_contract', contractPath, contract, core.contractTemplate({
           '叙事方式与文风基调': { state: '已确认', body: '作者保留的文风约定' },
         }, { 书id: bookId, 扩展字段: '原样保留' })],
-        ['novel_update_skeleton', skeletonPath, { 正文: '# 新故事骨架\n' }, core.serializeDocument({ 版本: 2, 父版本: 1, 状态: '已确认', 扩展字段: '原样保留' }, '# 旧骨架')],
-        ['novel_update_volume_layout', '大纲/分卷布局.md', { 正文: '# 新分卷布局\n' }, core.serializeDocument({ 版本: 2, 父版本: 1, 状态: '已确认', 扩展字段: '原样保留' }, '# 旧布局')],
-        ['novel_confirm_volume_outline', '大纲/卷规划/卷01/卷纲.md', { 卷: 1, 目标: '卷纲', 正文: outline }, '# 旧卷纲\n'],
-        ['novel_confirm_volume_outline', '大纲/卷规划/卷01/计划时间线.md', { 卷: 1, 目标: '计划时间线', 正文: '# 新计划时间线\n' }, '# 旧计划时间线\n'],
-        ['novel_roll_window', '大纲/卷规划/卷01/近期窗口.md', { 卷: 1, action: '追加', 名称: '新窗口任务' }, '# 近期窗口\n\n- 旧任务 〔已确认〕\n'],
+        ['novel_update_full_outline', fullOutlinePath, { 正文: '# 新全书大纲\n' }, core.serializeDocument({ 版本: 2, 父版本: 1, 状态: '已确认', 扩展字段: '原样保留' }, '# 旧全书大纲')],
+        ['novel_update_volume_layout', '故事剧情/分卷布局.md', { 正文: '# 新分卷布局\n' }, core.serializeDocument({ 版本: 2, 父版本: 1, 状态: '已确认', 扩展字段: '原样保留' }, '# 旧布局')],
+        ['novel_confirm_volume_outline', '故事剧情/卷规划/卷01/卷纲.md', { 卷: 1, 目标: '卷纲', 正文: outline }, '# 旧卷纲\n'],
+        ['novel_confirm_volume_outline', '故事剧情/卷规划/卷01/计划时间线.md', { 卷: 1, 目标: '计划时间线', 正文: '# 新计划时间线\n' }, '# 旧计划时间线\n'],
+        ['novel_roll_window', '故事剧情/卷规划/卷01/近期窗口.md', { 卷: 1, action: '追加', 名称: '新窗口任务' }, '# 近期窗口\n\n- 旧任务 〔已确认〕\n'],
         ['novel_confirm_worldbook_entry', '世界书/人物档案/原生主角.md', { 模块: '人物档案', 名称: '原生主角', 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '作者对谈', 正文: '# 新人物正文\n' }, '# 旧人物正文\n'],
       ]
       for (const [, relative, , content] of cases) put(relative, content)
@@ -76,7 +76,7 @@ export async function checkNativeWrites({ root, book, main, ctx, service, execut
       assert.match(text(contractPath), /作者保留的文风约定/)
       assert.match(text(contractPath), /书id: loader-book/)
       assert.match(text(contractPath), /扩展字段: 原样保留/)
-      for (const relative of [skeletonPath, '大纲/分卷布局.md']) {
+      for (const relative of [fullOutlinePath, '故事剧情/分卷布局.md']) {
         assert.equal(core.parseDocument(text(relative)).data.fields.版本, 3)
         assert.equal(core.parseDocument(text(relative)).data.fields.父版本, 2)
         assert.match(text(relative), /扩展字段: 原样保留/)
@@ -170,30 +170,30 @@ export async function checkNativeWrites({ root, book, main, ctx, service, execut
     })
 
     await check('原生写入后提交失败可原样重跑且不重复升版', async () => {
-      const args = { 正文: '# 提交重试后的骨架\n' }
-      await read(skeletonPath)
+      const args = { 正文: '# 提交重试后的全书大纲\n' }
+      await read(fullOutlinePath)
       const beforeHead = head()
-      const version = core.parseDocument(text(skeletonPath)).data.fields.版本
+      const version = core.parseDocument(text(fullOutlinePath)).data.fields.版本
       const gitLock = path.join(book, '.git/index.lock')
       fs.writeFileSync(gitLock, 'fixture lock', { flag: 'wx' })
       try {
-        const failed = await call('novel_update_skeleton', args)
+        const failed = await call('novel_update_full_outline', args)
         assert.equal(failed.ok, false, JSON.stringify(failed))
         assert.match(failed.reason, /已落盘但未提交/)
         assert.equal(head(), beforeHead)
       } finally { fs.unlinkSync(gitLock) }
-      const saved = text(skeletonPath)
+      const saved = text(fullOutlinePath)
       assert.equal(core.parseDocument(saved).data.fields.版本, version + 1)
-      assert.equal((await call('novel_update_skeleton', args)).ok, true)
-      assert.equal(text(skeletonPath), saved)
+      assert.equal((await call('novel_update_full_outline', args)).ok, true)
+      assert.equal(text(fullOutlinePath), saved)
       const committed = head()
       assert.notEqual(committed, beforeHead)
-      const replay = await call('novel_update_skeleton', args)
+      const replay = await call('novel_update_full_outline', args)
       assert.equal(replay.ok, true, JSON.stringify(replay))
       assert.equal(replay.commitState, 'unchanged')
       assert.equal(replay.retryable, false)
       assert.match(replay.message, /无需补提交/)
-      assert.equal(text(skeletonPath), saved)
+      assert.equal(text(fullOutlinePath), saved)
       assert.equal(head(), committed)
     })
 

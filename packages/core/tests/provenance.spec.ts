@@ -54,14 +54,14 @@ describe('来源标注六要素(插件规格 §7)', () => {
 
   it('queryFrontmatter:成功带回标注;null 文本=没有数据', () => {
     const text = serializeDocument({ 状态: '已确认', 版本: 2 }, '正文')
-    const ok = queryFrontmatter(text, { 条目: '细纲', 片段: '定位段', 来源: '大纲/卷规划/卷01/章细纲/0001-初见.md' })
+    const ok = queryFrontmatter(text, { 条目: '细纲', 片段: '定位段', 来源: '故事剧情/卷规划/卷01/章细纲/0001-初见.md' })
     expect(ok.ok).toBe(true)
     if (ok.ok) {
       expect(ok.data.fields['状态']).toBe('已确认')
       expect(ok.来源标注.完整性).toBe('完整')
       expect(ok.来源标注.条目).toBe('细纲')
     }
-    const none = queryFrontmatter(null, { 条目: '细纲', 片段: '', 来源: '大纲/x.md' })
+    const none = queryFrontmatter(null, { 条目: '细纲', 片段: '', 来源: '故事剧情/x.md' })
     expect(none.ok).toBe(false)
     if (!none.ok) expect(none.reason).toBe('missing')
   })

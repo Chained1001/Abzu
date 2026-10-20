@@ -3,7 +3,7 @@
  * 不发明情节，也不代表开写就绪；真实作者流程不得使用。
  */
 
-import { 契约六部, 分卷布局八部, 故事骨架九部 } from '../derive/design'
+import { 契约六部, 分卷布局八部, 全书大纲九部 } from '../derive/design'
 import { writeFileAtomic } from '../repo/atomic'
 import { pad, paths } from '../repo/paths'
 import { writeContract } from './contract'
@@ -39,8 +39,8 @@ function seedMinDesignLocked(bookRoot: string, input: SeedMinDesignInput = {}): 
 
   writeFileAtomic(
     bookRoot,
-    paths.故事骨架(),
-    ['# 故事骨架', '', ...故事骨架九部.map((n) => `- ${n} 〔已确认〕`), ''].join('\n'),
+    paths.全书大纲(),
+    ['# 全书大纲', '', ...全书大纲九部.map((n) => `- ${n} 〔已确认〕`), ''].join('\n'),
   )
   // 卷行归属「故事阶段分配」小节(任务21 F21-3):卷分配声明只认该小节;显式行级格式不变。
   writeFileAtomic(

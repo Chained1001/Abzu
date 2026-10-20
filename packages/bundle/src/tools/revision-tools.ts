@@ -2,7 +2,7 @@
  * 改稿域工具：一处小改/处置批落实/提案登记与裁决/吃书补偿执行。
  */
 import { provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { applyVersionFields, archiveRetconRequest, bumpVersion, applyRevision, applyRevisionBatch, paths, withBookWrite, 草稿字段序, extractVersionFields, initialVersion, parseDocument, serializeDocument, type 处置状态, askAuthor, registerProposal, resolveProposal, retconEventOps } from '@abzu/core'
+import { applyVersionFields, archiveRetconRequest, bumpVersion, applyRevision, applyRevisionBatch, paths, withBookWrite, 草稿字段序, extractVersionFields, initialVersion, parseDocument, serializeDocument, type FindingChangeMap, type 处置状态, askAuthor, registerProposal, resolveProposal, retconEventOps } from '@abzu/core'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { captureApprovalFiles } from '../approval-snapshot'
@@ -91,6 +91,15 @@ export function createRevisionTools(shared: ToolShared): NovelToolDefinition[] {
                 发现项编号: { type: 'string', description: '审核记录中的发现项编号' },
                 处置: { type: 'string', enum: ['待处理', '已接受修改', '已解决', '作者保留', '已驳回', '无法判断', '已转提案'], description: '处置状态。已转提案：影响真源的发现项已登记提案且作者已通过，必须传四位提案编号，提案须关联本章本发现项' },
                 改动说明: { type: 'string', description: '该条对应的改动说明（可选）' },
+                改动映射: {
+                  type: 'object',
+                  description: '该条发现项落到正文的「发现项→改动」映射（可选；不传＝不回填映射，处置与改动的对应关系无处存放）',
+                  properties: {
+                    改动位置: { type: 'string', description: '改动落在正文的哪一处（无正文改动写 无改动）' },
+                    改动说明: { type: 'string', description: '一句话说明改了什么（无正文改动写原因）' },
+                  },
+                  required: ['改动位置', '改动说明'],
+                },
                 提案编号: { type: 'string', pattern: '^\\d{4}$', description: '已转提案时传已通过且关联本发现项的四位提案编号' },
               },
               required: ['发现项编号', '处置'],
@@ -107,6 +116,7 @@ export function createRevisionTools(shared: ToolShared): NovelToolDefinition[] {
             relPath: { type: 'string', description: '新一版待审稿相对路径（只回写处置时缺席）' },
             更新条数: { type: 'number', description: '回写的处置条数' },
             审核记录哈希: { type: 'string', description: '写入后的记录 SHA-256，供下一批处置使用' },
+            followup: { type: 'object', description: '后续范围报告（硬约束回查/需语义审读/仍待处置/建议重跑）' },
             message: { type: 'string', description: '结果说明' },
             reason: { type: 'string', description: '失败原因' },
           },
@@ -127,6 +137,7 @@ export function createRevisionTools(shared: ToolShared): NovelToolDefinition[] {
             处置: String(o['处置'] ?? '') as 处置状态,
             ...(o['提案编号'] === undefined ? {} : { 提案编号: String(o['提案编号']) }),
             ...(改动说明 === undefined ? {} : { 改动说明 }),
+            ...(o['改动映射'] === undefined ? {} : { 改动映射: o['改动映射'] as FindingChangeMap }),
           }
         })
         const keyResult = chapterKeyOf(args)
@@ -141,14 +152,16 @@ export function createRevisionTools(shared: ToolShared): NovelToolDefinition[] {
             处置,
           })
           if (!res.ok) return { ok: false, reason: res.reason }
+          const 后续 = `后续范围报告：硬约束回查失败 ${res.followup.硬约束回查失败.length} 项；仍待处置 ${res.followup.仍待处置.length} 项${res.followup.建议重跑.length > 0 ? `；建议重跑 ${res.followup.建议重跑.join('、')}` : ''}。是否重跑由你判断，本工具不自动开跑。`
           return {
             ok: true,
             ...(res.relPath === undefined ? {} : { relPath: res.relPath }),
             更新条数: res.更新条数,
             审核记录哈希: res.审核记录哈希,
+            followup: res.followup,
             message: res.relPath === undefined
-              ? `已回写 ${res.更新条数} 条处置（无新稿）`
-              : `已写入新稿 ${res.relPath}，并回写 ${res.更新条数} 条处置`,
+              ? `已回写 ${res.更新条数} 条处置（无新稿）。${后续}`
+              : `已写入新稿 ${res.relPath}，并回写 ${res.更新条数} 条处置。${后续}`,
           }
         } catch (err) {
           return { ok: false, reason: `处置批落实失败: ${err instanceof Error ? err.message : String(err)}` }

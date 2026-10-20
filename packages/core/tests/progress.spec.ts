@@ -15,12 +15,12 @@ function mkBook(seed = false): string {
 afterAll(() => { for (const r of roots) { try { fs.rmSync(r, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }) } catch { /* Windows 句柄延迟释放 */ } } })
 
 describe('scanDesignDetail(现算明细)', () => {
-  it('seed 后:契约六部全量、骨架九部、世界书计数、窗口余量', () => {
+  it('seed 后:契约六部全量、全书大纲九部、世界书计数、窗口余量', () => {
     const root = mkBook(true)
     const d = scanDesignDetail(root)
     expect(d.契约.分部).toHaveLength(6)
     expect(d.契约.分部.every((p) => p.状态 === '已确认')).toBe(true)
-    expect(d.骨架.分部).toHaveLength(9)
+    expect(d.全书大纲.分部).toHaveLength(9)
     expect(d.世界书.各模块).toEqual(expect.arrayContaining([
       expect.objectContaining({ 名称: '人物档案', 条目数: 1, 已确认数: 1 }),
     ]))
@@ -44,18 +44,18 @@ describe('scanDesignDetail(现算明细)', () => {
 describe('待补便签(算不出来的才落盘)', () => {
   it('写入、明细读出、清除;不存在的节报明确错误', () => {
     const root = mkBook(true)
-    const rel = '大纲/故事骨架.md'
+    const rel = '故事剧情/全书大纲.md'
     const r = writePending(root, rel, '线索悬念伏笔', '第二卷前需补暗线落点')
     expect(r.ok).toBe(true)
     expect(fs.readFileSync(path.join(root, rel), 'utf-8')).toContain('待补：第二卷前需补暗线落点')
     const d = scanDesignDetail(root)
-    const part = d.骨架.分部.find((p) => p.名称 === '线索悬念伏笔')
+    const part = d.全书大纲.分部.find((p) => p.名称 === '线索悬念伏笔')
     expect(part?.待补).toEqual(['第二卷前需补暗线落点'])
 
     // 清除
     expect(writePending(root, rel, '线索悬念伏笔', null).ok).toBe(true)
     expect(fs.readFileSync(path.join(root, rel), 'utf-8')).not.toContain('待补：')
-    expect(scanDesignDetail(root).骨架.分部.find((p) => p.名称 === '线索悬念伏笔')?.待补).toEqual([])
+    expect(scanDesignDetail(root).全书大纲.分部.find((p) => p.名称 === '线索悬念伏笔')?.待补).toEqual([])
 
     // 不存在的节
     const bad = writePending(root, rel, '不存在的节', 'x')
@@ -81,9 +81,9 @@ describe('待补便签(算不出来的才落盘)', () => {
 describe('已确认但无内容(#165,标签保留且内容参与建议)', () => {
   it('未标注的同级标题也截断正文范围,空子标题与注释不冒充设计内容', () => {
     const root = mkBook()
-    fs.mkdirSync(path.join(root, '大纲'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/故事骨架.md'), [
-      '# 故事骨架', '',
+    fs.mkdirSync(path.join(root, '故事剧情'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/全书大纲.md'), [
+      '# 全书大纲', '',
       '## 主角目标与成长轨迹 〔已确认〕', '',
       '## 讨论备忘', '这段备注不属于前一部。', '',
       '## 核心冲突与对抗力量 〔已确认〕', '### 对手', '',
@@ -91,15 +91,15 @@ describe('已确认但无内容(#165,标签保留且内容参与建议)', () => 
       '## 读者承诺与兑现 〔已确认〕', '### 卷末兑现', '主角找回遗失的信。', '',
     ].join('\n'), 'utf-8')
     expect(listConfirmedEmpty(scanDesignDetail(root))).toEqual([
-      '故事骨架·主角目标与成长轨迹', '故事骨架·核心冲突与对抗力量', '故事骨架·信息披露',
+      '全书大纲·主角目标与成长轨迹', '全书大纲·核心冲突与对抗力量', '全书大纲·信息披露',
     ])
   })
 
   it('只有标注的已确认分部才标;标题分部下级卷行、列表行内说明、后续正文都算内容;待补便签不算', () => {
     const root = mkBook()
-    fs.mkdirSync(path.join(root, '大纲'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/故事骨架.md'), [
-      '# 故事骨架', '',
+    fs.mkdirSync(path.join(root, '故事剧情'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/全书大纲.md'), [
+      '# 全书大纲', '',
       '## 主角目标与成长轨迹 〔已确认〕', '', '从杂役到宗主。', '',
       '## 核心冲突与对抗力量 〔已确认〕', '', '待补：对手动机', '',
       '## 故事阶段与关键转折 〔留白〕', '',
@@ -109,22 +109,22 @@ describe('已确认但无内容(#165,标签保留且内容参与建议)', () => 
       '- 信息披露 〔已确认〕',
       '',
     ].join('\n'), 'utf-8')
-    fs.writeFileSync(path.join(root, '大纲/分卷布局.md'), ['# 分卷布局', '', '## 故事阶段分配 〔已确认〕', '', '- 卷01：入门立足 〔已确认〕', ''].join('\n'), 'utf-8')
+    fs.writeFileSync(path.join(root, '故事剧情/分卷布局.md'), ['# 分卷布局', '', '## 故事阶段分配 〔已确认〕', '', '- 卷01：入门立足 〔已确认〕', ''].join('\n'), 'utf-8')
     const d = scanDesignDetail(root)
     const empty = (parts: readonly { 名称: string; 无内容?: true }[]) => parts.filter((p) => p.无内容 === true).map((p) => p.名称)
-    expect(empty(d.骨架.分部)).toEqual(['核心冲突与对抗力量', '信息披露'])
+    expect(empty(d.全书大纲.分部)).toEqual(['核心冲突与对抗力量', '信息披露'])
     expect(empty(d.分卷.分部)).toEqual([])
-    expect(listConfirmedEmpty(d)).toEqual(['故事骨架·核心冲突与对抗力量', '故事骨架·信息披露'])
+    expect(listConfirmedEmpty(d)).toEqual(['全书大纲·核心冲突与对抗力量', '全书大纲·信息披露'])
   })
 
-  it('seed 占位设计:契约、骨架、空卷行与无正文世界书条目全部列出;标签保留而就绪建议拒绝空壳', () => {
+  it('seed 占位设计:契约、全书大纲、空卷行与无正文世界书条目全部列出;标签保留而就绪建议拒绝空壳', () => {
     const root = mkBook(true)
     const empty = listConfirmedEmpty(scanDesignDetail(root))
     expect(empty).toHaveLength(18)
     expect(empty).toEqual(expect.arrayContaining(['契约·叙事方式与文风基调', '分卷布局·卷01', '世界书·世界规则/基础规则']))
     // 卷纲「叙事结构」下有一行说明,不算空
     expect(empty.some((e) => e.startsWith('卷01卷纲'))).toBe(false)
-    expect(scanDesign(root).骨架当前阶段已确认).toBe(true)
+    expect(scanDesign(root).全书大纲前两部已确认).toBe(true)
   })
 })
 
@@ -135,7 +135,7 @@ describe('书级进度卡渲染(纯函数,固定输入固定输出)', () => {
   it('按固定输入产出固定输出;余量≤2 标见底;从未提交显示未提交', () => {
     const root = mkBook(true)
     const detail = scanDesignDetail(root)
-    const out = renderBookProgress(detail, { '大纲/故事骨架.md': never, '作品契约/契约.md': scoped }, ['卷末锚点未兑现'])
+    const out = renderBookProgress(detail, { '故事剧情/全书大纲.md': never, '作品契约/契约.md': scoped }, ['卷末锚点未兑现'])
     expect(out).toContain('【书级进度卡】')
     // seed 只写占位确认态:只有标注没有正文的分部逐行标「无内容」,卡首汇总条数
     expect(out).toContain('已确认但无内容：18 处')
@@ -146,7 +146,7 @@ describe('书级进度卡渲染(纯函数,固定输入固定输出)', () => {
     expect(out).toContain('本卷未决偏离：1 条（卷末锚点未兑现）')
     expect(out).not.toMatch(/\d{4}-\d{2}-\d{2}/)
     // 固定输入固定输出
-    const again = renderBookProgress(detail, { '大纲/故事骨架.md': never, '作品契约/契约.md': scoped }, ['卷末锚点未兑现'])
+    const again = renderBookProgress(detail, { '故事剧情/全书大纲.md': never, '作品契约/契约.md': scoped }, ['卷末锚点未兑现'])
     expect(again).toBe(out)
   })
 
@@ -178,8 +178,8 @@ describe('activeChapterLine(每轮 context 瘦身)', () => {
     const root = mkBook(true)
     fs.mkdirSync(path.join(root, '定稿/卷02'), { recursive: true })
     fs.writeFileSync(path.join(root, '定稿/卷02/0009-风波.md'), serializeDocument({ 状态: '已定稿' }, '正文\n'), 'utf-8')
-    fs.mkdirSync(path.join(root, '大纲/卷规划/卷02'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷02/近期窗口.md'), '# 近期窗口\n\n- 第十章 〔已确认〕\n\n', 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷02'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷02/近期窗口.md'), '# 近期窗口\n\n- 第十章 〔已确认〕\n\n', 'utf-8')
     const r = activeChapterLine(root)
     if (!('ok' in r) || !r.ok || !('行' in r)) return
     expect(r.行).toContain('卷02')
@@ -192,7 +192,7 @@ describe('activeChapterLine 窗口见底(任务19, F-002)', () => {
     const 卷 = input.卷 ?? 1
     const root = mkBook(true)
     const 卷NN = String(卷).padStart(2, '0')
-    const 卷目录 = path.join(root, `大纲/卷规划/卷${卷NN}`)
+    const 卷目录 = path.join(root, `故事剧情/卷规划/卷${卷NN}`)
     fs.mkdirSync(卷目录, { recursive: true })
     const outline = ['# 卷纲', '']
     if (input.体量行 !== null) outline.push(input.体量行, '')
@@ -293,8 +293,8 @@ describe('activeChapterLine 窗口见底(任务19, F-002)', () => {
 describe('卷行确认门槛(任务21, B2)', () => {
   function mkLayoutBook(分卷文: string): string {
     const root = mkBook(false)
-    fs.mkdirSync(path.join(root, '大纲'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/分卷布局.md'), 分卷文, 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/分卷布局.md'), 分卷文, 'utf-8')
     return root
   }
   const layout = (sectionState: string | null, rows: string[]): string => [
@@ -387,10 +387,10 @@ describe('卷行确认门槛(任务21, B2)', () => {
       '- 卷08：终局 〔暂定〕', '',
     ].join('\n'))
     // 卷01 有就绪窗口——当前卷选择落到卷01
-    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/近期窗口.md'), '# 近期窗口\n\n- 开篇 〔已确认〕\n', 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/近期窗口.md'), '# 近期窗口\n\n- 开篇 〔已确认〕\n', 'utf-8')
     // ①多个卷行都被解析
-    const allocs = parseVolumeAllocations(fs.readFileSync(path.join(root, '大纲/分卷布局.md'), 'utf-8'))
+    const allocs = parseVolumeAllocations(fs.readFileSync(path.join(root, '故事剧情/分卷布局.md'), 'utf-8'))
     expect(allocs.map((a) => a.卷)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
     expect(allocs.find((a) => a.卷 === 1)).toMatchObject({ 行级状态: '已确认', 有效状态: '已确认' })
     expect(allocs.filter((a) => a.卷 >= 2).every((a) => a.有效状态 === '暂定' && a.冲突 !== true)).toBe(true)
@@ -435,16 +435,16 @@ describe('幕纲不进设计面必要条件(0.0.52 幕纲批)', () => {
   const 幕纲文 = '# 幕纲\n\n## 本幕故事\n\n在场。\n\n## 线与伏笔\n\n## 出场人物\n\n## 查证清单\n\n## 章组排布\n\n## 幕末结算\n\n〔留白〕\n'
   const mk = (withMemo: boolean): string => {
     const root = mkBook(false)
-    fs.mkdirSync(path.join(root, '大纲/卷规划/卷01'), { recursive: true })
-    fs.writeFileSync(path.join(root, '大纲/分卷布局.md'), 布局, 'utf-8')
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/卷纲.md'), '# 卷纲\n\n## 叙事结构 〔已确认〕\n\nx\n\n## 弧线 〔已确认〕\n\nx\n\n## 线索推进 〔已确认〕\n\nx\n\n## 卷末兑现 〔已确认〕\n\nx\n', 'utf-8')
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/计划时间线.md'), '# 计划时间线\n\n## 窗口覆盖\n\n- 第1章 · 开篇\n', 'utf-8')
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/近期窗口.md'), '# 近期窗口\n\n- 开篇 〔已确认〕\n', 'utf-8')
-    fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/契约占位.md'), '', 'utf-8')
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, '故事剧情/分卷布局.md'), 布局, 'utf-8')
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/卷纲.md'), '# 卷纲\n\n## 叙事结构 〔已确认〕\n\nx\n\n## 弧线 〔已确认〕\n\nx\n\n## 线索推进 〔已确认〕\n\nx\n\n## 卷末兑现 〔已确认〕\n\nx\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/计划时间线.md'), '# 计划时间线\n\n## 窗口覆盖\n\n- 第1章 · 开篇\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/近期窗口.md'), '# 近期窗口\n\n- 开篇 〔已确认〕\n', 'utf-8')
+    fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/契约占位.md'), '', 'utf-8')
     if (withMemo) {
-      fs.mkdirSync(path.join(root, '大纲/卷规划/卷01/幕纲'), { recursive: true })
-      fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/幕纲/幕01-渡口疑云.md'), 幕纲文, 'utf-8')
-      fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/幕纲/幕02-旧账.md'), 幕纲文, 'utf-8')
+      fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01/幕纲'), { recursive: true })
+      fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/幕纲/幕01-渡口疑云.md'), 幕纲文, 'utf-8')
+      fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/幕纲/幕02-旧账.md'), 幕纲文, 'utf-8')
     }
     return root
   }
@@ -483,7 +483,7 @@ describe('当前卷选择(任务21, B3 决策表15行)', () => {
     const root = mkBook(false)
     for (const [v, spec] of Object.entries(specs)) {
       const n = Number(v)
-      const dir = path.join(root, `大纲/卷规划/卷${卷(n)}`)
+      const dir = path.join(root, `故事剧情/卷规划/卷${卷(n)}`)
       fs.mkdirSync(dir, { recursive: true })
       if (spec.空目录 === true) continue
       if (spec.有卷纲 !== false) {

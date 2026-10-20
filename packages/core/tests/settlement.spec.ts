@@ -47,7 +47,7 @@ function putPackage(root: string, candidates: Record<string, string>): string {
     schemaVersion: 1,
     文件: [
       { 源: '正文.md', 目标: '定稿/卷01/0001-开篇任务.md' },
-      { 源: '章摘要.md', 目标: '大纲/卷规划/卷01/章摘要/0001-开篇任务.md' },
+      { 源: '章摘要.md', 目标: '故事剧情/卷规划/卷01/章摘要/0001-开篇任务.md' },
     ],
   }), 'utf-8')
   return rel

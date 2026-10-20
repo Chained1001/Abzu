@@ -1,8 +1,8 @@
 /**
- * 设计域工具：书架选书/建书/契约分部/占位设计（测试）/骨架/分卷/近期窗口/世界书/卷纲/待补便签/进度卡。
+ * 设计域工具：书架选书/建书/契约分部/占位设计（测试）/全书大纲/分卷/近期窗口/世界书/卷纲/待补便签/进度卡。
  */
 import { dispositionMentions, finishDesignCommit, provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { checkCommitPath, commitConfirmed, createBook, listBookMemoryEntries, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareSkeleton, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, actOutlineGaps, prepareActOutline, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
+import { checkCommitPath, commitConfirmed, createBook, listBookMemoryEntries, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareFullOutline, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, actOutlineGaps, prepareActOutline, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, volumeUpgradeCheckNotice, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { bookMemoryCatalogText, progressLineOf, renderCurrentBook } from '../status-context'
@@ -236,13 +236,13 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
           '世界书/模块声明.md',
           '世界书/人物档案/主角.md',
           '世界书/世界规则/基础规则.md',
-          '大纲/故事骨架.md',
-          '大纲/分卷布局.md',
+          '故事剧情/全书大纲.md',
+          '故事剧情/分卷布局.md',
           paths.卷纲(卷),
           paths.计划时间线(卷),
           paths.近期窗口(卷),
         ].filter((p) => fs.existsSync(nodePath.join(bookRoot, p)))
-        const commit = commitConfirmed({ bookRoot, paths: seedPaths, prefix: 'design', summary: '最小设计骨架', provenance: provenanceOf(sessionContext, seedPaths) })
+        const commit = commitConfirmed({ bookRoot, paths: seedPaths, prefix: 'design', summary: '最小设计', provenance: provenanceOf(sessionContext, seedPaths) })
         if (!commit.ok) {
           return { ok: false, reason: `最小设计已写入但提交失败（重跑本工具即可补提交）：${commit.reason}` }
         }
@@ -255,13 +255,13 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
       },
     },
     {
-      name: 'novel_update_skeleton',
-      description: '更新故事骨架（真源，覆盖式写入，再确认版本+1）。随确认产生 design: 提交；提案批次整批文件经「批次文件」一并入提交。影响面先经影响分析呈报、作者裁决后同批整改再整批确认。',
+      name: 'novel_update_full_outline',
+      description: '更新全书大纲（真源，覆盖式写入，再确认版本+1）。随确认产生 design: 提交；提案批次整批文件经「批次文件」一并入提交。影响面先经影响分析呈报、作者裁决后同批整改再整批确认。',
       parameters: {
         type: 'object',
         properties: {
           bookId: { type: 'string', description: '书id（必填）' },
-          正文: { type: 'string', description: '骨架九部完整结构及状态标注；前两部确认当前追求与阻力，其余可暂定/留白，不强填终局；空的已确认部分仍报缺内容' },
+          正文: { type: 'string', description: '全书大纲九部完整结构及状态标注；前两部确认当前追求与阻力，其余可暂定/留白，不强填终局；空的已确认部分仍报缺内容' },
           summary: { type: 'string', description: '提交摘要（可选）' },
           批次文件: { type: 'array', items: { type: 'string' }, description: '同批整改的受影响未定稿下游文件' },
         },
@@ -285,11 +285,11 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         const book = resolveBook(args, sessionContext)
         if (!book.ok) return book
         try {
-          const w = prepareSkeleton(book.bookRoot, String(args['正文']))
+          const w = prepareFullOutline(book.bookRoot, String(args['正文']))
           await writeNative(book.bookRoot, w, sessionContext)
-          return finishDesignCommit(book.bookRoot, [w.relPath], args, '故事骨架', null, sessionContext)
+          return finishDesignCommit(book.bookRoot, [w.relPath], args, '全书大纲', null, sessionContext)
         } catch (err) {
-          return { ok: false, reason: `更新故事骨架失败: ${err instanceof Error ? err.message : String(err)}` }
+          return { ok: false, reason: `更新全书大纲失败: ${err instanceof Error ? err.message : String(err)}` }
         }
       },
     },
@@ -510,15 +510,20 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
             return finishDesignCommit(book.bookRoot, [op.relPath], args, `幕纲·卷${String(卷).padStart(2, '0')}·幕${String(幕).padStart(2, '0')}`, null, sessionContext)
           }
           const rel = 目标 === '卷纲' ? paths.卷纲(卷) : 目标 === '卷摘要' ? paths.卷摘要(卷) : paths.计划时间线(卷)
+          let 卷纲通知: string | null = null
           if (目标 === '卷纲') {
             const 正文 = String(args['正文'])
             const gaps = volumeOutlineGaps(正文)
             if (gaps.length > 0) return { ok: false, reason: gaps.join(';'), gaps }
+            // 第五段「压力升级检查」走软校验：存量卷纲没有它，只播报不拦（同章型口径）。
+            // 不能在这里 return——下面 finishDesignCommit 才是落提交的地方。
+            卷纲通知 = volumeUpgradeCheckNotice(正文)
             await writeNative(book.bookRoot, prepareVolumeOutline(book.bookRoot, 卷, 正文), sessionContext)
           }
           else if (目标 === '卷摘要') await writeNative(book.bookRoot, prepareVolumeSummary(book.bookRoot, 卷, String(args['正文'])), sessionContext)
           else await writeNative(book.bookRoot, preparePlanTimeline(book.bookRoot, 卷, String(args['正文'])), sessionContext)
-          return finishDesignCommit(book.bookRoot, [rel], args, `${目标}·卷${String(卷).padStart(2, '0')}`, null, sessionContext)
+          const 提交 = finishDesignCommit(book.bookRoot, [rel], args, `${目标}·卷${String(卷).padStart(2, '0')}`, null, sessionContext)
+          return 卷纲通知 === null ? 提交 : { ...提交, notice: 卷纲通知 }
         } catch (err) {
           return { ok: false, reason: `确认${目标}失败: ${err instanceof Error ? err.message : String(err)}` }
         }
@@ -531,7 +536,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         type: 'object',
         properties: {
           bookId: { type: 'string', description: '书id（必填）' },
-          relPath: { type: 'string', description: '书仓内真源工件相对路径（如 大纲/故事骨架.md）' },
+          relPath: { type: 'string', description: '书仓内真源工件相对路径（如 故事剧情/全书大纲.md）' },
           节名: { type: 'string', description: '分节/条目名（如 线索悬念伏笔）' },
           文本: { type: 'string', description: '便签内容（缺省/空＝清除该节便签）' },
           summary: { type: 'string', description: '提交摘要（可选）' },
@@ -622,7 +627,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
                   路径: { type: 'string' },
                   分部: { type: 'string' },
                   问题: { type: 'string', enum: ['缺少内容', '缺少分部', '状态冲突', '状态无效', '疑似模板占位'] },
-                  阶段: { type: 'string', enum: ['灵感阶段', '作品定调', '世界构建', '故事骨架', '分卷布局', '当前卷规划', '开写就绪'] },
+                  阶段: { type: 'string', enum: ['灵感阶段', '作品定调', '世界构建', '全书大纲', '分卷布局', '当前卷规划', '开写就绪'] },
                 },
                 required: ['路径', '分部', '问题', '阶段'],
               },
@@ -657,7 +662,7 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
                 : 1
           const detail = scanDesignDetail(book.bookRoot, 卷)
           const docPaths = [
-            detail.契约.路径, detail.骨架.路径, detail.分卷.路径,
+            detail.契约.路径, detail.全书大纲.路径, detail.分卷.路径,
             ...detail.卷规划.flatMap((v) => [paths.卷纲(v.卷号), paths.计划时间线(v.卷号), paths.近期窗口(v.卷号)]),
           ]
           const history: Record<string, LastCommitResult> = {}

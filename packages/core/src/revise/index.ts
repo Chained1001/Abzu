@@ -12,6 +12,7 @@ export {
 } from './apply'
 export { lineDiff, replayLines, type DiffLine } from './diff'
 export { followupReport, type FollowupReport } from './followup'
+export type { FindingChangeMap } from '../evidence/record'
 export {
   AuthorDocumentError, authorDocumentPath, authorReadOnlyReason, documentHash, saveAuthorDocument, readAuthorSave, retryAuthorSaveCommit,
   type AuthorSaveInput, type AuthorSaveResult,

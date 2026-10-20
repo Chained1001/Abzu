@@ -99,7 +99,7 @@ export async function apply(ctx) {
   const longText = '林舟在渡口停下脚步。潮声越过石阶，信封上的字迹依然清晰。\n\n'.repeat(35)
   for (const [book, id] of [['验收作品甲', 'acceptance-a'], ['验收作品乙', 'acceptance-b']]) {
     put(`${book}/作品契约/契约.md`, `---\n书id: ${id}\n版本: 1\n---\n# ${book}\n\n浏览器验收临时作品。\n`)
-    put(`${book}/大纲/故事骨架.md`, '---\n版本: 1\n---\n# 故事骨架\n\n一封来信改变了渡口的日常。\n')
+    put(`${book}/故事剧情/全书大纲.md`, '---\n版本: 1\n---\n# 全书大纲\n\n一封来信改变了渡口的日常。\n')
     put(`${book}/草稿区/草稿/卷01-来信/稿1.md`, `---\n身份:\n  卷: 1\n  章: 1\n  章名: 来信\n版本: 1\n父版本: null\n角色: 待审稿\n选定: true\n---\n# 来信\n\n${longText}`)
     put(`${book}/定稿/卷01/0002-归航.md`, '---\n身份:\n  卷: 1\n  章: 2\n  章名: 归航\n角色: 已定稿\n版本: 1\n---\n# 归航\n\n已定稿的原文，只读验证。\n')
   }

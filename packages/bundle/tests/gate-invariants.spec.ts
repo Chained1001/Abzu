@@ -47,7 +47,7 @@ function makeWorkspace(): { ws: string; bookRoot: string } {
     '定稿/卷01',
     '构想',
     '作品契约',
-    '大纲',
+    '故事剧情',
   ]) {
     fs.mkdirSync(path.join(bookRoot, dir), { recursive: true })
   }

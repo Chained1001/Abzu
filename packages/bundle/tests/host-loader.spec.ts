@@ -143,7 +143,7 @@ describe('真实 DSH Loader 验收（独立进程）', () => {
       const result = JSON.parse(fs.readFileSync(path.join(loopRoot, 'report.json'), 'utf8'))
       expect(result.checks['保存后的重复空操作终止且下一轮可修改']).toEqual({ ok: true })
       expect(result.saveLoop).toMatchObject({ repeatedTurnRequests: 3, totalRequests: 6, noExtraCommit: true, nextTurnChanged: true })
-      expect(result.saveInspection).toMatchObject({ notificationReceived: true, nativeReadCalls: 2, impactReferences: ['大纲/故事骨架.md'], noAutomaticWrites: true })
+      expect(result.saveInspection).toMatchObject({ notificationReceived: true, nativeReadCalls: 2, impactReferences: ['故事剧情/全书大纲.md'], noAutomaticWrites: true })
     } finally { removeSync(loopRoot) }
   }, 60000)
 

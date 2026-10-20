@@ -36,7 +36,7 @@ export async function checkSaveLoop({ root, book, workspace, ctx, service, git, 
     let turnRequests = 0
     let requests = 0
     let substantiveNotificationSeen = false
-    const downstream = '大纲/故事骨架.md'
+    const downstream = '故事剧情/全书大纲.md'
     class RepeatingAdapter extends LlmAdapter {
       async * stream(options) {
         requests++
@@ -45,7 +45,7 @@ export async function checkSaveLoop({ root, book, workspace, ctx, service, git, 
         if (mode === 'inspect') {
           const input = JSON.stringify(options.messages)
           substantiveNotificationSeen ||= input.includes('不再以复仇为目标') && input.includes('说明影响与待作者决定项')
-          const text = '已核对契约和故事骨架：主角不再以复仇为目标，旧骨架仍包含复仇安排，需作者决定调整范围；未修改下游。'
+          const text = '已核对契约和全书大纲：主角不再以复仇为目标，旧全书大纲仍包含复仇安排，需作者决定调整范围；未修改下游。'
           const chunks = turnRequests === 1 ? call(`inspect-read-${requests}`, 'read', { file_path: path.join(book, relative) })
             : turnRequests === 2 ? call(`inspect-downstream-${requests}`, 'read', { file_path: path.join(book, downstream) })
             : [
@@ -95,7 +95,7 @@ export async function checkSaveLoop({ root, book, workspace, ctx, service, git, 
       report.saveLoop = { repeatedTurnRequests: 3, totalRequests: requests, noExtraCommit: true, nextTurnChanged: true, model: 'scripted protocol fixture' }
       // Exercise substantive author saves separately from the no-op stop condition.
       fs.mkdirSync(path.dirname(path.join(book, downstream)), { recursive: true })
-      const beforeDownstream = core.serializeDocument({ 来源引用: [relative + '@1'] }, '# 故事骨架\n主角计划复仇。\n')
+      const beforeDownstream = core.serializeDocument({ 来源引用: [relative + '@1'] }, '# 全书大纲\n主角计划复仇。\n')
       fs.writeFileSync(path.join(book, downstream), beforeDownstream)
       git('add', downstream); git('commit', '--quiet', '-m', 'design: downstream fixture')
       const current = study.read(ref)

@@ -3,7 +3,7 @@ export {
   conceptSnapshotText,
   emptyContractBody,
   emptyPlanTimelineBody,
-  emptySkeletonBody,
+  emptyFullOutlineBody,
   emptyVolumeLayoutBody,
   emptyVolumeOutlineBody,
   emptyWindowBody,

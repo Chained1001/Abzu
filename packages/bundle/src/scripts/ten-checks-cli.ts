@@ -119,7 +119,7 @@ function readOutlineDoc(file: string, text: string): OutlineDoc {
 
 /** 目录内「NNNN-*.md」按章号排（升序）；目录不存在返回空。 */
 function chapterFiles(book: string, 卷: number, kind: '章摘要' | '章细纲'): ReadonlyArray<{ readonly name: string; readonly no: number }> {
-  const dir = path.join(book, '大纲', '卷规划', `卷${String(卷).padStart(2, '0')}`, kind)
+  const dir = path.join(book, '故事剧情', '卷规划', `卷${String(卷).padStart(2, '0')}`, kind)
   let names: string[] = []
   try {
     names = fs.readdirSync(dir).filter(name => /^\d{4}-.+\.md$/i.test(name))
@@ -133,7 +133,7 @@ function chapterFiles(book: string, 卷: number, kind: '章摘要' | '章细纲'
 }
 
 function readVolumeFile(book: string, 卷: number, kind: '章摘要' | '章细纲', name: string): string | null {
-  return readBookFile(book, `大纲/卷规划/卷${String(卷).padStart(2, '0')}/${kind}/${name}`)
+  return readBookFile(book, `故事剧情/卷规划/卷${String(卷).padStart(2, '0')}/${kind}/${name}`)
 }
 
 /** 章摘要目录里章号小于目标章的最大一份；本卷没有回上一卷，再没有返回 null。 */

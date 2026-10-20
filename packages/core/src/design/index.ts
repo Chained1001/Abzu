@@ -20,12 +20,13 @@ export {
   type ChapterLengthPolicy,
   type ChapterLengthRange,
 } from './chapter-length'
-export { updateSkeleton, updateVolumeLayout, prepareSkeleton, prepareVolumeLayout, prepareDesignDoc, type DesignWriteResult } from './skeleton'
+export { updateFullOutline, updateVolumeLayout, prepareFullOutline, prepareVolumeLayout, prepareDesignDoc, type DesignWriteResult } from './skeleton'
 export {
   actOutlineGaps,
   checkVolumeReady,
   planTimelineBody,
   volumeOutlineGaps,
+  volumeUpgradeCheckNotice,
   幕纲必备段,
   卷纲脚手架段,
   writePlanTimeline,

@@ -18,7 +18,8 @@ export function createOutlineTools(shared: ToolShared): NovelToolDefinition[] {
           卷: { type: 'number', description: '卷号（如 1）' },
           章名: { type: 'string', description: '章名（如 第一章）' },
           正文: { type: 'string', description: '细纲正文（可选，缺省落空模板）' },
-          来源引用: { type: 'array', items: { type: 'string' }, description: '来源引用行（可选）。合法形态：来源:<仓内相对路径>@<版本>（如 大纲/卷规划/卷01/卷纲.md@1）、来源:作者自定义、来源:对谈共创；锚点/行号/绝对路径无效' },
+          来源引用: { type: 'array', items: { type: 'string' }, description: '来源引用行（可选）。合法形态：来源:<仓内相对路径>@<版本>（如 故事剧情/卷规划/卷01/卷纲.md@1）、来源:作者自定义、来源:对谈共创；锚点/行号/绝对路径无效' },
+          章型: { type: 'string', description: '章型双轴（可选，建议填）。写法 <承诺档>·<情绪位>：承诺档 关键/过渡，情绪位 铺垫/高潮/余波/切换（两轴取值不重叠——情绪位不用「过渡」，改称「切换」），如「过渡·余波」「关键·高潮」；只写一轴亦可。落候选 frontmatter，供审读与润色取本章强度；不填只播报不拦，填了但无法识别则拒确认' },
         },
         required: ['bookId', '卷', '章名'],
       },
@@ -48,6 +49,7 @@ export function createOutlineTools(shared: ToolShared): NovelToolDefinition[] {
             章名,
             body: args['正文'] === undefined ? undefined : String(args['正文']),
             来源引用: Array.isArray(args['来源引用']) ? (args['来源引用'] as unknown[]).map(String) : undefined,
+            章型: args['章型'] === undefined ? undefined : String(args['章型']),
           })
           return { ok: true, relPath: rel, message: `候选细纲已落草稿区：${rel}。完成后调 novel_confirm_outline 确认。` }
         } catch (err) {

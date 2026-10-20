@@ -52,9 +52,9 @@ describe('作者文档保存边界', () => {
   })
 
   it('在写入前比较原始哈希，冲突不落盘', () => {
-    put('大纲/骨架.md', '他人的最新修改\n')
-    expect(() => saveAuthorDocument(root, { path: '大纲/骨架.md', expectedHash: documentHash('旧稿'), body: '我的修改', provenance })).toThrow(/已被修改/)
-    expect(fs.readFileSync(path.join(root, '大纲/骨架.md'), 'utf8')).toBe('他人的最新修改\n')
+    put('故事剧情/全书大纲.md', '他人的最新修改\n')
+    expect(() => saveAuthorDocument(root, { path: '故事剧情/全书大纲.md', expectedHash: documentHash('旧稿'), body: '我的修改', provenance })).toThrow(/已被修改/)
+    expect(fs.readFileSync(path.join(root, '故事剧情/全书大纲.md'), 'utf8')).toBe('他人的最新修改\n')
   })
 
   it('待审稿新版本与降级在一次事务里，元数据和候选事实保留', () => {
@@ -167,7 +167,7 @@ describe('作者文档保存边界', () => {
   })
 
   it('真源修改生成 fix 提交，重放不产生新版本或空提交', () => {
-    const relative = '大纲/骨架.md'
+    const relative = '故事剧情/全书大纲.md'
     const text = put(relative, serializeDocument({ 版本: 2, 书id: 'test-book' }, '原规划'))
     initGit()
     const input = { path: relative, expectedHash: documentHash(text), body: '作者规划', provenance, operationId }
@@ -180,7 +180,7 @@ describe('作者文档保存边界', () => {
   })
 
   it('提交失败仍有已保存结果，可补提交且不重写正文', () => {
-    const relative = '大纲/骨架.md'
+    const relative = '故事剧情/全书大纲.md'
     const text = put(relative, serializeDocument({ 版本: 1 }, '原规划'))
     const input = { path: relative, expectedHash: documentHash(text), body: '作者规划', provenance, operationId }
     const saved = saveAuthorDocument(root, input)

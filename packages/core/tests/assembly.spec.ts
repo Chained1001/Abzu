@@ -137,15 +137,15 @@ describe('跨卷材料(任务21, 件二):卷N首章带卷N−1卷摘要与上一
       const fin = path.join(root, `定稿/卷01/${String(章).padStart(4, '0')}-${name}.md`)
       fs.mkdirSync(path.dirname(fin), { recursive: true })
       fs.writeFileSync(fin, serializeDocument({ 状态: '已定稿' }, `第${章}章正文末尾：渡口的灯灭了。`), 'utf-8')
-      const sum = path.join(root, `大纲/卷规划/卷01/章摘要/${String(章).padStart(4, '0')}-${name}.md`)
+      const sum = path.join(root, `故事剧情/卷规划/卷01/章摘要/${String(章).padStart(4, '0')}-${name}.md`)
       fs.mkdirSync(path.dirname(sum), { recursive: true })
       fs.writeFileSync(sum, `# 章摘要\n\n${name}摘要：灯灭之因。`, 'utf-8')
     }
     if (withSummary) {
-      fs.writeFileSync(path.join(root, '大纲/卷规划/卷01/卷摘要.md'), '# 卷摘要\n\n卷一摘要：三盏灯与一只空渡口。', 'utf-8')
+      fs.writeFileSync(path.join(root, '故事剧情/卷规划/卷01/卷摘要.md'), '# 卷摘要\n\n卷一摘要：三盏灯与一只空渡口。', 'utf-8')
     }
     // 卷二第4章:窗口就绪＋确认细纲
-    fs.mkdirSync(path.join(root, '大纲/卷规划/卷02'), { recursive: true })
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷02'), { recursive: true })
     writeRecentWindow(root, 2, [{ 名称: '第四章 新城', 状态: '已确认' }])
     writeCandidate(root, {
       卷: 2,
@@ -183,7 +183,7 @@ describe('跨卷材料(任务21, 件二):卷N首章带卷N−1卷摘要与上一
     expect(sec!.content).toContain('渡口的灯灭了')
     expect(sec!.content).toContain('第三章 渡口摘要')
     const rec = c.段?.find((s) => s.段 === '近期正文衔接')
-    expect(rec?.来源).toContain('大纲/卷规划/卷01/卷摘要.md')
+    expect(rec?.来源).toContain('故事剧情/卷规划/卷01/卷摘要.md')
     expect(rec?.来源).toContain('定稿/卷01/0003-第三章 渡口.md')
   })
 

@@ -5,7 +5,7 @@ import type { StudyDocument } from '../src/study/types'
 
 vi.mock('../src/client/api', async original => ({ ...await original<typeof import('../src/client/api')>(), callStudy: vi.fn() }))
 const request = vi.mocked(callStudy)
-const doc = (hash = 'one'): StudyDocument => ({ ref: { space: 'book:a', path: '大纲/故事骨架.md' }, absolutePath: '/a/大纲/故事骨架.md', name: '故事骨架.md', owner: 'a', version: 1, body: hash, hash })
+const doc = (hash = 'one'): StudyDocument => ({ ref: { space: 'book:a', path: '故事剧情/全书大纲.md' }, absolutePath: '/a/故事剧情/全书大纲.md', name: '全书大纲.md', owner: 'a', version: 1, body: hash, hash })
 afterEach(() => { request.mockReset(); vi.useRealTimers() })
 
 describe('书房外部刷新', () => {

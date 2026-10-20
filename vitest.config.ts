@@ -6,7 +6,16 @@ import { diagnosticForks } from './scripts/release/ci-pool.mjs';
 
 // Windows runners expose an 8.3 TEMP alias; fixtures and fault-injection mocks
 // must use the same canonical path that the filesystem returns to production.
-const testTemp = realpathSync.native(tmpdir());
+//
+// ABZU_TEST_TEMP: 本机可选覆盖。有些 Windows 机器上系统 %TEMP% 的 ACL 会让 esbuild
+// 写不出产物（"Failed to write to output file: ... Access is denied"），连带
+// archive-receipt / transaction-process / retcon-retry-receipt / host-loader /
+// retrieval-settings 五处整份失败——那是机器环境问题，不是代码问题。把该变量指向
+// 仓内目录（如 .tmp/test-temp）即可全绿；不设时行为与 CI 完全一致，不做任何改变。
+const tempOverride = process.env['ABZU_TEST_TEMP'];
+const testTemp = tempOverride === undefined || tempOverride === ''
+  ? realpathSync.native(tmpdir())
+  : (mkdirSync(tempOverride, { recursive: true }), realpathSync.native(tempOverride));
 const diagnostics = fileURLToPath(new URL('./.tmp/ci', import.meta.url));
 if (process.env['CI']) mkdirSync(diagnostics, { recursive: true });
 

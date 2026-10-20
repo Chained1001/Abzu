@@ -18,7 +18,7 @@ beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-study-'))
   for (const [name, id] of [['雾港', 'fog'], ['长夜', 'night']]) {
     put(`${name}/作品契约/契约.md`, serializeDocument({ 书id: id }, name!))
-    put(`${name}/大纲/卷01/细纲.md`, serializeDocument({ 版本: 1 }, '真实细纲'))
+    put(`${name}/故事剧情/卷01/细纲.md`, serializeDocument({ 版本: 1 }, '真实细纲'))
   }
   put('雾港/草稿区/草稿/卷01-开篇/稿1.md', serializeDocument({ 身份: { 卷: 1, 章: 1, 章名: '开篇' }, 版本: 1, 角色: '待审稿' }, '待审稿正文'))
   put('雾港/.private.md', '不可暴露')
@@ -40,7 +40,7 @@ describe('真实书房目录服务', () => {
     expect(service.shelf().books.map(book => book.id).sort()).toEqual(['book:fog', 'book:night'])
     expect(service.shelf().shared).toBe(true)
     const top = service.tree({ space: 'book:fog', path: '' })
-    expect(top.map(entry => entry.name)).toEqual(['作品契约', '大纲', '草稿区'])
+    expect(top.map(entry => entry.name)).toEqual(['作品契约', '故事剧情', '草稿区'])
     expect(top.some(entry => entry.ref.path.includes('细纲.md'))).toBe(false)
     expect(service.tree({ space: 'book:fog', path: '草稿区/草稿/卷01-开篇' })[0]).toMatchObject({ badge: '待审稿', draft: true })
   })
@@ -72,8 +72,8 @@ describe('真实书房目录服务', () => {
   })
   it('对话绝对路径和书id路径都解析到正确文件，其他路径交回宿主', () => {
     const service = new StudyService(root)
-    expect(service.resolve(path.join(root, '雾港', '大纲', '卷01', '细纲.md'))?.ref.space).toBe('book:fog')
-    expect(service.resolve('fog:大纲/卷01/细纲.md')?.ref.space).toBe('book:fog')
+    expect(service.resolve(path.join(root, '雾港', '故事剧情', '卷01', '细纲.md'))?.ref.space).toBe('book:fog')
+    expect(service.resolve('fog:故事剧情/卷01/细纲.md')?.ref.space).toBe('book:fog')
     expect(service.resolve(path.join(os.tmpdir(), 'outside.txt'))).toBeNull()
   })
   it('保存共享资料后仍可读回原差异，其他会话不能重用记录', () => {

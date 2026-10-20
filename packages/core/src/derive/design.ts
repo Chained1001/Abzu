@@ -23,7 +23,7 @@ export type DesignPosition =
   | '灵感阶段'
   | '作品定调'
   | '世界构建'
-  | '故事骨架'
+  | '全书大纲'
   | '分卷布局'
   | '当前卷规划'
   | '开写就绪'
@@ -33,7 +33,7 @@ export interface DesignFacts {
   readonly 构想冻结: boolean
   readonly 契约六部已确认: boolean
   readonly 世界书最小模块足够: boolean
-  readonly 骨架当前阶段已确认: boolean
+  readonly 全书大纲前两部已确认: boolean
   readonly 当前卷分配完整: boolean
   readonly 卷纲存在: boolean
   readonly 卷纲缺段?: readonly string[]
@@ -63,8 +63,8 @@ export const 契约六部 = [
 /** M0 世界书最小模块:人物档案 + 世界规则,各至少一条已确认。 */
 export const 世界书最小模块 = ['人物档案', '世界规则'] as const
 
-/** 故事骨架九个核心部分(格式规格 §3.2 / D25)。 */
-export const 故事骨架九部 = [
+/** 全书大纲九个核心部分(格式规格 §3.2 / D25)。 */
+export const 全书大纲九部 = [
   '主角目标与成长轨迹',
   '核心冲突与对抗力量',
   '故事阶段与关键转折',
@@ -77,7 +77,7 @@ export const 故事骨架九部 = [
 ] as const
 
 /** 分卷布局八个核心部分(格式规格 §3.2 / D26)。 */
-export const 骨架当前必要分部 = 故事骨架九部.slice(0, 2)
+export const 全书大纲必要分部 = 全书大纲九部.slice(0, 2)
 
 export const 分卷布局八部 = [
   '故事阶段分配',
@@ -90,7 +90,7 @@ export const 分卷布局八部 = [
   '卷间衔接',
 ] as const
 
-const BOOK_MARKERS = ['作品契约', '构想', '大纲', '世界书', '定稿', '账本', '本书记忆', '草稿区'] as const
+const BOOK_MARKERS = ['作品契约', '构想', '故事剧情', '世界书', '定稿', '账本', '本书记忆', '草稿区'] as const
 
 export function deriveDesign(f: DesignFacts): DesignDerivation {
   const 内容问题 = f.内容问题 ?? []
@@ -100,7 +100,7 @@ export function deriveDesign(f: DesignFacts): DesignDerivation {
     { 名称: '构想冻结', 事实: f.构想冻结 },
     { 名称: '契约六部已确认', 事实: f.契约六部已确认 },
     { 名称: '世界书最小模块足够', 事实: f.世界书最小模块足够 },
-    { 名称: '骨架当前阶段已确认', 事实: f.骨架当前阶段已确认 },
+    { 名称: '全书大纲前两部已确认', 事实: f.全书大纲前两部已确认 },
     { 名称: '当前卷分配完整', 事实: f.当前卷分配完整 },
     { 名称: '卷纲存在', 事实: f.卷纲存在 },
     { 名称: '计划时间线存在', 事实: f.计划时间线存在 },
@@ -111,7 +111,7 @@ export function deriveDesign(f: DesignFacts): DesignDerivation {
     if (!f.书仓存在 || !f.构想冻结) return '灵感阶段'
     if (!f.契约六部已确认 || contentMissing('作品定调')) return '作品定调'
     if (!f.世界书最小模块足够 || contentMissing('世界构建')) return '世界构建'
-    if (!f.骨架当前阶段已确认 || contentMissing('故事骨架')) return '故事骨架'
+    if (!f.全书大纲前两部已确认 || contentMissing('全书大纲')) return '全书大纲'
     if (!f.当前卷分配完整 || contentMissing('分卷布局')) return '分卷布局'
     if (!f.卷纲存在 || !f.计划时间线存在 || !f.近期窗口存在 || !f.窗口有可进入条目 || contentMissing('当前卷规划')) {
       return '当前卷规划'
@@ -168,21 +168,21 @@ export function scanDesign(root: string, 卷 = 1): DesignFacts {
     if (!facts.hasContent) for (const relative of facts.empty) 内容问题.push({ 路径: relative, 分部: module, 问题: '缺少内容', 阶段: '世界构建' })
   }
 
-  const 骨架文 = readText(root, paths.故事骨架())
-  const 骨架分部 = parseDesignContent(骨架文 ?? '')
-  const 骨架当前阶段已确认 = 骨架当前必要分部.every(name => {
-    const hits = 骨架分部.filter(part => part.名称 === name)
+  const 全书大纲文 = readText(root, paths.全书大纲())
+  const 全书大纲分部 = parseDesignContent(全书大纲文 ?? '')
+  const 全书大纲前两部已确认 = 全书大纲必要分部.every(name => {
+    const hits = 全书大纲分部.filter(part => part.名称 === name)
     return hits.length > 0 && hits.every(part => part.状态 === '已确认')
   })
-  for (const name of 故事骨架九部) {
-    const hits = 骨架分部.filter(part => part.名称 === name)
+  for (const name of 全书大纲九部) {
+    const hits = 全书大纲分部.filter(part => part.名称 === name)
     const states = new Set(hits.map(part => part.状态))
-    const required = 骨架当前必要分部.includes(name)
+    const required = 全书大纲必要分部.includes(name)
     const 问题 = hits.length === 0 ? '缺少分部'
       : states.size > 1 ? '状态冲突'
         : hits.some(part => !['已确认', '暂定', '留白'].includes(part.状态 ?? '')) ? '状态无效'
           : hits.some(part => !part.有内容 && (required || part.状态 === '已确认')) ? '缺少内容' : undefined
-    if (问题) 内容问题.push({ 路径: paths.故事骨架(), 分部: name, 问题, 阶段: '故事骨架' })
+    if (问题) 内容问题.push({ 路径: paths.全书大纲(), 分部: name, 问题, 阶段: '全书大纲' })
   }
 
   const 分卷文 = readText(root, paths.分卷布局())
@@ -235,7 +235,7 @@ export function scanDesign(root: string, 卷 = 1): DesignFacts {
     构想冻结,
     契约六部已确认,
     世界书最小模块足够,
-    骨架当前阶段已确认,
+    全书大纲前两部已确认,
     当前卷分配完整,
     卷纲存在,
     卷纲缺段,

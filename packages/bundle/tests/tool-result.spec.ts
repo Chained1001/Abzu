@@ -30,8 +30,8 @@ describe('小说结果卡的证据边界', () => {
   })
   it('无变化无需重试；进度待核对与渲染文本保留', () => {
     expect(novelResultModel(settled({ ok: true, commitState: 'unchanged' })).label).toBe('无变化')
-    const model = novelResultModel(settled({ ok: true, 渲染: '骨架缺正文', 内容问题: ['骨架缺正文'], 疑似占位待核对: ['事件甲'] }))
-    expect(model.state).toBe('attention'); expect(model.report).toBe('骨架缺正文')
+    const model = novelResultModel(settled({ ok: true, 渲染: '全书大纲缺正文', 内容问题: ['全书大纲缺正文'], 疑似占位待核对: ['事件甲'] }))
+    expect(model.state).toBe('attention'); expect(model.report).toBe('全书大纲缺正文')
   })
   it('未知/混合内容原样回退，不从其中挑一个成功对象', () => {
     expect(novelResultModel(settled({ message: '成功' })).state).toBe('unknown')

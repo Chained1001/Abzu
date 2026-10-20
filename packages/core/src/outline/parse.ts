@@ -3,6 +3,7 @@
  */
 
 import { parseDocument } from '../repo/frontmatter'
+import { type Parsed章型, parse章型 } from './chapter-type'
 import { 定位段小节, 单元字段, type 定位段名, type 单元字段名 } from './template'
 
 export type ConstraintMark = '硬' | '软' | '自由'
@@ -19,6 +20,8 @@ export interface OutlineUnit {
 
 export interface ParsedOutline {
   readonly 状态: string | null
+  /** 章型双轴；未写或无法识别时为 null。 */
+  readonly 章型: Parsed章型 | null
   readonly 来源引用: readonly string[]
   readonly 定位: Readonly<Partial<Record<定位段名, string>>>
   readonly units: readonly OutlineUnit[]
@@ -163,6 +166,7 @@ export function parseOutline(text: string): ParsedOutline {
   const fields = doc.ok ? doc.data.fields : {}
   const body = doc.ok ? doc.data.body : text
   const 状态 = typeof fields['状态'] === 'string' ? fields['状态'] : null
+  const 章型 = parse章型(fields['章型'])
   const 来源引用 = extractSourceRefLines(fields)
 
   const 定位: Partial<Record<定位段名, string>> = {}
@@ -176,6 +180,7 @@ export function parseOutline(text: string): ParsedOutline {
 
   return {
     状态,
+    章型,
     来源引用,
     定位,
     units,

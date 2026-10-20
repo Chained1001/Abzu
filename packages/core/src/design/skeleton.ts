@@ -1,5 +1,5 @@
 /**
- * 故事骨架与分卷布局写入器(格式规格 §3.2):设计侧覆盖式写入,版本协议沿用 provenance。
+ * 全书大纲与分卷布局写入器(格式规格 §3.2):设计侧覆盖式写入,版本协议沿用 provenance。
  * 写入器只写文件不碰 git;提交由工具层在作者确认时经 commitConfirmed 执行(拍板 1/7)。
  */
 
@@ -45,22 +45,22 @@ export function prepareDesignDoc(bookRoot: string, rel: string, body: string, �
   return { relPath: rel, content: serializeDocument(fields, body), result: { relPath: rel, 版本: Number(fields['版本']), 首次写入 } }
 }
 
-export function prepareSkeleton(bookRoot: string, body: string) {
-  return prepareDesignDoc(bookRoot, paths.故事骨架(), body, '骨架更新')
+export function prepareFullOutline(bookRoot: string, body: string) {
+  return prepareDesignDoc(bookRoot, paths.全书大纲(), body, '全书大纲更新')
 }
 
 export function prepareVolumeLayout(bookRoot: string, body: string) {
   return prepareDesignDoc(bookRoot, paths.分卷布局(), body, '分卷更新')
 }
 
-/** 更新故事骨架(真源,覆盖式;正文变化版本+1,原样重跑复用版本)。 */
-function updateSkeletonLocked(bookRoot: string, body: string): DesignWriteResult {
-  const op = prepareSkeleton(bookRoot, body)
+/** 更新全书大纲(真源,覆盖式;正文变化版本+1,原样重跑复用版本)。 */
+function updateFullOutlineLocked(bookRoot: string, body: string): DesignWriteResult {
+  const op = prepareFullOutline(bookRoot, body)
   writeFileAtomic(bookRoot, op.relPath, op.content)
   return op.result
 }
 
-export const updateSkeleton = bookWriter(updateSkeletonLocked)
+export const updateFullOutline = bookWriter(updateFullOutlineLocked)
 
 /** 更新分卷布局(真源,覆盖式;正文变化版本+1,原样重跑复用版本)。 */
 function updateVolumeLayoutLocked(bookRoot: string, body: string): DesignWriteResult {
