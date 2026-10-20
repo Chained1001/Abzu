@@ -22,6 +22,9 @@ import { fileURLToPath } from 'node:url'
 import { existsSync } from 'node:fs'
 import type { ToolExecutionToken, ToolRuntime } from '@deepseek-ai/dsh-tools'
 import { attachFileGateToAgent, attachDraftSnapshotToAgent } from './gates'
+import { attachReceiptToAgent } from './receipt'
+import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { TOOL_RECEIPT_SOURCE } from './message-sources'
 import { uniqueBookRoot, scanBooks } from './bookshelf'
 import { attachStatusToAgent, type SystemPromptLike } from './status-context'
 import { canonicalizePath, isFullyQualifiedPath, isInsidePath } from '@abzu/core'
@@ -664,6 +667,29 @@ export function apply(ctx: Context) {
         logger: { warn: (message) => ctx.logger.warn(message) },
       })
       if (offSnap !== undefined) attached.push(offSnap)
+
+      // 提案回执（0.0.88）：把上一批写入结果回灌给模型，避免重复提交与基于未落盘的改动推演。
+      // 只挂主 Agent：子 Agent 的写入结果由主控在任务包里自带交接，再回灌会造成双重叙述。
+      //
+      // 宿主面分两处：事件（on）在 agent.ctx 上，投递口（inject/followup）在 agent 本身上，
+      // 所以两边的成员都要暴露给接线函数——只给 agentCtx 会拿不到 inject。
+      if (!isSubagent) {
+        const agentCtxLike = agentCtx as unknown as { readonly on?: (event: string, listener: (...a: never[]) => unknown) => unknown }
+        const agentLike = agent as unknown as { readonly inject?: (m: unknown) => void; readonly followup?: (m: unknown) => void }
+        const 回执宿主 = {
+          // on 需要绑定 agentCtx 作为 this，否则宿主内部访问不到自己的字段
+          on: typeof agentCtxLike.on === 'function' ? agentCtxLike.on.bind(agentCtxLike) : undefined,
+          inject: typeof agentLike.inject === 'function' ? agentLike.inject.bind(agentLike) : undefined,
+          followup: typeof agentLike.followup === 'function' ? agentLike.followup.bind(agentLike) : undefined,
+        }
+        const offReceipt = attachReceiptToAgent(回执宿主, {
+          造消息: (文本) => createUserMessage({ content: [{ type: 'text', text: 文本 }], source: { kind: TOOL_RECEIPT_SOURCE } }),
+          logger: { warn: (message) => ctx.logger.warn(message) },
+        })
+        if (offReceipt !== undefined) attached.push(offReceipt)
+        recordSelfCheck('receipt.mount', offReceipt === undefined ? 'missing' : 'ok',
+          offReceipt === undefined ? `回执层未挂载（${agentId}）：模型看不到上一批写入结果` : `回执层已挂载（${agentId}）`)
+      }
     }
 
     const offCreated = host.on('agent/created', ((payload: { readonly agent?: AgentLike }) => {

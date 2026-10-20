@@ -27,6 +27,7 @@ export const SELF_CHECK_IDS = [
   'gate.file',
   'persona.mount',
   'status.mount',
+  'receipt.mount',
 ] as const
 
 export type SelfCheckId = (typeof SELF_CHECK_IDS)[number]

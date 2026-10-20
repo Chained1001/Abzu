@@ -340,7 +340,7 @@ describe('R1 装机自检：挂载点 id 覆盖率', () => {
     expect(statusOf(abzuSelfCheck(), 'tools.restrict')).toBe('pending')
   })
 
-  it('满配宿主：12 个 id 全部上报，集合与 SELF_CHECK_IDS 相等', () => {
+  it('满配宿主：全部 id 上报，集合与 SELF_CHECK_IDS 相等', () => {
     const ws = makeWorkspace()
     const registered: string[] = []
     const mainCtx = agentStub({ tools: { register: (tool: { name: string }) => { registered.push(tool.name); return () => {} } } })
@@ -351,7 +351,9 @@ describe('R1 装机自检：挂载点 id 覆盖率', () => {
         skills: {},
         agents: {
           list: () => [
-            { id: 'main-1', ctx: mainCtx },
+            // 主 Agent 带 inject/followup（宿主 Agent 接口的两个投递口），回执层才能挂上。
+            // 注意与 agentStub 里的 ctx.inject 区分：那是 Cordis 依赖注入，名字相似但不同物。
+            { id: 'main-1', ctx: mainCtx, inject: () => {}, followup: () => {} },
             { id: 'sub-1', session: { header: { origin: 'subagent' } }, ctx: subCtx },
           ],
         },
@@ -367,6 +369,24 @@ describe('R1 装机自检：挂载点 id 覆盖率', () => {
     expect(statusOf(abzuSelfCheck(), 'approval.policy')).toBe('ok')
     expect(statusOf(abzuSelfCheck(), 'tools.register')).toBe('ok')
     expect(statusOf(abzuSelfCheck(), 'tools.restrict')).toBe('ok')
+    expect(statusOf(abzuSelfCheck(), 'receipt.mount')).toBe('ok')
+  })
+
+  it('主 Agent 缺 inject/followup：回执层记 missing，不假装已挂', () => {
+    const ws = makeWorkspace()
+    const mainCtx = agentStub()
+    const { host } = makeHost({
+      ready: {
+        workspaceRegistry: { list: () => [{ path: ws }] },
+        skills: {},
+        // 只有 ctx、没有投递口——回执无处投递
+        agents: { list: () => [{ id: 'main-1', ctx: mainCtx }] },
+        tools: { register: () => {} },
+        userQuestions: { ask: async () => ({ answers: [] }) },
+      },
+    })
+    apply(host as never)
+    expect(statusOf(abzuSelfCheck(), 'receipt.mount')).toBe('missing')
   })
 
   it('缺配宿主：只上报最小集合，其余挂载点不得凭空出现', () => {
