@@ -7,10 +7,12 @@ import { spawn, spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { withBookWrite, writeBatchAtomic, writeContract, paths, parseDocument } from '../src'
 import { removeSync } from '../src/repo/remove'
+import { testScratchDir } from './helpers/scratch'
 
 const roots: string[] = []
 function root(): string {
-  const value = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-process-'))
+  // 走仓内 .tmp：esbuild 产物写系统 %TEMP% 在本机会 Access is denied（详见 helpers/scratch.ts）
+  const value = testScratchDir('abzu-process')
   roots.push(value)
   return value
 }

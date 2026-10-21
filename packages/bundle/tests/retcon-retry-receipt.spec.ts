@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import * as os from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { buildSync } from 'esbuild'
@@ -9,8 +8,10 @@ import { createNovelTools, type ToolExecContext } from '../src/novel-tools'
 import { APPROVE_LABEL, REJECT_LABEL, archiveRetcon, paths, parseDocument, serializeDocument, writeBookMemory, type AskFn } from '../../core/src/index'
 import { contentHash, type ArchiveReceipt } from '../../core/src/commit/receipt'
 import { removeSync } from '../../core/src/repo/remove'
+import { testScratchDir } from '../../core/tests/helpers/scratch'
 
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'retcon-tool-receipt-'))
+// 走仓内 .tmp：esbuild 产物写系统 %TEMP% 在本机会 Access is denied（详见 helpers/scratch.ts）
+const scratch = testScratchDir('retcon-tool-receipt')
 afterAll(() => removeSync(scratch))
 const key = { 卷: 1, 章: 1, 章名: '铜铃' }
 const chapter = paths.定稿章(1, 1, key.章名)

@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { build } from 'esbuild'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
-import * as fs from 'node:fs'
 import * as path from 'node:path'
-import * as os from 'node:os'
 import { removeSync } from '../../../core/src/repo/remove'
+import { testScratchDir } from '../../../core/tests/helpers/scratch'
 import { linkFixtureDependencies } from '../fixtures/fixture-dependencies.mjs'
 
 describe('真实 DSH 设置与提供方生命周期', () => {
   it('可保存维度、隔离凭据、热更新配置并保持卸载重装等价', async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-embedding-settings-'))
+    // 走仓内 .tmp：esbuild 产物写系统 %TEMP% 在本机会 Access is denied（详见 helpers/scratch.ts）
+    const root = testScratchDir('abzu-embedding-settings')
     const packageRoot = path.resolve(__dirname, '../..')
     try {
       linkFixtureDependencies(packageRoot, root)

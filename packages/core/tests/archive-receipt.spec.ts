@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import * as os from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -10,10 +9,12 @@ import { ARCHIVE_RECEIPT_DIR } from '../src/commit/receipt'
 import { parseDocument, serializeDocument } from '../src/repo/frontmatter'
 import { removeSync } from '../src/repo/remove'
 import { writeSettlementDecision } from '../src/settlement/decision'
+import { testScratchDir } from './helpers/scratch'
 
 const roots: string[] = []
 function temp(): string {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archive-receipt-'))
+  // 走仓内 .tmp：esbuild 产物写系统 %TEMP% 在本机会 Access is denied（详见 helpers/scratch.ts）
+  const root = testScratchDir('archive-receipt')
   roots.push(root)
   return root
 }

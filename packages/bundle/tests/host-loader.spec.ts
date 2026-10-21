@@ -3,9 +3,9 @@ import { build } from 'esbuild'
 import { execFile } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import * as os from 'node:os'
 import { promisify } from 'node:util'
 import { removeSync } from '../../core/src/repo/remove'
+import { testScratchDir } from '../../core/tests/helpers/scratch'
 import { loadSourceHost } from '../scripts/dsh-source.mjs'
 import { linkFixtureDependencies } from './fixtures/fixture-dependencies.mjs'
 
@@ -73,9 +73,17 @@ function linkHostDependencies(fixtureRoot: string) {
 }
 
 beforeAll(async () => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-loader-'))
+  // 走仓内 .tmp：esbuild 产物写系统 %TEMP% 在本机会 Access is denied（详见 helpers/scratch.ts）
+  root = testScratchDir('abzu-loader')
   const workspace = path.join(root, 'workspace')
   fs.mkdirSync(workspace)
+  // 沙箱只允许写仓内，所以 root 必然在仓内、其祖先链上有本仓的 `.git`。
+  // findProjectRoot 只认 `.git` 并一路向上找，在仓内跑时每次都会命中仓根，
+  // 于是「项目根」指向了 Abzu 仓而不是 fixture workspace——单个 check 已用临时 .git 标记绕开
+  // （见 host-loader.mjs 的说明），但其余 check 仍要反复走这条向上查找。
+  // 这里在 workspace 落一个常驻标记，把项目根截断在 fixture 内：语义更接近 CI（TEMP 在仓外），
+  // 也避免整份用例因为仓内运行而慢一倍以上。
+  fs.writeFileSync(path.join(workspace, '.git'), 'gitdir: ../.fixture-not-a-repo\n', 'utf8')
   linkHostDependencies(root)
   const outfile = path.join(root, 'lib', 'abzu.mjs')
   fs.cpSync(path.join(packageRoot, 'skills'), path.join(root, 'skills'), { recursive: true })
@@ -104,10 +112,21 @@ beforeAll(async () => {
     env: { ...process.env, DSH_HOME: path.join(root, '.dsh'), DSH_AGENTS_HOME: path.join(root, '.agents'), DSH_TELEMETRY_DISABLED: '1' },
     // The shared process runs 35 integration scenarios, including native settings
     // reloads and local HTTP. Keep a total bound without treating it as one test.
-    // 2026-10-15 实测（仓内 TEMP，本宿主唯一能跑 esbuild 的形态）：全套 87.3s / 89.7s / 92.8s / 94.1s，
-    // 原来的 90s 预算已经在悬崖上——满载那一跑在第 26/37 个 check 被判超时 SIGTERM，37 条全 skipped
-    // （逐条断言都是绿的，死的是预算不是实现）。提到 120s 留出余量；CI（TEMP 在仓外）不受影响。
-    timeout: 120_000,
+    // 2026-10-15 实测：全套 87.3s / 89.7s / 92.8s / 94.1s，90s 预算已在悬崖上，
+    // 满载那跑在第 26/37 个 check 被判超时 SIGTERM（逐条断言都是绿的，死的是预算）。
+    // 当时提到 120s。
+    // 2026-10-20 复核：这台机器上稳定要 115.5s 跑完全部 37 条，120s 只剩 4.5s 余量，
+    // 于是「偶发失败」其实是长期贴着预算跑——实测连续三次都是 123.5~124.3s 被杀，
+    // report 里 34/35 个 check 已 ok:true、停在最后一个场景。**不是实现失败**。
+    // 2026-10-21 定案：240s 这个数其实是当时误判的产物（那时以为是纯预算不足）。
+    // 真正的原因有两层，都已修掉：
+    //   ① 沙箱只允许写仓内，root 必然在仓内 → findProjectRoot 反复向上命中外层仓，
+    //      整份用例慢一倍以上；现在 workspace 里落 .git 标记把项目根截断在 fixture 内。
+    //   ② 宿主 dsh-atomic-write 写 cordis.patch.yml 时的 1.1s 重试在满载时不够，
+    //      偶发 EPERM 假红；现在 fixture 侧对瞬时文件错误再兜一层重试。
+    // 修完实测：单独 112~156s、全量并发 2 遍均全绿，故预算收到 180s（约 1.6 倍余量）。
+    // 保留 180s 而不是贴着实测值：慢机器/CI 上仍要有余量，但也不能大到掩盖真回归。
+    timeout: 180_000,
     windowsHide: true,
     maxBuffer: 2 * 1024 * 1024,
   }).catch((error: unknown) => {
@@ -122,7 +141,8 @@ beforeAll(async () => {
   if (reportPath !== undefined) fs.writeFileSync(path.resolve(reportPath), JSON.stringify({ ...report, stdout: result.stdout, stderr: result.stderr }, null, 2))
   expect(result.stderr).not.toContain('UNHANDLED')
   // hook 预算必须大于子进程预算（含 esbuild 构建），否则子进程还没到点、hook 先被判超时。
-}, 150_000)
+  // 子进程 180s，构建另需数秒，故 hook 取 240s。
+}, 240_000)
 
 afterAll(() => {
   if (root === undefined) return
@@ -132,7 +152,7 @@ afterAll(() => {
 
 describe('真实 DSH Loader 验收（独立进程）', () => {
   it('#167 作者保存后重复空操作结束轮次，新的作者委托仍可正常修改', async () => {
-    const loopRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-save-loop-'))
+    const loopRoot = testScratchDir('abzu-save-loop')
     try {
       linkHostDependencies(loopRoot)
       for (const file of ['native-write-core.mjs', 'embedding-provider.mjs', 'scenes.mjs', 'reranking.mjs']) fs.copyFileSync(path.join(root, file), path.join(loopRoot, file))

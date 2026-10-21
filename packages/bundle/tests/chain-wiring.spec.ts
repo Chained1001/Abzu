@@ -80,7 +80,7 @@ describe('运行链路接线(工具面验收)', () => {
     const { bookId } = await makeBook(ws, call)
     const root = path.join(ws, '链路书')
     const seeded = await call('novel_seed_min_design', { bookId })
-    expect(seeded.ok).toBe(true)
+    expect(seeded.ok, JSON.stringify(seeded)).toBe(true)
     expect(seeded.message).not.toContain('已进入开写就绪')
     const status = await call('novel_get_story_status', { bookId })
     const design = status.design as { 建议: string; 内容问题: unknown[] }

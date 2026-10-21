@@ -61,6 +61,14 @@ const check = async (name, fn) => {
     report.checks[name] = { ok: true }
   } catch (error) {
     report.checks[name] = { ok: false, error: error.stack ?? String(error) }
+    // 索引相关 check 失败时，把书仓里的状态文件一并留下：错误文案往往被降级成
+    // 「本地索引操作失败」，只有 state 里的 lastError / phase / attempt 能说明真因。
+    try {
+      for (const bookName of fs.readdirSync(workspace)) {
+        const stateFile = path.join(workspace, bookName, '.abzu', 'finalized-search-state.json')
+        if (fs.existsSync(stateFile)) (report.failureStates ??= {})[bookName] = fs.readFileSync(stateFile, 'utf8')
+      }
+    } catch { /* 诊断信息可选，失败不影响主流程 */ }
   }
   delete report.runningStep
   fs.writeFileSync(path.join(root, 'report.json'), JSON.stringify(report, null, 2))
@@ -115,7 +123,44 @@ git('add', '.')
 git('commit', '--quiet', '-m', 'ch: fixture')
 
 const ctx = await settingsProfile.start('abzu-loader-test')
-const service = name => ctx.get(name)
+/**
+ * 宿主 `@deepseek-ai/dsh-settings` 的 `update()` 会用 `dsh-atomic-write` 把
+ * `profile-home/profiles/test/cordis.patch.yml` 整体重写（写临时文件再 rename）。
+ * 那个库自己已经对 Windows 的 EPERM/EBUSY 重试 8 次 / 约 1.1s，但它是
+ * node_modules 里的第三方代码，我们改不了；而在本机满载跑全量时，
+ * 1.1s 的窗口偶尔仍不够，于是整条 check 因为一次瞬时文件系统状态而假红
+ *（实测：单跑 4 次全绿、全量偶发，报错都在 renameAtomicTemp 那一行）。
+ *
+ * 所以在测试侧再兜一层：只对「瞬时 Windows 文件系统错误」重试，
+ * 其他错误原样抛出——不掩盖真实缺陷，也不改变被验证的代码路径
+ *（真正跑的还是宿主自己那套原子写，只是多给它几次机会）。
+ */
+const 瞬时文件错误 = new Set(['EPERM', 'EACCES', 'EBUSY'])
+const 设置重试退避 = [30, 80, 150, 300, 600]
+const 包一层设置写入 = target => {
+  const update = target?.update
+  if (typeof update !== 'function') return target
+  return new Proxy(target, {
+    get(object, property, receiver) {
+      if (property !== 'update') return Reflect.get(object, property, receiver)
+      return async (...args) => {
+        for (let attempt = 0; ; attempt++) {
+          try {
+            return await update.apply(object, args)
+          } catch (error) {
+            const delay = 设置重试退避[attempt]
+            if (!瞬时文件错误.has(error?.code) || delay === undefined) throw error
+            await new Promise(resolve => setTimeout(resolve, delay))
+          }
+        }
+      }
+    },
+  })
+}
+const service = name => {
+  const value = ctx.get(name)
+  return name === 'settings' ? 包一层设置写入(value) : value
+}
 const schemas = agent => service('tools').schemas(agent).map(tool => tool.name).filter(name => name.startsWith('novel_')).sort()
 let sequence = 0
 const execute = (agent, name, args, signal = new AbortController().signal) => service('tools').execute({

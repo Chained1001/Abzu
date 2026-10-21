@@ -16,7 +16,19 @@ export * from './derive/states'
 export * from './derive/scan'
 export * from './derive/derive'
 export * from './derive/design'
-export * from './derive/receipt'
+// 逐名书写（工程规范 §8.1：禁止新增 export *）
+export {
+  回执结论上限,
+  回执条数上限,
+  写入类工具,
+  是否需要回执,
+  造回执,
+  追加回执,
+  空累积,
+  渲染回执,
+  type 回执条目,
+  type 回执累积,
+} from './derive/receipt'
 export * from './provenance'
 export * from './config/resolve'
 export * from './gate'

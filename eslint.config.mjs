@@ -1,7 +1,8 @@
 import tseslint from 'typescript-eslint'
 
 export default [
-  { ignores: ['**/node_modules/**', '**/lib/**', '**/.tmp/**', '**/.abzu/**', '.trellis/**', 'tools/**', 'scripts/evaluation/**'] },
+  // .scratch/ 是本机临时分析目录（已 gitignore），里面可能有二进制样本；与 .tmp/ 同等排除。
+  { ignores: ['**/node_modules/**', '**/lib/**', '**/.tmp/**', '**/.abzu/**', '**/.scratch/**', '.trellis/**', 'tools/**', 'scripts/evaluation/**'] },
   // Y10(批F):接入 typescript-eslint recommended 基线(原 6 条保留见下)。
   ...tseslint.configs.recommended,
   {
