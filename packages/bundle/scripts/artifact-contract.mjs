@@ -4,6 +4,10 @@ export const referenceDocs = [
   ...['导入与覆盖', '事实提取', '机制与灵感'].map(name => `skills/novel-analyze/references/${name}.md`),
   ...['全量', '章节结构', '人物与关系', '情节与因果', '信息披露', '线索与伏笔', '节奏与张力', '读者承诺', '文风与表达', '世界内合理性']
     .map(name => `skills/novel-review/agents/${name}审读.md`),
+  // 章型取档：审读按章型查表的单源判据件，被 novel-review/SKILL.md、
+  // novel-outline/SKILL.md 与 director 的《评审分级与门禁》三处引用。
+  // 0.0.87 加入时漏登记在本清单里，导致 pack-check 与实际打包内容不一致。
+  'skills/novel-review/references/章型取档.md',
   ...['1-表达清理', '2-节奏与重塑'].map(name => `skills/novel-polish/references/${name}.md`),
   'skills/novel-revision/agents/改稿章程.md',
   'skills/novel-settle/agents/沉淀对账.md',
