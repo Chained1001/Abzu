@@ -127,7 +127,19 @@ export function createDraftingTools(shared: ToolShared): NovelToolDefinition[] {
         },
         render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
       },
-      execute: (args, sessionContext) => acceptEditorSuggestion(deps.editorRequests, sessionContext?.agent, args),
+      // §7.3：core 调用必须包 try/catch，模型只该拿到结构化失败。
+      // acceptEditorSuggestion 内部要经 hub.prepare → sync() 调宿主 session 接口，
+      // 宿主抛错会原样冒到模型那里，所以在这里收口。
+      execute: (args, sessionContext) => {
+        try {
+          return acceptEditorSuggestion(deps.editorRequests, sessionContext?.agent, args)
+        } catch (error) {
+          return {
+            ok: false,
+            reason: `把建议交回编辑器失败: ${error instanceof Error ? error.message : String(error)}`,
+          }
+        }
+      },
     },
   ]
 }

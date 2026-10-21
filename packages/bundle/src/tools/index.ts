@@ -157,6 +157,17 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
   ])
   const nativeTools = NATIVE_DESIGN_TOOLS
   const registered = deps.testTools === true ? tools : tools.filter((tool) => !NOVEL_TEST_TOOL_NAMES.includes(tool.name))
+  /**
+   * 书锁/写路径兜底失败的结构化返回。
+   *
+   * §7.3 要求工具层把异常转成 `{ok:false, reason:'中文语境: <原消息>'}`，点名工具场景。
+   * 早前这里只回 `error.message`，19 个 locked 工具连带原生写工具一起兜底时，
+   * 模型拿到的是一句没有上下文的裸异常文本，不知道是哪一步、哪类操作失败的。
+   */
+  const 写路径兜底失败 = (toolName: string, error: unknown): { ok: false; reason: string } => ({
+    ok: false,
+    reason: `工具 ${toolName} 写入失败: ${error instanceof Error ? error.message : String(error)}`,
+  })
   // 入参校验包在最外层：schema 违规在拿书锁之前就拒（纯 CPU 检查不必进 withBookWrite）。
   return registered.map((tool) => {
     if (!locked.has(tool.name)) return tool
@@ -169,11 +180,11 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
         try {
           if (nativeTools.has(tool.name)) {
             return withBookWriteAsync(root, async () => tool.execute(args, sessionContext), provenanceOf(sessionContext))
-              .catch((error: unknown) => ({ ok: false, reason: error instanceof Error ? error.message : String(error) }))
+              .catch((error: unknown) => 写路径兜底失败(tool.name, error))
           }
           return withBookWrite(root, () => tool.execute(args, sessionContext), provenanceOf(sessionContext))
         } catch (error) {
-          return { ok: false, reason: error instanceof Error ? error.message : String(error) }
+          return 写路径兜底失败(tool.name, error)
         }
       },
     }

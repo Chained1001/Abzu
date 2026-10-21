@@ -210,8 +210,14 @@ function applyRevisionLocked(
   // 后续范围报告(M1:两次写入都返回,只改处置亦然)——对当前待审稿正文计算,不自动跑润色/审核
   const pending = findPendingReviewDraft(bookRoot, key)
   const pendingDoc = pending === null ? null : parseDocument(pending.text)
+  // §7.2:解析失败不能折成空串——空串会让 followup 的「出现类」硬约束全部误报失败
+  // （'' 里当然找不到任何词），作者会收到一堆假的「硬约束回查失败」。
+  // 取不到正文时明确说明「未知」，不再假装算过。
+  const 正文不可得 = pendingDoc !== null && !pendingDoc.ok
   const 新正文 = pendingDoc !== null && pendingDoc.ok ? pendingDoc.data.body : ''
-  const followup = followupReport(bookRoot, key, 新正文, loadReviewRecord(bookRoot, key))
+  const followup = 正文不可得
+    ? { ...followupReport(bookRoot, key, '', loadReviewRecord(bookRoot, key)), 需语义审读: ['待审稿正文解析失败，本轮未做硬约束回查——请先修复稿件格式'] }
+    : followupReport(bookRoot, key, 新正文, loadReviewRecord(bookRoot, key))
   return relPath === undefined ? { ok: true, followup, 审核记录哈希 } : { ok: true, relPath, diff, followup, 审核记录哈希 }
 }
 

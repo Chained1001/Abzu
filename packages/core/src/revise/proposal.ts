@@ -88,6 +88,10 @@ function registerProposalLocked(
   if (typeof input.内容 !== 'string' || input.内容.trim() === '') {
     throw new Error('提案内容为空——提案须写明改什么、为什么、影响面摘要')
   }
+  // §7.4:来源与内容同为 schema required,空白同样按「未提供」点名拒绝,不落占位 frontmatter。
+  if (typeof input.来源 !== 'string' || input.来源.trim() === '') {
+    throw new Error('提案来源为空——须写明提案来处（如「第3章审核发现项 2 条」「作者对话指示」）')
+  }
   const num = nextProposalNumber(bookRoot)
   const 编号 = pad4(num)
   const relPath = `草稿区/提案/${编号}-${input.类型}.md`
@@ -96,7 +100,7 @@ function registerProposalLocked(
     域: input.域,
     类型: input.类型,
     状态: '待裁决' as 提案状态,
-    来源: input.来源,
+    来源: input.来源.trim(),
     ...(input.关联发现项 === undefined ? {} : { 关联发现项: input.关联发现项 }),
   }
   const body = [
@@ -117,20 +121,37 @@ function registerProposalLocked(
 
 export const registerProposal = bookWriter(registerProposalLocked)
 
-/** 读回提案（解析失败如实报）。 */
+/**
+ * 读回提案（解析失败如实报）。
+ *
+ * 工程规范 §7.2：读侧必须区分 missing 与 io。早前这里把整个读取包在一个 catch 里，
+ * EACCES/EBUSY 等 io 错误也会报成「提案不存在」——文件就在盘上，作者却被告知不存在，
+ * 而且 revise/apply 还会据此劝他「先登记提案」，等于用错误结论引导他去覆盖真实提案。
+ * 现在「目录里找不到」= missing，「读的过程中失败」= io 且带错误码。
+ */
 export function loadProposal(
   bookRoot: string,
   编号: string,
 ): { readonly ok: true; readonly text: string; readonly relPath: string } | { readonly ok: false; readonly reason: string } {
+  let matches: string[]
   try {
-    const matches = fs.readdirSync(提案目录(bookRoot)).filter(f => f.startsWith(`${编号}-`) && isMarkdownFileName(f))
-    if (matches.length === 0) return { ok: false, reason: `提案不存在：${编号}` }
-    if (matches.length !== 1) return { ok: false, reason: `提案编号存在多份文件：${编号}。请作者核对，不能任选一份` }
-    const file = matches[0]!
-    const relPath = `草稿区/提案/${file}`
+    matches = fs.readdirSync(提案目录(bookRoot)).filter(f => f.startsWith(`${编号}-`) && isMarkdownFileName(f))
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code
+    // 目录本身不存在＝还没登记过任何提案，按 missing 报。
+    if (code === 'ENOENT') return { ok: false, reason: `提案不存在：${编号}` }
+    return { ok: false, reason: `读取提案目录失败：${编号}（${code ?? '未知错误'}：${error instanceof Error ? error.message : String(error)}）` }
+  }
+  if (matches.length === 0) return { ok: false, reason: `提案不存在：${编号}` }
+  if (matches.length !== 1) return { ok: false, reason: `提案编号存在多份文件：${编号}。请作者核对，不能任选一份` }
+  const file = matches[0]!
+  const relPath = `草稿区/提案/${file}`
+  try {
     return { ok: true, text: fs.readFileSync(nodePath.join(提案目录(bookRoot), file), 'utf-8'), relPath }
-  } catch {
-    return { ok: false, reason: `提案不存在：${编号}` }
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code
+    if (code === 'ENOENT') return { ok: false, reason: `提案不存在：${relPath}` }
+    return { ok: false, reason: `读取提案失败：${relPath}（${code ?? '未知错误'}：${error instanceof Error ? error.message : String(error)}）` }
   }
 }
 
