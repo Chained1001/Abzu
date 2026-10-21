@@ -5,4 +5,4 @@ export { checkCommitPath, checkCommitRelPath, type CommitPathCheck } from './pat
 export { archiveChapter, archiveRetcon, type ArchiveOptions, type ArchiveResult, type ManifestEntry } from './archive'
 export { archiveRetconRequest, type RetconRequestOptions } from './archive'
 export { commitConfirmed, type CommitConfirmedOptions, type CommitConfirmedResult } from './design'
-export { lastCommitOf, type LastCommitResult } from './history'
+export { lastCommitOf, lastCommitsOf, type LastCommitResult } from './history'

@@ -9,7 +9,7 @@ import { checkCommitRelPath } from '../src/commit/paths'
 import { archiveChapter, archiveRetcon } from '../src/commit/archive'
 import { preparePack } from '../src/prepare'
 import { commitConfirmed } from '../src/commit/design'
-import { lastCommitOf } from '../src/commit/history'
+import { lastCommitOf, lastCommitsOf } from '../src/commit/history'
 
 const roots: string[] = []
 function mkDir(prefix: string): string {
@@ -466,5 +466,44 @@ describe('某工件最近一次提交(lastCommitOf,拍板 3)', () => {
     const err = lastCommitOf(bare, '作品契约/契约.md')
     expect(err.ok).toBe(false)
     if (!err.ok) expect(err.kind).toBe('error')
+  })
+
+  // 批量版是为了省 git 进程（每路径 2 次 spawn → 与路径数无关的 1 次），
+  // 因此它必须与逐个查询**逐字段等价**；不等价就是拿性能换正确性。
+  it('批量版 lastCommitsOf 与逐个 lastCommitOf 逐字段等价', () => {
+    const root = initRepo()
+    const paths = [
+      '故事剧情/卷纲/卷01.md',
+      '故事剧情/章细纲/卷01/0012-初见.md',
+      '故事剧情/章细纲/卷01/0013-再会.md',
+      '故事剧情/卷规划/卷01/近期窗口.md',
+      '作品契约/契约.md',
+    ]
+    // 分三次提交，让不同路径的「最近提交」确实不同。
+    fs.mkdirSync(path.join(root, '作品契约'), { recursive: true })
+    fs.writeFileSync(path.join(root, '作品契约/契约.md'), '# 契约\n', 'utf-8')
+    expect(commitConfirmed({ bookRoot: root, paths: ['作品契约/契约.md'], prefix: 'design', summary: '立契约' }).ok).toBe(true)
+
+    fs.mkdirSync(path.join(root, '故事剧情/章细纲/卷01'), { recursive: true })
+    fs.writeFileSync(path.join(root, paths[1]!), '# 细纲\n', 'utf-8')
+    expect(commitConfirmed({
+      bookRoot: root, paths: [paths[1]!], prefix: 'design', summary: '确认细纲·初见', chapterScope: 12,
+    }).ok).toBe(true)
+
+    fs.mkdirSync(path.join(root, '故事剧情/卷纲'), { recursive: true })
+    fs.mkdirSync(path.join(root, '故事剧情/卷规划/卷01'), { recursive: true })
+    for (const p of [paths[0]!, paths[3]!, paths[2]!]) {
+      fs.mkdirSync(path.dirname(path.join(root, p)), { recursive: true })
+      fs.writeFileSync(path.join(root, p), '# x\n', 'utf-8')
+    }
+    expect(commitConfirmed({ bookRoot: root, paths: [paths[0]!, paths[3]!, paths[2]!], prefix: 'vol', summary: '卷01规划' }).ok).toBe(true)
+
+    // 再多一个从未提交的路径。
+    const 全部 = [...paths, '故事剧情/章细纲/卷01/0099-未写.md']
+    const batch = lastCommitsOf(root, 全部)
+    for (const p of 全部) {
+      expect(batch[p], `批量结果缺 ${p}`).toBeDefined()
+      expect(batch[p], `批量与逐个不一致：${p}`).toEqual(lastCommitOf(root, p))
+    }
   })
 })

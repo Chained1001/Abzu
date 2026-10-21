@@ -2,7 +2,7 @@
  * 设计域工具：书架选书/建书/契约分部/占位设计（测试）/全书大纲/分卷/近期窗口/世界书/卷纲/待补便签/进度卡。
  */
 import { dispositionMentions, finishDesignCommit, provenanceOf, type NovelToolDefinition, type ToolShared } from './shared'
-import { checkCommitPath, commitConfirmed, createBook, listBookMemoryEntries, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareFullOutline, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, actOutlineGaps, prepareActOutline, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, volumeUpgradeCheckNotice, type Concept, type ContractParts, type ContractPartState, lastCommitOf, type LastCommitResult } from '@abzu/core'
+import { checkCommitPath, commitConfirmed, createBook, listBookMemoryEntries, parseWindow, paths, reconcileLedger, renderBookProgress, scanDesignDetail, selectCurrentVolume, writePending, windowExtraLines, WINDOW_ENTRY_STATES, seedMinDesign, prepareFullOutline, prepareVolumeLayout, prepareContract, prepareEntry, ensureModulesDeclared, actOutlineGaps, prepareActOutline, preparePlanTimeline, prepareRecentWindow, prepareVolumeOutline, prepareVolumeSummary, volumeOutlineGaps, volumeUpgradeCheckNotice, type Concept, type ContractParts, type ContractPartState, lastCommitsOf, type LastCommitResult } from '@abzu/core'
 import * as fs from 'node:fs'
 import * as nodePath from 'node:path'
 import { bookMemoryCatalogText, progressLineOf, renderCurrentBook } from '../status-context'
@@ -369,6 +369,9 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
         if (!Number.isSafeInteger(卷) || 卷 < 1) return { ok: false, reason: `卷必须是正整数（收到：${String(args['卷'] ?? '未传')}）` }
         const 名称 = String(args['名称']).trim()
         const action = String(args['action'])
+        // §7.4：必填字段 trim 后为空须点名拒绝。空名经 prepareRecentWindow 会写出
+        // `-  〔已确认〕` 这种占位条目，解析侧认不出来，等于静默丢一条。
+        if (名称 === '') return { ok: false, reason: '窗口条目名称不能为空——须写明这次追加的是什么（收到：空串或纯空白）' }
         // 状态词表双重校验(schema enum 之外 execute 再拒一次):词表外的条目解析侧永远不认,静默写入等于丢失
         const 状态 = args['状态'] !== undefined ? String(args['状态']).trim() : '已确认'
         if (!(WINDOW_ENTRY_STATES as readonly string[]).includes(状态)) {
@@ -665,10 +668,9 @@ export function createDesignTools(shared: ToolShared): NovelToolDefinition[] {
             detail.契约.路径, detail.全书大纲.路径, detail.分卷.路径,
             ...detail.卷规划.flatMap((v) => [paths.卷纲(v.卷号), paths.计划时间线(v.卷号), paths.近期窗口(v.卷号)]),
           ]
-          const history: Record<string, LastCommitResult> = {}
-          for (const p of docPaths) {
-            if (history[p] === undefined) history[p] = lastCommitOf(book.bookRoot, p)
-          }
+          // 一次 git 调用取回全部路径的最近提交：逐个查是每路径 2 次 spawn，
+          // 20 卷要 126 次、30 秒以上，全是进程启动开销（实测单次 280–350ms）。
+          const history: Record<string, LastCommitResult> = lastCommitsOf(book.bookRoot, docPaths)
           // 未决偏离 = 对账偏离项 − 本书层记忆已处置条目(0.0.50 起记进 本书层记忆·决策,经定稿沉淀写入);
           // 短名按 dispositionMentions 的边界规则匹配,防子串误扣
           let 未决偏离: string[] = []
