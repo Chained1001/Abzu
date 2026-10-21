@@ -77,16 +77,23 @@ export function attachReceiptToAgent(
       return acc
     }
 
-    /** 交出累积并清空。渲染为 null 时什么都不做。 */
+    /**
+     * 交出累积并清空。渲染为 null 时什么都不做。
+     *
+     * 顺序要紧:先渲染、**投递成功后才清空**。早前是先清空再投递,投递一旦抛错,
+     * 这一批回执就永久没了(与「失败只 warn、不影响别的」的说法不等价——warn 的代价是丢数据)。
+     * 现在投递失败时把累积原样放回去,下一批一起交。
+     */
     const 交付 = (): void => {
       const acc = 累积表.get(ctx as object)
       if (acc === undefined || acc.条目.length === 0) return
-      累积表.set(ctx as object, 空累积)
       const text = 渲染回执(acc)
-      if (text === null) return
+      if (text === null) { 累积表.set(ctx as object, 空累积); return }
       try {
         投递(造消息(text))
+        累积表.set(ctx as object, 空累积)
       } catch (err) {
+        // 保留累积,等下一批重试;只警告,不外溢。
         依赖.logger?.warn(`[abzu-bundle] 回执投递失败:${err instanceof Error ? err.message : String(err)}`)
       }
     }
@@ -116,6 +123,9 @@ export function attachReceiptToAgent(
     }) as never)
 
     return () => {
+      // 卸载前把还没交出去的回执交掉:否则「本轮最后一次写入 + 没有下一次工具调用 + 插件卸载」
+      // 这三个条件同时成立时,那批回执直接消失(累积表被 delete)。交付本身不抛错。
+      try { 交付() } catch { /* 卸载不因回执失败而中断 */ }
       try { if (typeof offExecute === 'function') (offExecute as () => void)() } catch { /* noop */ }
       try { if (typeof offResult === 'function') (offResult as () => void)() } catch { /* noop */ }
       累积表.delete(ctx as object)

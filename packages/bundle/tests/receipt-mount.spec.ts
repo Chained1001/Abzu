@@ -203,6 +203,42 @@ describe('回执接线：容错', () => {
     off?.()
   })
 
+  it('投递抛错时保留累积，下一批一并交付（不因一次失败丢掉整批）', async () => {
+    const 收到: string[] = []
+    let 应该抛错 = true
+    const a = 假Agent()
+    // 把假 agent 的 inject 换成本地记录器，并按开关抛错
+    ;(a.ctx as Record<string, unknown>)['inject'] = (message: unknown) => {
+      if (应该抛错) throw new Error('宿主暂时不可用')
+      const m = message as { readonly content?: readonly { readonly text?: string }[] }
+      收到.push(m.content?.[0]?.text ?? '')
+    }
+    const off = attachReceiptToAgent(a.ctx, { 造消息, logger: { warn: () => {} } })!
+    a.触发('tools/result', { name: 'novel_apply_revision' }, { ok: true, message: '第一处改好了' })
+    // 第一次交付失败
+    await a.触发('tools/execute', { name: 'novel_prepare_pack' }, async () => 'ok')
+    expect(收到.length, '投递抛错时不该有消息送达').toBe(0)
+    // 恢复宿主，再攒一条并交付——上一批必须一起到达
+    应该抛错 = false
+    a.触发('tools/result', { name: 'novel_apply_revision' }, { ok: true, message: '第二处改好了' })
+    await a.触发('tools/execute', { name: 'novel_prepare_pack' }, async () => 'ok')
+    expect(收到.length, '恢复后应交付一次').toBe(1)
+    expect(收到[0]).toContain('第一处改好了')
+    expect(收到[0]).toContain('第二处改好了')
+    off()
+  })
+
+  it('卸载前把未交付的回执交掉（否则末批回执随累积表一起消失）', async () => {
+    const a = 假Agent()
+    const off = attachReceiptToAgent(a.ctx, { 造消息 })!
+    // 攒一条，但本轮不再调工具 —— 正常时机下它会等下一次工具执行
+    a.触发('tools/result', { name: 'novel_apply_revision' }, { ok: true, message: '最后一处改好了' })
+    expect(a.消息.length, '此时还没到交付时机').toBe(0)
+    off()
+    expect(a.消息.length, '卸载应把未交付的回执交掉').toBe(1)
+    expect(a.消息[0]).toContain('最后一处改好了')
+  })
+
   it('卸载后不再积累也不再交付，且可重复卸载', async () => {
     const a = 假Agent()
     const off = attachReceiptToAgent(a.ctx, { 造消息 })!
