@@ -37,6 +37,30 @@ interface TrackedBook {
 }
 const resumable = (state: IndexSyncState) => !state.paused && ['queued', 'scanning', 'scenes', 'embedding', 'retrying', 'paused'].includes(state.phase)
 
+/**
+ * 书锁冲突时的短退避重试。
+ *
+ * 背景：后台索引任务与作者的索引控制命令（`novel_index_manage` 的 update/rebuild 等）
+ * 会写同一本书的状态文件，抢同一把书锁。`withBookLockAsync` 的守卫只允许**同一条 async 链**
+ * 重入，而后台任务不在控制命令那条链上，于是并发时抛 `book-locked`
+ *（「本会话的另一个写入还没有结束」）。这不是错误用法，是执行时序撞车：
+ * 后台任务通常几十毫秒内就结束，等一下即可，没必要立刻把失败丢给作者。
+ *
+ * 只对书锁重试（其他错误立即上抛），最多约 1.2s，失败仍如实报 `book-busy`。
+ */
+async function 书锁退避<T>(operation: () => Promise<T>): Promise<T> {
+  const 退避 = [50, 120, 250, 400, 500]
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await operation()
+    } catch (error) {
+      const locked = error instanceof Error && (error as { code?: unknown }).code === 'book-locked'
+      if (!locked || attempt >= 退避.length) throw error
+      await new Promise(resolve => setTimeout(resolve, 退避[attempt]))
+    }
+  }
+}
+
 /** Book-owned work survives agent inactivity. Only this plugin's lifetime stops its workers. */
 export class BookIndexManager {
   private readonly books = new Map<string, TrackedBook>()
@@ -307,14 +331,14 @@ export class BookIndexManager {
     const head = action === 'pause' || action === 'disable' ? readIndexState(record.book.root).head : await bookHead(record.book.root)
     let revision: string | undefined
     try { revision = embeddingRevision(this.provider()) } catch { /* Worker reports the invalid configuration. */ }
-    await changeIndexState(record.book.root, state => {
+    await 书锁退避(() => changeIndexState(record.book.root, state => {
       this.requireIdentity(record)
       const base = { ...state, generation: state.generation + 1, recipientSession: sessionId, updatedAt: Date.now(), retryAt: undefined, notice: undefined, lastError: undefined }
       if (action === 'pause') return { ...base, paused: true, phase: 'paused' }
       if (action === 'disable') return { ...base, auto: false, paused: false, phase: 'disabled' }
       return { ...base, sceneRevision: this.options.getSceneProvider?.()?.metadata.revision, auto: action === 'enable' ? true : state.auto, paused: false, phase: 'queued', head, targetRevision: revision,
         rebuild: action === 'rebuild' || state.rebuild, generated: 0, failed: 0 }
-    })
+    }))
     record.localError = undefined
     record.reschedules = 0
     if (action !== 'disable' && action !== 'pause') { await this.watch(record); this.scheduleRun(record) }

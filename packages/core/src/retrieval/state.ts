@@ -69,18 +69,41 @@ export function emptyIndexState(): IndexSyncState {
     chunks: 0, completedChunks: 0, generated: 0, reused: 0, failed: 0, attempt: 0, maxRetries: 5, updatedAt: 0, errors: [] }
 }
 
+/**
+ * 解析并校验索引运行文件路径。
+ *
+ * §7.2 的读侧分流在这里有个 Windows 特例：`lstatSync` 在文件正被另一进程
+ * 删除/替换的瞬间会抛 EPERM/EBUSY（不是 ENOENT）——那是**瞬时状态**，不是
+ * 「路径不安全」。早前只放行 ENOENT，EPERM 就原样冒到 `indexFailure`，
+ * 因为 OS errno 不匹配它认的小写语义码，最终降级成泛化的 `index-error`
+ *（「本地索引操作失败，请检查书仓和缓存的读写权限」），把真实原因彻底盖住。
+ *
+ * 现在把 EPERM/EBUSY 也视为「这一瞬间看不到文件」，与 ENOENT 同等处理：
+ * 调用方（writeIndexState/readIndexState）本就有各自的缺失分支，
+ * 而真正的安全检查仍在文件可见时生效。
+ */
 export function checkedIndexFile(root: string, relative: string): string {
   const directory = path.join(root, '.abzu')
   try {
     const stat = fs.lstatSync(directory)
     if (!stat.isDirectory() || stat.isSymbolicLink()) throw new SearchError('unsafe-cache', '索引运行目录不得为链接或其他文件')
-  } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error }
+  } catch (error) { if (!瞬时不可见(error)) throw error }
   const filename = path.join(root, relative)
   try {
     const stat = fs.lstatSync(filename)
     if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1) throw new SearchError('unsafe-cache', '索引状态或锁不得为目录、链接或共享硬链接')
-  } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error }
+  } catch (error) { if (!瞬时不可见(error)) throw error }
   return filename
+}
+
+/**
+ * 是否属于「这一瞬间看不到文件」：ENOENT，或 Windows 上并发删除/替换时的 EPERM/EBUSY。
+ *
+ * 注意只对 lstat 探路放行；真正的安全判定（链接、目录、硬链接数）在文件可见时照常执行。
+ */
+function 瞬时不可见(error: unknown): boolean {
+  const code = (error as NodeJS.ErrnoException).code
+  return code === 'ENOENT' || (process.platform === 'win32' && (code === 'EPERM' || code === 'EBUSY'))
 }
 
 const checkedFile = checkedIndexFile

@@ -93,6 +93,13 @@ export class SearchCache {
       } catch (error) {
         try { db?.close() } catch { /* Preserve the original failure. */ }
         const errcode = (error as { errcode?: number }).errcode
+        // SQLITE_BUSY(5) / SQLITE_LOCKED(6)：缓存文件正被另一连接持有。
+        // 这不是「缓存坏了」，不能重建（重建会把对方正在写的库删掉），
+        // 也不该落到未分类兜底——indexFailure 只认小写语义码，raw errcode 会让模型
+        // 收到泛化的「本地索引操作失败」。转到已有的 index-busy 语义（可重试、有明确说明）。
+        if (errcode === 5 || errcode === 6) {
+          throw new SearchError('index-busy', '另一进程正在维护此书索引')
+        }
         const rebuild = errcode === 11 || errcode === 26 || (owned && (errcode === 1 || errcode === 17))
           || (error instanceof SearchError && ['damaged-cache', 'obsolete-cache'].includes(error.code))
         if (!rebuild || attempt > 0) throw error

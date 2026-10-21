@@ -50,15 +50,30 @@ export function indexFailure(error: unknown): IndexFailure {
     'sqlite-unavailable': '当前 Node 不支持内置 SQLite',
     'index-state-error': '索引状态文件不可读取，已保留原文件',
   }
-  let message = messages[code] ?? '本地索引操作失败，请检查书仓和缓存的读写权限'
-  let retryable = ['timeout', 'transport', 'scene-timeout', 'scene-transport'].includes(code)
+  // Windows 上后台索引写状态文件会撞上瞬时的 EPERM/EACCES/EBUSY（另一个句柄
+  // 正在读/替换同一文件）。这些是大写 errno，不是本模块的语义码，早前会落到
+  // 兜底文案「请检查书仓和缓存的读写权限」——那句话让作者去查一个并不存在的权限问题，
+  // 而真实原因是瞬时争用、重试即可。这里给它们单独的可重试语义。
+  const 瞬时文件错误: Record<string, string> = {
+    EPERM: '索引文件正被其他操作占用（Windows 瞬时状态），稍后会自动重试',
+    EACCES: '索引文件暂时无法访问（Windows 瞬时状态），稍后会自动重试',
+    EBUSY: '索引文件正被其他进程使用，稍后会自动重试',
+  }
+  // 用 hasOwn：`code in obj` 会把 'constructor'/'toString' 也算命中，而 code 来自外部错误对象。
+  const 是瞬时 = Object.hasOwn(瞬时文件错误, code)
+  let message = 是瞬时 ? 瞬时文件错误[code]! : messages[code] ?? '本地索引操作失败，请检查书仓和缓存的读写权限'
+  let retryable = ['timeout', 'transport', 'scene-timeout', 'scene-transport'].includes(code) || 是瞬时
   if (httpStatus !== undefined) {
     message = httpStatus === 401 || httpStatus === 403 ? `嵌入服务鉴权失败（HTTP ${httpStatus}），请检查凭据和权限`
       : httpStatus === 429 ? '嵌入服务限流或额度不足（HTTP 429）'
         : `嵌入服务返回 HTTP ${httpStatus}，请检查服务、模型和请求配置`
     retryable = httpStatus === 429 || httpStatus === 408 || httpStatus === 500 || httpStatus === 502 || httpStatus === 503 || httpStatus === 504
   }
-  return { code: /^[a-z0-9-]{1,80}$/.test(code) ? code : 'index-error', message, retryable,
+  // 对外 code 必须是小写语义码（下游按 code 分派重试，且 schema 要求小写）。
+  // 瞬时文件错误统一归到 index-busy：语义就是「另一处正在动这个文件、稍后重试」，
+  // sync.ts 的 reschedule 列表里也已经有它，于是会重新排队而不是判死。
+  const 归一code = 是瞬时 ? 'index-busy' : /^[a-z0-9-]{1,80}$/.test(code) ? code : 'index-error'
+  return { code: 归一code, message, retryable,
     ...(httpStatus === undefined ? {} : { httpStatus }), ...(retryAfterMs === undefined ? {} : { retryAfterMs }) }
 }
 

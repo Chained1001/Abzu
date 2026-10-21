@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { indexFailure } from '../src/retrieval/retry'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
@@ -388,5 +389,28 @@ describe('向量融合、新鲜度与取消', () => {
   it.each([{ query: '' }, { query: '   ' }, { query: '\0' }, { query: '甲'.repeat(257) }, { query: '线索', limit: 0 }, { query: '线索', limit: 1.5 }])('拒绝无效查询 %j', async options => {
     expect(await searchFinalized(root, options)).toMatchObject({ ok: false, code: 'invalid-query' })
     expect(fs.existsSync(path.join(root, CACHE_PATH))).toBe(false)
+  })
+})
+
+describe('索引失败的原因分类', () => {
+  // 背景：Windows 上后台索引写状态文件会撞上瞬时的 EPERM/EACCES/EBUSY
+  //（另一个句柄正在读或替换同一个文件）。这些是大写 errno，早前会落到兜底文案
+  //「本地索引操作失败，请检查书仓和缓存的读写权限」——让作者去查一个不存在的权限问题，
+  // 而且 code 被改写成 index-error，下游的重试分派也不认它。这里钉住修正后的契约。
+  it.each(['EPERM', 'EACCES', 'EBUSY'])('把 Windows 瞬时错误 %s 归为可重试的 index-busy', code => {
+    const failure = indexFailure(Object.assign(new Error('rename failed'), { code }))
+    expect(failure.code).toBe('index-busy')
+    expect(failure.retryable).toBe(true)
+    // 关键是别再说「请检查读写权限」：那是无法操作的误导。
+    expect(failure.message).not.toContain('权限')
+    expect(failure.message).toContain('稍后')
+  })
+  it('未知的 OS 级错误仍落到泛化文案，不伪造可重试', () => {
+    const failure = indexFailure(Object.assign(new Error('disk gone'), { code: 'EIO' }))
+    expect(failure.code).toBe('index-error')
+    expect(failure.retryable).toBe(false)
+  })
+  it('语义码原样保留', () => {
+    expect(indexFailure(Object.assign(new Error('x'), { code: 'index-busy' }))).toMatchObject({ code: 'index-busy', retryable: false })
   })
 })
