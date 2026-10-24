@@ -3476,25 +3476,25 @@ describe('skills 批次防回退断言组·0.0.62 审查修复批', () => {
 })
 
 describe('skills 批次防回退断言组·0.0.63 DSH 适配批', () => {
-  it('0.0.63 DSH 0.2.1-rc.2 适配：基线/依赖版本/working-directory/invariants 移除/宿主验收 profile', () => {
+  it('0.0.63 DSH 基线适配：基线/依赖版本/working-directory/invariants 移除/宿主验收 profile', () => {
     const root = path.join(__dirname, '..', '..', '..')
     // A. 基线版本、commit 与 dist-tag
     const baseline = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'dsh-baseline.json'), 'utf8'))
     expect(baseline.source).toMatchObject({
-      tag: 'dsh-v0.2.1-rc.2',
-      version: '0.2.1-rc.2',
-      commit: '687f282e8625c6b8d11ff58211a90524be2e4317',
+      tag: 'dsh-v0.2.1-rc.3',
+      version: '0.2.1-rc.3',
+      commit: '1f81c047fc48fa190a683e469daa699857e9afe8',
       sessionFormat: 4,
     })
-    expect(baseline.registry).toMatchObject({ version: '0.2.1-rc.2', sourceDistTag: 'next' })
+    expect(baseline.registry).toMatchObject({ version: '0.2.1-rc.3', sourceDistTag: 'next' })
     // B. bundle 的 DSH 依赖全部随基线（catalog 项由 workspace 单源守）
     const bundlePkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
     for (const [name, version] of Object.entries({ ...bundlePkg.devDependencies, ...bundlePkg.peerDependencies })) {
       if (!name.startsWith('@deepseek-ai/dsh') || version === 'catalog:') continue
-      expect(version, `${name} 应随 DSH 0.2.1-rc.2 基线`).toBe('0.2.1-rc.2')
+      expect(version, `${name} 应随 DSH 0.2.1-rc.3 基线`).toBe('0.2.1-rc.3')
     }
     expect(bundlePkg.devDependencies['@deepseek-ai/dsh-invariants'], 'DSH 0.2.1 已移除 dsh-invariants').toBeUndefined()
-    expect(bundlePkg.devDependencies['@deepseek-ai/dsh-working-directory']).toBe('0.2.1-rc.2')
+    expect(bundlePkg.devDependencies['@deepseek-ai/dsh-working-directory']).toBe('0.2.1-rc.3')
     // C. catalog 与 lockfile 不再残留旧基线
     const workspace = fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')
     expect(workspace).toContain("'@deepseek-ai/cordis': 4.0.5")
