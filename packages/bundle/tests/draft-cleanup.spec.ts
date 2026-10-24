@@ -148,10 +148,12 @@ describe('定稿后清理草稿区(批8,0.0.57)', () => {
     const raw = fs.readFileSync(path.join(root, rel), 'utf-8')
     expect(raw).not.toContain('问题原文')
     // 摘要随同一次 ch: 提交(受跟踪,不是游离文件)
-    const tracked = spawnSync('git', ['-C', root, 'ls-files', '--', rel], { encoding: 'utf-8', windowsHide: true })
+    // `-c core.quotepath=false`:否则中文路径会被转义成 "\345\256\232..." 八进制,
+    // 与下面的中文断言永远对不上。默认值随机器配置变,不能依赖——CI runner 用默认 true。
+    const tracked = spawnSync('git', ['-C', root, '-c', 'core.quotepath=false', 'ls-files', '--', rel], { encoding: 'utf-8', windowsHide: true })
     expect(tracked.status).toBe(0)
     expect(tracked.stdout).toContain(rel)
-    const log = spawnSync('git', ['-C', root, 'log', '--format=%s', '--', rel], { encoding: 'utf-8', windowsHide: true })
+    const log = spawnSync('git', ['-C', root, '-c', 'core.quotepath=false', 'log', '--format=%s', '--', rel], { encoding: 'utf-8', windowsHide: true })
     expect(log.status).toBe(0)
     expect(log.stdout.trim().split('\n')).toHaveLength(1)
     expect(log.stdout).toContain('ch:')

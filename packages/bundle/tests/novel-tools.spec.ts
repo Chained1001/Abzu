@@ -50,7 +50,13 @@ describe('主 Agent 专用 Tools (方案 A)', () => {
     if (initial === null) fs.unlinkSync(declaration)
     else fs.writeFileSync(declaration, initial)
     expect(spawnSync('git', ['add', '--', '世界书/模块声明.md'], { cwd: bookRoot, windowsHide: true }).status).toBe(0)
-    expect(spawnSync('git', ['commit', '-m', 'test: legacy declaration'], { cwd: bookRoot, windowsHide: true }).status).toBe(0)
+    // 身份走环境变量:测试不能假设跑它的机器配过 `git config --global user.*`
+    // (CI runner 与新装机用户都没有,commit 会以 128 失败)。
+    expect(spawnSync('git', ['commit', '-m', 'test: legacy declaration'], {
+      cwd: bookRoot,
+      windowsHide: true,
+      env: { ...process.env, GIT_AUTHOR_NAME: 'abzu', GIT_AUTHOR_EMAIL: 'abzu@local', GIT_COMMITTER_NAME: 'abzu', GIT_COMMITTER_EMAIL: 'abzu@local' },
+    }).status).toBe(0)
     const args = { bookId: created.bookId, 模块: '人物档案', 名称: '裴笑', 类型: '人物', 性质: '计划', 状态: '已确认', 来源: '作者确认', 正文: '裴笑寻找失踪的妹妹。' }
     const failing = createNovelTools({ nativeWrite: async () => { throw new Error('FS_STALE_VERSION') }, workspaceRoot: () => ws, bookRootOfBookId: () => bookRoot })
     expect(await failing.find(t => t.name === 'novel_confirm_worldbook_entry')!.execute(args)).toMatchObject({ ok: false })

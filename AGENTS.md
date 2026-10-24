@@ -41,6 +41,7 @@ Windows 为主开发环境。许可证 GPL-3.0-only。
 
 ```powershell
 pnpm test          # 全量测试，无需预设环境变量
+pnpm test:hermetic # 剥掉本机 git 配置后跑全量（复现 CI 环境）
 pnpm lint          # eslint
 pnpm build         # esbuild 构建
 pnpm check:docs    # 文档索引 + 契约耦合 + 状态机 + 计数
