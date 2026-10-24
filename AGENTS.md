@@ -3,6 +3,23 @@
 Abzu 是 **DSH 插件**（不是独立应用），面向长篇中文网络小说创作。TypeScript 单仓，pnpm workspace。
 Windows 为主开发环境。许可证 GPL-3.0-only。
 
+## 开工前
+
+改了下列任一**契约信号**，先写 `docs/设计/` 下的设计文档，再动代码：
+
+| 信号 | 判据 |
+| --- | --- |
+| 工具名集合变了 | `packages/bundle/src/tool-spec.ts` 的 `TOOL_SPECS` 增删行 |
+| 书仓文件格式或路径变了 | `packages/core/src/repo/paths.ts` |
+| 包的公共导出面变了 | 各包 `src/index.ts` 的具名导出增删 |
+| 读侧 `Result` 形状变了 | `packages/core/src/repo/{read,frontmatter}.ts` |
+
+其余直接改：修 bug、改文案与提示词、内部重构、性能优化、补测试、升依赖。取舍值得记档就写进提交说明。
+
+设计文档最低四段：**要解决的问题**（不写方案）、**关键取舍与不选什么**、**验收标准**、**待确认**。开头一行 `> 状态：…`。写完在 [docs/README.md](docs/README.md) 登记。
+
+细节见 [工程规范 §5](docs/标准/工程规范.md)。
+
 ## 必读（按任务触发）
 
 | 你要做的事 | 读这份 |
@@ -29,11 +46,20 @@ Windows 为主开发环境。许可证 GPL-3.0-only。
 pnpm test                       # 全量测试，无需预设环境变量
 pnpm lint                       # eslint
 pnpm build                      # esbuild 构建
+pnpm check:docs                 # 文档索引完整性 + 契约耦合
+pnpm check:dsh                  # DSH 版本三源比对（基线 / 上游 next / 本机宿主）
 pnpm check:public               # 公开内容扫描（含全部历史）
 pnpm check:version              # 版本一致性
 ```
 
-改动涉及发行链或公开文档时，另跑后两条。
+按改了什么决定额外跑哪些：
+
+| 改了什么 | 加跑 |
+| --- | --- |
+| 契约信号（见「开工前」）或任何 `docs/` 文件 | `check:docs` |
+| 发行链（`package.json`、构建脚本、打包清单） | `check:version` |
+| 公开文档、`README`、`CHANGELOG` | `check:public` |
+| 动了 `dsh-baseline.json`，或怀疑宿主升级过 | `check:dsh` |
 
 ## 本仓特有的事实
 
@@ -42,3 +68,18 @@ pnpm check:version              # 版本一致性
 - **`.tmp/` 与 `.scratch/` 已 gitignore**，不是交付物。
 - **仓库没有 git hooks**，检查靠人跑命令。
 - 文档描述现状；历史进 CHANGELOG，不在文档里写演变过程。
+
+## Agent skills
+
+### Issue tracker
+
+Issue 与规格记在 GitHub Issues（`Chained1001/Abzu`），用 `gh` CLI 操作；PR 不作为请求面。见 [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)。
+
+### Triage labels
+
+沿用默认五角色词表：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。见 [docs/agents/triage-labels.md](docs/agents/triage-labels.md)。
+
+### Domain docs
+
+单上下文：根目录 `GLOSSARY.md` ＋ `docs/adr/`。术语以 `GLOSSARY.md` 为准，全量词条在产品文档 §9；ADR 只在「难以逆转 + 无背景会意外 + 真有权衡」三条同时成立时新建。见 [docs/agents/domain.md](docs/agents/domain.md)。
+
