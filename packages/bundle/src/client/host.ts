@@ -45,6 +45,15 @@ export interface ClientHost {
   }
   /** DSH 0.1.7 navigation service: select a session and show its conversation. */
   uiWorkspace: { openSession(target: string): void }
+  /**
+   * Frame navigation: the selected global main panel, or null for the Conversation.
+   * `selectPanel` is the only way into a full-page surface; the key must already be
+   * registered in the root-scoped `main` slot or the host keeps the current panel.
+   */
+  layout: {
+    readonly panelInfo: { getSnapshot(): { readonly activePanelId: string | null }; subscribe(listener: () => void): () => void }
+    selectPanel(panelId: string | null): void
+  }
   conversation: { input: { for(scope: object): { state: { getSnapshot(): { draft: string } }; setDraft(text: string): void } } }
   effect(callback: () => (() => void), label?: string): unknown
   inject(names: readonly string[], callback: (context: ClientHost) => unknown): unknown

@@ -1,7 +1,7 @@
 import React from 'react'
 import { BookOpen } from 'lucide-react'
 import type { ClientHost, NativeOpenService } from './host'
-import type { StudyDocument } from '../study/types'
+import type { FileRef, StudyDocument } from '../study/types'
 import { callStudy } from './api'
 import { installWorkspaceStudyTabs } from './workspace-slots'
 import { VisualView } from './visualization'
@@ -23,9 +23,12 @@ import indexStyles from './indexing.css'
 import { installIndexSidebar } from './indexing'
 import { installNovelToolCards } from './tool-result-card'
 import resultStyles from './tool-result.css'
+import { chapterTargetOf, WORKBENCH_PANEL_ID, createWorkbenchSelection } from './chapter-target'
+import { installChapterWorkbench } from './chapter-workbench'
+import workbenchStyles from './chapter-workbench.css'
 import { apply as applyRetrievalClient, inject as retrievalClientInject } from '../retrieval/client'
 
-const workbenchInject = ['slots', 'sidebarRight', 'sidebarRightTabs', 'conversation', 'sessions', 'uiWorkspace', 'remote', 'remote.workspaceFiles']
+const workbenchInject = ['slots', 'sidebarRight', 'sidebarRightTabs', 'conversation', 'sessions', 'uiWorkspace', 'layout', 'remote', 'remote.workspaceFiles']
 
 /** 工作台与检索客户端并入同一产物：inject 取两组并集，apply 依次调用。 */
 export const inject = [...new Set([...workbenchInject, ...retrievalClientInject])]
@@ -39,6 +42,16 @@ function applyWorkbench(host: ClientHost) {
   installNovelToolCards(host)
   const store = createEditorStore(id => openWritingDocument(host, store, id))
   const openIndex = installIndexSidebar(host)
+  const selection = createWorkbenchSelection()
+  // 章稿进整页工作台：先记位置再切面板。`selectPanel` 只接受已注册的 main key，
+  // 所以 installChapterWorkbench 必须在任何点击之前完成注册（本函数同帧内完成）。
+  const openWorkbench = (sessionId: string, ref: FileRef) => {
+    const target = chapterTargetOf(ref)
+    if (!target || mainSessionOf(host) !== sessionId) return
+    selection.choose(sessionId, target)
+    host.layout.selectPanel(WORKBENCH_PANEL_ID)
+  }
+  installChapterWorkbench({ host, store, selection })
   const memory = new EditorMemory()
   const requests = createEditorRequests({
     call: callStudy,
@@ -81,7 +94,7 @@ function applyWorkbench(host: ClientHost) {
   host.effect(() => {
     const style = document.createElement('style')
     style.dataset.abzu = ''
-    style.textContent = styles + '\n' + indexStyles + '\n' + visualizationStyles + '\n' + workflowArtworkStyles + '\n' + resultStyles + '\n' + editorStyles + '\n' + layoutSwapStyles
+    style.textContent = styles + '\n' + indexStyles + '\n' + visualizationStyles + '\n' + workflowArtworkStyles + '\n' + resultStyles + '\n' + editorStyles + '\n' + layoutSwapStyles + '\n' + workbenchStyles
     document.head.append(style)
     const offMove = store.onMove((id, previous, next) => {
       memory.move(id, previous, next)
@@ -95,7 +108,7 @@ function applyWorkbench(host: ClientHost) {
     window.addEventListener('beforeunload', preventLoss)
     return () => {
       offMove(); offDiscard(); window.removeEventListener('beforeunload', preventLoss)
-      requests.dispose(); bindEditorRequests(undefined); store.dispose(); memory.clear(); style.remove()
+      requests.dispose(); bindEditorRequests(undefined); store.dispose(); selection.dispose(); memory.clear(); style.remove()
     }
   }, 'abzu: client lifetime')
   host.slots.inject('shell.overlay', () => host.slots.register({ name: 'shell.overlay', id: 'abzu-layout-swap' }, SwapHandle))
@@ -131,7 +144,7 @@ function applyWorkbench(host: ClientHost) {
     }
     return () => { offInitial(); document.removeEventListener('click', intercept, true) }
   }, 'abzu: conversation document links')
-  installWorkspaceStudyTabs({ host, store, openIndex })
+  installWorkspaceStudyTabs({ host, store, openIndex, openWorkbench })
   host.inject(['remote.session'], scope => scope.effect(() => {
     const remote = scope.get('remote.session') as NativeOpenService | undefined
     if (!remote || typeof remote.openWorkspacePath !== 'function') return () => {}
@@ -145,6 +158,8 @@ function applyWorkbench(host: ClientHost) {
           if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
           if (document) {
             if (mainSessionOf(host) !== id) return { ok: true, value: { opened: false } }
+            // 章节文件同样进整页工作台，与左栏点章节一致。
+            if (chapterTargetOf(document.ref)) { openWorkbench(id, document.ref); return { ok: true, value: { opened: true } } }
             await store.open(id, document.ref)
             return { ok: true, value: { opened: !store.get(id).error } }
           }
