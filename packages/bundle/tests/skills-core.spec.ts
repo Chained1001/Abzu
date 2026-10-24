@@ -5,7 +5,6 @@ import * as path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { parse as parseYaml } from 'yaml'
 import { NOVEL_TOOL_NAMES, NOVEL_TEST_TOOL_NAMES, createNovelTools } from '../src/novel-tools'
-import { REFERENCE_TOOL_NAMES } from '../src/reference/tools'
 import { readSkill, skillPath } from './skill-test-helpers'
 
 /**
@@ -431,7 +430,7 @@ describe('聚合 skills 体系（常驻结构契约）', () => {
     // 白名单：novel-director 的否定式提及（明说"当前无此工具，不虚构调用"）、
     // `novel_reference_*` 族称（总控用通配符指代四组参考工具）与测试专用工具
     const whitelist = new Set(['novel_ledger_query', 'novel_memory_query', 'novel_reference_', ...NOVEL_TEST_TOOL_NAMES])
-    const registered = new Set<string>([...NOVEL_TOOL_NAMES, ...REFERENCE_TOOL_NAMES])
+    const registered = new Set<string>([...NOVEL_TOOL_NAMES])
     const dangling = [...mentioned].filter((name) => !whitelist.has(name) && !registered.has(name))
     // 防前缀截断误报：提及串是注册名前缀（文档省略了后缀）也算悬空——逐条精确对表
     expect(dangling, `技能文档提及了不存在于注册表的工具：${dangling.join('、')}`).toEqual([])

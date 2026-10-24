@@ -25,8 +25,9 @@ export async function checkMinimalExport({ root, workspace, check, report }) {
       return out
     }
     const before = snapshot()
-    // Thin entry resolves ../../../lib/index.js from the packaged skills tree.
-    fs.copyFileSync(path.join(root, 'lib/abzu.mjs'), path.join(root, 'lib/index.js'))
+    // Thin entry resolves ../../../lib/cli.js from the packaged skills tree.
+    // 夹具用同一份内联产物顶替脚本运行库；宿主面的 lib/index.js 另有 external 依赖，不能顶。
+    fs.copyFileSync(path.join(root, 'lib/abzu.mjs'), path.join(root, 'lib/cli.js'))
     const script = path.join(root, 'skills/novel-export/scripts/最小导出.mjs')
     const run = (args, options = {}) => execFileSync(process.execPath, [script, '--book', book, ...args], { cwd: workspace, encoding: 'utf8', windowsHide: true, timeout: 30000, maxBuffer: 5 * 1024 * 1024, ...options })
 

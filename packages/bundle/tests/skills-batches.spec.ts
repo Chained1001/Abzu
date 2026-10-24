@@ -3331,7 +3331,9 @@ describe('skills 批次防回退断言组·0.0.57 规模批', () => {
     expect(fs.existsSync(skillFile('novel-settle', 'scripts/草稿清理.mjs')), '草稿清理.mjs 应存在').toBe(true)
     const thin = fs.readFileSync(skillFile('novel-settle', 'scripts/草稿清理.mjs'), 'utf8')
     expect(thin).toContain("draftCleanupCli")
-    expect(thin).toContain("lib/index.js")
+    // 薄入口必须指向 lib/cli.js（只依赖 Node 内置的独立运行库），不能指向 lib/index.js
+    // ——后者把 @deepseek-ai/* 留给宿主提供，普通 Node 进程跑到它会 Cannot find package。
+    expect(thin).toContain("lib/cli.js")
     const contract = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'artifact-contract.mjs'), 'utf8')
     expect(contract, 'artifact-contract thinScripts 应注册草稿清理').toContain("['skills/novel-settle/scripts/草稿清理.mjs', 'draftCleanupCli']")
     // D. 版本字段契约句(novel-design 与 novel-arcplan 工件契约)
