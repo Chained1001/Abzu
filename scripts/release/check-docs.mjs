@@ -16,25 +16,78 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 export const INDEX = 'docs/README.md'
 
-/** 索引里必须出现的文档。产品/技术/标准三类是现状文档，设计类是方案文档。 */
+/**
+ * 索引里必须出现的文档。
+ *
+ * 覆盖 docs/ 下全部 .md（含 adr/ 与 agents/），以及仓根的 GLOSSARY.md——它是术语的真源，
+ * 漏登记就等于允许「新增一份没人能找到的文档」。ADR 也要登记：它的价值在于被人读到，
+ * 只躺在目录里等于没写。
+ */
 export function walkDocs(root) {
   const docs = []
   const visit = dir => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name)
-      if (entry.isDirectory()) { if (entry.name !== 'adr') visit(full); continue }
+      if (entry.isDirectory()) { visit(full); continue }
       if (!entry.name.endsWith('.md')) continue
       docs.push(path.relative(root, full).split(path.sep).join('/'))
     }
   }
   visit(path.join(root, 'docs'))
+  if (fs.existsSync(path.join(root, 'GLOSSARY.md'))) docs.push('GLOSSARY.md')
   return docs.sort()
 }
 
-/** 状态行：设计文档开头的一行 `> 状态：…`。 */
+/**
+ * 设计文档的状态机。只有这五个值合法，且状态行必须是 `> 状态：<枚举值>` 一行到底——
+ * 后面不能跟解释。理由：状态要能被机器判定，写成「**待作者拍板 + 待 Dev 会签**。这是决策
+ * 记录…」这种整句时，人和脚本都只能靠猜。解释放到正文里。
+ */
+export const STATUSES = ['草案', '待裁决', '已定', '实施中', '已废弃']
+
+/** 状态行：设计文档开头的一行 `> 状态：<枚举值>`，不带任何尾随说明。 */
 export function statusOf(text) {
   const match = text.match(/^>\s*状态[:：]\s*(.+)$/m)
   return match ? match[1].trim() : null
+}
+
+/** 校验状态行本身：必须是五个枚举值之一。 */
+export function assertStatus(text, file) {
+  const raw = statusOf(text)
+  assert.ok(raw, `Design doc missing "> 状态：…" line: ${file}`)
+  assert.ok(STATUSES.includes(raw),
+    `Design doc has an unknown status "${raw}": ${file}\n  合法值：${STATUSES.join(' / ')}\n` +
+    '  状态行只写枚举值，解释放正文——整句状态无法被机械判定。')
+  return raw
+}
+
+/**
+ * 设计文档的最低四段。判据是标题里出现该词（`## 1. 要解决的问题`、`### 关键取舍与不选什么` 都算），
+ * 不绑定编号与层级——文档结构自由，但四段必须在。
+ */
+export const REQUIRED_SECTIONS = [
+  { key: '要解决的问题', why: '不写现在哪里不行，就没有可验收的目标' },
+  { key: '关键取舍', why: '不写否掉了什么，后来者会重走已否掉的路' },
+  { key: '验收标准', why: '不写怎么算成，就没有完成判据' },
+  { key: '待确认', why: '不写未决点，争议会在实施时以返工的形式出现' },
+]
+
+/**
+ * 文档类型。默认是「设计方案」——必须写全四段。唯一例外是「记录」：研究报告、盘点结论
+ * 这类只陈述已发生的事，不打算建成什么，硬塞「验收标准」只会逼出为了过闸而写的空话。
+ *
+ * 默认值选 fail-closed：新增一份文档不写类型行，就得满足四段。
+ */
+export const KINDS = ['设计方案', '记录']
+
+export function kindOf(text) {
+  const match = text.match(/^>\s*类型[:：]\s*(.+)$/m)
+  return match ? match[1].trim() : '设计方案'
+}
+
+export function missingSections(text) {
+  const headings = [...text.matchAll(/^#{1,6}\s+(.+)$/gm)].map(m => m[1]).join('\n')
+  return REQUIRED_SECTIONS.filter(section => !headings.includes(section.key))
 }
 
 export function checkIndex(root) {
@@ -57,18 +110,156 @@ export function checkIndex(root) {
   return { ok: true, registered: registered.size }
 }
 
-/** 设计文档必须有状态行；四段下限由作者自查，脚本只校验能机械判定的那部分。 */
+/** 设计文档必须有合法状态行；设计方案还要四段下限；`已废弃` 必须指名取代者或声明结论作废。 */
 export function checkDesignDocs(root) {
   const dir = path.join(root, 'docs/设计')
   if (!fs.existsSync(dir)) return { ok: true, designs: 0 }
   const designs = fs.readdirSync(dir).filter(name => name.endsWith('.md'))
   for (const name of designs) {
+    const file = `docs/设计/${name}`
     const text = fs.readFileSync(path.join(dir, name), 'utf8')
-    assert.ok(statusOf(text), `Design doc missing "> 状态：…" line: docs/设计/${name}`)
+    const status = assertStatus(text, file)
+    const kind = kindOf(text)
+    assert.ok(KINDS.includes(kind),
+      `Design doc has an unknown type "${kind}": ${file}\n  合法值：${KINDS.join(' / ')}`)
+    if (kind === '设计方案') {
+      const missing = missingSections(text)
+      assert.deepEqual(missing.map(s => s.key), [], `Design doc missing required sections: ${file}\n${
+        missing.map(s => `  缺「${s.key}」——${s.why}`).join('\n')}\n` +
+        `  只陈述已发生事实的文档（研究报告、盘点结论）在状态行下加一行「> 类型：记录」，可免四段。`)
+    }
+    // 废弃而不指出后代，等于让人无从判断该照哪份做。要么点名取代它的是谁，要么明说结论作废。
+    if (status === '已废弃') {
+      assert.ok(/被取代[:：]|结论作废/.test(text),
+        `Design doc is 已废弃 but names no successor: ${file}\n` +
+        '  必须写「被取代：<文件>」或「结论作废」，否则读者不知道该照哪份做。')
+    }
   }
   return { ok: true, designs: designs.length }
 }
 
+/**
+ * 文档里写死的计数必须与实际一致。只查有单一代码真源的两处：
+ * 工具数（`tool-spec.ts` 的 `TOOL_SPECS`）与技能数（`packages/bundle/skills/` 的目录数）。
+ *
+ * 其余计数（测试文件数、行数、`export *` 处数）不查——它们天天变，查了只会逼人改文档而不是
+ * 改事实。规范 §5.2 要求干脆不写这类数字。
+ */
+export function countsFromCode(root) {
+  const spec = path.join(root, 'packages/bundle/src/tool-spec.ts')
+  const counts = {}
+  if (fs.existsSync(spec)) {
+    const entries = [...fs.readFileSync(spec, 'utf8').matchAll(/^\s*\{\s*name:\s*'([^']+)'[^}]*register:\s*'([^']+)'/gm)]
+    counts.authorTools = entries.filter(m => m[2] === 'author').length
+    counts.testTools = entries.filter(m => m[2] === 'test-only').length
+  }
+  const skillsDir = path.join(root, 'packages/bundle/skills')
+  if (fs.existsSync(skillsDir)) {
+    counts.skills = fs.readdirSync(skillsDir, { withFileTypes: true }).filter(d => d.isDirectory()).length
+  }
+  return counts
+}
+
+/**
+ * 检查文档里声明的工具数与技能数。只认明确写成「共 N 个作者可用工具」「共 N 个技能」的句子，
+ * 不做模糊匹配——误报会让人绕开这条闸。
+ */
+export function checkCounts(root) {
+  const actual = countsFromCode(root)
+  const problems = []
+  const patterns = [
+    { name: 'authorTools', re: /共\s*(\d+)\s*个作者可用工具/g, label: '作者可用工具' },
+    { name: 'skills', re: /共\s*(\d+)\s*个技能/g, label: '技能' },
+  ]
+  const files = []
+  const visit = dir => {
+    if (!fs.existsSync(dir)) return
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name)
+      if (entry.isDirectory()) { visit(full); continue }
+      if (entry.name.endsWith('.md')) files.push(full)
+    }
+  }
+  visit(path.join(root, 'docs'))
+  for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8')
+    const rel = path.relative(root, file).split(path.sep).join('/')
+    for (const { name, re, label } of patterns) {
+      const expected = actual[name]
+      if (expected === undefined) continue
+      for (const match of text.matchAll(re)) {
+        if (Number(match[1]) !== expected) {
+          problems.push(`${rel}：写「共 ${match[1]} 个${label}」，代码里是 ${expected}`)
+        }
+      }
+    }
+  }
+  assert.deepEqual(problems, [], `Documented counts disagree with code:\n${problems.map(p => `  ${p}`).join('\n')}\n` +
+    '  计数由脚本现算，改代码后文档要跟着改；无法现算的计数不该写进文档（规范 §5.2）。')
+  return { ok: true, ...actual }
+}
+
+/**
+ * 文档里出现的 `pnpm <script>` 必须是真实存在的脚本，或 pnpm 自己的内置命令。
+ *
+ * 只看 `pnpm x` / `pnpm x --flag` / `pnpm --filter pkg x` 这几种可执行形式；注意 `pnpm catalog`
+ * 这类中文句子里的名词短语不在此列——正则要求后面不跟中文标点与长串文字。
+ *
+ * 两个坑（都踩过）：
+ * - `pnpm workspace` 常是名词短语（「pnpm workspace 有五个包」）而非命令，但 pnpm 确实有
+ *   `pnpm workspace` 之类的位置参数语义，所以放行内置命令而不是靠猜句子。
+ * - `pnpm vitest` 是真错误：`vitest` 不是脚本，得写 `pnpm exec vitest`。
+ */
+const PNPM_BUILTINS = new Set(['install', 'i', 'add', 'remove', 'rm', 'update', 'up', 'exec', 'dlx',
+  'run', 'workspace', 'catalog', 'store', 'link', 'unlink', 'publish', 'pack', 'why', 'list', 'ls',
+  'outdated', 'audit', 'prune', 'dedupe', 'import', 'rebuild', 'root', 'bin', 'setup', 'init'])
+
+export function checkPnpmScripts(root) {
+  const readScripts = rel => {
+    const file = path.join(root, rel)
+    if (!fs.existsSync(file)) return null
+    try { return JSON.parse(fs.readFileSync(file, 'utf8')).scripts ?? {} } catch { return null }
+  }
+  const rootScripts = readScripts('package.json') ?? {}
+  const pkgScripts = { abzu: readScripts('packages/bundle/package.json') ?? {} }
+  const problems = []
+  const files = []
+  const visit = dir => {
+    if (!fs.existsSync(dir)) return
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name)
+      if (entry.isDirectory()) { visit(full); continue }
+      if (entry.name.endsWith('.md')) files.push(full)
+    }
+  }
+  visit(path.join(root, 'docs'))
+  files.push(path.join(root, 'AGENTS.md'))
+  for (const file of files) {
+    if (!fs.existsSync(file)) continue
+    const rel = path.relative(root, file).split(path.sep).join('/')
+    for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+      // `pnpm --filter <pkg> <script>`：包内脚本
+      const filtered = line.match(/pnpm\s+--filter\s+(\S+)\s+([a-zA-Z][\w:-]*)/)
+      if (filtered) {
+        const [, pkg, script] = filtered
+        const table = pkgScripts[pkg] ?? (pkg === 'abzu' ? rootScripts : null)
+        if (table && !(script in table) && !PNPM_BUILTINS.has(script)) {
+          problems.push(`${rel}：pnpm --filter ${pkg} ${script}（该包无此脚本）`)
+        }
+        continue
+      }
+      const plain = line.match(/pnpm\s+([a-zA-Z][\w:-]*)(?=\s|$)/)
+      if (!plain) continue
+      const script = plain[1]
+      if (script.startsWith('-') || PNPM_BUILTINS.has(script)) continue
+      if (!(script in rootScripts)) problems.push(`${rel}：pnpm ${script}（根 package.json 无此脚本）`)
+    }
+  }
+  const unique = [...new Set(problems)]
+  assert.deepEqual(unique, [], `Documented pnpm scripts do not exist:\n${unique.map(p => `  ${p}`).join('\n')}\n` +
+    '  确实要跑某个可执行文件时写 `pnpm exec <bin>`；内置命令（install / add / exec 等）不在此检查范围。')
+  return { ok: true, scripts: Object.keys(rootScripts).length }
+}
 /**
  * 契约信号 ⟹ 配套文档。改左侧任一文件，同批必须动右侧之一。
  * 配对表刻意显式（不是「任何契约文件 ⟹ 任何文档」），否则误报会让人绕开闸。
@@ -154,9 +345,11 @@ export function checkContracts(root, { base = 'HEAD', only } = {}) {
 export function checkTree(root, options = {}) {
   const index = checkIndex(root)
   const design = checkDesignDocs(root)
+  const counts = checkCounts(root)
+  const scripts = checkPnpmScripts(root)
   const violations = checkContracts(root, options)
   assert.deepEqual(violations, [], `Contract signals changed without matching docs:\n${violations.map(v => `  ${v.signal} → ${v.docs.join(' 或 ')}（${v.why}）`).join('\n')}`)
-  return { ok: true, registered: index.registered, designs: design.designs }
+  return { ok: true, registered: index.registered, designs: design.designs, scripts: scripts.scripts, ...counts }
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {

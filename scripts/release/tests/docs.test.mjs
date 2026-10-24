@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { checkIndex, checkDesignDocs, statusOf, checkContracts, CONTRACTS, walkDocs, baseAvailable, changedFiles } from '../check-docs.mjs'
+import { checkIndex, checkDesignDocs, statusOf, assertStatus, STATUSES, checkContracts, CONTRACTS, walkDocs, baseAvailable, changedFiles, countsFromCode, checkCounts, checkPnpmScripts } from '../check-docs.mjs'
 
 const scratch = () => fs.mkdtempSync(path.join(os.tmpdir(), 'abzu-docs-'))
 const cleanup = root => {
@@ -51,15 +51,28 @@ test('index must not reach outside docs and the two root entries', () => {
   } finally { cleanup(root) }
 })
 
-test('design docs must carry a status line', () => {
+test('design docs must carry a valid status from the fixed set', () => {
   const root = scratch()
   try {
     write(root, 'docs/README.md', '')
-    write(root, 'docs/设计/有状态.md', '# x\n\n> 状态：**待拍板**。理由。\n')
+    const four = '## 1. 要解决的问题\n## 2. 关键取舍与不选什么\n## 3. 验收标准\n## 4. 待确认\n'
+    write(root, 'docs/设计/有状态.md', `# x\n\n> 状态：待裁决\n\n${four}`)
     assert.equal(checkDesignDocs(root).designs, 1)
-    assert.equal(statusOf('> 状态：**待拍板**。理由。'), '**待拍板**。理由。')
-    write(root, 'docs/设计/无状态.md', '# y\n\n正文。\n')
+    assert.equal(statusOf('> 状态：实施中'), '实施中')
+    write(root, 'docs/设计/无状态.md', `# y\n\n${four}`)
     assert.throws(() => checkDesignDocs(root), /missing "> 状态/)
+  } finally { cleanup(root) }
+})
+
+test('a free-text status must be rejected', () => {
+  // 回归：早先只校验「有没有 `> 状态：`」，于是「**待作者拍板 + 待 Dev 会签**。这是决策记录…」
+  // 这种整句也能过。实测 10 份文档用了 9 种自由词，其中四种指同一件事。
+  const root = scratch()
+  try {
+    write(root, 'docs/README.md', '')
+    const four = '## 1. 要解决的问题\n## 2. 关键取舍与不选什么\n## 3. 验收标准\n## 4. 待确认\n'
+    write(root, 'docs/设计/整句式.md', `# x\n\n> 状态：**待作者拍板 + 待 Dev 会签**。这是决策记录。\n\n${four}`)
+    assert.throws(() => checkDesignDocs(root), /unknown status/)
   } finally { cleanup(root) }
 })
 
@@ -70,14 +83,95 @@ test('statusOf accepts both colon widths and requires a blockquote', () => {
   assert.equal(statusOf('正文里提到状态：xx'), null)
 })
 
-test('walkDocs skips adr and non-markdown', () => {
+test('every status in the set is accepted and nothing else is', () => {
+  for (const status of STATUSES) {
+    const root = scratch()
+    try {
+      write(root, 'docs/README.md', '')
+      const four = '## 1. 要解决的问题\n## 2. 关键取舍与不选什么\n## 3. 验收标准\n## 4. 待确认\n'
+      const successor = status === '已废弃' ? '\n被取代：另一份。\n' : ''
+      write(root, 'docs/设计/a.md', `# x\n\n> 状态：${status}\n\n${four}${successor}`)
+      assert.equal(checkDesignDocs(root).designs, 1, `${status} 应当合法`)
+    } finally { cleanup(root) }
+  }
+  assert.throws(() => assertStatus('> 状态：待作者审查', 'x'), /unknown status/)
+})
+
+test('design plans must carry all four sections; 记录 is exempt', () => {
+  const root = scratch()
+  try {
+    write(root, 'docs/README.md', '')
+    // 缺「关键取舍」→ 拦
+    write(root, 'docs/设计/缺段.md', '# x\n\n> 状态：草案\n\n## 要解决的问题\n## 验收标准\n## 待确认\n')
+    assert.throws(() => checkDesignDocs(root), /missing required sections/)
+    // 标为「记录」后免四段——研究报告/盘点结论不打算建成什么，硬塞验收标准只会写出空话
+    write(root, 'docs/设计/缺段.md', '# x\n\n> 状态：已定\n> 类型：记录\n\n## 结论\n')
+    assert.equal(checkDesignDocs(root).designs, 1)
+  } finally { cleanup(root) }
+})
+
+test('已废弃 must name a successor or declare the conclusion void', () => {
+  const root = scratch()
+  try {
+    write(root, 'docs/README.md', '')
+    const four = '## 1. 要解决的问题\n## 2. 关键取舍与不选什么\n## 3. 验收标准\n## 4. 待确认\n'
+    write(root, 'docs/设计/无后代.md', `# x\n\n> 状态：已废弃\n\n${four}`)
+    assert.throws(() => checkDesignDocs(root), /names no successor/)
+    // 换成指名取代者的版本——必须把上一份删掉，否则它仍在目录里、仍会报错
+    fs.unlinkSync(path.join(root, 'docs/设计/无后代.md'))
+    write(root, 'docs/设计/有后代.md', `# x\n\n> 状态：已废弃\n\n被取代：另一份。\n\n${four}`)
+    assert.equal(checkDesignDocs(root).designs, 1)
+    // 「结论作废」是另一种合法写法：没有后代，但明确说了别照它做
+    write(root, 'docs/设计/有后代.md', `# x\n\n> 状态：已废弃\n\n结论作废，不再有后续方案。\n\n${four}`)
+    assert.equal(checkDesignDocs(root).designs, 1)
+  } finally { cleanup(root) }
+})
+
+test('walkDocs covers adr, agents and the root glossary', () => {
   const root = scratch()
   try {
     write(root, 'docs/README.md', '')
     write(root, 'docs/adr/0001-x.md', '# adr')
+    write(root, 'docs/agents/domain.md', '# d')
     write(root, 'docs/设计/a.md', '# a')
     write(root, 'docs/note.txt', 'x')
-    assert.deepEqual(walkDocs(root), ['docs/README.md', 'docs/设计/a.md'])
+    write(root, 'GLOSSARY.md', '# g')
+    // 回归：早先显式跳过 adr，于是新增 ADR 可以永远不进索引，等于允许「没人能找到的文档」。
+    assert.deepEqual(walkDocs(root), ['GLOSSARY.md', 'docs/README.md', 'docs/adr/0001-x.md', 'docs/agents/domain.md', 'docs/设计/a.md'])
+  } finally { cleanup(root) }
+})
+
+test('documented tool and skill counts must match the code', () => {
+  const root = scratch()
+  try {
+    write(root, 'packages/bundle/src/tool-spec.ts',
+      "export const TOOL_SPECS = [\n  { name: 'a', register: 'author' },\n  { name: 'b', register: 'author' },\n  { name: 't', register: 'test-only' },\n]\n")
+    write(root, 'packages/bundle/skills/novel-a/SKILL.md', '# a')
+    write(root, 'packages/bundle/skills/novel-b/SKILL.md', '# b')
+    assert.equal(countsFromCode(root).authorTools, 2)
+    assert.equal(countsFromCode(root).skills, 2)
+    write(root, 'docs/README.md', '')
+    write(root, 'docs/x.md', '共 2 个作者可用工具，共 2 个技能。')
+    assert.equal(checkCounts(root).ok, true)
+    // 计数写错 → 拦。回归：技术文档曾长期写 31，实际 32。
+    write(root, 'docs/x.md', '共 31 个作者可用工具。')
+    assert.throws(() => checkCounts(root), /disagree with code/)
+  } finally { cleanup(root) }
+})
+
+test('documented pnpm scripts must exist, and pnpm builtins are allowed', () => {
+  const root = scratch()
+  try {
+    write(root, 'package.json', JSON.stringify({ scripts: { test: 'vitest run', 'check:docs': 'node x.mjs' } }))
+    write(root, 'docs/README.md', '')
+    write(root, 'docs/ok.md', '跑 `pnpm test` 和 `pnpm check:docs`，先 `pnpm install`。')
+    assert.equal(checkPnpmScripts(root).ok, true)
+    // 回归：技术设计里写过 `pnpm vitest run`——vitest 不是脚本，得写 `pnpm exec vitest`。
+    write(root, 'docs/bad.md', '跑 `pnpm vitest run`。')
+    assert.throws(() => checkPnpmScripts(root), /do not exist/)
+    // 名词短语不该被当成命令
+    write(root, 'docs/bad.md', '依赖版本已收敛 pnpm catalog（四组单源）。')
+    assert.equal(checkPnpmScripts(root).ok, true)
   } finally { cleanup(root) }
 })
 
