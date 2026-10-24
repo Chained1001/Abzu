@@ -17,7 +17,7 @@ Read `GLOSSARY.md` first. It is the canonical layer: it carries the terms whose 
 
 | Vocabulary | Lives in | Scope |
 | --- | --- | --- |
-| 全量创作域词条（约 55 条） | [产品文档 §9 术语表](../产品文档.md) | 产品与书仓语义 |
+| 全量创作域词条（约 55 条） | [产品文档 §9 术语表](../产品/是什么.md) | 产品与书仓语义 |
 | 书仓格式：目录结构、状态标注、`定稿/卷NN/` 命名、前后台留白规则 | [标准/书仓格式](../标准/书仓格式.md) | 文件与路径事实 |
 | 工程契约：写侧 `throw` / 读侧 `{ok:false, reason}`、真源写入器、导出面纪律 | [标准/工程规范](../标准/工程规范.md) | 代码约定 |
 
@@ -33,4 +33,4 @@ When the concept you need isn't in `GLOSSARY.md` or the tables, that's a signal:
 
 Creating one is rare by design: an ADR earns its place only when the decision is **hard to reverse**, **surprising without context**, and **the result of a real trade-off** between genuine alternatives. Two of the three is not enough — put those in the standards instead. Use the `NNNN-slug.md` numbering and keep the body short; a single paragraph plus the rejected alternatives is the usual shape.
 
-The rejected-structural-investments list in `docs/技术文档.md` §12 第 13 条 records things we decided **not** to do — read it before proposing to restructure those areas; re-suggesting a recorded non-goal wastes a review round.
+The rejected-structural-investments list in `docs/技术/现状.md` §12 第 13 条 records things we decided **not** to do — read it before proposing to restructure those areas; re-suggesting a recorded non-goal wastes a review round.

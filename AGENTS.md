@@ -28,8 +28,8 @@ Windows 为主开发环境。许可证 GPL-3.0-only。
 | 碰到偶发失败 / 超时 / 并发问题 | 同上 §9「偶发失败诊断」—— 分清慢与错、隔离变量、瞬时错误与重试预算 |
 | 改书仓格式、状态推导、读写路径 | [标准/书仓格式](docs/标准/书仓格式.md) |
 | 改运行时技能、判据件、任务包 | [标准/技能编写规范](docs/标准/技能编写规范.md) |
-| 改架构、发版、找开发命令 | [技术文档](docs/技术文档.md) |
-| 改创作流程、术语、作者确认点 | [产品文档](docs/产品文档.md) |
+| 改架构、发版、找开发命令 | [技术/现状](docs/技术/现状.md) |
+| 改创作流程、术语、作者确认点 | [产品/怎么走](docs/产品/怎么走.md)、[术语](docs/产品/术语.md) |
 
 ## 硬约束（违反会直接出问题）
 
@@ -81,5 +81,5 @@ Issue 与规格记在 GitHub Issues（`Chained1001/Abzu`），用 `gh` CLI 操�
 
 ### Domain docs
 
-单上下文：根目录 `GLOSSARY.md` ＋ `docs/adr/`。术语以 `GLOSSARY.md` 为准，全量词条在产品文档 §9；ADR 只在「难以逆转 + 无背景会意外 + 真有权衡」三条同时成立时新建。见 [docs/agents/domain.md](docs/agents/domain.md)。
+单上下文：根目录 `GLOSSARY.md` ＋ `docs/adr/`。术语以 `GLOSSARY.md` 为准，创作域词条在 [产品/术语](docs/产品/术语.md)；ADR 只在「难以逆转 + 无背景会意外 + 真有权衡」三条同时成立时新建。见 [docs/agents/domain.md](docs/agents/domain.md)。
 

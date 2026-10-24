@@ -337,7 +337,7 @@ describe('两份自证型台账退役（证据台账、标尺使用日志）', (
     }
     expect(offenders, `skills 文档不得再指已退役件：${offenders.join('、')}`).toEqual([])
 
-    const docs = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '产品文档.md'), 'utf8')
+    const docs = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '产品', '怎么走.md'), 'utf8')
     expect(docs, '产品文档不得再提证据台账').not.toContain('证据台账')
   })
 })

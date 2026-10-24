@@ -2677,7 +2677,7 @@ describe('skills 批次防回退断言组（0.0.14 模板批起）', () => {
     }
     expect(scale).toContain('## 附：体量对账')
     expect(scale).toContain('倍率单源在本行')
-    const techDoc = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '技术文档.md'), 'utf8')
+    const techDoc = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', '标准', '判据体系.md'), 'utf8')
     expect(techDoc).toContain('**参考标尺的校准沿革**')
     // B. 雷点清单：断更/太监行删除、差评与新书期/基本盘措辞改读者体验、变更记录移出
     const mines = ref('novel-design', 'references/雷点清单.md')
@@ -3514,7 +3514,7 @@ describe('skills 批次防回退断言组·0.0.65 门禁单源批', () => {
     const bundleGates = fs.readFileSync(path.join(root, 'packages/bundle/src/gates.ts'), 'utf8')
     expect(bundleGates).toContain('decideBookWrite')
     expect(bundleGates, 'bundle 不应再自行组合写稿门槛').not.toMatch(/gateWriteDraft\s*\(/)
-    const docs = fs.readFileSync(path.join(root, 'docs/技术文档.md'), 'utf8')
+    const docs = fs.readFileSync(path.join(root, 'docs/技术/现状.md'), 'utf8')
     expect(docs).toContain('文件工具写入不受 Abzu 门禁保护')
     expect(fs.existsSync(path.join(root, 'packages/core/tests/gate-decide.spec.ts'))).toBe(true)
     expect(fs.existsSync(path.join(root, 'packages/bundle/tests/gate-invariants.spec.ts'))).toBe(true)
@@ -3617,7 +3617,7 @@ describe('skills 批次防回退断言组·0.0.72 v2.9 步骤消费批', () => {
     expect(read('packages/bundle/skills/novel-revision/SKILL.md')).toContain('三层修订法')
     expect(read('packages/bundle/skills/novel-outline/templates/步骤卡-章细纲.md')).toContain('黄金三章分工做软检查')
     expect(read('docs/标准/工程规范.md')).toContain('patch 作批次号')
-    expect(read('docs/产品文档.md')).toContain('三行必报')
+    expect(read('docs/产品/怎么走.md')).toContain('三行必报')
   })
 })
 

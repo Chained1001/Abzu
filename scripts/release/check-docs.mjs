@@ -267,7 +267,7 @@ export function checkPnpmScripts(root) {
 export const CONTRACTS = [
   {
     signal: 'packages/bundle/src/tool-spec.ts',
-    docs: ['docs/技术文档.md'],
+    docs: ['docs/技术/现状.md'],
     why: '工具身份表变了，技术文档 §3 的工具清单要跟着变',
   },
   {
@@ -332,7 +332,7 @@ export function checkContracts(root, { base = 'HEAD', only } = {}) {
     if (contract.docs.some(doc => changed.has(doc))) continue
     violations.push({ signal: contract.signal, docs: contract.docs, why: contract.why })
   }
-  const EXPORT_DOC = 'docs/技术文档.md'
+  const EXPORT_DOC = 'docs/技术/现状.md'
   for (const file of EXPORT_INDEXES) {
     if (!changed.has(file)) continue
     if (!changedExportSurface(root, base, file)) continue

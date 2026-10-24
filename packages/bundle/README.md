@@ -38,7 +38,7 @@ dsh --profile abzu --dump-config
 
 ## 文档与声明
 
-当前版本 0.0.88。产品流程与技术说明见源码仓库的 `docs/产品文档.md` 与 `docs/技术文档.md`。
+当前版本 0.0.88。产品流程与技术说明见源码仓库的 `docs/产品/` 与 `docs/技术/`。
 
 第三方组件的原始声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，许可证文本随包放在 licenses/。
 
