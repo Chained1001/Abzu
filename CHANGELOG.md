@@ -15,6 +15,16 @@
 - **新增 `tool-spec.spec.ts` 三向 join 测试**：表序 ⟷ 真实注册集、`NOVEL_TOOL_NAMES` ⟷ 投影、核心 `写入类工具` ⟷ `receipt` 标记。core 为保持纯函数与独立性仍自存一份回执名单，这条断言就是那份名单与表的对撞点。
 - **删掉一条同义反复的测试**：`tool-result.spec.ts` 原先断言 `novelToolTitles` 的键集合等于 `NOVEL_TOOL_NAMES`；两边改为同源后该断言恒真，留着只是假覆盖。改由编译期（`title` 必填、`stage` 为 `WorkflowStage | null`）与阶段值合法性断言承担。
 
+### 跟进上游 webnovel-writer `scriptor-v8.3.1` 的三处修复
+
+- **脚本运行库与宿主面分开**：技能薄入口按 `node <resourceBase>/scripts/…` 直跑，那是普通 Node 进程，没有宿主的 `node_modules`；而 `lib/index.js` 把 `@deepseek-ai/*` 留作 external 交给宿主提供，所以在宿主外必然 `Cannot find package`。新增 `lib/cli.js`（`src/cli.ts` 入口），把 11 个 CLI 能力内联成**只依赖 Node 内置**的产物，业务实现仍是同一份源码；11 个薄入口改指 `lib/cli.js`。
+  - 顺带修掉一处只有装完才会暴露的漏洞：`files` 里原先没有 `lib/cli.js`，装出来根本不会有这个文件。
+  - 新增两道门禁：构建期 `checkCliDependencies` 拒绝任何非内置依赖与宿主运行时内联；`pack-check` 在解包目录里**真跑一遍 11 个薄入口**，出现 `Cannot find package/module` 即失败。
+- **侧栏缩窄不再裁切**：`.nw-native-workspaces` 的子项是横向 flex 项，`min-width` 默认 `auto` 不会缩到内容固有宽度以下，父级 `overflow:hidden` 就把它裁掉。补 `.nw-native-workspaces>*{min-width:0}`，并给 `.nw-study` 补 `min-width:0`。
+- **依赖安全补丁**：`dompurify` 3.4.16 → 3.4.17，`markdown-it` 14.3.1 → 14.3.3（与上游 8.3.1 一致）。
+
+上游 8.2.2 的「写作模式」、8.3.0 的写作委派重写与书稿编辑器功能**未跟进**：前者与 Abzu「装进来就是写作环境」的形态冲突，后者是大范围设计改动，不属于补丁。
+
 ## [0.0.88] — 2026-10-20
 
 提案回执层：让模型看见自己上一批写入到底成没成。
