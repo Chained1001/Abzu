@@ -10,8 +10,12 @@ catalog:
   yaml: ^2.5.0
   '@deepseek-ai/dsh-user-questions': 0.2.1-rc.3
 # GHSA-68fv-2mgg-jv7q: keep the test toolchain on the patched source-map parser.
+# GHSA-587h-7wmj-h5pm: vite 8.3.0–8.3.2 的存在性检查可被绕过;由 vitest 带入,升到 8.3.5。
+# GHSA-mrhx-c7xc-m3w5: zod <4.6.6 校验超大输入可耗尽内存;DSH 声明 ^4.4.3,caret 允许升到 4.6.7。
 overrides:
   'source-map-js@<1.2.2': '1.2.2'
+  'vite@>=8.3.0 <8.3.3': '8.3.5'
+  'zod@<4.6.6': '4.6.7'
 # pnpm 10+ 默认阻断依赖构建脚本；仅放行构建/测试确实需要的原生组件
 allowBuilds:
   esbuild: true

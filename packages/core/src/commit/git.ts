@@ -28,6 +28,22 @@ export interface GitCommandResult {
 /** git 调用统一 120s 超时(批F):书锁临界区内不设界会让挂起的 git(交互式钩子/坏仓)卡死整个写入面。 */
 const GIT_TIMEOUT_MS = 120_000
 
+/**
+ * 提交身份兜底:书仓是工具无人值守写入的,不能假设跑它的机器配过
+ * `git config --global user.*`——CI runner 与新装机用户都没有,届时 commit 会以
+ * `Author identity unknown` 失败。优先沿用作者已配的身份(尊重作者署名);
+ * 没有时才用本仓约定的 `abzu` 身份,与建书首提交(`book/create.ts`)一致。
+ * 用环境变量而非 `git config` 写入:不污染作者书仓的 `.git/config`,也不依赖写入权限。
+ */
+function identityEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {}
+  if (!process.env.GIT_AUTHOR_NAME) env.GIT_AUTHOR_NAME = 'abzu'
+  if (!process.env.GIT_AUTHOR_EMAIL) env.GIT_AUTHOR_EMAIL = 'abzu@local'
+  if (!process.env.GIT_COMMITTER_NAME) env.GIT_COMMITTER_NAME = 'abzu'
+  if (!process.env.GIT_COMMITTER_EMAIL) env.GIT_COMMITTER_EMAIL = 'abzu@local'
+  return env
+}
+
 export function runGit(bookRoot: string, args: readonly string[], env?: NodeJS.ProcessEnv): GitCommandResult {
   const r = spawnSync('git', args, {
     cwd: bookRoot,
@@ -63,7 +79,7 @@ export function commitWithIsolatedIndex(
   const staged = runGit(bookRoot, ['--literal-pathspecs', 'diff', '--cached', '--quiet', '--', ...dests])
   if (staged.status === 0) return { status: 1, noChanges: true, stderr: '无实质变更', stdout: '' }
   if (staged.status !== 1) return staged
-  const result = runGit(bookRoot, ['--literal-pathspecs', 'commit', '--only', '-m', message, '--', ...dests])
+  const result = runGit(bookRoot, ['--literal-pathspecs', 'commit', '--only', '-m', message, '--', ...dests], identityEnv())
   if (result.status === 0) {
     let sessionId: string | undefined
     try { sessionId = currentBookProvenance(bookRoot)?.sessionId } catch { /* No observer can change a committed result. */ }
