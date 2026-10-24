@@ -17,6 +17,8 @@
     "lint": "eslint packages scripts",
     "check:public": "node scripts/release/check-public-tree.mjs",
     "check:version": "node scripts/release/version.mjs --check",
+    "check:docs": "node scripts/release/check-docs.mjs",
+    "check:dsh": "node scripts/release/check-dsh-version.mjs",
     "test:release": "node --test scripts/release/tests/*.test.mjs",
     "release:build": "node scripts/release/build.mjs",
     "lint:fix": "eslint --fix packages scripts",

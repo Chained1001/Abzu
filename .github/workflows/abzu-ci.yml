@@ -30,6 +30,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:public
       - run: pnpm check:version
+      # 契约耦合要对着本次改动的真实起点比，不能用 origin/master：
+      # PR 用 base.sha，push 用 before。两者都取不到时退回 HEAD（只查索引完整性）。
+      - name: Documentation index and contract coupling
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD' }}
+        run: pnpm check:docs --base="$BASE"
       - run: pnpm audit --audit-level=high
       - run: pnpm lint
       - run: pnpm test:release
