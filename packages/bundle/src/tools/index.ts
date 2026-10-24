@@ -29,9 +29,8 @@
 
 import { withBookWrite, withBookWriteAsync } from '@abzu/core'
 import { validateJsonSchemaValue, type JsonSchemaNode } from '@deepseek-ai/dsh-tools'
-import { NATIVE_DESIGN_TOOLS } from '../design-commit-result'
 
-import { REFERENCE_TOOL_NAMES } from '../reference/tools'
+import { TOOL_SPECS, specOf, toolNamesOf } from '../tool-spec'
 import { createReferenceToolSet } from './reference-tools'
 import { createDesignTools } from './design-tools'
 import { createOutlineTools } from './outline-tools'
@@ -45,46 +44,18 @@ import { createToolShared, provenanceOf, type NovelToolDefinition, type NovelToo
 export type { AgentLike, ToolExecContext, NovelToolDefinition, NovelToolsDeps } from './shared'
 
 /**
- * 小说工具名单一事实来源（dsh 运行时对齐批）：作者环境下主 Agent scoped 注册的全集。
- * 一致性由测试保证：本表与 `createNovelTools(stub).map(t => t.name)` 逐项相等。
+ * 作者环境下主 Agent scoped 注册的全集。**对本表的投影**，不再是独立字面量。
+ *
+ * 历史顺序保留在 `TOOL_SPECS` 的行序里，故本名单与 `createNovelTools(stub).map(t => t.name)`
+ * 仍逐项相等（`novel-tools.spec` 钉死）。
  */
-export const NOVEL_TOOL_NAMES: readonly string[] = [
-  ...REFERENCE_TOOL_NAMES,
-  'novel_select_book',
-  'novel_create_book',
-  'novel_update_contract',
-  'novel_get_story_status',
-  'novel_search_finalized',
-  'novel_index_manage',
-  'novel_prepare_pack',
-  'novel_settle_chapter',
-  'novel_new_outline_draft',
-  'novel_confirm_outline',
-  'novel_update_full_outline',
-  'novel_update_volume_layout',
-  'novel_roll_window',
-  'novel_confirm_worldbook_entry',
-  'novel_confirm_volume_outline',
-  'novel_assemble_materials',
-  'novel_apply_revision',
-  'novel_apply_revision_batch',
-  'novel_import_draft',
-  'novel_record_review_findings',
-  'novel_record_polish',
-  'novel_review_summary',
-  'novel_record_proposal',
-  'novel_resolve_proposal',
-  'novel_apply_retcon',
-  'novel_note_pending',
-  'novel_get_book_progress',
-  'novel_editor_suggest',
-]
+export const NOVEL_TOOL_NAMES: readonly string[] = toolNamesOf('author')
 
 /**
  * 测试/走查专用工具：只在 `deps.testTools` 为真时注册，不进 NOVEL_TOOL_NAMES。
  * seed 只写占位确认态（各部只有「已确认」标注、没有正文），不得作为作者的开写入口。
  */
-export const NOVEL_TEST_TOOL_NAMES: readonly string[] = ['novel_seed_min_design']
+export const NOVEL_TEST_TOOL_NAMES: readonly string[] = toolNamesOf('test-only')
 
 /**
  * 统一入参校验（P2-2）：execute 前先按各工具声明的 parameters 过一遍 JSON Schema
@@ -121,10 +92,11 @@ function declareOutputCode(tool: NovelToolDefinition): NovelToolDefinition['outp
 
 export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
   const shared = createToolShared(deps)
-  // 域文件按域分组收集，注册顺序按 NOVEL_TOOL_NAMES 还原（novel-tools.spec 钉死逐项相等）；
-  // 名单外工具（测试专用 seed）不在名单内，保持收集序。
-  const rank = new Map(NOVEL_TOOL_NAMES.map((name, i) => [name, i]))
-  const tools: NovelToolDefinition[] = [
+  // 域文件按域分组收集；注册顺序由 TOOL_SPECS 的行序决定（表序即注册序）。
+  // 原先这里是按 NOVEL_TOOL_NAMES 的索引重排——两份顺序存在才有意义；现在名单
+  // 是表的投影，两套顺序合一，排序的**来源**改为表本身。
+  const produced = new Map<string, NovelToolDefinition>()
+  for (const tool of [
     ...createReferenceToolSet(shared),
     ...createDesignTools(shared),
     ...createOutlineTools(shared),
@@ -132,31 +104,27 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
     ...createReviewTools(shared),
     ...createRevisionTools(shared),
     ...createSettleTools(shared),
-  ]
-    .map((tool, order) => ({ tool, order }))
-    .sort((a, b) => {
-      const ra = rank.get(a.tool.name)
-      const rb = rank.get(b.tool.name)
-      if (ra === undefined || rb === undefined) return a.order - b.order
-      return ra - rb
-    })
-    .map((entry) => entry.tool)
+  ]) {
+    produced.set(tool.name, tool)
+  }
+  // 两个方向都必须是空的，否则就是表与域文件漂移（新增工具忘了加行／加了行忘了实现）。
+  const 表外工具 = [...produced.keys()].filter((name) => specOf(name) === undefined)
+  if (表外工具.length > 0) {
+    throw new Error(`工具未在 tool-spec.ts 登记身份：${表外工具.join('、')}——锁/回执/标题无法推导，拒绝注册`)
+  }
+  const 缺实现 = TOOL_SPECS.filter((spec) => !produced.has(spec.name)).map((spec) => spec.name)
+  if (缺实现.length > 0) {
+    throw new Error(`tool-spec.ts 登记了未实现的工具：${缺实现.join('、')}——请补上域文件或删掉表行`)
+  }
+  const tools: NovelToolDefinition[] = TOOL_SPECS.map((spec) => produced.get(spec.name)!)
 
   // Tool calls are the product write boundary. Keep the read-modify-write
   // portion of synchronous mutations under the same book lock that protects
   // the final atomic file replacement. Approval tools remain async and take
   // their lock in the final write services after the author decision.
-  const locked = new Set([
-    'novel_new_outline_draft', 'novel_prepare_pack',
-    'novel_update_contract', 'novel_seed_min_design', 'novel_confirm_outline',
-    'novel_update_full_outline', 'novel_update_volume_layout', 'novel_roll_window',
-    'novel_confirm_worldbook_entry', 'novel_confirm_volume_outline',
-    'novel_assemble_materials', 'novel_apply_revision', 'novel_apply_revision_batch',
-    'novel_import_draft', 'novel_record_review_findings', 'novel_record_polish', 'novel_record_proposal',
-    'novel_resolve_proposal', 'novel_note_pending',
-  ])
-  const nativeTools = NATIVE_DESIGN_TOOLS
-  const registered = deps.testTools === true ? tools : tools.filter((tool) => !NOVEL_TEST_TOOL_NAMES.includes(tool.name))
+  const registered = deps.testTools === true
+    ? tools
+    : tools.filter((tool) => specOf(tool.name)?.register === 'author')
   /**
    * 书锁/写路径兜底失败的结构化返回。
    *
@@ -170,15 +138,21 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
   })
   // 入参校验包在最外层：schema 违规在拿书锁之前就拒（纯 CPU 检查不必进 withBookWrite）。
   return registered.map((tool) => {
-    if (!locked.has(tool.name)) return tool
-    return {
+    const spec = specOf(tool.name)
+    if (spec === undefined) {
+      // specOf 在上面已双向校验过，走到这里说明表在注册期间被改（不可变数据，理论不可达）。
+      throw new Error(`工具 ${tool.name} 无身份登记`)
+    }
+    if (spec.lock !== 'book-sync' && spec.lock !== 'book-async') return withInputValidation(tool)
+    const 异步写 = spec.lock === 'book-async'
+    return withInputValidation({
       ...tool,
       execute: (args: Record<string, unknown>, sessionContext?: ToolExecContext) => {
         const bookId = args['bookId'] === undefined ? '' : String(args['bookId']).trim()
         const root = bookId === '' ? undefined : deps.bookRootOfBookId(bookId, sessionContext?.agent)
         if (root === undefined) return tool.execute(args, sessionContext)
         try {
-          if (nativeTools.has(tool.name)) {
+          if (异步写) {
             return withBookWriteAsync(root, async () => tool.execute(args, sessionContext), provenanceOf(sessionContext))
               .catch((error: unknown) => 写路径兜底失败(tool.name, error))
           }
@@ -187,6 +161,6 @@ export function createNovelTools(deps: NovelToolsDeps): NovelToolDefinition[] {
           return 写路径兜底失败(tool.name, error)
         }
       },
-    }
-  }).map(withInputValidation)
+    })
+  })
 }

@@ -1,22 +1,14 @@
 import type { ToolCallPhaseProps } from '@deepseek-ai/dsh-client-ui-tool/client'
 import { isStoppedError } from '../study/workflow-types'
+import { TOOL_SPECS } from '../tool-spec'
 
-export const novelToolTitles: Readonly<Record<string, string>> = {
-  novel_reference_source: '管理参考小说', novel_reference_analyze: '渐进拆解小说',
-  novel_reference_query: '查找参考机制', novel_reference_report: '保存拆书成果',
-  novel_select_book: '选择作品', novel_create_book: '创建作品', novel_update_contract: '更新作品契约',
-  novel_get_story_status: '查看写作状态', novel_search_finalized: '检索定稿', novel_index_manage: '管理检索索引',
-  novel_prepare_pack: '准备定稿包', novel_settle_chapter: '定稿入档', novel_new_outline_draft: '准备大纲草案',
-  novel_confirm_outline: '确认大纲', novel_update_full_outline: '更新全书大纲', novel_update_volume_layout: '更新分卷布局',
-  novel_roll_window: '更新近期窗口', novel_confirm_worldbook_entry: '确认世界书', novel_confirm_volume_outline: '确认卷纲',
-  novel_assemble_materials: '组装写作材料', novel_apply_revision: '应用改稿', novel_apply_revision_batch: '应用批次改稿',
-  novel_import_draft: '导入草稿', novel_record_review_findings: '记录审读结果', novel_record_polish: '记录润色承接',
-  novel_record_proposal: '记录提案',
-  novel_resolve_proposal: '处置提案', novel_apply_retcon: '应用吃书补偿',
-  novel_note_pending: '记录待补事项', novel_get_book_progress: '查看作品进度',
-  novel_review_summary: '汇总审读结果',
-  novel_editor_suggest: '交回编辑建议',
-}
+/**
+ * 结果卡标题 = 对 `TOOL_SPECS` 的投影（只取作者环境注册的工具）。
+ * 原先是独立字面量，与本表的登记靠一条测试对撞；现在同源，漂移不可能发生。
+ */
+export const novelToolTitles: Readonly<Record<string, string>> = Object.fromEntries(
+  TOOL_SPECS.filter((spec) => spec.register === 'author').map((spec) => [spec.name, spec.title]),
+)
 
 export interface NovelResultModel {
   state: 'preparing' | 'running' | 'success' | 'attention' | 'error' | 'stopped' | 'unknown'

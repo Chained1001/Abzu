@@ -2,6 +2,19 @@
 
 > 当前版本 0.0.88。更早版本见 git 历史；本文件只保留最近几次发布。
 
+## [未发布]
+
+### 工具身份收成一张表（`packages/bundle/src/tool-spec.ts`）
+
+- **一份声明替掉六份名单**：此前「一个工具是什么」被抄在六个 module 里——`tools/index.ts` 的 `locked`(19 项)、`design-commit-result.ts` 的 `NATIVE_DESIGN_TOOLS`(6 项)、`derive/receipt.ts` 的 `写入类工具`(21 项)、`client/tool-result.ts` 的 `novelToolTitles`(32 项)、`study/workflow-types.ts` 的 `toolStages`(17 项)、以及 `NOVEL_TOOL_NAMES`。新增一个工具要改六处，漏一处是静默失效：漏锁丢原子性，漏标题让卡片露出原始工具名。
+- **表里一行七个字段**：`name` / `title` / `stage` / `register` / `lock` / `designIdempotence` / `receipt`。`parameters` 与 `execute` 留在各域文件——那是每个工具真正的 interface，与实现强耦合。
+- **锁作用域写成四值数据**：`book-sync`(工具层同步锁) / `book-async`(批准类异步锁) / `core-only`(锁在 core 的 `bookWriter` 里) / `workspace`(参考书四件走 `referenceLocked`，作用域不是 bookRoot)。此前这三分法只存在于注释里。
+- **拆开一个隐形的概念耦合**：`NATIVE_DESIGN_TOOLS` 同时兼「异步写」与「参与设计幂等查重」两职，现拆为 `lock === 'book-async'` 与 `designIdempotence`。今日两者同集，但将来出现「异步写但不查重」的工具时不会被绑死。
+- **注册顺序的来源改为表本身**：删除按 `NOVEL_TOOL_NAMES` 索引重排的 `rank` 逻辑；表序即注册序。`NOVEL_TOOL_NAMES` / `NOVEL_TEST_TOOL_NAMES` 改为对表的投影，对外签名与顺序不变。
+- **双向漂移检测**：注册时若域文件产出表外工具、或表登记了未实现的工具，直接 `throw`（漏锁是静默丢原子性，比加载失败糟得多）。
+- **新增 `tool-spec.spec.ts` 三向 join 测试**：表序 ⟷ 真实注册集、`NOVEL_TOOL_NAMES` ⟷ 投影、核心 `写入类工具` ⟷ `receipt` 标记。core 为保持纯函数与独立性仍自存一份回执名单，这条断言就是那份名单与表的对撞点。
+- **删掉一条同义反复的测试**：`tool-result.spec.ts` 原先断言 `novelToolTitles` 的键集合等于 `NOVEL_TOOL_NAMES`；两边改为同源后该断言恒真，留着只是假覆盖。改由编译期（`title` 必填、`stage` 为 `WorkflowStage | null`）与阶段值合法性断言承担。
+
 ## [0.0.88] — 2026-10-20
 
 提案回执层：让模型看见自己上一批写入到底成没成。

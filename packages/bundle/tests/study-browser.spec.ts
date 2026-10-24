@@ -9,8 +9,11 @@ import type { ClientHost } from '../src/client/host'
 type Frame = { kind: 'ready' } | { kind: 'change'; change: { absolutePath: string } }
 const entry = (path: string, directory = false) => ({ ref: { space: 'book:a', path }, name: path.split('/').at(-1)!, directory, draft: false, absolutePath: '/w/甲/' + path })
 const trees: Record<string, object[]> = {
-  '': [entry('卷01', true), entry('设定.md'), entry('备忘.txt'), entry('配置.json'), entry('封面.png')],
+  '': [entry('卷01', true), entry('草稿区', true), entry('设定.md'), entry('备忘.txt'), entry('配置.json'), entry('封面.png')],
   '卷01': [entry('卷01/0001.md')],
+  '草稿区': [entry('草稿区/草稿', true)],
+  '草稿区/草稿': [entry('草稿区/草稿/卷01-0001-开篇任务', true)],
+  '草稿区/草稿/卷01-0001-开篇任务': [entry('草稿区/草稿/卷01-0001-开篇任务/稿1.md')],
 }
 const shelf = { workspace: '/w', books: [{ id: 'book:a', name: '甲', progress: '第1章', absolutePath: '/w/甲' }], shared: false }
 const renderers: ReactTestRenderer[] = []
@@ -55,18 +58,20 @@ function remote() {
   }
 }
 const wait = (ms = 0) => act(async () => { await new Promise(resolve => setTimeout(resolve, ms)) })
-async function mount() {
+async function mount(options: { openWorkbench?: (sessionId: string, ref: { space: string; path: string }) => void } = {}) {
   const host = { sessions: { list: { getSnapshot: () => ({ byId: { s: { retainedBy: { mainView: 1 } } } }), subscribe: () => () => {} } }, get: (name: string) => name === 'remote' ? remote() : undefined }
   let renderer!: ReactTestRenderer
   await act(async () => {
-    renderer = create(React.createElement(WorkspaceStudyTabs, { wide: true, expandSidebar() {}, renderSlot: () => null, useSessions: (() => undefined) as never, host: host as unknown as ClientHost, store: createEditorStore() }))
+    renderer = create(React.createElement(WorkspaceStudyTabs, { wide: true, expandSidebar() {}, renderSlot: () => null, useSessions: (() => undefined) as never, host: host as unknown as ClientHost, store: createEditorStore(), ...options }))
   })
   renderers.push(renderer)
   await wait(); await wait()
   return renderer
 }
 function text(node: ReactTestInstance): string { return node.children.map(child => typeof child === 'string' ? child : text(child)).join('') }
-const row = (renderer: ReactTestRenderer, name: string) => renderer.root.findAllByType('button').find(button => text(button).startsWith(name))
+// 按文件名精确匹配：`草稿区` 与 `草稿` 是不同层，用 startsWith 会串行命中上层目录。
+const row = (renderer: ReactTestRenderer, name: string) => renderer.root.findAllByType('button').find(button =>
+  button.findAll(node => (node.props?.className === 'nw-file-name' || node.type === 'strong') && text(node) === name).length > 0)
 const release = async () => { hold.clear(); for (const resolve of held.splice(0)) resolve(); await wait(); await wait() }
 
 describe('书房文件树', () => {
@@ -106,5 +111,20 @@ describe('书房文件树', () => {
     expect(icon('备忘.txt')).toBe(FileType)
     expect(icon('配置.json')).toBe(FileCode)
     expect(icon('封面.png')).toBe(File)
+  })
+
+  it('点章稿进整页工作台，点普通文档仍在右栏打开', async () => {
+    const openWorkbench = vi.fn()
+    const renderer = await mount({ openWorkbench })
+    // 普通文档：不交给工作台，照旧走右栏打开（这里只断言工作台没被调用）。
+    await act(async () => { row(renderer, '设定.md')!.props.onClick() })
+    expect(openWorkbench).not.toHaveBeenCalled()
+    // 草稿区章稿（`草稿区/草稿/卷NN-NNNN-章名/稿N.md`）交给工作台。
+    for (const name of ['草稿区', '草稿', '卷01-0001-开篇任务']) {
+      await act(async () => { row(renderer, name)!.props.onClick() })
+      await release()
+    }
+    await act(async () => { row(renderer, '稿1.md')!.props.onClick() })
+    expect(openWorkbench).toHaveBeenCalledWith('s', { space: 'book:a', path: '草稿区/草稿/卷01-0001-开篇任务/稿1.md' })
   })
 })

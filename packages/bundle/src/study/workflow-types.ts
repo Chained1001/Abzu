@@ -1,3 +1,5 @@
+import { TOOL_SPECS } from '../tool-spec'
+
 /** Display vocabulary only. These stages never schedule or authorize work. */
 export const workflowStages = [
   { id: 'idea', label: '构思', group: 'book', note: '收集灵感，确定这本书要讲什么。' },
@@ -18,13 +20,14 @@ export const workflowStages = [
 export type WorkflowStage = typeof workflowStages[number]['id']
 export type RunState = 'preparing' | 'running' | 'waiting' | 'success' | 'attention' | 'error' | 'stopped' | 'unknown'
 export const runLabels: Record<RunState, string> = { preparing: '准备中', running: '进行中', waiting: '待确认', success: '操作完成', attention: '待处理', error: '出错了', stopped: '已中断', unknown: '待核对' }
-export const toolStages: Readonly<Record<string, WorkflowStage>> = {
-  novel_create_book: 'idea', novel_update_contract: 'design', novel_confirm_worldbook_entry: 'design',
-  novel_update_full_outline: 'fullOutline', novel_update_volume_layout: 'volumes', novel_confirm_volume_outline: 'volume', novel_roll_window: 'volume',
-  novel_new_outline_draft: 'outline', novel_confirm_outline: 'outline', novel_assemble_materials: 'materials',
-  novel_import_draft: 'draft', novel_record_review_findings: 'review', novel_record_polish: 'polish', novel_apply_revision: 'revise', novel_apply_revision_batch: 'revise',
-  novel_prepare_pack: 'settle', novel_settle_chapter: 'confirm',
-}
+/**
+ * 工具 → 工作流阶段的投影。原先是独立字面量，与表靠测试对撞；现在同源。
+ * 只有 `stage !== null` 的工具出现在视图里。
+ */
+export const toolStages: Readonly<Record<string, WorkflowStage>> = Object.fromEntries(
+  TOOL_SPECS.flatMap((spec): [string, WorkflowStage][] => (spec.stage === null ? [] : [[spec.name, spec.stage]])),
+)
+
 export interface WorkflowCall {
   id: string
   name: string

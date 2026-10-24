@@ -3,11 +3,12 @@ import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import type { SessionSeq } from '@deepseek-ai/dsh-session'
 import type { commitConfirmed } from '@abzu/core'
 import type { ToolExecContext } from './novel-tools'
+import { specOf } from './tool-spec'
 
-export const NATIVE_DESIGN_TOOLS = new Set([
-  'novel_update_contract', 'novel_update_full_outline', 'novel_update_volume_layout',
-  'novel_roll_window', 'novel_confirm_worldbook_entry', 'novel_confirm_volume_outline',
-])
+/** 该工具是否参与「同一轮重复执行同一次设计侧操作」的幂等检测。口径见 `tool-spec.ts`。 */
+function 查重复空提交(name: string | undefined): boolean {
+  return name !== undefined && specOf(name)?.designIdempotence === true
+}
 
 export const DESIGN_COMMIT_FIELDS = {
   commitState: { type: 'string' as const, enum: ['committed', 'unchanged', 'not-required', 'failed'], description: '提交结果；unchanged 是成功完成，不需要补提交' },
@@ -51,7 +52,8 @@ function sameOperation(previous: unknown, args: Record<string, unknown>): boolea
 /** Read only native call/result evidence in this turn; no parallel progress or replay store. */
 export function repeatedDesignNoChange(args: Record<string, unknown>, exec?: ToolExecContext): boolean {
   const session = exec?.agent?.session
-  if (!session?.eventAt || session.seq === undefined || !exec?.name || !NATIVE_DESIGN_TOOLS.has(exec.name)) return false
+  const selfName = exec?.name
+  if (!session?.eventAt || session.seq === undefined || !查重复空提交(selfName)) return false
   const results = new Map<string, CommitState>()
   for (let seq = session.seq - 1; seq >= 0; seq--) {
     const event = session.eventAt(seq as SessionSeq)
@@ -65,15 +67,15 @@ export function repeatedDesignNoChange(args: Record<string, unknown>, exec?: Too
       const state = block.isError ? undefined : recordedState(block.content)
       if (state !== undefined) results.set(block.toolCallId, state)
     }
-    if (event.type === 'tool/call' && NATIVE_DESIGN_TOOLS.has(event.data.name) && results.has(event.data.callId)) {
+    if (event.type === 'tool/call' && 查重复空提交(event.data.name) && results.has(event.data.callId)) {
       try {
-        return results.get(event.data.callId) === 'unchanged' && event.data.name === exec.name
+        return results.get(event.data.callId) === 'unchanged' && event.data.name === selfName
           && sameOperation(JSON.parse(event.data.arguments), args)
       } catch { return false }
     }
-    if (event.type === 'tool/ptc-dispatch' && NATIVE_DESIGN_TOOLS.has(event.data.name)) {
+    if (event.type === 'tool/ptc-dispatch' && 查重复空提交(event.data.name)) {
       const state = event.data.isError ? undefined : recordedState(event.data.content)
-      if (state !== undefined) return state === 'unchanged' && event.data.name === exec.name && sameOperation(event.data.arguments, args)
+      if (state !== undefined) return state === 'unchanged' && event.data.name === selfName && sameOperation(event.data.arguments, args)
     }
   }
   return false
