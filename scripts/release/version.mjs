@@ -39,7 +39,12 @@ export function releaseVersion(directory = root, tag) {
   const skillPin = path.join(directory, 'packages/bundle/tests/skills-batches.spec.ts')
   if (fs.existsSync(skillPin)) {
     const text = fs.readFileSync(skillPin, 'utf8')
-    assert.ok(text.includes(`'${bundle.version}'`), 'skills-batches version pin is stale; update the version discipline group')
+    // 版本纪律组必须从 bundle/package.json 读版本再比对，不得写死字面量——
+    // 写死的话每次升版都要手改测试，而它守的是「四处版本一致」这个性质，不是某个具体版本。
+    assert.ok(
+      text.includes('const version = bundlePkg.version'),
+      'skills-batches version discipline group must derive the version from bundle/package.json',
+    )
   }
   return { version: bundle.version, tag: expectedTag, prerelease: bundle.version.includes('-'),
     packageName: bundle.name, filename: `abzu-${bundle.version}.tgz` }
