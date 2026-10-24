@@ -1,36 +1,40 @@
-# Domain Docs
+# 领域文档
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+工程技能在探索代码库时，怎么消费本仓的领域文档。
 
-## Before exploring, read these
+## 探索之前先读两处
 
-- **`GLOSSARY.md`** at the repo root.
-- **`docs/adr/`**: read ADRs that touch the area you're about to work in.
+- 仓库根的 **`GLOSSARY.md`**。
+- **`docs/adr/`**：读与你要动的区域相关的 ADR。
 
-The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) adds to these lazily, when a term or a decision actually gets resolved — not upfront.
+`/domain-modeling` 技能（经 `/grill-with-docs` 与 `/improve-codebase-architecture` 进入）**按需**增补这两处——等某个术语或某个决定真的定下来了才写，不预先批量生成。
 
-## Where this repo's vocabulary actually lives
+## 本仓的词汇到底住在哪
 
-**Layout: single-context.** One glossary, one ADR directory, at the repo root. The pnpm workspace has five packages, but `core` is the only one carrying domain language; `drafting`, `polish`, and `review` are thin and each holds a single smoke test. A `GLOSSARY-MAP.md` would only add empty files.
+**布局：单上下文。** 一份词表、一个 ADR 目录，都在仓库根。pnpm workspace 有五个包，但只有 `core` 承载领域语言；`drafting`、`polish`、`review` 都很薄，各自只有一个 smoke test。再拆一份 `GLOSSARY-MAP.md` 只会得到一堆空文件。
 
-Read `GLOSSARY.md` first. It is the canonical layer: it carries the terms whose meaning is easy to get wrong, the `_Avoid_` lists, and the three genuine homonyms. It deliberately does **not** restate the long product tables — for those, go to the source:
+先读 `GLOSSARY.md`。它是规范层：收录**容易被理解错的词**、`_Avoid_` 词表，以及三组同词异义。它刻意**不**复述冗长的产品表格——那些去源头看：
 
-| Vocabulary | Lives in | Scope |
+| 词汇 | 住在哪 | 范围 |
 | --- | --- | --- |
-| 全量创作域词条（约 55 条） | [产品文档 §9 术语表](../产品/是什么.md) | 产品与书仓语义 |
+| 全量创作域词条（约 55 条） | [产品/术语](../产品/术语.md) | 产品与书仓语义 |
 | 书仓格式：目录结构、状态标注、`定稿/卷NN/` 命名、前后台留白规则 | [标准/书仓格式](../标准/书仓格式.md) | 文件与路径事实 |
 | 工程契约：写侧 `throw` / 读侧 `{ok:false, reason}`、真源写入器、导出面纪律 | [标准/工程规范](../标准/工程规范.md) | 代码约定 |
 
-Take terms as `GLOSSARY.md` defines them and don't drift to the synonyms its `_Avoid_` lines reject. Three homonyms are worth stating outright, because each has burned a review round: **真源** means "confirmed book-repo facts" in the product sense but "the single authoritative copy of some datum" in the engineering sense; **回执** (proposal receipt, in-memory, shown to the model) is not **收据** (archive receipt, on disk, proves a commit happened); **审读** (one review run) is not **审核** (the review stage in the chapter flow).
+按 `GLOSSARY.md` 的定义用词，不要滑向它 `_Avoid_` 行里否掉的同义词。三组同词异义值得直接点名，每一组都烧掉过一轮评审：
 
-When the concept you need isn't in `GLOSSARY.md` or the tables, that's a signal: either you're inventing language the project doesn't use (reconsider) or there's a real gap (add it to `GLOSSARY.md` right then — don't batch).
+- **真源**：产品语境指「书仓里已确认的事实」，工程语境指「某类数据的唯一权威副本」。
+- **回执** 与 **收据**：回执是给模型看的内存内提案回执；收据是落盘的归档收据，证明某批提交发生过。两者不互换。
+- **审读** 与 **审核**：审读是一次按维度检查的运行；审核是章节流程里的阶段位置。
 
-## Flag ADR conflicts
+当你要用的概念既不在 `GLOSSARY.md` 也不在上面几张表里，这是个信号：要么你在发明这个项目不用的说法（重新考虑），要么真的有缺口（当场补进 `GLOSSARY.md`，不要攒着）。
 
-`docs/adr/` holds the accepted architectural decisions. If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
+## 撞上 ADR 要明说
 
-> _Contradicts ADR-0001 (design docs as a fourth class), but worth reopening because…_
+`docs/adr/` 存的是已接受的架构决策。如果你的产出与既有 ADR 冲突，明确提出来，不要悄悄推翻：
 
-Creating one is rare by design: an ADR earns its place only when the decision is **hard to reverse**, **surprising without context**, and **the result of a real trade-off** between genuine alternatives. Two of the three is not enough — put those in the standards instead. Use the `NNNN-slug.md` numbering and keep the body short; a single paragraph plus the rejected alternatives is the usual shape.
+> _与 ADR-0001（设计文档为第四类）冲突，但值得重开，因为……_
 
-The rejected-structural-investments list in `docs/技术/现状.md` §12 第 13 条 records things we decided **not** to do — read it before proposing to restructure those areas; re-suggesting a recorded non-goal wastes a review round.
+新建 ADR 刻意罕见：只有同时满足**难以逆转**、**无背景会令人意外**、**在真实备选之间做过取舍**三条，才配得上一个 ADR。三条只中两条不够——那些写进标准文档。编号用 `NNNN-slug.md`，正文要短；通常的形状是一段话加上被否掉的备选。
+
+`docs/技术/已知问题.md` 里记着一些我们决定**不做**的结构投资——提议重构那些区域之前先读一遍；重新提一个已记档的非目标，等于浪费一轮评审。
