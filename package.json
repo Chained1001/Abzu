@@ -22,7 +22,8 @@
     "test:release": "node --test scripts/release/tests/*.test.mjs",
     "release:build": "node scripts/release/build.mjs",
     "lint:fix": "eslint --fix packages scripts",
-    "audit:public": "pnpm audit --audit-level=high --registry=https://registry.npmjs.org/"
+    "audit:public": "pnpm audit --audit-level=high --registry=https://registry.npmjs.org/",
+    "hooks:install": "node scripts/release/install-hooks.mjs"
   },
   "engines": {
     "node": "^22.19.0 || ^24.0.0"

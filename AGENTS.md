@@ -56,7 +56,7 @@ pnpm check:dsh     # DSH 版本三源比对
 - **状态从文件推导**，不单独存状态。Markdown + Git 是真源。
 - **测试临时目录**：普通测试用系统 `%TEMP%`；依赖 esbuild 落盘的五个文件用 `testScratchDir()` 建在仓内 `.tmp/`（沙箱只放行工作区）。不要用 `os.tmpdir()` 建 esbuild 产物目录。
 - **`.tmp/` 与 `.scratch/` 已 gitignore**，不是交付物。
-- **仓库没有版本化 git hooks**，检查靠跑命令。
+- **git hooks 已版本化**（`.githooks/`，一个 `pre-push` 跑 `check:public`）。克隆后跑一次 `pnpm hooks:install` 才生效。
 - 文档描述现状；历史进 CHANGELOG，不在文档里写演变过程。
 
 ## 协作文档

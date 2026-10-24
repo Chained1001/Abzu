@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 const rootFiles = new Set(['.gitattributes', '.gitignore', '.npmrc', 'AGENTS.md', 'GLOSSARY.md', 'LICENSE', 'README.md', 'CHANGELOG.md', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.base.json', 'vitest.config.ts', 'eslint.config.mjs'])
 export function checkPublicPath(file) {
   assert.ok(!file.includes('\\') && !file.includes(':') && !file.startsWith('/') && !file.split('/').includes('..'), `Unsafe public path: ${file}`)
-  assert.ok(rootFiles.has(file) || /^(packages|scripts|docs|\.github)\//.test(file)
+  assert.ok(rootFiles.has(file) || /^(packages|scripts|docs|\.github|\.githooks)\//.test(file)
     || file === 'scripts/strip-types-loader.mjs', `File outside public allowlist: ${file}`)
   assert.ok(!/(^|\/)(\.trellis|\.credentials[^/]*|session[^/]*\.jsonl|node_modules|\.env(?:\..*)?|\.abzu)(\/|$)/.test(file), `Private content path: ${file}`)
   assert.notEqual(file, 'packages/bundle/dsh-local.yml', 'Local instance config is private')

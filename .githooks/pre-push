@@ -1,0 +1,30 @@
+#!/bin/sh
+# 推送前的公开内容闸。
+#
+# 为什么需要它：仓库已公开，push 即对外可见，而 check:public 靠人记着跑——忘了就是
+# 一次泄露。这个 hook 把「记得跑」变成「跑不过就推不出去」。
+#
+# 拦截内容（扫全部历史，所以能抓到已提交但还没推的东西）：个人绝对路径、API key／
+# 私钥、私有内容路径（.credentials／.env／session*.jsonl）、公开白名单外的文件。
+#
+# 只挡 push，不挡 commit 和本地改动——随便提交，推之前才拦。
+#
+# 安装：pnpm hooks:install（把 core.hooksPath 指向本目录）。
+# 紧急绕过：git push --no-verify（绕过前请先跑 pnpm check:public 看是什么）。
+
+status=0
+if command -v node >/dev/null 2>&1; then
+  node scripts/release/check-public-tree.mjs || status=$?
+else
+  echo "pre-push: 找不到 node，跳过 check:public（请手动跑 pnpm check:public）" >&2
+fi
+
+if [ "$status" -ne 0 ]; then
+  echo "" >&2
+  echo "推送已阻止：check:public 未通过。" >&2
+  echo "这条检查扫全部历史，拦的是个人路径／凭据／私有文件／白名单外路径。" >&2
+  echo "确属误报时可用 git push --no-verify 绕过，但请先看清报的是什么。" >&2
+  exit 1
+fi
+
+exit 0
